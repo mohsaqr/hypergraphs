@@ -2,18 +2,18 @@
 % Please edit documentation in R/hypergraph_communities.R
 \name{hg_compare_communities}
 \alias{hg_compare_communities}
-\alias{print.hypernets_community_comparison}
-\alias{hg_get.hypernets_community_comparison}
-\alias{plot.hypernets_community_comparison}
+\alias{print.hypergraphs_community_comparison}
+\alias{hg_get.hypergraphs_community_comparison}
+\alias{plot.hypergraphs_community_comparison}
 \title{Compare community structure across representations}
 \usage{
 hg_compare_communities(..., hg = NULL, edge_source = NULL)
 
-\method{print}{hypernets_community_comparison}(x, n = 10L, ...)
+\method{print}{hypergraphs_community_comparison}(x, n = 10L, ...)
 
-\method{hg_get}{hypernets_community_comparison}(x, what = c("summary", "similarity", "sizes", "quality"), ...)
+\method{hg_get}{hypergraphs_community_comparison}(x, what = c("summary", "similarity", "sizes", "quality"), ...)
 
-\method{plot}{hypernets_community_comparison}(x, what = c("sizes", "similarity"), ...)
+\method{plot}{hypergraphs_community_comparison}(x, what = c("sizes", "similarity"), ...)
 }
 \arguments{
 \item{...}{For \code{plot}, unused.}
@@ -26,7 +26,7 @@ projection its own fit used, and the scores are available as
 \item{edge_source}{Hyperedge sources for the citation and self-association
 projections when scoring, as in \code{\link[=hg_project]{hg_project()}}.}
 
-\item{x}{A \code{hypernets_community_comparison} object.}
+\item{x}{A \code{hypergraphs_community_comparison} object.}
 
 \item{n}{Number of rows of the default table to print. Default \code{10}.}
 
@@ -34,7 +34,7 @@ projections when scoring, as in \code{\link[=hg_project]{hg_project()}}.}
 or \code{"quality"}.}
 }
 \value{
-A \code{hypernets_community_comparison} object. \code{hg_get()} returns
+A \code{hypergraphs_community_comparison} object. \code{hg_get()} returns
 its \code{"summary"} (default; one row per fit with \code{model}, \code{medoid_seed},
 \code{n_communities}, \code{n_singletons}, \code{n_nontrivial}, \code{largest_size},
 \code{second_size} and \code{balance} = second / largest), \code{"similarity"} (one

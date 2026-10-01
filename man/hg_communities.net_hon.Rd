@@ -31,7 +31,7 @@ when \code{partition} is given, except for the first-order search.}
 caller's random-number stream is restored on exit.}
 
 \item{...}{Must be empty: an argument that only the hypergraph method
-takes raises \code{hypernets_bad_input}.}
+takes raises \code{hypergraphs_bad_input}.}
 }
 \value{
 A \code{net_hon_communities} object. Read it with \code{\link[=hg_get]{hg_get()}}:
@@ -94,8 +94,8 @@ and first-order maps of the same pathway data this way.
 }
 \section{Conditions}{
 
-\code{hypernets_bad_input} for a non-\code{net_hon} input, invalid arguments, or a
-partition that does not cover every state; \code{hypernets_not_ergodic} when
+\code{hypergraphs_bad_input} for a non-\code{net_hon} input, invalid arguments, or a
+partition that does not cover every state; \code{hypergraphs_not_ergodic} when
 \code{teleportation = 0} and the walk has no unique stationary flow.
 }
 

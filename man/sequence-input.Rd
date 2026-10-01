@@ -24,9 +24,9 @@ sequence (default \code{900}, fifteen minutes); \code{time_threshold = FALSE}
 keeps each actor or session in one sequence however long the gaps.
 \code{timezone} is the time zone of timestamps that carry none (default
 \code{"UTC"}). Events with a missing actor or session raise
-\code{hypernets_bad_input}; a missing action stays in its sequence as a
+\code{hypergraphs_bad_input}; a missing action stays in its sequence as a
 gap. Without \code{actor} all events form one sequence, announced by the
-message \code{hypernets_single_sequence}.}
+message \code{hypergraphs_single_sequence}.}
 \item{Wide data.frame or character matrix}{one sequence per row;
 trailing \code{NA}s end a sequence.}
 \item{List}{one character vector per sequence.}
@@ -38,10 +38,10 @@ call builds the same sequences there.
 
 A data.frame with columns named like an event table (\code{code}, \code{state},
 \code{user}, \code{timestamp}, ...) that is passed without \verb{action =} and has no
-\code{action} column raises \code{hypernets_long_format} (a
-\code{hypernets_bad_input}): read as wide, its actor ids and times would
+\code{action} column raises \code{hypergraphs_long_format} (a
+\code{hypergraphs_bad_input}): read as wide, its actor ids and times would
 silently become states. \code{actor}, \code{time} or \code{session} without an action
-column raises \code{hypernets_bad_input}.
+column raises \code{hypergraphs_bad_input}.
 }
 
 \keyword{internal}

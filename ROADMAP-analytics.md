@@ -3,13 +3,13 @@ Superseded by ROADMAP.md (2026-09-29); kept as history.
 # ROADMAP — analytical capability
 
 Status 2026-09-20. Companion to `ROADMAP-text.md` (constructions) and
-`EXPANSION-PLAN.md` (family structure). Those two describe what hypernets can
+`EXPANSION-PLAN.md` (family structure). Those two describe what hypergraphs can
 *represent*. This one describes what it can *conclude*, which is currently
 almost nothing.
 
 ## The gap, with evidence
 
-hypernets 0.4.8 exports 112 verbs. Grepping `R/` for `lm(`, `glm`, `lmer`,
+hypergraphs 0.4.8 exports 112 verbs. Grepping `R/` for `lm(`, `glm`, `lmer`,
 mixed effects, cluster-robust inference or `predict` returns **nothing** — the
 apparent hits are prose ("outcome states", "valid outcomes"). No verb anywhere
 accepts an outcome variable or a covariate.
@@ -47,7 +47,7 @@ per-document assignments — and all of it dead-ends.
    p-values. `p.adjust(method = "BH")` whenever many tests are computed, and
    say so in the result. Nested data gets a model that respects the nesting.
    Every stochastic result reported from multiple seeds.
-4. **Conditions** are `hypernets_*`; reuse an existing class over minting a
+4. **Conditions** are `hypergraphs_*`; reuse an existing class over minting a
    near-synonym.
 5. **Dependencies.** Base R first. A mixed-effects backend is the one place a
    new Suggests may be justified; it must be guarded at every use site.
@@ -146,7 +146,7 @@ hon_outcome(fits, outcome = scores)            # Tier A consumes it directly
 - A `net_hon_group` container with the usual four methods, so per-actor models
   are first-class rather than a list the user loops over.
 - Sparse-data guards: most actors have short sequences. Report per-actor
-  support and raise `hypernets_insufficient_support` rather than returning a
+  support and raise `hypergraphs_insufficient_support` rather than returning a
   confidently wrong per-person model.
 
 ## Tier D — the text-to-sequence bridge (prerequisite for the workflow)
@@ -215,23 +215,23 @@ one-sided change.
 Small next to A–D, but they sit on the same code and are cheap.
 
 1. **`markov_stability()` is missing.** `Nestimate` 0.9.12 exports it and the
-   JS `tnaj` has `markovStability`; hypernets is the only one of the three
-   without it. Decide: port it, or state that hypernets deliberately does not
+   JS `tnaj` has `markovStability`; hypergraphs is the only one of the three
+   without it. Decide: port it, or state that hypergraphs deliberately does not
    carry it. `extract_pathways` is in the same position.
-2. **R↔JS equivalence for the order test.** `hypernets::markov_order_test()`
+2. **R↔JS equivalence for the order test.** `hypergraphs::markov_order_test()`
    and `tnaj::markovOrderTest()` are the same method in two languages on one
    machine, never compared. CLAUDE.md mandates cross-language numerical
    equivalence, and the workspace already has a `validation/` runner
    (R→JSON→TS) built for exactly this.
 3. **The cross-package identity test does not run.**
    `Nestimate/local_testing_and_equivalence/test-equiv-honets.R:12` is
-   `skip_if_not_installed("honets")` — a package renamed to `hypernets` at
+   `skip_if_not_installed("honets")` — a package renamed to `hypergraphs` at
    0.4.0 — so it has skipped silently since the rename. Meanwhile Nestimate
-   touched the memory family on 2026-09-13 (0.9.5) and hypernets' copy last
-   moved 2026-09-06. Re-home the test **into hypernets** comparing against
+   touched the memory family on 2026-09-13 (0.9.5) and hypergraphs' copy last
+   moved 2026-09-06. Re-home the test **into hypergraphs** comparing against
    installed `Nestimate`, rather than editing Nestimate (forbidden from here).
    A read-only diff on 2026-09-20 found `markov_order.R` differing only in
-   `invisible(out)` and hypernets' added `as.data.frame.net_markov_order()` —
+   `invisible(out)` and hypergraphs' added `as.data.frame.net_markov_order()` —
    no mathematics — but the other five memory files were not audited.
 4. **The equivalence gate is misdocumented.** `CLAUDE.md:114` says
    `HYPERNETS_EQUIV_TESTS`; `helper-equiv-gate.R` reads `HONETS_EQUIV_TESTS`.

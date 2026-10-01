@@ -61,7 +61,7 @@ hg_hnhn <- function(
     seed = 1L, verbose = FALSE) {
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition("hg_hnhn() needs the torch package",
-                        class = "hypernets_missing_torch", call = NULL))
+                        class = "hypergraphs_missing_torch", call = NULL))
   }
   problem <- .thg_neural_problem(hg, labels, features)
   stopifnot(

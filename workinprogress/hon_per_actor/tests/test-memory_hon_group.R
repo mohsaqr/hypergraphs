@@ -11,7 +11,7 @@ testthat::skip_on_cran()
   withCallingHandlers(
     build_hon(.hg_long(), action = "code", actor = "session_id",
               time = "timestamp", by = "project", max_order = 2L, ...),
-    hypernets_insufficient_support = function(w) invokeRestart("muffleWarning"))
+    hypergraphs_insufficient_support = function(w) invokeRestart("muffleWarning"))
 }
 
 test_that("build_hon default output is unchanged (frozen fixture)", {
@@ -83,11 +83,11 @@ test_that("support guard fires by class, names the units and excludes them", {
   fits <- withCallingHandlers(
     build_hon(.hg_long(), action = "code", actor = "session_id",
               time = "timestamp", by = "project", max_order = 2L),
-    hypernets_insufficient_support = function(cnd) {
+    hypergraphs_insufficient_support = function(cnd) {
       w <<- cnd
       invokeRestart("muffleWarning")
     })
-  expect_s3_class(w, "hypernets_insufficient_support")
+  expect_s3_class(w, "hypergraphs_insufficient_support")
   actors <- as.data.frame(fits, what = "actors")
   below <- actors$actor[!actors$sufficient]
   expect_setequal(w$actors, below)
@@ -101,7 +101,7 @@ test_that("support guard fires by class, names the units and excludes them", {
   expect_warning(
     build_hon(.hg_long(), action = "code", actor = "session_id",
               time = "timestamp", by = "project", max_order = 2L),
-    class = "hypernets_insufficient_support")
+    class = "hypergraphs_insufficient_support")
 })
 
 test_that("keep_sparse fits units below the floor and flags them", {
@@ -109,7 +109,7 @@ test_that("keep_sparse fits units below the floor and flags them", {
     fits <- build_hon(.hg_long(), action = "code", actor = "session_id",
                       time = "timestamp", by = "project", max_order = 2L,
                       keep_sparse = TRUE),
-    class = "hypernets_insufficient_support")
+    class = "hypergraphs_insufficient_support")
   actors <- as.data.frame(fits, what = "actors")
   sparse <- actors[!actors$sufficient, ]
   expect_true(all(sparse$fitted[sparse$n_transitions >= 1L]))
@@ -129,7 +129,7 @@ test_that("a stated floor is honoured and silences the guard when met", {
 test_that("no fittable unit is an error of the support class", {
   seqs <- list(c("a", "b"), c("b", "c"), c("c", "a"))
   expect_error(build_hon(seqs, by = c("x", "y", "z")),
-               class = "hypernets_insufficient_support")
+               class = "hypergraphs_insufficient_support")
 })
 
 test_that("as.data.frame edges: one row per unit per rule; probabilities sum to 1", {
@@ -187,23 +187,23 @@ test_that("print and plot views run and delegate to cograph", {
 test_that("bad input is refused by class", {
   long <- .hg_long()
   expect_error(build_hon(long, action = "code", actor = "session_id",
-                         by = "nope"), class = "hypernets_bad_input")
+                         by = "nope"), class = "hypergraphs_bad_input")
   expect_error(build_hon(list(c("a", "b")), by = c("x", "y")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(build_hon(list(c("a", "b"), c("b", "a")), by = c("x", NA)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(build_hon(long, action = "code", actor = "session_id",
                          by = "project", min_transitions = 0),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(build_hon(list(c("a", "b", "a")), min_transitions = 5L),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(build_hon(list(c("a", "b", "a")), keep_sparse = TRUE),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   fits <- .hg_fit()
   expect_error(as.data.frame(fits, actor = "Project_99"),
-               class = "hypernets_bad_input")
-  expect_error(plot(fits, what = "network"), class = "hypernets_bad_input")
-  expect_error(plot(fits, what = "bogus"), class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
+  expect_error(plot(fits, what = "network"), class = "hypergraphs_bad_input")
+  expect_error(plot(fits, what = "bogus"), class = "hypergraphs_bad_input")
 })
 
 test_that("unit order is invariant to row permutation of the input", {
@@ -215,7 +215,7 @@ test_that("unit order is invariant to row permutation of the input", {
   b <- withCallingHandlers(
     build_hon(reordered, action = "code", actor = "session_id",
               time = "timestamp", by = "project", max_order = 2L),
-    hypernets_insufficient_support = function(w) invokeRestart("muffleWarning"))
+    hypergraphs_insufficient_support = function(w) invokeRestart("muffleWarning"))
   expect_identical(names(a$models), names(b$models))
   expect_identical(as.data.frame(a), as.data.frame(b))
 })

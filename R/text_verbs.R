@@ -6,7 +6,7 @@
   if (!inherits(hg, "net_hg")) {
     stop(errorCondition(
       "`hg` must be a net_hg (text_hypergraph, knn_hypergraph, group_hypergraph, ...)",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   invisible(hg)
@@ -20,14 +20,14 @@
 #' incidence matrix.
 #'
 #' `what =` selects which table is returned, as a tidy data.frame.
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
+#' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`).
 #' @param what Which table: `"nodes"` (default; one row per node with
 #'   `hyperdegree`, `strength`, `max_edge_size` and `n_neighbors`, the
 #'   distinct nodes it shares a hyperedge with), `"edges"` (one row per
 #'   hyperedge with its `size`), `"overlap"` (one row per hyperedge pair with
 #'   `overlap`, `overlap_coefficient`, `jaccard`), `"summary"` (one row per
 #'   scalar measure), `"distribution"` (the empirical distribution of
-#'   `measure`, as a `hypernets_distribution` table whose `plot()` draws the
+#'   `measure`, as a `hypergraphs_distribution` table whose `plot()` draws the
 #'   CCDF), or `"components"` (one row per connected component through shared
 #'   hyperedges, with its `n_nodes`, `n_edges`, `share` of nodes and
 #'   `diameter`).
@@ -89,7 +89,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
       hg_measures(hg, what = "nodes")[[measure]]
     }
     out <- .thg_distribution(values)
-    class(out) <- c("hypernets_distribution", "data.frame")
+    class(out) <- c("hypergraphs_distribution", "data.frame")
     attr(out, "measure") <- measure
     return(out)
   }
@@ -146,7 +146,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' `type` also accepts `"pagerank"` (EDVW hypergraph PageRank),
 #' `"subhypergraph"` and `"katz"` (Katz centrality, which needs `alpha`);
 #' the result is one row per node.
-#' @param x A [text_hypergraph()] (or any hypernets `net_hg`).
+#' @param x A [text_hypergraph()] (or any hypergraphs `net_hg`).
 #' @param type Centralities to compute; any of `"clique"`, `"Z"`, `"H"`
 #'   (default: all three), `"pagerank"`, `"subhypergraph"`, `"katz"`.
 #' @param sort_by Optional centrality name to sort by, descending (ties broken
@@ -175,7 +175,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' @param alpha Attenuation factor of `type = "katz"`: a single number in
 #'   \eqn{(0, 1/\lambda_{max})}, where \eqn{\lambda_{max}} is the largest
 #'   eigenvalue of the hypergraph adjacency. There is no correct default;
-#'   `type = "katz"` without `alpha` raises `hypernets_bad_input`, and so
+#'   `type = "katz"` without `alpha` raises `hypergraphs_bad_input`, and so
 #'   does an `alpha` at or above the bound (the message reports it).
 #'
 #' @details
@@ -284,7 +284,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' hg_centrality(hg, type = "clique")
 #' hg_centrality(hg, type = c("clique", "katz"), alpha = 0.1)
 #' @param ... Must be empty: an argument that only the memory-network
-#'   method takes raises `hypernets_bad_input`.
+#'   method takes raises `hypergraphs_bad_input`.
 #' @export
 hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
                                  sort_by = NULL, n = Inf,
@@ -301,7 +301,7 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
   if (.thg_is_sparse(hg) && length(engine_types) > 0L) {
     stop(errorCondition(
       "tensor centralities need the dense representation; use hg_pagerank() at scale",
-      class = "hypernets_sparse_unsupported", call = NULL
+      class = "hypergraphs_sparse_unsupported", call = NULL
     ))
   }
   stopifnot(
@@ -311,7 +311,7 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
   if ("katz" %in% type && is.null(alpha)) {
     stop(errorCondition(
       "`type = \"katz\"` needs `alpha` in (0, 1 / lambda_max)",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   out <- if (length(engine_types) > 0L) {
@@ -359,7 +359,7 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
 #' `type = "random_walk"` (Hayashi et al. 2020) is the natural choice for
 #' tf-idf-weighted text hypergraphs. `what =` returns the cluster table,
 #' the embedding or the leading eigenvalues as a tidy data.frame.
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
+#' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`).
 #' @param k Number of clusters (explicit by design; there is no correct
 #'   default).
 #' @param type The Laplacian, as in [hg_laplacian()]: `"zhou"` (Zhou et al.
@@ -453,7 +453,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
     stop(errorCondition(
       paste0("`algorithm = \"symnmf\"` requires a dense incidence matrix; ",
              "RDC-Sym factorizes a dense n_nodes x n_nodes similarity."),
-      class = "hypernets_dense_required", call = NULL
+      class = "hypergraphs_dense_required", call = NULL
     ))
   }
   fit <- if (.thg_is_sparse(hg)) {
@@ -498,7 +498,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
       stop(errorCondition(
         paste0("`edge_weights = \"idf\"` needs a text_hypergraph(weight = ",
                "\"tfidf\", nodes = \"doc\"), whose hyperedges are words"),
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     idf <- stats::setNames(vocab$idf, vocab$word)[colnames(hg$incidence)]
@@ -510,7 +510,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
       !length(edge_weights) %in% c(1L, hg$n_hyperedges)) {
     stop(errorCondition(
       "`edge_weights` must be NULL, \"idf\", or positive numbers, one per hyperedge",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   rep_len(as.numeric(edge_weights), hg$n_hyperedges)
@@ -541,7 +541,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'
 #' `"frequency"`, `"ctfidf"` and `"centrality"` need the token-level layer
 #' of a bag-of-words document hypergraph (`construction = "bag"`,
-#' `nodes = "doc"`); other hypergraphs raise `hypernets_bad_input`.
+#' `nodes = "doc"`); other hypergraphs raise `hypergraphs_bad_input`.
 #'
 #' **Sentence scope.** When `hg` is a `text_hypergraph(construction =
 #' "sentence")` of the documents, `clusters` still names documents, and the
@@ -591,7 +591,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   type, so clusters run down and types across. With a single type and
 #'   many clusters, pass e.g. `ncol = 4`.
 #' @param ... Unused; for S3 consistency.
-#' @return A base `data.frame` of class `hypernets_keywords`, one row per
+#' @return A base `data.frame` of class `hypergraphs_keywords`, one row per
 #'   type-cluster-keyword triple, columns `type`, `cluster`, `size` (the
 #'   cluster's documents), `rank`, `word`, `score` (the selected score),
 #'   `share` (`score` divided by the word's summed score over all
@@ -601,7 +601,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   `collapse = TRUE`: one row per type and cluster, columns `type`,
 #'   `cluster`, `size` and `words`. The print method shows the collapsed
 #'   view, truncated to the console width; the returned table itself is
-#'   the long form. Raises `hypernets_bad_input` for unknown node names, a `type` that
+#'   the long form. Raises `hypergraphs_bad_input` for unknown node names, a `type` that
 #'   needs the token layer on a hypergraph without one, a malformed
 #'   `scores` table, or a bag-of-words `text_hypergraph(nodes = "word")`,
 #'   whose hyperedges are documents rather than words.
@@ -609,7 +609,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   `plot()` returns a ggplot: one panel per cluster (rows) and score type
 #'   (columns), each with its own word axis, horizontal bars of `value` per
 #'   word, Okabe-Ito fill by type. It needs the long form and raises
-#'   `hypernets_bad_input` on a collapsed table.
+#'   `hypergraphs_bad_input` on a collapsed table.
 #' @references
 #' Grootendorst, M. (2022). BERTopic: Neural topic modeling with a
 #' class-based TF-IDF procedure. arXiv:2203.05794.
@@ -643,7 +643,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
     stop(errorCondition(
       paste0("`type` must be distinct values from: ",
              paste(choices, collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   centrality <- match.arg(centrality)
@@ -666,7 +666,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
     stop(errorCondition(
       paste0("Unknown node names in `clusters`: ",
              paste(unknown, collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   groups <- factor(as.character(assignment)[match(scope$docs,
@@ -693,7 +693,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
   if (length(blocks) == 0L) {
     stop(errorCondition(
       "nothing to rank: give at least one `type`, or `scores`",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
 
@@ -725,7 +725,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
   if (isTRUE(collapse)) {
     out <- .thg_kw_collapse(out)
   }
-  class(out) <- c("hypernets_keywords", "data.frame")
+  class(out) <- c("hypergraphs_keywords", "data.frame")
   out
 }
 
@@ -747,7 +747,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
 
 #' @rdname hg_keywords
 #' @export
-print.hypernets_keywords <- function(x, ...) {
+print.hypergraphs_keywords <- function(x, ...) {
   shown <- if ("words" %in% names(x)) .ho_plain(x) else
     .thg_kw_collapse(.ho_plain(x))
   # fit the words column to the console: the other columns plus separators
@@ -768,7 +768,7 @@ print.hypernets_keywords <- function(x, ...) {
 
 #' @rdname hg_keywords
 #' @export
-plot.hypernets_keywords <- function(x, value = c("score", "share"),
+plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
                                  label = TRUE, ncol = NULL, ...) {
   value <- match.arg(value)
   stopifnot("`ncol` must be NULL or a single positive number" =
@@ -778,7 +778,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
            names(x))) {
     stop(errorCondition(
       "plot() needs the long form of hg_keywords() (collapse = FALSE)",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   stopifnot("`label` must be TRUE or FALSE" = isTRUE(label) || isFALSE(label))
@@ -834,7 +834,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
                      "a word-node text_hypergraph (nodes = \"word\") whose ",
                      "hyperedges are documents; build it with nodes = \"doc\""),
               fn),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   invisible(hg)
@@ -907,7 +907,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
       paste0("this `type` needs the token layer of a bag-of-words document ",
              "hypergraph (text_hypergraph(construction = \"bag\", ",
              "nodes = \"doc\")) or a sentence hypergraph; use type = \"mass\" otherwise"),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   weights <- scope$token
@@ -942,7 +942,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
       stop(errorCondition(
         paste0("`type = \"centrality\"` needs the token layer of a ",
                "bag-of-words document hypergraph or a sentence hypergraph"),
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     data.frame(edge = scope$token$doc, word = scope$token$word,
@@ -984,7 +984,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
       paste0("`scores` must be a data.frame with columns `node`, `word` and ",
              "one numeric score column (for instance the table from ",
              "hg_hypergat(what = \"attention\"))"),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   value_col <- value_col[[1L]]
@@ -992,7 +992,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
   if (nrow(scores) == 0L) {
     stop(errorCondition(
       "no rows of `scores` refer to documents of `hg`",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   words <- sort(unique(as.character(scores$word)))
@@ -1008,29 +1008,54 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
        support = .thg_kw_aggregate(groups, cell(rep(1, nrow(scores)))))
 }
 
-#' Relations between topics: a weighted network of shared vocabulary
+#' Network of topics
 #'
-#' For a clustered document hypergraph, builds the topic-by-topic
-#' co-occurrence network of the bibliometric kind: the strength between
-#' two topics is the sum, over all words, of the product of the number of
-#' documents in each topic that contain the word (full counting, the
-#' aggregation bibnets uses for keyword co-occurrence). The raw sum can be
-#' normalised by the same similarity measures as bibnets' `normalize()`,
-#' with the diagonal of the co-occurrence matrix as each topic's total.
-#' The result is an edge list with `source`, `target` and `weight`, the
-#' three columns Gephi reads, or a `cograph_network` for plotting.
+#' Builds the topic-by-topic network of a document hypergraph, one node per
+#' topic and one undirected weighted edge per pair of related topics. The
+#' topics come either from a partition of the documents or from a
+#' mixed-membership topic model.
 #'
-#' With `D_i` the diagonal entry of topic i and `A_ij` the raw sum:
-#' `"association"` is `A_ij / (D_i D_j)`, `"cosine"` is
-#' `A_ij / sqrt(D_i D_j)`, `"jaccard"` is `A_ij / (D_i + D_j - A_ij)`,
-#' `"inclusion"` is `A_ij / min(D_i, D_j)` and `"equivalence"` is
-#' `A_ij^2 / (D_i D_j)`.
+#' For a partition (`clusters`), the network is the co-occurrence network of
+#' the bibliometric kind: the strength between two topics is the sum, over
+#' all words, of the product of the number of documents in each topic that
+#' contain the word (full counting, the aggregation bibnets uses for keyword
+#' co-occurrence).
 #'
-#' @param hg The document hypergraph the clustering was computed on.
-#' @param clusters The tidy table returned by [hg_cluster()] (columns
-#'   `node`, `cluster`), or a named vector of cluster labels.
-#' @param similarity `"none"` (default, the raw sum), `"association"`,
-#'   `"cosine"`, `"jaccard"`, `"inclusion"` or `"equivalence"`.
+#' For a topic model fitted by [hg_topics()] (`topics`), two topics are
+#' related when the same documents draw on both. Without `threshold`, the
+#' weight is the correlation of the two topics' shares over the documents,
+#' and the pairs with a correlation above `cutoff` are kept, the "simple"
+#' topic correlation of `stm::topicCorr()` (Roberts et al. 2019). With
+#' `threshold`, a topic counts as present in a document when its share is at
+#' least `threshold`, and the weight of a pair is the number of documents in
+#' which both are present (Abuhay et al. 2017; Cassi et al. 2017).
+#'
+#' A count network, from a partition or from a thresholded topic model, can
+#' be normalised by the similarity measures of bibnets' `normalize()`, with
+#' each topic's total on the diagonal (its documents with the word, or its
+#' documents with the topic present). With `D_i` the diagonal entry of topic
+#' i and `A_ij` the raw count: `"association"` is `A_ij / (D_i D_j)`,
+#' `"cosine"` is `A_ij / sqrt(D_i D_j)`, `"jaccard"` is
+#' `A_ij / (D_i + D_j - A_ij)`, `"inclusion"` is `A_ij / min(D_i, D_j)` and
+#' `"equivalence"` is `A_ij^2 / (D_i D_j)` (van Eck & Waltman 2009).
+#'
+#' The pairwise network of topics is the projection of the topic
+#' combinations that [group_hypergraph()] builds from the same topic model,
+#' in which every document binds all the topics it contains at once.
+#'
+#' @param hg The document hypergraph the topics were computed on.
+#' @param clusters A partition: the tidy table returned by [hg_cluster()]
+#'   (columns `node`, `cluster`), or a named vector of cluster labels.
+#' @param topics A mixed-membership topic model of `hg` fitted by
+#'   [hg_topics()]. Give `clusters` or `topics`.
+#' @param threshold Topic model only: the share at which a topic counts as
+#'   present in a document, one number in (0, 1]. `NULL` (default) relates
+#'   topics by the correlation of their shares instead.
+#' @param cutoff Topic model without `threshold` only: the correlation a pair
+#'   must exceed to be kept (default `0.01`, as in `stm::topicCorr()`).
+#' @param similarity `"none"` (default, the raw count), `"association"`,
+#'   `"cosine"`, `"jaccard"`, `"inclusion"` or `"equivalence"`. Count
+#'   networks only.
 #' @param what `"edges"` (default) for the edge list, `"network"` for a
 #'   `cograph_network` built from it with [cograph::as_cograph()], whose
 #'   node table carries each topic's `size`.
@@ -1038,13 +1063,33 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
 #'   topics with a positive weight, columns `source`, `target`, `weight`,
 #'   pairs in the topics' natural order. For `what = "network"`: a
 #'   `cograph_network` with one node per topic (`label`, `name`, `size`)
-#'   and one undirected weighted edge per pair. Raises `hypernets_bad_input`
-#'   for unknown node names.
+#'   and one undirected weighted edge per pair; `size` is the number of
+#'   documents of a cluster, the documents in which a topic is present, or
+#'   (without `threshold`) a topic's expected number of documents. Raises
+#'   `hypergraphs_bad_input` for unknown node names, for neither or both of
+#'   `clusters` and `topics`, for a topic model not fitted on `hg`, for an
+#'   invalid `threshold` or `cutoff`, and for a similarity measure on a
+#'   correlation network.
 #' @references
 #' van Eck, N. J., & Waltman, L. (2009). How to normalize cooccurrence
 #' data? An analysis of some well-known similarity measures. *Journal of
 #' the American Society for Information Science and Technology*, 60(8),
 #' 1635--1651.
+#'
+#' Roberts, M. E., Stewart, B. M., & Tingley, D. (2019). stm: An R package
+#' for structural topic models. \emph{Journal of Statistical Software},
+#' 91(2), 1-40. \doi{10.18637/jss.v091.i02}
+#'
+#' Abuhay, T. M., Kovalchuk, S. V., Bochenina, K., Kampis, G.,
+#' Krzhizhanovskaya, V. V., & Lees, M. H. (2017). Analysis of computational
+#' science papers from ICCS 2001-2016 using topic modeling and graph theory.
+#' \emph{Procedia Computer Science}, 108, 7-17.
+#' \doi{10.1016/j.procs.2017.05.183}
+#'
+#' Cassi, L., Lahatte, A., Rafols, I., Sautier, P., & de Turckheim, E.
+#' (2017). Improving fitness: Mapping research priorities against societal
+#' needs on obesity. \emph{Journal of Informetrics}, 11(4), 1095-1113.
+#' \doi{10.1016/j.joi.2017.09.010}
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -1053,17 +1098,36 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
 #'   space_2 = "astronomers aimed the telescope at the stars all night"
 #' ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
 #' topics <- hg_cluster(hg, k = 2, seed = 1)
-#' hg_relations(hg, topics)
-#' hg_relations(hg, topics, similarity = "cosine")
+#' hg_network(hg, clusters = topics)
+#' hg_network(hg, clusters = topics, similarity = "cosine")
+#'
+#' corpus <- c(
+#'   a = "soup salt onion soup broth", b = "salt soup broth onion",
+#'   c = "stars sky moon night", d = "sky stars night moon moon",
+#'   e = "soup stars salt sky night broth", f = "onion salt stars broth")
+#' corpus_hg <- text_hypergraph(corpus)
+#' model <- hg_topics(corpus_hg, k = 2, nstart = 2)
+#' hg_network(corpus_hg, topics = model, threshold = 0.2)
 #' @export
-hg_relations <- function(hg, clusters,
-                         similarity = c("none", "association", "cosine",
-                                        "jaccard", "inclusion",
-                                        "equivalence"),
-                         what = c("edges", "network")) {
+hg_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
+                       cutoff = 0.01,
+                       similarity = c("none", "association", "cosine",
+                                      "jaccard", "inclusion",
+                                      "equivalence"),
+                       what = c("edges", "network")) {
   .thg_check_hg(hg)
   similarity <- match.arg(similarity)
   what <- match.arg(what)
+  if (is.null(clusters) == is.null(topics)) {
+    .thg_bad_input("give `clusters` (a partition) or `topics` (a topic model)")
+  }
+  if (!is.null(topics)) {
+    return(.thg_topic_network(hg, topics, threshold, cutoff, similarity,
+                              what))
+  }
+  if (!is.null(threshold)) {
+    .thg_bad_input("`threshold` applies to a topic model (`topics`)")
+  }
   assignment <- .thg_labels_input(clusters)
   stopifnot(
     "`clusters` must be a data.frame or a named vector" =
@@ -1074,7 +1138,7 @@ hg_relations <- function(hg, clusters,
     stop(errorCondition(
       paste0("Unknown node names in `clusters`: ",
              paste(unknown, collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   groups <- factor(as.character(assignment)[match(hg$nodes,
@@ -1084,6 +1148,13 @@ hg_relations <- function(hg, clusters,
   # sum over words
   counts <- .thg_kw_aggregate(groups, (hg$incidence != 0) * 1)
   co <- tcrossprod(counts)
+  sizes <- table(groups)
+  .thg_network_out(.thg_normalise_counts(co, similarity), levels(groups),
+                   stats::setNames(as.integer(sizes), names(sizes)), what)
+}
+
+# Normalise a co-occurrence matrix by its diagonal (van Eck & Waltman 2009).
+.thg_normalise_counts <- function(co, similarity) {
   total <- diag(co)
   total[total == 0] <- 1
   weight <- switch(
@@ -1096,7 +1167,11 @@ hg_relations <- function(hg, clusters,
     equivalence = co^2 / outer(total, total)
   )
   weight[!is.finite(weight)] <- 0
-  labels <- levels(groups)
+  weight
+}
+
+# Edge list of the upper triangle (positive weights), or a cograph network.
+.thg_network_out <- function(weight, labels, sizes, what) {
   pairs <- which(upper.tri(weight), arr.ind = TRUE)
   pairs <- pairs[order(pairs[, 1L], pairs[, 2L]), , drop = FALSE]
   edges <- data.frame(
@@ -1111,9 +1186,71 @@ hg_relations <- function(hg, clusters,
     return(edges)
   }
   net <- cograph::as_cograph(edges, directed = FALSE)
-  sizes <- table(groups)
-  net$nodes$size <- as.integer(sizes[net$nodes$name])
+  net$nodes$size <- unname(sizes[net$nodes$name])
   net
+}
+
+# Topic network of a mixed-membership model: share correlations (stm's
+# simple topicCorr) or thresholded co-occurrence counts (Abuhay et al. 2017).
+.thg_topic_network <- function(hg, topics, threshold, cutoff, similarity,
+                               what) {
+  if (!inherits(topics, "net_hg_topics")) {
+    .thg_bad_input("`topics` must be a topic model fitted by hg_topics()")
+  }
+  shares <- topics$shares
+  docs <- unique(shares$node)
+  if (!identical(length(docs), hg$n_nodes) || !all(docs %in% hg$nodes)) {
+    .thg_bad_input("`topics` was not fitted on `hg`")
+  }
+  labels <- topics$topics$topic
+  theta <- matrix(0, length(docs), length(labels),
+                  dimnames = list(docs, labels))
+  theta[cbind(match(shares$node, docs),
+              match(shares$topic, labels))] <- shares$share
+  if (is.null(threshold)) {
+    if (!identical(similarity, "none")) {
+      .thg_bad_input(paste0("`similarity` normalises counts; give ",
+                            "`threshold` for a count network"))
+    }
+    if (!is.numeric(cutoff) || length(cutoff) != 1L || !is.finite(cutoff) ||
+        cutoff < 0 || cutoff >= 1) {
+      .thg_bad_input("`cutoff` must be one number in [0, 1)")
+    }
+    correlation <- stats::cor(theta)
+    weight <- ifelse(correlation > cutoff, correlation, 0)
+    return(.thg_network_out(weight, labels, colSums(theta), what))
+  }
+  if (!is.numeric(threshold) || length(threshold) != 1L ||
+      !is.finite(threshold) || threshold <= 0 || threshold > 1) {
+    .thg_bad_input("`threshold` must be one number in (0, 1]")
+  }
+  present <- (theta >= threshold) * 1
+  co <- crossprod(present)
+  .thg_network_out(.thg_normalise_counts(co, similarity), labels,
+                   stats::setNames(as.integer(colSums(present)), labels),
+                   what)
+}
+
+#' Relations between topics (deprecated)
+#'
+#' `hg_relations()` is the former name of [hg_network()] for a partition and
+#' returns the same result. It warns with the class `hypergraphs_deprecated`.
+#'
+#' @inheritParams hg_network
+#' @return The value of `hg_network(hg, clusters = clusters, similarity =,
+#'   what =)`.
+#' @keywords internal
+#' @export
+hg_relations <- function(hg, clusters,
+                         similarity = c("none", "association", "cosine",
+                                        "jaccard", "inclusion",
+                                        "equivalence"),
+                         what = c("edges", "network")) {
+  warning(warningCondition(
+    "hg_relations() is deprecated; use hg_network(hg, clusters = ...)",
+    class = "hypergraphs_deprecated", call = NULL))
+  hg_network(hg, clusters = clusters, similarity = match.arg(similarity),
+             what = match.arg(what))
 }
 
 #' Transductive label spreading on a hypergraph
@@ -1129,7 +1266,7 @@ hg_relations <- function(hg, clusters,
 #' a handful of labeled ones.
 #'
 #' The result is one row per node with its given and predicted label.
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
+#' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`).
 #' @param labels The known labels: a named character vector (names are
 #'   node identifiers -- documents under `nodes = "doc"` -- values their
 #'   class labels), or a tidy data.frame with a `node` column and a

@@ -35,7 +35,7 @@ hg_mmsbm(
 \method{plot}{net_hg_mmsbm}(x, type = c("membership", "affinity", "restarts"), labels = NULL, ...)
 }
 \arguments{
-\item{hg}{A hypernets \code{net_hg} (\code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=group_hypergraph]{group_hypergraph()}},
+\item{hg}{A hypergraphs \code{net_hg} (\code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=group_hypergraph]{group_hypergraph()}},
 \code{\link[=window_hypergraph]{window_hypergraph()}}, ...).}
 
 \item{k}{Number of communities, a whole number between 1 and the number of
@@ -52,7 +52,7 @@ within themselves); default \code{FALSE}, the full affinity.}
 \item{tol}{Convergence tolerance (default \code{1e-5}), compared with the
 change between two consecutive steps every \code{check_every} steps. A start
 that hits \code{max_iter} first is reported as not converged; if the kept
-start did not converge, a \code{hypernets_no_converge} warning is raised.}
+start did not converge, a \code{hypergraphs_no_converge} warning is raised.}
 
 \item{check_every}{Steps between convergence checks (default \code{10L}, as
 the authors').}
@@ -125,7 +125,7 @@ hard partition with the kept one).
 \code{print()} gives the fit, \code{summary()} one row per community (\code{community},
 \code{size} hard-assigned nodes, \code{mass} total membership, \code{mean_membership}
 of its assigned nodes, \code{w_within}), and \code{plot()} the memberships, the
-affinity or the restarts. Raises \code{hypernets_bad_input} for a non-hypergraph,
+affinity or the restarts. Raises \code{hypergraphs_bad_input} for a non-hypergraph,
 an invalid argument or no hyperedge of size two or more.
 }
 \description{
@@ -165,11 +165,11 @@ Hyperedges of size one carry no pair and are outside the model (their
 optionally leaves out larger hyperedges too, as the authors'
 \code{--max_hye_size}; the default \code{NULL} keeps them all. A node left with no
 hyperedge has \eqn{u_i = 0} after the first step and no membership (\code{NA}),
-with a \code{hypernets_isolated_nodes} warning. A node that does lie in fitted
+with a \code{hypergraphs_isolated_nodes} warning. A node that does lie in fitted
 hyperedges can still have its memberships driven to zero (or to subnormal
 remnants) by the multiplicative EM updates; any row whose total is below
 the precision of the largest row is treated as having no membership
-(\code{NA}) and reported with a \code{hypernets_collapsed_membership} warning,
+(\code{NA}) and reported with a \code{hypergraphs_collapsed_membership} warning,
 rather than normalising remnants into spurious exact mixtures.
 
 The membership of node \eqn{i} in community \eqn{k} is

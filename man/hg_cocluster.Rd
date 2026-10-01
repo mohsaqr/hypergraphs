@@ -14,7 +14,7 @@ hg_cocluster(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}) with no empty
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypergraphs \code{net_hg}) with no empty
 node or hyperedge.}
 
 \item{k}{Number of co-clusters, at least 2.}
@@ -35,7 +35,7 @@ A base \code{data.frame}, one row per node and then per hyperedge
 (filtered by \code{role}), with columns \code{node} (the node or hyperedge name),
 \code{role} (\code{"node"} or \code{"hyperedge"}) and \code{cluster} (\code{"Cluster 1"}, ...,
 numbered by first appearance in that row order); with
-\code{what = "embedding"} also \code{dim1..dimL}. Raises \code{hypernets_bad_input} for
+\code{what = "embedding"} also \code{dim1..dimL}. Raises \code{hypergraphs_bad_input} for
 a \code{k} below 2 or above the number of rows, or an empty node or
 hyperedge (zero degree, where the scaling is undefined).
 }

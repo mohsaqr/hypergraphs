@@ -19,7 +19,7 @@ hg_cluster(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypergraphs \code{net_hg}).}
 
 \item{k}{Number of clusters (explicit by design; there is no correct
 default).}

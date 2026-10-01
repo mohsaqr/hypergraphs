@@ -19,7 +19,7 @@
 )
 }
 \arguments{
-\item{x}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}).}
+\item{x}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypergraphs \code{net_hg}).}
 
 \item{type}{Centralities to compute; any of \code{"clique"}, \code{"Z"}, \code{"H"}
 (default: all three), \code{"pagerank"}, \code{"subhypergraph"}, \code{"katz"}.}
@@ -57,11 +57,11 @@ by \code{type = "pagerank"}.}
 \item{alpha}{Attenuation factor of \code{type = "katz"}: a single number in
 \eqn{(0, 1/\lambda_{max})}, where \eqn{\lambda_{max}} is the largest
 eigenvalue of the hypergraph adjacency. There is no correct default;
-\code{type = "katz"} without \code{alpha} raises \code{hypernets_bad_input}, and so
+\code{type = "katz"} without \code{alpha} raises \code{hypergraphs_bad_input}, and so
 does an \code{alpha} at or above the bound (the message reports it).}
 
 \item{...}{Must be empty: an argument that only the memory-network
-method takes raises \code{hypernets_bad_input}.}
+method takes raises \code{hypergraphs_bad_input}.}
 }
 \value{
 A base \code{data.frame}, one row per node (or the \code{n} requested rows),

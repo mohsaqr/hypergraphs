@@ -89,7 +89,7 @@ test_that("missing actors and sessions are refused, by class", {
   long <- fx$long
   long$who[3L] <- NA
   expect_error(hon(long, action = "what", actor = "who", time = "when"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hon(fx$long, action = "what", actor = "who", time = "when",
                    time_threshold = -1))
 })
@@ -259,8 +259,8 @@ test_that("a long table passed without action is refused, by class", {
     function(d) hg_markov_stability(d),
     function(d) hg_bootstrap(d, n_boot = 2L)
   ), function(f) {
-    expect_error(f(canonical), class = "hypernets_long_format")
-    expect_error(f(human_long), class = "hypernets_bad_input")
+    expect_error(f(canonical), class = "hypergraphs_long_format")
+    expect_error(f(human_long), class = "hypergraphs_bad_input")
   })
   # a wide frame of states passes the guard
   expect_s3_class(hon(fx$wide, max_order = 2L), "net_hon")
@@ -268,12 +268,12 @@ test_that("a long table passed without action is refused, by class", {
 
 test_that("long-format column arguments are validated", {
   fx <- .mw_fixture()
-  expect_error(hon(fx$seqs, actor = "who"), class = "hypernets_bad_input")
-  expect_error(hon(fx$wide, time = "when"), class = "hypernets_bad_input")
-  expect_error(hon(fx$long, action = "nope"), class = "hypernets_bad_input")
+  expect_error(hon(fx$seqs, actor = "who"), class = "hypergraphs_bad_input")
+  expect_error(hon(fx$wide, time = "when"), class = "hypergraphs_bad_input")
+  expect_error(hon(fx$long, action = "nope"), class = "hypergraphs_bad_input")
   expect_error(hon(fx$long, action = "what", actor = "nope"),
-               class = "hypernets_bad_input")
-  expect_error(hon(fx$seqs, action = "what"), class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
+  expect_error(hon(fx$seqs, action = "what"), class = "hypergraphs_bad_input")
 })
 
 test_that("the wrappers are invariant to the row order of a long table", {
@@ -292,7 +292,7 @@ test_that("hg_markov_stability() refuses a chain that is not irreducible", {
                         0.0, 0.0, 1.0), 3, byrow = TRUE,
                       dimnames = list(c("A", "B", "C"), c("A", "B", "C")))
   expect_error(hg_markov_stability(absorbing),
-               class = "hypernets_not_ergodic")
+               class = "hypergraphs_not_ergodic")
   err <- tryCatch(hg_markov_stability(absorbing), error = identity)
   expect_match(conditionMessage(err), "transient: A, B")
   expect_match(conditionMessage(err), "absorbing: C")
@@ -310,6 +310,6 @@ test_that("a state with no outgoing transition is refused by class", {
                        0, 0, 0), 3, byrow = TRUE,
                      dimnames = list(c("A", "B", "C"), c("A", "B", "C")))
   err <- tryCatch(hg_markov_stability(dead_end), error = identity)
-  expect_s3_class(err, "hypernets_not_ergodic")
+  expect_s3_class(err, "hypergraphs_not_ergodic")
   expect_match(conditionMessage(err), "no outgoing transition from: C")
 })

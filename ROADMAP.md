@@ -1,4 +1,4 @@
-# hypernets roadmap and timeline
+# hypergraphs roadmap and timeline
 
 Single source of truth, written 2026-09-29 from three audits (papers,
 reference repositories, every planning file against NAMESPACE and git).
@@ -22,7 +22,7 @@ Sidelined and rejected work is registered in `workinprogress/README.md`.
 
 ## Where we are (2026-09-29)
 
-hypernets 0.5.1, committed as 3f1cca2 (not pushed). 115 exports.
+hypergraphs 0.5.1, committed as 3f1cca2 (not pushed). 115 exports.
 NOT_CRAN suite 4054 pass / 0 fail; `R CMD check --as-cran` 0/0/0;
 equivalence suite green; Eventdata26 `plot_blobs()` parity 371/0.
 
@@ -32,7 +32,7 @@ equivalence suite green; Eventdata26 `plot_blobs()` parity 371/0.
 | 0.1.4–0.1.5 | 2026-08-25 | `bootstrap_hon`, `compare_hon`, `hon_centrality`, long-format input |
 | 0.2.0–0.2.1 | 2026-08-26 | Simplicial and hypergraph families absorbed; taxonomy; `top =` |
 | 0.3.0–0.3.12 | 2026-09-02 → 09-07 | Text family folded in; Legal Hypergraphs reproduction; NMF clustering; neural set (HGNN, HyperGAT, HyperGCN, HNHN, AllSet, HGAT); Wasserstein; random generators; topic verbs |
-| 0.4.0 | 2026-09-07 | Renamed honets → hypernets |
+| 0.4.0 | 2026-09-07 | Renamed honets → hypergraphs |
 | 0.4.1–0.4.8 | 2026-09-07 → 09-20 | `hg_hypa`, pebble plots, sparse overflow fix, component packing |
 | 0.5.0 | 2026-09-20 | `markov_stability`, `hg_sequences`, long-format guard (`hon_outcome`, later withdrawn) |
 | 0.5.1 | 2026-09-29 | `hon_communities` (map equation, Infomap oracle); blob/overlay plots with Eventdata26 parity; `ring_sequences`; `hon_outcome` withdrawn; Tier C rejected |
@@ -51,14 +51,14 @@ equivalence suite green; Eventdata26 `plot_blobs()` parity 371/0.
 | Decide version (0.6.0 recommended) and commit | New export, withdrawn export, plot API | — |
 | Pipeline: render `with_blob_plot.Rmd`; rebuild the 3 `mmm_steps` figures | Parity covered 19 of 22 calls | Step-Groups-100k l.275–277 |
 
-## Phase 0b — hypernets imports Nestimate; hypergraphs are hypernets' own (before CRAN)
+## Phase 0b — hypergraphs imports Nestimate; hypergraphs are hypergraphs' own (before CRAN)
 
-Decided 2026-09-29 (author). hypernets cannot be independent of the code it
+Decided 2026-09-29 (author). hypergraphs cannot be independent of the code it
 was moved from, so it builds on Nestimate instead of carrying copies.
 
-- **Direction:** hypernets `Imports: Nestimate (>= 0.8.5)`. Nestimate never
-  imports or suggests hypernets, and **Nestimate does not change**.
-- **Grounded in Nestimate** (hypernets deletes its copies and calls or
+- **Direction:** hypergraphs `Imports: Nestimate (>= 0.8.5)`. Nestimate never
+  imports or suggests hypergraphs, and **Nestimate does not change**.
+- **Grounded in Nestimate** (hypergraphs deletes its copies and calls or
   re-exports Nestimate's exported verbs): memory builders (`build_hon`,
   `build_honem`, `build_hypa`, `build_mogen`, `markov_order_test`,
   `path_dependence`, `mogen_transitions`, `path_counts`, `pathways`), the
@@ -67,7 +67,7 @@ was moved from, so it builds on Nestimate instead of carrying copies.
   `verify_simplicial`, `bottleneck_distance`, `persistence_landscape`),
   `markov_stability`, `clique_expansion`. All are exported by CRAN 0.8.5
   (checked from the tarball).
-- **hypernets' speciality:** the hypergraph family (every hypergraph
+- **hypergraphs' speciality:** the hypergraph family (every hypergraph
   constructor, the Laplacian / clustering / transduction / centrality /
   measures engines, `hg_*`, neural set, plots) and the text family; plus
   the verbs it adds on top of Nestimate's objects (`bootstrap_hon`,
@@ -75,22 +75,22 @@ was moved from, so it builds on Nestimate instead of carrying copies.
 
 Measured 2026-09-29 with both packages loaded: **26 functions masked and 32
 S3 methods overwritten**; a Nestimate `bipartite_groups()` hypergraph printed
-through hypernets' method loses its "Source" line. With the import, both load
+through hypergraphs' method loses its "Source" line. With the import, both load
 every time, so the collision must be removed, not tolerated.
 
 | # | Item | Why |
 |---|---|---|
-| G1 | **Done 2026-09-29.** `hg_*` is the only public hypergraph naming: 27 `hypergraph_*` aliases dropped; `hg_allset` / `hg_hypergcn` / `hg_hnhn` / `hg_snapshot(s)` / `hg_laplacian` / `hg_joint_cluster` primary; engines `hypergraph_centrality` / `_cluster` / `_measures` / `_transduction` internal (`.hg_*_fit`) behind `hg_centrality` / `hg_cluster` / `hg_measures` / `hg_classify`, which gained the engines' arguments and docs; `build_hypergraph()` -> `network_hypergraph()`; `clique_expansion()` -> `hg_clique_expansion()`; class `net_hypergraph*` -> `net_hg*`. Exports 115 -> 77. Guard: `tests/testthat/test-api-names.R`. Tests 4064/0; `--as-cran` 0/0/1 (network-time note only); R8 guard 0.8451; equivalence suite green after two pre-existing test-harness fixes (source-Nestimate `load_all()` left attached; blob reference pinned to pipeline commit cc58acf) | The inherited `hypergraph_*` names are Nestimate's; the same names overwrite each other's S3 methods and mask verbs in every session. hypernets is unreleased, so the rename breaks no one |
-| G2 | **Done 2026-09-29.** Delete hypernets' copies of the grounded verbs; `importFrom` + re-export them; results and classes become Nestimate's (`simplicial_complex`, `persistent_homology`, ...) | One implementation of each |
-| G3 | **Done 2026-09-29.** Keep hypernets' additions to grounded objects only where Nestimate has no method: `as.data.frame()` for `net_hon`, `net_honem`, `net_hypa`, `net_mogen`, `net_markov_order`, `net_path_dependence`, `simplicial_complex`, `persistent_homology`, `q_analysis`, `persistence_landscape`, `net_markov_stability` | Registering a method Nestimate lacks overwrites nothing; Rule 0 needs the accessors |
-| G4 | **Done 2026-09-29.** hypernets-only verbs that used Nestimate *internals* (`bootstrap_hon`, `compare_hon`: `.hon_build_*`, `.hon_extract_rules_count`; `temporal_hypergraph`, `window_hypergraph`: `.coerce_sequence_input`; `wasserstein_distance`: `.ph_as_diagram`; `hypergraph_joint_cluster`) keep private copies of those internals, with an identity test against Nestimate's | `:::` is not allowed on CRAN and Nestimate does not change |
-| G5 | **Done 2026-09-29.** Losses to record in NEWS (Nestimate lacks them): `build_hon(action/actor/time)` long input, the long-format guard, `top =` on `mogen_transitions` / `path_counts` / `simplicial_degree`, hypernets' `markov_stability` rewrite (reducibility check, landscape plot), `net_*` class names. Upstreaming them to Nestimate later is optional and additive | Nestimate keeps what it has |
-| G6 | **Done 2026-09-29.** Against CRAN 0.8.5 (tolerance 0, 23 calls over memory, simplicial, `markov_stability`, `clique_expansion`): 22 identical; `markov_stability` differs only because 0.8.5 rounds `$stability` (4 / 2 decimals; passage times identical). Floor: `Nestimate (>= 0.8.5)`. Script: `local_testing_and_equivalence/g6-nestimate-085.R` | hypernets was proven identical to 0.9.0, not to the CRAN version it would import |
-| G7 | **Done 2026-09-29.** Rewire hypernets internals that assumed its own classes: `build_hypergraph` calls `build_simplicial(type = "clique")` (now returns `simplicial_complex`), `.hg_extract_adj`, `build_simplicial(type = "pathway")` readers | Class names change back to Nestimate's |
+| G1 | **Done 2026-09-29.** `hg_*` is the only public hypergraph naming: 27 `hypergraph_*` aliases dropped; `hg_allset` / `hg_hypergcn` / `hg_hnhn` / `hg_snapshot(s)` / `hg_laplacian` / `hg_joint_cluster` primary; engines `hypergraph_centrality` / `_cluster` / `_measures` / `_transduction` internal (`.hg_*_fit`) behind `hg_centrality` / `hg_cluster` / `hg_measures` / `hg_classify`, which gained the engines' arguments and docs; `build_hypergraph()` -> `network_hypergraph()`; `clique_expansion()` -> `hg_clique_expansion()`; class `net_hypergraph*` -> `net_hg*`. Exports 115 -> 77. Guard: `tests/testthat/test-api-names.R`. Tests 4064/0; `--as-cran` 0/0/1 (network-time note only); R8 guard 0.8451; equivalence suite green after two pre-existing test-harness fixes (source-Nestimate `load_all()` left attached; blob reference pinned to pipeline commit cc58acf) | The inherited `hypergraph_*` names are Nestimate's; the same names overwrite each other's S3 methods and mask verbs in every session. hypergraphs is unreleased, so the rename breaks no one |
+| G2 | **Done 2026-09-29.** Delete hypergraphs' copies of the grounded verbs; `importFrom` + re-export them; results and classes become Nestimate's (`simplicial_complex`, `persistent_homology`, ...) | One implementation of each |
+| G3 | **Done 2026-09-29.** Keep hypergraphs' additions to grounded objects only where Nestimate has no method: `as.data.frame()` for `net_hon`, `net_honem`, `net_hypa`, `net_mogen`, `net_markov_order`, `net_path_dependence`, `simplicial_complex`, `persistent_homology`, `q_analysis`, `persistence_landscape`, `net_markov_stability` | Registering a method Nestimate lacks overwrites nothing; Rule 0 needs the accessors |
+| G4 | **Done 2026-09-29.** hypergraphs-only verbs that used Nestimate *internals* (`bootstrap_hon`, `compare_hon`: `.hon_build_*`, `.hon_extract_rules_count`; `temporal_hypergraph`, `window_hypergraph`: `.coerce_sequence_input`; `wasserstein_distance`: `.ph_as_diagram`; `hypergraph_joint_cluster`) keep private copies of those internals, with an identity test against Nestimate's | `:::` is not allowed on CRAN and Nestimate does not change |
+| G5 | **Done 2026-09-29.** Losses to record in NEWS (Nestimate lacks them): `build_hon(action/actor/time)` long input, the long-format guard, `top =` on `mogen_transitions` / `path_counts` / `simplicial_degree`, hypergraphs' `markov_stability` rewrite (reducibility check, landscape plot), `net_*` class names. Upstreaming them to Nestimate later is optional and additive | Nestimate keeps what it has |
+| G6 | **Done 2026-09-29.** Against CRAN 0.8.5 (tolerance 0, 23 calls over memory, simplicial, `markov_stability`, `clique_expansion`): 22 identical; `markov_stability` differs only because 0.8.5 rounds `$stability` (4 / 2 decimals; passage times identical). Floor: `Nestimate (>= 0.8.5)`. Script: `local_testing_and_equivalence/g6-nestimate-085.R` | hypergraphs was proven identical to 0.9.0, not to the CRAN version it would import |
+| G7 | **Done 2026-09-29.** Rewire hypergraphs internals that assumed its own classes: `build_hypergraph` calls `build_simplicial(type = "clique")` (now returns `simplicial_complex`), `.hg_extract_adj`, `build_simplicial(type = "pathway")` readers | Class names change back to Nestimate's |
 | G8 | **Done 2026-09-29.** CLAUDE.md: replace "Nestimate is not a dependency" and the provenance section with this ownership | Contradicts the decision |
 
-Superseded the same day: "Nestimate imports hypernets" (would have made
-Nestimate change and depend on hypernets).
+Superseded the same day: "Nestimate imports hypergraphs" (would have made
+Nestimate change and depend on hypergraphs).
 
 ## Phase 1 — oracles for what already ships, then CRAN (October 2026)
 

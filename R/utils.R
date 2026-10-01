@@ -1,13 +1,13 @@
 # ---- Shared internal helpers ----
 #
-# PRIVATE copies of Nestimate internals that hypernets' own verbs need
+# PRIVATE copies of Nestimate internals that hypergraphs' own verbs need
 # (`:::` is not allowed and Nestimate does not export them):
 # .coerce_sequence_input / .as_netobject / .extract_edges_from_matrix
 # (sequence input of hg_bootstrap(), hg_compare(), temporal_hypergraph())
 # and .validate_mcml_matrix / .wrap_netobject (hg_clique_expansion()).
 # Each is a verbatim copy of Nestimate's same-named internal; identity is
 # asserted in local_testing_and_equivalence/test-identity-nestimate-memory.R.
-# .coerce_grouped_sequences() is hypernets' own (group_hypergraph()).
+# .coerce_grouped_sequences() is hypergraphs' own (group_hypergraph()).
 
 #' Coerce tna or netobject to labeled sequence data.frame
 #'
@@ -366,7 +366,7 @@
 # ones build_network(method = "relative", ...) builds from the same call.
 # `session = FALSE` switches session detection off. A long table passed
 # without `action` and without an `action` column is refused
-# (hypernets_long_format).
+# (hypergraphs_long_format).
 
 #' Coerce any sequence input to what a sequence verb consumes
 #'
@@ -447,7 +447,7 @@
     notice <- simpleMessage(paste0(
       "A network with one long sequence is not recommended and can't be ",
       "validated using bootstrap and other confirmatory testings.\n"))
-    class(notice) <- c("hypernets_single_sequence", class(notice))
+    class(notice) <- c("hypergraphs_single_sequence", class(notice))
     message(notice)
   }
   # only the columns that define the sequences, so prepare() has no other
@@ -483,7 +483,7 @@
 #' @param data The long table.
 #' @param action,actor,time,session Column names or `NULL`; `actor` and
 #'   `session` may name several columns.
-#' @return `NULL`, invisibly; raises `hypernets_bad_input`.
+#' @return `NULL`, invisibly; raises `hypergraphs_bad_input`.
 #' @noRd
 .ho_check_long_columns <- function(data, action, actor, time, session) {
   if (!is.data.frame(data)) {
@@ -533,5 +533,5 @@
 #' @param msg Message.
 #' @noRd
 .ho_bad_input <- function(msg) {
-  stop(errorCondition(msg, class = "hypernets_bad_input", call = NULL))
+  stop(errorCondition(msg, class = "hypergraphs_bad_input", call = NULL))
 }

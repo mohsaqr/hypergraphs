@@ -50,7 +50,7 @@ index d243cd2..b80021c 100644
 +  if (!is.null(min_transitions) || !isFALSE(keep_sparse)) {
 +    stop(errorCondition(
 +      "`min_transitions` and `keep_sparse` guard per-unit models and need `by`.",
-+      class = "hypernets_bad_input", call = NULL))
++      class = "hypergraphs_bad_input", call = NULL))
 +  }
    # --- Long format: one event per row (same contract as bootstrap_hon) ---
    if (!is.null(action)) {

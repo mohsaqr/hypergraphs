@@ -2,7 +2,7 @@ testthat::skip_on_cran()
 
 # ---- Tidy accessors: every net_* result class ----------------------------
 #
-# Taxonomy contract (hypernets 0.2.0): every result object in every structure
+# Taxonomy contract (hypergraphs 0.2.0): every result object in every structure
 # family is reachable with hg_get(), a secondary table is selected
 # with what =, and the return is always a base data.frame with >= 1 column
 # and no row names. Reaching into a result with $ is never required.
@@ -265,41 +265,41 @@ test_that("accessors reject unknown what = and bad filters", {
   ph <- hg_homology(.ac_mat(), n_steps = 6L, max_dim = 2L)
   expect_error(
     hg_get(ph, what = "betti", sort_by = "persistence"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 
   pd <- memory(.ac_wide(), order = 2L)
   expect_error(hg_get(pd, min_count = 0L), "`min_count` must be")
 })
 
-test_that("every hypernets result class has an hg_get method", {
+test_that("every hypergraphs result class has an hg_get method", {
   # The taxonomy contract: no result object forces the user to reach in with $.
   #
-  # The class list is DISCOVERED from the package itself: every hypernets
-  # result class has a print method by the same taxonomy, so hypernets' own
+  # The class list is DISCOVERED from the package itself: every hypergraphs
+  # result class has a print method by the same taxonomy, so hypergraphs' own
   # print methods enumerate its classes. The namespace's S3 registry is the
   # parsed NAMESPACE, so it reads the same under devtools::load_all() and an
   # installed build.
-  registry <- getNamespaceInfo("hypernets", "S3methods")
+  registry <- getNamespaceInfo("hypergraphs", "S3methods")
   declared <- function(generic) registry[registry[, 1L] == generic, 2L]
   classes <- setdiff(sort(unique(declared("print"))),
                      # print-only views of data.frame results that are
                      # returned as the table itself
-                     c("hypernets_keywords"))
+                     c("hypergraphs_keywords"))
   covered <- declared("hg_get")
   expect_true(length(classes) >= 8L)   # guard against discovering nothing
   expect_setequal(intersect(classes, covered), classes)
 })
 
 test_that("no as.data.frame method is registered", {
-  registry <- getNamespaceInfo("hypernets", "S3methods")
+  registry <- getNamespaceInfo("hypergraphs", "S3methods")
   expect_length(registry[registry[, 1L] == "as.data.frame", 2L], 0L)
-  exports <- getNamespaceExports("hypernets")
+  exports <- getNamespaceExports("hypergraphs")
   expect_length(grep("^as\\.data\\.frame", exports, value = TRUE), 0L)
 })
 
 test_that("hg_get has a method for every imported result class, and nothing else", {
-  # The memory and simplicial estimators return their own classes. hypernets
+  # The memory and simplicial estimators return their own classes. hypergraphs
   # adds hg_get() for them and registers NO print/summary/plot method on
   # them, which would overwrite the estimator's own whenever both are loaded.
   imported_classes <- c(
@@ -308,7 +308,7 @@ test_that("hg_get has a method for every imported result class, and nothing else
     "simplicial_complex", "persistent_homology", "q_analysis",
     "persistence_landscape"
   )
-  ours <- getNamespaceInfo("hypernets", "S3methods")
+  ours <- getNamespaceInfo("hypergraphs", "S3methods")
   theirs <- getNamespaceInfo("Nestimate", "S3methods")
   ours_on <- function(generic) ours[ours[, 1L] == generic, 2L]
   expect_setequal(intersect(ours_on("hg_get"), imported_classes),
@@ -319,7 +319,7 @@ test_that("hg_get has a method for every imported result class, and nothing else
 })
 
 test_that("hg_get.default names the class it cannot read", {
-  expect_error(hg_get(data.frame(a = 1)), class = "hypernets_bad_input")
+  expect_error(hg_get(data.frame(a = 1)), class = "hypergraphs_bad_input")
   expect_error(hg_get(list(1)), "`list`")
   expect_error(hg_get(1:3), "`integer`")
 })

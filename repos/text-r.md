@@ -8,6 +8,6 @@
   from package documentation background — exact function surface not audited.
   Current CRAN version 1.9 (published 2026-06-13, checked 2026-09-29).
 - **Role for us**: an optional external embedding route. sbert is the native
-  hypernets-facing frontend; either package can supply a matrix to
-  `knn_hypergraph()`. PLM training remains outside hypernets.
+  hypergraphs-facing frontend; either package can supply a matrix to
+  `knn_hypergraph()`. PLM training remains outside hypergraphs.
 - **Links**: https://cran.r-project.org/package=text · https://r-text.org

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Shared accessor plumbing
 #
-# Every hypernets accessor that can return many rows takes `top =`. It is
+# Every hypergraphs accessor that can return many rows takes `top =`. It is
 # applied LAST -- after `what`, after every filter (`order_min`, `min_count`,
 # `dim`, `k`, `dimension`, `significant`, ...) and after `sort_by` -- so
 # `sort_by` and `top` compose: `top = n` means "the first n rows of the table
@@ -86,14 +86,14 @@
 # ---------------------------------------------------------------------------
 # hg_get(): the one reader
 #
-# Every hypernets object -- a hypergraph, a memory network, a simplicial
+# Every hypergraphs object -- a hypergraph, a memory network, a simplicial
 # complex, an inference or community result -- is read through hg_get().
 # Each class registers an hg_get.<class> method; `what =` picks a secondary
 # table and every filter, ordering and `top` is a named argument of that
-# method. hypernets registers no as.data.frame() method.
+# method. hypergraphs registers no as.data.frame() method.
 # ---------------------------------------------------------------------------
 
-#' Read a table from any hypernets object
+#' Read a table from any hypergraphs object
 #'
 #' `hg_get()` is the single reader of the package. Every object a
 #' constructor or a verb returns -- a hypergraph, a memory network, a
@@ -137,11 +137,11 @@
 #'   \item{`persistence_landscape` ([hg_landscape()])}{`"landscape"`.}
 #'   \item{`hg_communities` ([hg_communities()] on a hypergraph)}{see
 #'     [hg_get.hg_communities()].}
-#'   \item{`hypernets_community_comparison`, `hypernets_motifs`,
+#'   \item{`hypergraphs_community_comparison`, `hypergraphs_motifs`,
 #'     `net_hg_mmsbm`}{see their methods.}
 #' }
 #'
-#' @param x A hypernets object.
+#' @param x A hypergraphs object.
 #' @param what `NULL` (default) for the object's primary table, or the name
 #'   of one of its tables (see *Tables by class*).
 #' @param ... Arguments of the method for `class(x)`: filters (`order_min`,
@@ -149,7 +149,7 @@
 #'   and `top` (the first `top` rows, applied last).
 #' @return A base `data.frame`, one row per observation of the selected
 #'   table. An object of a class without a method raises
-#'   `hypernets_bad_input`, naming the class.
+#'   `hypergraphs_bad_input`, naming the class.
 #' @examples
 #' hg <- window_hypergraph(list(s1 = c("a", "b", "a", "c")), window = 2L)
 #' hg_get(hg)
@@ -167,10 +167,10 @@ hg_get <- function(x, what = NULL, ...) {
 hg_get.default <- function(x, what = NULL, ...) {
   stop(errorCondition(
     sprintf(paste0("hg_get() has no table for an object of class %s. ",
-                   "It reads the objects hypernets' constructors and verbs ",
+                   "It reads the objects hypergraphs' constructors and verbs ",
                    "return."),
             paste(sprintf("`%s`", class(x)), collapse = "/")),
-    class = "hypernets_bad_input", call = NULL))
+    class = "hypergraphs_bad_input", call = NULL))
 }
 
 #' Drop a result table's subclasses, keeping a plain data.frame
@@ -196,32 +196,32 @@ hg_get.default <- function(x, what = NULL, ...) {
 #
 # hon(), honem(), mogen(), markov_order(), memory(), hg_markov_stability(),
 # hg_homology(), hg_landscape() and hg_qanalysis() return the estimator's
-# object with one class in front, `hypernets_result`, so that it prints as
-# every hypernets result does: a header line and its default table. Every
+# object with one class in front, `hypergraphs_result`, so that it prints as
+# every hypergraphs result does: a header line and its default table. Every
 # other method (summary, plot, the estimator's own verbs) is the
 # estimator's, reached through the next class.
 # ---------------------------------------------------------------------------
 
-#' Mark an estimator's result as a hypernets result
+#' Mark an estimator's result as a hypergraphs result
 #' @param x The estimator's object.
-#' @return `x` with class `hypernets_result` in front.
+#' @return `x` with class `hypergraphs_result` in front.
 #' @noRd
 .ho_result <- function(x) {
-  if (inherits(x, "hypernets_result")) return(x)
-  structure(x, class = c("hypernets_result", class(x)))
+  if (inherits(x, "hypergraphs_result")) return(x)
+  structure(x, class = c("hypergraphs_result", class(x)))
 }
 
-#' The estimator's object without the hypernets class
+#' The estimator's object without the hypergraphs class
 #' @noRd
 .ho_unresult <- function(x) {
-  class(x) <- setdiff(class(x), "hypernets_result")
+  class(x) <- setdiff(class(x), "hypergraphs_result")
   x
 }
 
 #' One line naming a result and its main settings
 #' @noRd
 .ho_result_header <- function(x) {
-  cls <- setdiff(class(x), "hypernets_result")[1L]
+  cls <- setdiff(class(x), "hypergraphs_result")[1L]
   switch(cls,
     net_hon = sprintf(paste0(
       "Higher-order network: %d states, %d nodes, %d rules ",
@@ -261,9 +261,9 @@ hg_get.default <- function(x, what = NULL, ...) {
   )
 }
 
-#' @rdname print.hypernets_result
+#' @rdname print.hypergraphs_result
 #' @export
-hg_get.hypernets_result <- function(x, ...) NextMethod()
+hg_get.hypergraphs_result <- function(x, ...) NextMethod()
 
 #' Print a result of an imported estimator
 #'
@@ -280,7 +280,7 @@ hg_get.hypernets_result <- function(x, ...) NextMethod()
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
 #' print(hon(seqs, max_order = 2), n = 3)
 #' @export
-print.hypernets_result <- function(x, n = 10L, ...) {
+print.hypergraphs_result <- function(x, n = 10L, ...) {
   cat(.ho_result_header(x), "\n", sep = "")
   .ho_print_table(x, n)
   invisible(x)
@@ -289,7 +289,7 @@ print.hypernets_result <- function(x, n = 10L, ...) {
 # ---------------------------------------------------------------------------
 # summary(): every table of a result as a list of data frames
 #
-# summary(x) returns a `hypernets_summary`, a list whose elements are the
+# summary(x) returns a `hypergraphs_summary`, a list whose elements are the
 # data frames hg_get(x, what = ) returns, named after `what`, plus the
 # overall figures of a result as further named data frames. The result
 # itself is left untouched, so every field the estimator's own methods read
@@ -315,11 +315,11 @@ print.hypernets_result <- function(x, n = 10L, ...) {
   NULL
 }
 
-#' Build a hypernets summary from a result's tables
+#' Build a hypergraphs summary from a result's tables
 #'
 #' @param x A result with an hg_get() method.
 #' @param extra Named list of further data frames (overall figures).
-#' @return A `hypernets_summary`.
+#' @return A `hypergraphs_summary`.
 #' @noRd
 .ho_summary <- function(x, extra = list()) {
   whats <- .ho_what_values(x)
@@ -327,23 +327,23 @@ print.hypernets_result <- function(x, n = 10L, ...) {
     list(table = hg_get(x))
   } else {
     # a table the object does not hold (e.g. sentences of a bag-of-words
-    # corpus) is refused with hypernets_bad_input and left out
+    # corpus) is refused with hypergraphs_bad_input and left out
     stats::setNames(lapply(whats, \(w) {
       tryCatch(hg_get(x, what = w),
-               hypernets_bad_input = function(e) NULL)
+               hypergraphs_bad_input = function(e) NULL)
     }), whats)
   }
   tables <- c(Filter(Negate(is.null), tables), extra)
-  structure(tables, class = "hypernets_summary",
+  structure(tables, class = "hypergraphs_summary",
             header = utils::capture.output(print(x, n = 1L))[1L])
 }
 
 #' @rdname result-summary
-#' @param x A `hypernets_summary`.
+#' @param x A `hypergraphs_summary`.
 #' @param what For [hg_get()] on a summary: the name of one of its tables.
 #'   Default: the first.
 #' @export
-hg_get.hypernets_summary <- function(x, what = names(x)[1L], ...) {
+hg_get.hypergraphs_summary <- function(x, what = names(x)[1L], ...) {
   what <- match.arg(what, names(x))
   x[[what]]
 }
@@ -353,7 +353,7 @@ hg_get.hypernets_summary <- function(x, what = names(x)[1L], ...) {
 #' @param ... Unused.
 #' @rdname result-summary
 #' @export
-print.hypernets_summary <- function(x, n = 5L, ...) {
+print.hypergraphs_summary <- function(x, n = 5L, ...) {
   cat(attr(x, "header"), "\n", sep = "")
   cat(sprintf("Tables: %s\n", paste(names(x), collapse = ", ")))
   lapply(names(x), \(name) {
@@ -382,7 +382,7 @@ print.hypernets_summary <- function(x, n = 5L, ...) {
 #'   sequences, [hg_bootstrap()], [hg_compare()], [hg_communities()],
 #'   [hg_compare_communities()], [hg_mmsbm()], [hg_motifs()], [simplicial()],
 #'   [hg_homology()], [hg_landscape()] or [hg_qanalysis()].
-#' @return A `hypernets_summary`: a named list of data frames. Its print
+#' @return A `hypergraphs_summary`: a named list of data frames. Its print
 #'   method shows the first rows of each.
 #' @examples
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
@@ -394,7 +394,7 @@ NULL
 
 #' @rdname result-summary
 #' @export
-summary.hypernets_result <- function(object, ...) {
+summary.hypergraphs_result <- function(object, ...) {
   extra <- if (inherits(object, "net_path_dependence")) {
     chain <- object$chain
     list(overall = data.frame(
@@ -415,7 +415,7 @@ summary.hypernets_result <- function(object, ...) {
   .ho_summary(object, extra)
 }
 
-#' @rdname print.hypernets_result
+#' @rdname print.hypergraphs_result
 #' @param y Unused.
 #' @param what For a Markov stability result: `"states"` (default), one
 #'   panel of bars per measure, or `"passage_time"`, the mean first-passage
@@ -425,7 +425,7 @@ summary.hypernets_result <- function(object, ...) {
 #'   each) and for a Markov stability result; every other result is plotted
 #'   by its estimator's method.
 #' @export
-plot.hypernets_result <- function(x, y, what = c("states", "passage_time"),
+plot.hypergraphs_result <- function(x, y, what = c("states", "passage_time"),
                                   ...) {
   if (inherits(x, "net_markov_stability")) {
     return(.hms_plot(x, match.arg(what), ...))

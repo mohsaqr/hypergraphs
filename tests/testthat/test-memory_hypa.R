@@ -50,7 +50,7 @@ test_that("hypa takes `order`; the old `k` alias is refused", {
   trajs <- list(c("A", "B", "C"), c("A", "B", "D"), c("B", "C", "A"),
                 c("C", "A", "B"), c("A", "C", "B"), c("B", "A", "C"))
   expect_error(hypa(trajs, k = 2L, min_count = 1L),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   h_order <- hypa(trajs, order = 2L, min_count = 1L)
   expect_identical(.unview(h_order),
                    Nestimate::build_hypa(trajs, order = 2L, min_count = 1L))
@@ -490,7 +490,7 @@ test_that("hypa(type =, order_by =) selects and orders anomalies as Nestimate's 
   if (nrow(sig_over) > 1L) expect_false(is.unsorted(sig_over$p_tail))
   # the same selection Nestimate's summary returns
   ref <- suppressWarnings(utils::capture.output(
-    s <- summary(unclass_fit <- structure(fit, class = setdiff(class(fit), "hypernets_hypa")),
+    s <- summary(unclass_fit <- structure(fit, class = setdiff(class(fit), "hypergraphs_hypa")),
                  type = "over", order_by = "ratio", n = 1e6)))
   expect_identical(over$path, s$path)
   # the fit remembers its view; printing lists it

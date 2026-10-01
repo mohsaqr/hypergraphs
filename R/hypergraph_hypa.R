@@ -79,7 +79,7 @@
 #' hg <- group_hypergraph(memberships, actor = "actor", group = "group")
 #' hypa(hg, min_count = 2L)
 #' @param ... Must be empty: an argument that only the sequence method
-#'   takes (`order`, `action`, ...) raises `hypernets_bad_input`.
+#'   takes (`order`, `action`, ...) raises `hypergraphs_bad_input`.
 #' @export
 hypa.net_hg <- function(x, min_count = 5L, alpha = 0.05, p_adjust = "BH",
                            top = NULL, ...) {
@@ -98,7 +98,7 @@ hypa.net_hg <- function(x, min_count = 5L, alpha = 0.05, p_adjust = "BH",
       !p_adjust %in% c(stats::p.adjust.methods, "none")) {
     stop(errorCondition(
       "`p_adjust` must be one of stats::p.adjust.methods or \"none\"",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
 
@@ -110,7 +110,7 @@ hypa.net_hg <- function(x, min_count = 5L, alpha = 0.05, p_adjust = "BH",
   if (nrow(hits) == 0L) {
     stop(errorCondition(
       sprintf("no pair co-occurs at least %d times", as.integer(min_count)),
-      class = "hypernets_empty_result", call = NULL
+      class = "hypergraphs_empty_result", call = NULL
     ))
   }
 

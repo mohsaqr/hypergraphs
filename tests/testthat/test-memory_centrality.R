@@ -149,10 +149,10 @@ test_that("error paths and the path-enumeration guard", {
   expect_error(hg_centrality(hon, project = NA), "project")
   expect_error(hg_centrality(hon, type = "nope"), "arg")
   expect_error(hg_centrality(hon, type = "betweenness", max_paths = 1),
-               class = "hypernets_too_many_paths")
+               class = "hypergraphs_too_many_paths")
   expect_warning(
     hg_centrality(hon, type = "pagerank", max_iter = 1L),
-    class = "hypernets_no_converge")
+    class = "hypergraphs_no_converge")
 })
 
 test_that("first-order distances are the minimum over all realizations", {
@@ -165,14 +165,14 @@ test_that("first-order distances are the minimum over all realizations", {
                                  replace = TRUE), simplify = FALSE)
     hon <- hon(seqs, max_order = 3L)
     nodes <- rownames(hon$matrix)
-    node_paths <- hypernets:::.hoc_node_paths(nodes)
-    succ <- hypernets:::.hoc_succ(hon$matrix)
+    node_paths <- hypergraphs:::.hoc_node_paths(nodes)
+    succ <- hypergraphs:::.hoc_succ(hon$matrix)
     n <- length(nodes)
     dist_ho <- do.call(rbind, lapply(seq_len(n), function(s) {
-      hypernets:::.hoc_bfs_dist(succ, s, n)
+      hypergraphs:::.hoc_bfs_dist(succ, s, n)
     }))
     states <- hon$first_order_states
-    got <- hypernets:::.hoc_dist_first(dist_ho, node_paths, states)
+    got <- hypergraphs:::.hoc_dist_first(dist_ho, node_paths, states)
     # independent slow reference: minimum over every (v, w) realization
     ref <- matrix(Inf, length(states), length(states),
                   dimnames = list(states, states))

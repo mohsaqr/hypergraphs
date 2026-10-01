@@ -58,7 +58,7 @@ test_that("a named vector renames the hyperedges", {
 
 test_that("edge_labels rejects an unnamed vector by class", {
   expect_error(plot(petal_hg(), edge_labels = c("one", "two")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("node labels and hyperedge labels are independent", {

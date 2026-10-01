@@ -2,8 +2,8 @@
 % Please edit documentation in R/text_verbs.R
 \name{hg_keywords}
 \alias{hg_keywords}
-\alias{print.hypernets_keywords}
-\alias{plot.hypernets_keywords}
+\alias{print.hypergraphs_keywords}
+\alias{plot.hypergraphs_keywords}
 \title{Characteristic words (keywords) per cluster}
 \usage{
 hg_keywords(
@@ -18,9 +18,9 @@ hg_keywords(
   collapse = FALSE
 )
 
-\method{print}{hypernets_keywords}(x, ...)
+\method{print}{hypergraphs_keywords}(x, ...)
 
-\method{plot}{hypernets_keywords}(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
+\method{plot}{hypergraphs_keywords}(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
 }
 \arguments{
 \item{hg}{The hypergraph the clustering was computed on, or the
@@ -74,7 +74,7 @@ type, so clusters run down and types across. With a single type and
 many clusters, pass e.g. \code{ncol = 4}.}
 }
 \value{
-A base \code{data.frame} of class \code{hypernets_keywords}, one row per
+A base \code{data.frame} of class \code{hypergraphs_keywords}, one row per
 type-cluster-keyword triple, columns \code{type}, \code{cluster}, \code{size} (the
 cluster's documents), \code{rank}, \code{word}, \code{score} (the selected score),
 \code{share} (\code{score} divided by the word's summed score over all
@@ -84,7 +84,7 @@ positive score and at least \code{min_docs} documents appear. With
 \code{collapse = TRUE}: one row per type and cluster, columns \code{type},
 \code{cluster}, \code{size} and \code{words}. The print method shows the collapsed
 view, truncated to the console width; the returned table itself is
-the long form. Raises \code{hypernets_bad_input} for unknown node names, a \code{type} that
+the long form. Raises \code{hypergraphs_bad_input} for unknown node names, a \code{type} that
 needs the token layer on a hypergraph without one, a malformed
 \code{scores} table, or a bag-of-words \code{text_hypergraph(nodes = "word")},
 whose hyperedges are documents rather than words.
@@ -92,7 +92,7 @@ whose hyperedges are documents rather than words.
 \code{plot()} returns a ggplot: one panel per cluster (rows) and score type
 (columns), each with its own word axis, horizontal bars of \code{value} per
 word, Okabe-Ito fill by type. It needs the long form and raises
-\code{hypernets_bad_input} on a collapsed table.
+\code{hypergraphs_bad_input} on a collapsed table.
 }
 \description{
 For a clustered hypergraph, ranks each cluster's hyperedges -- on a
@@ -121,7 +121,7 @@ the measure named in \code{centrality}.
 
 \code{"frequency"}, \code{"ctfidf"} and \code{"centrality"} need the token-level layer
 of a bag-of-words document hypergraph (\code{construction = "bag"},
-\code{nodes = "doc"}); other hypergraphs raise \code{hypernets_bad_input}.
+\code{nodes = "doc"}); other hypergraphs raise \code{hypergraphs_bad_input}.
 
 \strong{Sentence scope.} When \code{hg} is a \code{text_hypergraph(construction = "sentence")} of the documents, \code{clusters} still names documents, and the
 scores are computed over the cluster's \emph{sentences}: two words are then

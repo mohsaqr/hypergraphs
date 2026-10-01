@@ -38,21 +38,21 @@ file order: the \code{nodes} / \code{edges} records first, then those first seen
 in \code{incidences}. \code{params} holds \code{source = "hg_read_hif"},
 \code{network_type} and the file's \code{metadata}.
 
-Both verbs raise \code{hypernets_missing_dependency} without jsonlite.
-\code{hg_read_hif()} raises \code{hypernets_bad_input} for text that is not JSON,
+Both verbs raise \code{hypergraphs_missing_dependency} without jsonlite.
+\code{hg_read_hif()} raises \code{hypergraphs_bad_input} for text that is not JSON,
 a missing file, and a document that breaks the HIF schema (no
 \code{incidences}, a record without its identifier, an unknown field, a
 non-numeric weight, an unknown \code{network-type}), a duplicated node,
 edge or (node, edge) pair, a zero incidence weight, a directed
 hypergraph, or an attribute named like its record's identifier.
-\code{hg_write_hif()} raises \code{hypernets_bad_input} for a non-\code{net_hg} input.
+\code{hg_write_hif()} raises \code{hypergraphs_bad_input} for a non-\code{net_hg} input.
 }
 \description{
 \code{hg_write_hif()} writes a \code{net_hg} as HIF JSON, and \code{hg_read_hif()} reads
 a HIF file (or a HIF JSON string) back into a \code{net_hg}. HIF is the
 interchange standard of the higher-order network libraries (XGI,
 HyperNetX, HypergraphX, HAT, SimpleHypergraphs.jl), so these two verbs move
-a hypergraph between hypernets and any of them.
+a hypergraph between hypergraphs and any of them.
 }
 \section{Mapping}{
 

@@ -80,7 +80,7 @@ test_that("lambda_e via Eq. (C2) equals the explicit pair sum (Eq. 2)", {
   u <- matrix(stats::runif(n * 3L), n, 3L)
   w <- matrix(stats::runif(9L), 3L, 3L)
   w <- (w + t(w)) / 2
-  fast <- hypernets:::.mmsbm_lambda(.mm_sparse(edges, n), u, w)$lambda
+  fast <- hypergraphs:::.mmsbm_lambda(.mm_sparse(edges, n), u, w)$lambda
   slow <- vapply(edges, \(e) {
     p <- t(utils::combn(e, 2L))
     sum(vapply(seq_len(nrow(p)), \(r) sum(u[p[r, 1L], ] %*% w %*% u[p[r, 2L], ]),
@@ -99,8 +99,8 @@ test_that("one EM step equals the brute-force Eqs. (7)-(9), with and without pri
   w <- matrix(c(1.2, 0.3, 0.3, 0.8), 2L, 2L)
   lapply(list(c(0, 0), c(1, 0), c(2.5, 0.5)), \(pr) {
     brute <- .mm_brute_step(edges, A, u, w, w_prior = pr[1L], u_prior = pr[2L])
-    w_new <- hypernets:::.mmsbm_w_update(B, A, u, w, pr[1L])
-    u_new <- hypernets:::.mmsbm_u_update(B, A, u, w_new, pr[2L])
+    w_new <- hypergraphs:::.mmsbm_w_update(B, A, u, w, pr[1L])
+    u_new <- hypergraphs:::.mmsbm_u_update(B, A, u, w_new, pr[2L])
     expect_equal(w_new, brute$w, tolerance = 1e-12)
     expect_equal(u_new, brute$u, tolerance = 1e-12)
   })
@@ -112,13 +112,13 @@ test_that("maximum-likelihood EM never decreases the log-likelihood", {
   edges <- lapply(1:25, \(i) sort(sample(n, sample(2:5, 1L))))
   B <- .mm_sparse(edges, n)
   A <- rep(1, length(edges))
-  init <- hypernets:::.mmsbm_init(n, 3L, FALSE, 0, 0)
+  init <- hypergraphs:::.mmsbm_init(n, 3L, FALSE, 0, 0)
   u <- init$u
   w <- init$w
   ll <- vapply(seq_len(60L), \(t) {
-    w <<- hypernets:::.mmsbm_w_update(B, A, u, w, 0)
-    u <<- hypernets:::.mmsbm_u_update(B, A, u, w, 0)
-    hypernets:::.mmsbm_loglik(B, A, u, w, C = 1)
+    w <<- hypergraphs:::.mmsbm_w_update(B, A, u, w, 0)
+    u <<- hypergraphs:::.mmsbm_u_update(B, A, u, w, 0)
+    hypergraphs:::.mmsbm_loglik(B, A, u, w, C = 1)
   }, numeric(1L))
   expect_true(all(diff(ll) > -1e-9 * abs(ll[-1L])))
 })
@@ -131,8 +131,8 @@ test_that("the log-likelihood is invariant to u -> c u, w -> w / c^2", {
   A <- stats::runif(length(edges), 1, 2)
   u <- matrix(stats::runif(n * 2L), n, 2L)
   w <- matrix(c(1, 0.2, 0.2, 0.5), 2L, 2L)
-  base <- hypernets:::.mmsbm_loglik(B, A, u, w, C = 1.5)
-  expect_equal(hypernets:::.mmsbm_loglik(B, A, 3 * u, w / 9, C = 1.5), base,
+  base <- hypergraphs:::.mmsbm_loglik(B, A, u, w, C = 1.5)
+  expect_equal(hypergraphs:::.mmsbm_loglik(B, A, 3 * u, w / 9, C = 1.5), base,
                tolerance = 1e-12)
 })
 
@@ -140,12 +140,12 @@ test_that("a repeated hyperedge is the same as weight 2", {
   set.seed(5)
   n <- 7L
   edges <- lapply(1:10, \(i) sort(sample(n, sample(2:4, 1L))))
-  init <- hypernets:::.mmsbm_init(n, 2L, FALSE, 0, 1)
-  twice <- hypernets:::.mmsbm_em(
+  init <- hypergraphs:::.mmsbm_init(n, 2L, FALSE, 0, 1)
+  twice <- hypergraphs:::.mmsbm_em(
     .mm_sparse(c(edges, edges[1L]), n), rep(1, 11L), init$u, init$w,
     max_iter = 50L, tol = NULL, check_every = 10L, u_prior = 0, w_prior = 1,
     C = 1.5)
-  weighted <- hypernets:::.mmsbm_em(
+  weighted <- hypergraphs:::.mmsbm_em(
     .mm_sparse(edges, n), c(2, rep(1, 9L)), init$u, init$w,
     max_iter = 50L, tol = NULL, check_every = 10L, u_prior = 0, w_prior = 1,
     C = 1.5)
@@ -157,15 +157,15 @@ test_that("a repeated hyperedge is the same as weight 2", {
 test_that("the reported log-likelihood is Eq. (5) at the rescaled w", {
   hg <- .mm_planted()
   fit <- hg_mmsbm(hg, k = 2, nstart = 2L, seed = 1)
-  B <- hypernets:::.mmsbm_pattern(hg$incidence)
+  B <- hypergraphs:::.mmsbm_pattern(hg$incidence)
   A <- rep(1, ncol(B))
   expect_identical(fit$C, 2 * (1 - 1 / 4))
-  eq5 <- -fit$C * hypernets:::.mmsbm_pair_sum(fit$u, fit$w) +
-    sum(A * log(hypernets:::.mmsbm_lambda(B, fit$u, fit$w)$lambda))
+  eq5 <- -fit$C * hypergraphs:::.mmsbm_pair_sum(fit$u, fit$w) +
+    sum(A * log(hypergraphs:::.mmsbm_lambda(B, fit$u, fit$w)$lambda))
   expect_equal(fit$loglik, eq5, tolerance = 1e-12)
   # = the C = 1 form at C w, minus sum(A) log C
   expect_equal(fit$loglik,
-               hypernets:::.mmsbm_loglik(B, A, fit$u, fit$C * fit$w, C = 1) -
+               hypergraphs:::.mmsbm_loglik(B, A, fit$u, fit$C * fit$w, C = 1) -
                  sum(A) * log(fit$C), tolerance = 1e-12)
 })
 
@@ -176,7 +176,7 @@ test_that("hg_mmsbm recovers two planted groups", {
     fit <- hg_mmsbm(hg, k = 2, assortative = assortative, seed = 1)
     nodes <- hg_get(fit, what = "nodes")
     expect_identical(nodes$node, hg$nodes)
-    expect_equal(hypernets:::.thg_ari(truth, nodes$community), 1)
+    expect_equal(hypergraphs:::.thg_ari(truth, nodes$community), 1)
     expect_true(all(fit$restarts$converged))
     if (assortative) {
       expect_identical(fit$w[1L, 2L], 0)
@@ -258,23 +258,23 @@ test_that("size-1 hyperedges are left out and max_size truncates", {
 test_that("a node with no hyperedge of size 2+ gets NA and a classed warning", {
   hg <- .mm_hg(list(c("a", "b", "c"), c("a", "b"), c("b", "c"), "z"))
   expect_warning(fit <- hg_mmsbm(hg, k = 2, nstart = 2L, seed = 1),
-                 class = "hypernets_isolated_nodes")
+                 class = "hypergraphs_isolated_nodes")
   nodes <- hg_get(fit, what = "nodes")
   expect_true(is.na(nodes$community[nodes$node == "z"]))
   expect_identical(fit$isolated, "z")
 })
 
-test_that("non-convergence is surfaced as hypernets_no_converge", {
+test_that("non-convergence is surfaced as hypergraphs_no_converge", {
   hg <- .mm_planted()
   expect_warning(fit <- hg_mmsbm(hg, k = 2, nstart = 2L, max_iter = 3L,
                                  seed = 1),
-                 class = "hypernets_no_converge")
+                 class = "hypergraphs_no_converge")
   expect_false(any(fit$restarts$converged))
 })
 
-test_that("invalid input raises hypernets_bad_input", {
+test_that("invalid input raises hypergraphs_bad_input", {
   hg <- .mm_planted()
-  bad <- \(...) expect_error(hg_mmsbm(...), class = "hypernets_bad_input")
+  bad <- \(...) expect_error(hg_mmsbm(...), class = "hypergraphs_bad_input")
   bad(list(), k = 2)
   bad(hg, k = 0)
   bad(hg, k = 1.5)
@@ -328,7 +328,7 @@ test_that("collapsed memberships are NA with a classed warning, not fake mixture
 test_that("community-labelled tables feed hg_agreement(); NA labels are dropped", {
   a <- data.frame(node = c("p", "q", "r", "s"), community = c("A", "A", "B", NA))
   b <- data.frame(node = c("p", "q", "r", "s"), cluster = c("x", "x", "y", "y"))
-  expect_warning(out <- hg_agreement(a, b), class = "hypernets_missing_labels")
+  expect_warning(out <- hg_agreement(a, b), class = "hypergraphs_missing_labels")
   expect_identical(out$n, 3L)
   expect_equal(out$ari, 1)
 })

@@ -44,7 +44,7 @@ hg_get.persistent_homology <- function(
     if (what == "betti") {
       stop(errorCondition(
         "`sort_by` applies only to what = \"persistence\"",
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     out <- out[order(-out$persistence, out$dimension, out$birth), ,
                drop = FALSE]

@@ -139,16 +139,16 @@ test_that("any hypergraph is factorized on its incidence", {
 
 test_that("bad input is refused by class and non-convergence is reported", {
   hg <- text_hypergraph(.tm_toy())
-  expect_error(hg_topics(hg, k = 1), class = "hypernets_bad_input")
-  expect_error(hg_topics(hg, k = 5), class = "hypernets_bad_input")
-  expect_error(hg_topics(hg, k = 2, nstart = 0), class = "hypernets_bad_input")
-  expect_error(hg_topics(hg, k = 2, tol = -1), class = "hypernets_bad_input")
+  expect_error(hg_topics(hg, k = 1), class = "hypergraphs_bad_input")
+  expect_error(hg_topics(hg, k = 5), class = "hypergraphs_bad_input")
+  expect_error(hg_topics(hg, k = 2, nstart = 0), class = "hypergraphs_bad_input")
+  expect_error(hg_topics(hg, k = 2, tol = -1), class = "hypergraphs_bad_input")
   expect_error(hg_topics(list(), k = 2))
   expect_warning(hg_topics(hg, k = 2, nstart = 1, max_iter = 2, tol = 1e-12),
-                 class = "hypernets_no_converge")
+                 class = "hypergraphs_no_converge")
   fit <- hg_topics(hg, k = 2, nstart = 2)
   expect_error(hg_get(fit, what = "words", topic = "Topic 9"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("the readers, print, summary and plot", {
@@ -158,7 +158,7 @@ test_that("the readers, print, summary and plot", {
                    "Topic 1")
   expect_output(print(fit), "Topic model \\(KL factorization\\): 2 topics")
   s <- summary(fit)
-  expect_s3_class(s, "hypernets_summary")
+  expect_s3_class(s, "hypergraphs_summary")
   expect_identical(s$shares, hg_get(fit, what = "shares"))
   expect_s3_class(plot(fit, n = 3), "ggplot")
 })
@@ -176,7 +176,7 @@ test_that("SymNMF memberships are distributions whose maximum is the cluster", {
   expect_identical(strongest$cluster[match(clusters$node, strongest$node)],
                    clusters$cluster)
   expect_error(hg_cluster(hg, k = 2, what = "membership"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hg_topic_quality() scores a topic model from its distributions", {
@@ -210,15 +210,15 @@ test_that("hg_topic_quality() scores a topic model from its distributions", {
   }, numeric(1L))
   expect_equal(quality$exclusivity, frex)
   expect_error(hg_topic_quality(hg, topics = list()),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_topic_quality(hg, topics = fit, words = words),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_topic_quality(hg, topics = fit, coherence = "npmi_cluster"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   other <- text_hypergraph(c(x = "one two three", y = "two three four",
                              z = "four five one"))
   expect_error(hg_topic_quality(other, topics = fit),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hg_topic_search() scores every k and marks the frontier", {
@@ -228,7 +228,7 @@ test_that("hg_topic_search() scores every k and marks the frontier", {
     e = "soup stars salt sky night broth", f = "onion salt stars broth")
   hg <- text_hypergraph(corpus)
   search <- hg_topic_search(hg, k = 3:2, nstart = 2, n = 4)
-  expect_s3_class(search, "hypernets_topic_search")
+  expect_s3_class(search, "hypergraphs_topic_search")
   expect_identical(search$k, 2:3)
   expect_named(search, c("k", "coherence", "exclusivity", "divergence",
                          "agreement", "converged", "frontier"))
@@ -248,5 +248,153 @@ test_that("hg_topic_search() scores every k and marks the frontier", {
   expect_identical(hg_topic_search(hg, k = 2:3, nstart = 2, n = 4,
                                    parallel = TRUE), search)
   expect_s3_class(plot(search), "ggplot")
-  expect_error(hg_topic_search(hg, k = 2), class = "hypernets_bad_input")
+  expect_error(hg_topic_search(hg, k = 2), class = "hypergraphs_bad_input")
+})
+
+test_that("hg_relations() is a deprecated alias of hg_network(clusters =)", {
+  hg <- text_hypergraph(.tm_toy())
+  clusters <- hg_cluster(hg, k = 2, seed = 1)
+  expect_warning(old <- hg_relations(hg, clusters, similarity = "cosine"),
+                 class = "hypergraphs_deprecated")
+  expect_identical(old, hg_network(hg, clusters = clusters,
+                                   similarity = "cosine"))
+})
+
+.tm_network_corpus <- function() {
+  c(a = "soup salt onion soup broth", b = "salt soup broth onion",
+    c = "stars sky moon night", d = "sky stars night moon moon",
+    e = "soup stars salt sky night broth", f = "onion salt stars broth",
+    g = "train rail track station", h = "rail station train ticket",
+    i = "soup train salt rail")
+}
+
+test_that("hg_network() on a topic model: thresholded co-occurrence counts", {
+  hg <- text_hypergraph(.tm_network_corpus())
+  fit <- hg_topics(hg, k = 3, nstart = 3)
+  shares <- hg_get(fit, what = "shares")
+  edges <- hg_network(hg, topics = fit, threshold = 0.2)
+  # by hand: documents in which both topics reach the threshold
+  present <- subset(shares, share >= 0.2)
+  pair_count <- function(t1, t2) {
+    length(intersect(subset(present, topic == t1)$node,
+                     subset(present, topic == t2)$node))
+  }
+  labels <- hg_get(fit)$topic
+  pairs <- t(combn(labels, 2))
+  expected <- data.frame(source = pairs[, 1], target = pairs[, 2],
+                         weight = mapply(pair_count, pairs[, 1], pairs[, 2],
+                                         USE.NAMES = FALSE))
+  expected <- subset(expected, weight > 0)
+  rownames(expected) <- NULL
+  expect_equal(edges, expected)
+  # cosine normalisation divides by the topics' document counts
+  cosine <- hg_network(hg, topics = fit, threshold = 0.2,
+                       similarity = "cosine")
+  n_present <- table(factor(present$topic, levels = labels))
+  expect_equal(cosine$weight,
+               expected$weight / sqrt(as.numeric(n_present[expected$source]) *
+                                        as.numeric(n_present[expected$target])))
+})
+
+test_that("hg_network() on a topic model: stm's simple topic correlation", {
+  hg <- text_hypergraph(.tm_network_corpus())
+  fit <- hg_topics(hg, k = 3, nstart = 3)
+  shares <- hg_get(fit, what = "shares")
+  labels <- hg_get(fit)$topic
+  theta <- vapply(labels, \(t) subset(shares, topic == t)$share,
+                  numeric(length(unique(shares$node))))
+  correlation <- cor(theta)
+  edges <- hg_network(hg, topics = fit)
+  expected <- subset(
+    data.frame(source = labels[row(correlation)[upper.tri(correlation)]],
+               target = labels[col(correlation)[upper.tri(correlation)]],
+               weight = correlation[upper.tri(correlation)]),
+    weight > 0.01)
+  rownames(expected) <- NULL
+  expect_equal(edges, expected)
+})
+
+test_that("hg_network() refuses inconsistent input by class", {
+  hg <- text_hypergraph(.tm_network_corpus())
+  fit <- hg_topics(hg, k = 3, nstart = 2)
+  clusters <- hg_cluster(hg, k = 3, seed = 1)
+  expect_error(hg_network(hg), class = "hypergraphs_bad_input")
+  expect_error(hg_network(hg, clusters = clusters, topics = fit),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_network(hg, clusters = clusters, threshold = 0.2),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_network(hg, topics = fit, similarity = "cosine"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_network(hg, topics = fit, threshold = 2),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_network(text_hypergraph(.tm_toy()), topics = fit),
+               class = "hypergraphs_bad_input")
+  net <- hg_network(hg, topics = fit, threshold = 0.2, what = "network")
+  expect_s3_class(net, "cograph_network")
+})
+
+test_that("group_hypergraph() counts the topic combinations of documents", {
+  hg <- text_hypergraph(.tm_network_corpus())
+  fit <- hg_topics(hg, k = 3, nstart = 3)
+  shares <- hg_get(fit, what = "shares")
+  combos <- group_hypergraph(fit, threshold = 0.2, top = Inf)
+  sets <- hg_get(combos, what = "sets")
+  # by hand: each document's set of topics at the threshold
+  present <- subset(shares, share >= 0.2)
+  by_doc <- lapply(split(present$topic, present$node), \(v) {
+    paste(v[order(as.integer(sub("Topic ", "", v)))], collapse = " + ")
+  })
+  counted <- table(unlist(by_doc))
+  expect_setequal(sets$set, names(counted))
+  expect_equal(sets$count, as.integer(counted[sets$set]))
+  expect_equal(sets$share, sets$count / 9)
+  expect_false(is.unsorted(rev(sets$count)))
+  # min_size keeps the multi-topic documents, shares still over all nine
+  multi <- hg_get(group_hypergraph(fit, threshold = 0.2, top = Inf,
+                                   min_size = 2), what = "sets")
+  expect_true(all(multi$size >= 2))
+  expect_equal(multi$share, multi$count / 9)
+  # grouped by a column of the documents table
+  meta_hg <- text_hypergraph(
+    data.frame(id = names(.tm_network_corpus()),
+               text = unname(.tm_network_corpus()),
+               half = rep(c("first", "second"), c(5, 4))),
+    column = "text", id = "id")
+  meta_fit <- hg_topics(meta_hg, k = 3, nstart = 2)
+  halves <- group_hypergraph(meta_fit, threshold = 0.2, by = "half",
+                             top = Inf)
+  expect_setequal(unique(hg_get(halves, what = "sets")$group),
+                  c("first", "second"))
+  expect_output(print(halves), "grouped by half")
+})
+
+test_that("group_hypergraph() refuses bad topic-combination arguments", {
+  hg <- text_hypergraph(.tm_network_corpus())
+  fit <- hg_topics(hg, k = 3, nstart = 2)
+  expect_error(group_hypergraph(fit), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(fit, threshold = 0), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(fit, threshold = 0.2, by = "nope"),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(fit, threshold = 0.2, min_size = 0),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(data.frame(actor = "a", group = "g"),
+                                actor = "actor", group = "group",
+                                threshold = 0.2),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("hg_sequences(topics =) uses each document's main topic", {
+  corpus <- data.frame(
+    id = names(.tm_network_corpus()), text = unname(.tm_network_corpus()),
+    person = rep(c("p1", "p2", "p3"), each = 3), turn = rep(1:3, 3))
+  hg <- text_hypergraph(corpus, column = "text", id = "id")
+  fit <- hg_topics(hg, k = 3, nstart = 2)
+  seqs <- hg_sequences(hg, topics = fit, actor = "person", order_by = "turn")
+  main <- hg_get(fit, what = "documents")
+  expect_identical(seqs, hg_sequences(hg, main, actor = "person",
+                                      order_by = "turn", state = "topic"))
+  expect_identical(nrow(seqs), 9L)
+  expect_error(hg_sequences(hg, main, topics = fit, actor = "person",
+                            order_by = "turn"),
+               class = "hypergraphs_bad_input")
 })

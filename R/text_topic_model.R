@@ -252,9 +252,9 @@
 #'   `iterations`, `converged`, `best`, `agreement`). `print()` shows the
 #'   topics, `summary()` every table, and `plot()` the top words of every
 #'   topic. A start that reaches `max_iter` without converging raises the
-#'   warning `hypernets_no_converge`.
+#'   warning `hypergraphs_no_converge`.
 #' @section Conditions:
-#' `hypernets_bad_input` for an input that is not a hypergraph, a `k`
+#' `hypergraphs_bad_input` for an input that is not a hypergraph, a `k`
 #' outside its range, or invalid control arguments.
 #' @references
 #' Lee, D. D., & Seung, H. S. (1999). Learning the parts of objects by
@@ -347,7 +347,7 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
     warning(warningCondition(sprintf(paste0(
       "the kept start did not converge in %d updates (tol = %g); raise ",
       "`max_iter`"), max_iter, tol),
-      class = "hypernets_no_converge", call = NULL))
+      class = "hypergraphs_no_converge", call = NULL))
   }
   words <- colnames(X)
   tops <- lapply(fits, \(f) .tm_top_words(f$Ht, words, depth))
@@ -360,8 +360,10 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
   } else {
     rep(NA_real_, k)
   }
+  documents <- if (is.null(hg$text)) NULL else
+    .ho_plain(hg_get(hg, what = "documents"))
   .tm_result(fits[[best]], X, k, topic_agreement, fits, divergence, best,
-             converged, agreements, others,
+             converged, agreements, others, documents,
              list(k = k, nstart = as.integer(nstart),
                   max_iter = as.integer(max_iter), tol = tol, depth = depth,
                   seed = as.integer(seed)))
@@ -370,7 +372,7 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
 # Assemble the result: topics ordered by prevalence, shares and word
 # probabilities normalised, tables built once.
 .tm_result <- function(fit, X, k, topic_agreement, fits, divergence, best,
-                       converged, agreements, others, params) {
+                       converged, agreements, others, documents, params) {
   W <- fit$W
   Ht <- fit$Ht
   word_totals <- colSums(Ht)
@@ -422,7 +424,8 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
     agreement = vapply(agreements, `[[`, numeric(1L), "mean"))
   structure(list(topics = topic_table, shares = share_table,
                  words = word_table, documents = document_table,
-                 restarts = restarts, n_documents = length(docs),
+                 restarts = restarts, documents_table = documents,
+                 n_documents = length(docs),
                  n_words = length(words), params = params),
             class = "net_hg_topics")
 }
@@ -520,7 +523,7 @@ plot.net_hg_topics <- function(x, y, n = 8L, ...) {
 #'   (not on Windows); every fit seeds itself, so the result equals the
 #'   serial one. Default `FALSE`.
 #' @param n_cores Cores when `parallel = TRUE` (default `2`).
-#' @return A base `data.frame` of class `hypernets_topic_search`, one row
+#' @return A base `data.frame` of class `hypergraphs_topic_search`, one row
 #'   per number of topics: `k`, `coherence` and `exclusivity` (means over
 #'   the topics), `divergence` (of the kept start), `agreement` (mean
 #'   agreement of the topics across the starts; `NA` with `nstart = 1`),
@@ -528,7 +531,7 @@ plot.net_hg_topics <- function(x, y, n = 8L, ...) {
 #'   coherence, one labelled point per number of topics, the frontier
 #'   joined by a line and drawn as filled points. Conditions are those of
 #'   [hg_topics()]; a start that does not converge raises
-#'   `hypernets_no_converge`.
+#'   `hypergraphs_no_converge`.
 #' @references
 #' Roberts, M. E., Stewart, B. M., & Tingley, D. (2019). stm: An R package
 #' for structural topic models. \emph{Journal of Statistical Software},
@@ -593,7 +596,7 @@ hg_topic_search <- function(hg, k, nstart = 1L, n = 10L, frexw = 0.7,
   }, logical(1L))
   out$frontier <- !dominated
   rownames(out) <- NULL
-  class(out) <- c("hypernets_topic_search", "data.frame")
+  class(out) <- c("hypergraphs_topic_search", "data.frame")
   out
 }
 
@@ -601,7 +604,7 @@ hg_topic_search <- function(hg, k, nstart = 1L, n = 10L, frexw = 0.7,
 #' @param x A table returned by the verb.
 #' @param ... Unused.
 #' @export
-plot.hypernets_topic_search <- function(x, ...) {
+plot.hypergraphs_topic_search <- function(x, ...) {
   d <- .ho_plain(x)
   d$model <- ifelse(d$frontier, "on the frontier", "dominated")
   frontier <- d[d$frontier, , drop = FALSE]

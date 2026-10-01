@@ -1,4 +1,4 @@
-# hypernets
+# hypergraphs
 
 Higher-order network analysis in R.
 
@@ -6,7 +6,7 @@ A network is *higher-order* when a relation reaches beyond a single pair of
 nodes at a single moment — either it binds **more than two nodes at once**, or
 it depends on **more than the current node**. The literature (Battiston et al.
 2020; Bianconi 2021) organises that idea into three structure families.
-hypernets implements all three behind one taxonomy, plus a text family that
+hypergraphs implements all three behind one taxonomy, plus a text family that
 reads a corpus as a hypergraph.
 
 | Family | A relation is… | Built from |
@@ -132,7 +132,7 @@ The families are entry points into one another, not islands. The same coded
 sessions can be read all three ways:
 
 ```r
-library(hypernets)
+library(hypergraphs)
 
 # memory network: what follows what, given how you got here
 net <- hon(human_long, action = "code", actor = "session_id",
@@ -176,13 +176,13 @@ hand-knit reports kept outside the repository. Longer tutorials live in
 
 ## Provenance
 
-hypernets is the home package for higher-order structure in its family of
+hypergraphs is the home package for higher-order structure in its family of
 network packages, alongside
 [psychnets](https://github.com/mohsaqr/psychnets) (cross-sectional psychometric
 networks) and [idiographic](https://github.com/mohsaqr/idiographic)
 (person-specific temporal models). The memory-network and simplicial-complex
 estimators are imported from a sibling estimation package and returned
-unchanged under hypernets' names, so every number is that estimator's own;
+unchanged under hypergraphs' names, so every number is that estimator's own;
 identity is proven by exact `identical()` tests. The text family arrived in
 0.3.0 (2026-09-01) from the retired `texthypergraph` package. See `NEWS.md`
 for every rename.
@@ -193,14 +193,14 @@ Wallenius / Monte-Carlo HYPA references, igraph, HyperNetX) live in
 
 ```sh
 NOT_CRAN=true HYPERNETS_EQUIV_TESTS=true Rscript -e \
-  'library(hypernets); testthat::test_dir("local_testing_and_equivalence")'
+  'library(hypergraphs); testthat::test_dir("local_testing_and_equivalence")'
 ```
 
 ## Installation
 
 ```r
 # development version
-devtools::install_github("mohsaqr/hypernets")
+devtools::install_github("mohsaqr/hypergraphs")
 ```
 
 ## References

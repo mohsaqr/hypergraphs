@@ -80,6 +80,6 @@ test_that("hg_subset(size = ) keeps hyperedges by member count", {
   expect_identical(sort(colnames(three$incidence)), c("e1", "e3"))
   two_or_three <- hg_subset(hg, size = 2:3)
   expect_identical(two_or_three$n_hyperedges, 3L)
-  expect_error(hg_subset(hg, size = 0), class = "hypernets_bad_input")
-  expect_error(hg_subset(hg), class = "hypernets_bad_input")
+  expect_error(hg_subset(hg, size = 0), class = "hypergraphs_bad_input")
+  expect_error(hg_subset(hg), class = "hypergraphs_bad_input")
 })

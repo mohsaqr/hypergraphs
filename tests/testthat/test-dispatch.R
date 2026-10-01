@@ -4,7 +4,7 @@ testthat::skip_on_cran()
 #
 # hg_centrality(), hg_communities() and hypa() pick their estimator from
 # the class of `x`. Each method keeps its own arguments and defaults; an
-# argument only the other method takes raises hypernets_bad_input.
+# argument only the other method takes raises hypergraphs_bad_input.
 
 .dp_seqs <- function() {
   list(c("a", "h", "b", "a", "h", "b", "a"),
@@ -34,13 +34,13 @@ test_that("hg_centrality dispatches on memory networks and hypergraphs", {
 
 test_that("hg_centrality refuses an argument of the other method", {
   h <- hon(.dp_seqs(), max_order = 2L)
-  expect_error(hg_centrality(h, alpha = 0.1), class = "hypernets_bad_input")
-  expect_error(hg_centrality(h, n = 3), class = "hypernets_bad_input")
+  expect_error(hg_centrality(h, alpha = 0.1), class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(h, n = 3), class = "hypergraphs_bad_input")
   expect_error(hg_centrality(.dp_hg(), project = FALSE),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_centrality(.dp_hg(), top = 2),
-               class = "hypernets_bad_input")
-  expect_error(hg_centrality(data.frame(a = 1)), class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(data.frame(a = 1)), class = "hypergraphs_bad_input")
 })
 
 test_that("hg_communities dispatches on memory networks and hypergraphs", {
@@ -55,13 +55,13 @@ test_that("hg_communities dispatches on memory networks and hypergraphs", {
 
 test_that("hg_communities refuses an argument of the other method", {
   h <- hon(.dp_seqs(), max_order = 2L)
-  expect_error(hg_communities(h, n_runs = 2L), class = "hypernets_bad_input")
-  expect_error(hg_communities(h, type = "irmm"), class = "hypernets_bad_input")
+  expect_error(hg_communities(h, n_runs = 2L), class = "hypergraphs_bad_input")
+  expect_error(hg_communities(h, type = "irmm"), class = "hypergraphs_bad_input")
   expect_error(hg_communities(.dp_hg(), teleportation = 0.1),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_communities(.dp_hg(), partition = NULL),
-               class = "hypernets_bad_input")
-  expect_error(hg_communities(matrix(1)), class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
+  expect_error(hg_communities(matrix(1)), class = "hypergraphs_bad_input")
 })
 
 test_that("hypa dispatches on hypergraphs and on sequences", {
@@ -74,9 +74,9 @@ test_that("hypa dispatches on hypergraphs and on sequences", {
 })
 
 test_that("hypa refuses an argument of the other method", {
-  expect_error(hypa(.dp_hg(), order = 2L), class = "hypernets_bad_input")
-  expect_error(hypa(.dp_hg(), action = "a"), class = "hypernets_bad_input")
-  expect_error(hypa(.dp_seqs(), top = 2L), class = "hypernets_bad_input")
+  expect_error(hypa(.dp_hg(), order = 2L), class = "hypergraphs_bad_input")
+  expect_error(hypa(.dp_hg(), action = "a"), class = "hypergraphs_bad_input")
+  expect_error(hypa(.dp_seqs(), top = 2L), class = "hypergraphs_bad_input")
 })
 
 test_that("the dispatching verbs keep each method's defaults", {

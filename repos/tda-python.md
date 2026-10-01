@@ -15,7 +15,7 @@
 - **Role for us**: planned oracles (ROADMAP.md Phase 1) — GUDHI SimplexTree
   Betti numbers, `bottleneck_distance`, `wasserstein_distance` (the field
   reference) and `representations.Landscape`. Nothing else is needed from
-  them — hypernets' TDA scope (clique/pathway complexes, q-analysis) is
+  them — hypergraphs' TDA scope (clique/pathway complexes, q-analysis) is
   relational, not point-cloud.
 - **Links**: https://gudhi.inria.fr · https://github.com/scikit-tda/ripser.py ·
   https://github.com/giotto-ai/giotto-tda

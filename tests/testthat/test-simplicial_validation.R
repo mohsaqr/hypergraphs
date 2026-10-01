@@ -144,7 +144,7 @@ test_that("swap validation keeps the planted set and builds the complex", {
 test_that("too few shuffles for the number of possible sets is reported", {
   expect_warning(simplicial(.planted_sequences(), type = "window",
                             validate = TRUE, n_null = 99L, seed = 1),
-                 class = "hypernets_low_resolution")
+                 class = "hypergraphs_low_resolution")
 })
 
 test_that("the swap validation is reproducible and leaves the RNG alone", {
@@ -166,7 +166,7 @@ test_that("the hypergeometric null gives the exact tail of Musciotto et al.", {
   expect_warning(
     sc <- simplicial(seqs, type = "window", window = 3L, validate = TRUE,
                      null = "hypergeometric"),
-    class = "hypernets_dense_cooccurrence")
+    class = "hypergraphs_dense_cooccurrence")
   v <- hg_get(sc, what = "validation")
   expect_named(v, .validation_columns)
   expect_true(subset(v, members == "a01, a02, a03")$significant)
@@ -197,7 +197,7 @@ test_that("the hypergeometric null warns on dense co-occurrence only", {
     simplicial(human_long, type = "window", window = 3L, validate = TRUE,
                null = "hypergeometric", actor = "session_id",
                action = "code", time = "order_in_session"),
-    class = "hypernets_dense_cooccurrence")
+    class = "hypergraphs_dense_cooccurrence")
   # 400 actors meeting in random triples, three triples repeated: sparse,
   # so no warning, and the repeated triples are found
   set.seed(1)
@@ -234,10 +234,10 @@ test_that("validation rejects a count threshold and a missing table", {
   seqs <- .planted_sequences()
   expect_error(simplicial(seqs, type = "window", validate = TRUE,
                           min_count = 5L),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   plain <- simplicial(seqs, type = "window", window = 3L)
   expect_error(hg_get(plain, what = "validation"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(simplicial(seqs, type = "window", validate = TRUE, alpha = 2))
   expect_error(simplicial(seqs, type = "window", validate = TRUE,
                           n_null = 5L))

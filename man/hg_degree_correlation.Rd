@@ -7,7 +7,7 @@
 hg_degree_correlation(hg)
 }
 \arguments{
-\item{hg}{A hypernets \code{net_hg}, dense or sparse.}
+\item{hg}{A hypergraphs \code{net_hg}, dense or sparse.}
 }
 \value{
 A base \code{data.frame}, one row per pair of present hyperedge sizes
@@ -29,11 +29,11 @@ it does not take part in). Sizes below two are ignored, as in
 hypergraphx. A pair is \code{NA} when one of the two sequences is constant.
 hypergraphx 1.8.0 \code{degree_correlation()} returns the full
 \code{(max_size - 1)}-square matrix, including sizes with no hyperedge (all
-\code{NaN}); hypernets returns one row per pair of sizes that occur. Tested
+\code{NaN}); hypergraphs returns one row per pair of sizes that occur. Tested
 against hypergraphx at \code{1e-12}.
 }
 \section{Conditions}{
- Raises \code{hypernets_bad_input} when \code{hg} is not a
+ Raises \code{hypergraphs_bad_input} when \code{hg} is not a
 \code{net_hg} or has fewer than two distinct hyperedge sizes of at least
 two.
 }

@@ -61,7 +61,14 @@ test_that("default calls draw exactly what they drew before the overlays", {
   now <- lapply(calls, function(f) {
     lapply(ggplot2::ggplot_build(f())$data, as.data.frame)
   })
-  expect_identical(now, baseline$data)
+  # colour by size became discrete (one Okabe-Ito colour per size); its
+  # geometry, labels and every other call are unchanged
+  unchanged <- setdiff(names(calls), "size")
+  expect_identical(now[unchanged], baseline$data[unchanged])
+  drop_fill <- function(layers) {
+    lapply(layers, function(d) d[setdiff(names(d), c("fill", "colour"))])
+  }
+  expect_identical(drop_fill(now$size), drop_fill(baseline$data$size))
 })
 
 # a direction table that draws circles; a -> b so every node has a heading
@@ -128,10 +135,10 @@ test_that("a triangle points at the most frequent other successor", {
   # b: a and d tie at 3 -> a by name -> heading pi
   # c: b twice, summed to 4 -> heading -pi / 4
   # d: a sink -> no triangle
-  geometry <- hypernets:::.thg_node_geometry(
+  geometry <- hypergraphs:::.thg_node_geometry(
     data.frame(x = sq$layout$x, y = sq$layout$y), sq$hg$nodes,
     unname(sizes[sq$hg$nodes]),
-    hypernets:::.thg_move_table(moves, "direction", sq$hg$nodes))
+    hypergraphs:::.thg_move_table(moves, "direction", sq$hg$nodes))
   expect_identical(geometry$target, c("c", "a", "b", NA))
   expect_equal(geometry$heading[1:3], c(pi / 2, pi, -pi / 4))
 
@@ -160,10 +167,10 @@ test_that("outside tips take the node colour and push an up-label below", {
             arrow_style = "outside", node_fill = "#0072B2")
   expect_false(is.null(.polygon_layer(p, "#0072B2")))
   labels <- Filter(function(l) inherits(l$geom, "GeomText"), p$layers)[[9L]]$data
-  geometry <- hypernets:::.thg_node_geometry(
+  geometry <- hypergraphs:::.thg_node_geometry(
     data.frame(x = sq$layout$x, y = sq$layout$y), sq$hg$nodes,
     unname(sizes[sq$hg$nodes]),
-    hypernets:::.thg_move_table(moves, "direction", sq$hg$nodes), "outside")
+    hypergraphs:::.thg_move_table(moves, "direction", sq$hg$nodes), "outside")
   # a points up at c: label below; the others above
   expect_identical(labels$vjust, c(1.35, -0.35, -0.35, -0.35))
   expect_equal(labels$y, sq$layout$y + c(-1, 1, 1, 1) * geometry$radius)
@@ -204,43 +211,43 @@ test_that("transitions are curved arrows with width by weight and self-loops", {
   expect_no_error(ggplot2::ggplot_build(p))
 })
 
-test_that("node overlays reject bad input with hypernets_bad_input", {
+test_that("node overlays reject bad input with hypergraphs_bad_input", {
   hg <- .nodes_fixture()
   counts <- c(a = 40, b = 25, c = 12, d = 30, e = 5, f = 2)
   moves <- data.frame(from = "a", to = "b", weight = 1)
-  expect_error(plot(hg, direction = moves), class = "hypernets_bad_input")
+  expect_error(plot(hg, direction = moves), class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts[-1L]),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = replace(counts, 1L, -1)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts * 0),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = unname(counts)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = data.frame(name = "a", size = 1, n = 2)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = data.frame(node = "a", size = 1)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts,
                     direction = data.frame(from = "a", to = "b", count = 1,
                                            n = 2)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts,
                     direction = data.frame(from = "a", to = "b")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts,
                     direction = data.frame(from = "a", to = "b", weight = -1)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, transitions = data.frame(from = "x", to = "y",
                                                  weight = 1)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts, dismantled = TRUE),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts, node_fill = "nope"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts, arrow_fill = c("red", "blue")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts, size_title = 1),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, node_sizes = counts, arrow_style = "sideways"))
 })

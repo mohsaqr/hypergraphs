@@ -27,7 +27,7 @@
 #'
 #' Those three column names are fixed, which is what makes the second call
 #' the same every time. Passing the long table without `action =` raises
-#' `hypernets_long_format`: read as wide (one trajectory per row) it would
+#' `hypergraphs_long_format`: read as wide (one trajectory per row) it would
 #' give the wrong model.
 #'
 #' This closes the one missing edge in the cross-family design:
@@ -43,12 +43,17 @@
 #'   holding document identifiers and a state column (`cluster` by default,
 #'   or the column named by `state`). `NULL` (the default) takes the state
 #'   from the documents table instead, in which case `state` is required.
-#' @param actor Name of the documents-table column identifying who produced
-#'   each document. One sequence is returned per distinct value.
+#' @param actor Name of the documents-table column that groups the
+#'   documents into sequences, such as an author, a participant, a course or
+#'   a year. One sequence is returned per distinct value.
 #' @param order_by Name of the documents-table column ordering the documents
 #'   within an actor -- a turn number, an index, a date or a timestamp.
 #'   Anything `order()` can sort is accepted, and the values are carried
 #'   through to the `time` column unchanged.
+#' @param topics A mixed-membership topic model of `hg` fitted by
+#'   [hg_topics()]. Each document's state is then its main topic, the topic
+#'   with its largest share (`hg_get(topics, what = "documents")`). Give
+#'   `topics` instead of `clusters` and `state`.
 #' @param state Name of the column holding each document's state. With
 #'   `clusters` supplied it names a column of `clusters` and defaults to
 #'   `"cluster"`; with `clusters = NULL` it names a column of the documents
@@ -66,7 +71,7 @@
 #'   }
 #'
 #' @section Conditions:
-#' A `hypernets_bad_input` error is raised when `hg` is not a hypergraph,
+#' A `hypergraphs_bad_input` error is raised when `hg` is not a hypergraph,
 #' when it carries no documents table, when `actor`, `order_by` or `state`
 #' does not name a column of the table it is looked up in, when `clusters`
 #' lacks a `node` column or assigns a document more than one state, when
@@ -116,8 +121,19 @@
 #' seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
 #' hon(seqs, action = "action", actor = "actor", time = "time", max_order = 2L)
 #' @export
-hg_sequences <- function(hg, clusters = NULL, actor, order_by, state = NULL) {
+hg_sequences <- function(hg, clusters = NULL, actor, order_by, state = NULL,
+                         topics = NULL) {
   .thg_check_hg(hg)
+  if (!is.null(topics)) {
+    if (!inherits(topics, "net_hg_topics")) {
+      .thg_bad_input("`topics` must be a topic model fitted by hg_topics()")
+    }
+    if (!is.null(clusters) || !is.null(state)) {
+      .thg_bad_input("give `topics` alone, without `clusters` or `state`")
+    }
+    clusters <- hg_get(topics, what = "documents")
+    state <- "topic"
+  }
   stopifnot(
     "`actor` must be a single column name" =
       is.character(actor) && length(actor) == 1L && !is.na(actor),

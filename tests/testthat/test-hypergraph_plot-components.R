@@ -42,20 +42,20 @@ test_that(".thg_components labels the connected components 1..K", {
   adjacency <- matrix(0, 7L, 7L)
   adjacency[cbind(c(1, 2, 3, 4, 5, 6), c(2, 3, 1, 5, 6, 4))] <- 1
   adjacency <- adjacency + t(adjacency)
-  labels <- hypernets:::.thg_components(adjacency)
+  labels <- hypergraphs:::.thg_components(adjacency)
   expect_identical(labels, c(1L, 1L, 1L, 2L, 2L, 2L, 3L))
   # a path still settles, however long it takes to propagate
   path <- matrix(0, 6L, 6L)
   path[cbind(1:5, 2:6)] <- 1
   path <- path + t(path)
-  expect_identical(hypernets:::.thg_components(path), rep(1L, 6L))
-  expect_identical(hypernets:::.thg_components(matrix(0, 1L, 1L)), 1L)
+  expect_identical(hypergraphs:::.thg_components(path), rep(1L, 6L))
+  expect_identical(hypergraphs:::.thg_components(matrix(0, 1L, 1L)), 1L)
 })
 
 test_that("shelf packing never overlaps two component boxes", {
   size <- cbind(c(4, 1, 3, 2, 0.5), c(3, 5, 1, 2, 0.5))
   gap <- 1.5
-  offset <- hypernets:::.thg_shelf_offsets(size, gap)
+  offset <- hypergraphs:::.thg_shelf_offsets(size, gap)
   pairs <- utils::combn(nrow(size), 2L)
   clear <- apply(pairs, 2L, function(ij) {
     a <- ij[1L]
@@ -74,7 +74,7 @@ test_that("a disconnected hypergraph spends its frame on the structure", {
   hg <- .island_fixture()
   core <- match(c("a", "b", "c", "d", "e"), hg$nodes)
   share <- vapply(1:20, function(seed) {
-    pos <- hypernets:::.thg_positions(hg, "bipartite", seed = seed)
+    pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = seed)
     .frame_share(cbind(pos$nodes$x, pos$nodes$y), core)
   }, numeric(2L))
   # Laying the whole graph out at once gave the connected core 0.05 of the
@@ -86,7 +86,7 @@ test_that("a disconnected hypergraph spends its frame on the structure", {
 
 test_that("packed components keep clear of one another", {
   hg <- .island_fixture()
-  pos <- hypernets:::.thg_positions(hg, "bipartite", seed = 1L)
+  pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = 1L)
   xy <- cbind(pos$nodes$x, pos$nodes$y)
   parts <- list(match(c("a", "b", "c", "d", "e"), hg$nodes),
                 match(c("i1", "i2", "i3"), hg$nodes),
@@ -96,11 +96,11 @@ test_that("packed components keep clear of one another", {
   # overlap between components would claim a membership that is not there
   intruders <- sum(vapply(seq_along(parts), function(k) {
     rows <- parts[[k]]
-    ring <- hypernets:::.thg_pebble(xy[rows, 1L], xy[rows, 2L], 0.045,
+    ring <- hypergraphs:::.thg_pebble(xy[rows, 1L], xy[rows, 2L], 0.045,
                                    detail = 5)
     outside <- setdiff(seq_len(hg$n_nodes), rows)
     sum(vapply(outside, function(i)
-      hypernets:::.thg_in_convex(ring$x, ring$y, xy[i, 1L], xy[i, 2L]),
+      hypergraphs:::.thg_in_convex(ring$x, ring$y, xy[i, 1L], xy[i, 2L]),
       logical(1L)))
   }, numeric(1L)))
   expect_identical(intruders, 0)
@@ -109,7 +109,7 @@ test_that("packed components keep clear of one another", {
 test_that("components are packed into a frame worth drawing on", {
   hg <- .island_fixture()
   shapes <- vapply(1:10, function(seed) {
-    pos <- hypernets:::.thg_positions(hg, "bipartite", seed = seed)
+    pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = seed)
     xy <- cbind(pos$nodes$x, pos$nodes$y)
     span <- apply(xy, 2L, function(z) diff(range(z)))
     min(span) / max(span)
@@ -122,7 +122,7 @@ test_that("bounded repulsion keeps a satellite cluster in the picture", {
   hg <- .bridge_fixture()
   bridge <- which(colnames(hg$incidence) == "BRIDGE")
   spans <- vapply(1:10, function(seed) {
-    pos <- hypernets:::.thg_positions(hg, "bipartite", seed = seed)
+    pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = seed)
     xy <- cbind(pos$nodes$x, pos$nodes$y)
     frame <- max(apply(xy, 2L, function(z) diff(range(z))))
     members <- xy[hg$hyperedges[[bridge]], , drop = FALSE]
@@ -130,7 +130,7 @@ test_that("bounded repulsion keeps a satellite cluster in the picture", {
   }, numeric(1L))
   # uncut, the bridging pebble averaged 0.43 of the frame and reached further
   expect_true(mean(spans) < 0.42)
-  expect_lt(hypernets:::.thg_repulsion_cutoff, Inf)
+  expect_lt(hypergraphs:::.thg_repulsion_cutoff, Inf)
 })
 
 test_that("more than nine components keep their members together", {
@@ -143,7 +143,7 @@ test_that("more than nine components keep their members together", {
       stringsAsFactors = FALSE))),
     "member", "event"
   )
-  pos <- hypernets:::.thg_positions(hg, "bipartite", seed = 1L)
+  pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = 1L)
   xy <- cbind(pos$nodes$x, pos$nodes$y)
   spread <- vapply(seq_len(hg$n_hyperedges), function(k)
     max(stats::dist(xy[hg$hyperedges[[k]], , drop = FALSE])), numeric(1L))
@@ -156,8 +156,8 @@ test_that("packing leaves a connected hypergraph exactly as it was", {
   connected[cbind(c(1, 2, 3, 4), c(2, 3, 4, 5))] <- 1
   connected <- connected + t(connected)
   expect_identical(
-    hypernets:::.thg_layout_packed(connected, seed = 3L),
-    hypernets:::.thg_layout_fr(connected, seed = 3L)
+    hypergraphs:::.thg_layout_packed(connected, seed = 3L),
+    hypergraphs:::.thg_layout_fr(connected, seed = 3L)
   )
 })
 
@@ -166,18 +166,18 @@ test_that("the packed layout is seeded and leaves the caller's stream alone", {
   set.seed(99)
   before <- stats::runif(1L)
   set.seed(99)
-  first <- hypernets:::.thg_positions(hg, "bipartite", seed = 7L)$nodes
+  first <- hypergraphs:::.thg_positions(hg, "bipartite", seed = 7L)$nodes
   expect_identical(stats::runif(1L), before)
-  expect_identical(hypernets:::.thg_positions(hg, "bipartite", seed = 7L)$nodes,
+  expect_identical(hypergraphs:::.thg_positions(hg, "bipartite", seed = 7L)$nodes,
                    first)
-  other <- hypernets:::.thg_positions(hg, "bipartite", seed = 8L)$nodes
+  other <- hypergraphs:::.thg_positions(hg, "bipartite", seed = 8L)$nodes
   expect_false(isTRUE(all.equal(other$x, first$x)))
 })
 
 test_that("a wider padding pushes the components further apart", {
   hg <- .island_fixture()
   gap_at <- function(padding) {
-    pos <- hypernets:::.thg_positions(hg, "bipartite", seed = 1L,
+    pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = 1L,
                                       padding = padding)
     xy <- cbind(pos$nodes$x, pos$nodes$y)
     islands <- list(match(c("i1", "i2", "i3"), hg$nodes),
@@ -208,16 +208,16 @@ test_that("a disconnected hypergraph plots, dismantles and keeps its labels", {
 
 test_that("every hyperedge label still lands inside its own pebble", {
   hg <- .island_fixture()
-  pos <- hypernets:::.thg_positions(hg, "bipartite", seed = 1L)
+  pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = 1L)
   drawable <- which(lengths(hg$hyperedges) >= 2L)
   inside <- vapply(drawable, function(k) {
     members <- hg$hyperedges[[k]]
-    ring <- hypernets:::.thg_pebble(pos$nodes$x[members], pos$nodes$y[members],
+    ring <- hypergraphs:::.thg_pebble(pos$nodes$x[members], pos$nodes$y[members],
                                    0.045, detail = 5)
     own <- c(pos$edges$x[k], pos$edges$y[k])
     centroid <- c(mean(pos$nodes$x[members]), mean(pos$nodes$y[members]))
-    hypernets:::.thg_in_convex(ring$x, ring$y, own[1L], own[2L]) ||
-      hypernets:::.thg_in_convex(ring$x, ring$y, centroid[1L], centroid[2L])
+    hypergraphs:::.thg_in_convex(ring$x, ring$y, own[1L], own[2L]) ||
+      hypergraphs:::.thg_in_convex(ring$x, ring$y, centroid[1L], centroid[2L])
   }, logical(1L))
   expect_true(all(inside))
 })

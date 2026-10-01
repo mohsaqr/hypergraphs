@@ -94,11 +94,10 @@ network_hypergraph <- function(net,
                               seed = NULL) {
   type <- match.arg(type)
   if (type == "vr" || type == "rips") {
-    stop("type = \"vr\" (Vietoris-Rips) is not implemented. A genuine ",
-         "metric Vietoris-Rips construction requires a distance-ball ",
-         "graph, which this package does not build. Use ",
-         "type = \"clique\" (cliques in the binarised adjacency).",
-         call. = FALSE)
+    .thg_bad_input(paste0(
+      "network_hypergraph() builds hyperedges from the cliques of a ",
+      "network (type = \"clique\"). A Vietoris-Rips complex is built from ",
+      "points or distances by simplicial(type = \"vr\")."))
   }
   stopifnot(
     is.numeric(p), length(p) == 1L, p >= 0, p <= 1,
@@ -251,6 +250,28 @@ print.net_hg <- function(x, n = 10L, ...) {
   } else if (identical(x$params$source, "group_hypergraph")) {
     cat(sprintf("Source: group membership (actor = %s, group = %s)\n",
                 x$params$member, x$params$group))
+  } else if (identical(x$params$source, "clustered_sequences")) {
+    cat(sprintf("Source: state sets of clustered sequences (top %d per group)\n",
+                x$params$top))
+  } else if (identical(x$params$source, "frame_sets")) {
+    cat(sprintf(paste0("Source: sets of %s per %s, counted %s ",
+                       "(%s per group)\n"),
+                x$params$member, x$params$group,
+                if (is.null(x$params$by)) "over all of them" else
+                  paste("within", x$params$by),
+                if (is.finite(x$params$top))
+                  sprintf("top %d", as.integer(x$params$top)) else "all sets"))
+  } else if (identical(x$params$source, "topic_sets")) {
+    cat(sprintf(paste0("Source: topic combinations of %d documents ",
+                       "(share >= %g; at least %d topic%s; %s per ",
+                       "group%s)\n"),
+                sum(x$group_sizes$sequences), x$params$threshold,
+                x$params$min_size,
+                if (x$params$min_size == 1L) "" else "s",
+                if (is.finite(x$params$top))
+                  sprintf("top %d", as.integer(x$params$top)) else "all sets",
+                if (is.null(x$params$by)) "" else
+                  sprintf(", grouped by %s", x$params$by)))
   } else if (identical(x$params$source, "hg_read_hif")) {
     cat("Source: Hypergraph Interchange Format (hg_read_hif())\n")
   } else if (startsWith(x$params$source %||% "", "hg_sample_")) {
@@ -306,7 +327,7 @@ print.net_hg <- function(x, n = 10L, ...) {
 #'   `what = "incidence_data"`, one row per incidence with `node`, `edge`
 #'   and its attributes; for `what = "edge_data"`, one row per hyperedge
 #'   with `edge` and its attributes. Asking for any of these tables of a
-#'   hypergraph without it raises `hypernets_bad_input`.
+#'   hypergraph without it raises `hypergraphs_bad_input`.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.

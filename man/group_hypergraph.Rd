@@ -16,8 +16,11 @@ group_hypergraph(
   to = NULL,
   member = NULL,
   cooccur_by = NULL,
-  top = 8L,
-  states = NULL
+  top = NULL,
+  states = NULL,
+  threshold = NULL,
+  min_size = 1L,
+  by = NULL
 )
 }
 \arguments{
@@ -61,15 +64,34 @@ with no member contributes no hyperedge.}
 \code{actor} and \code{cooccur_by}.}
 
 \item{member, cooccur_by}{Deprecated names of \code{actor} and \code{group}; using
-them warns with a \code{hypernets_deprecated} condition.}
+them warns with a \code{hypergraphs_deprecated} condition.}
 
-\item{top}{Clustered sequences only: the number of most frequent state
-sets of each group kept as hyperedges (default \code{8}).}
+\item{top}{The number of most frequent sets kept as hyperedges, in each
+value of \code{by} or over all groups; \code{Inf} keeps every set. For a data
+frame, giving \code{top} or \code{by} counts sets (see "Frequent sets within
+groups"), and \code{NULL} (default) with no \code{by} builds one hyperedge per
+group. Clustered sequences and topic models keep \code{8} by default.}
 
-\item{states}{Clustered sequences only: the states to keep, such as the
+\item{states}{For counted sets: the states to keep, such as the
 events of interest. Every other state is removed from each sequence's
 set before counting, and a sequence left with no state is not counted.
-\code{NULL} (default) keeps every state.}
+\code{NULL} (default) keeps every state. For a topic model, the topics to
+keep.}
+
+\item{threshold}{Topic model only: the share at which a topic counts as
+present in a document, one number in (0, 1]. Required for a topic
+model and refused for any other input.}
+
+\item{min_size}{For counted sets (\code{by} or a topic model): the smallest set
+counted (default \code{1}); \code{2} keeps only the sets of two or more. The share
+of a set is still taken over all sets of its group.}
+
+\item{by}{Count frequent sets instead of building one hyperedge per
+group: the name of a column constant within each \code{group} (an outcome, a
+cluster, a year). Each value of \code{group} is then one set, the \code{actor}
+values it holds, and the \code{top} most frequent sets within each value of
+\code{by} become hyperedges (see "Frequent sets within groups"). For a topic
+model, a column of the documents table of the fitted hypergraph.}
 }
 \value{
 A \code{net_hg} object with the same structure produced by
@@ -118,9 +140,43 @@ Legal Hypergraphs Zenodo archive (3,618 nodes, 46,165 hyperedges and
 
 A dense incidence with more than \code{.Machine$integer.max} cells cannot be
 addressed by the flat cell index, and would exhaust memory well before
-that. It raises the classed error \code{hypernets_dense_too_large} rather than
+that. It raises the classed error \code{hypergraphs_dense_too_large} rather than
 attempting the allocation; pass \code{sparse = TRUE} for data at that scale.
 }
+\section{Frequent sets within groups}{
+
+With \code{by} or \code{top}, a data frame is read as transactions. Each value of \code{group}
+(a trial, a session, a basket) is one set, the distinct \code{actor} values it
+holds, and the sets are counted within each value of \code{by}, which must be
+constant within a \code{group}. The \code{top} most frequent sets of each value of
+\code{by} become hyperedges, counted exactly as for clustered sequences below,
+and \code{hg_get(hg, what = "sets")} reads them with their \code{count} and \code{share}
+of the value's sets. Without \code{by}, the sets are counted over all groups
+together, under one value named after \code{group} (\code{"All sessions"}).
+\code{plot(hg, group = )} draws the sets of one value, every node sized by the
+sets that contain it. \code{states} keeps only
+the listed \code{actor} values, and \code{min_size} the sets of at least that many.
+}
+
+\section{Topic combinations}{
+
+Given a mixed-membership topic model fitted by \code{\link[=hg_topics]{hg_topics()}}, every
+document is reduced to the set of topics whose share in it is at least
+\code{threshold}, the thresholded topic presence used to build topic
+co-occurrence networks (Abuhay et al. 2017; Cassi et al. 2017). A
+document on love, hate and romance gives the set of those three topics.
+The \code{top} most frequent sets become hyperedges, counted exactly as for
+clustered sequences below, with each document as one transaction, and the
+topics are the nodes. \code{top = Inf} keeps every set, and \code{min_size = 2}
+keeps only the sets that combine two or more topics. \code{by} names a column of the documents table of
+the fitted hypergraph, such as a publication year or an author, and the
+sets are then counted within each of its values; \code{NULL} (default) counts
+them over all documents. A document with no topic at the threshold is not
+counted. Read the sets with \code{hg_get(hg, what = "sets")}; \code{count} is the
+number of documents with exactly that set and \code{share} its proportion of
+the group's documents.
+}
+
 \section{Clustered sequences}{
 
 Given a clustering of sequences, every sequence of every group is reduced to
@@ -144,7 +200,7 @@ tables with \code{hg_get(hg, what = "sets")} (one row per hyperedge:
 its group, set, size, count and share of the group's sequences) and
 \code{hg_get(hg, what = "state_counts")} (one row per group and
 state). A malformed clustering (no \verb{$data}, assignments that do not match
-it, unnamed networks) raises \code{hypernets_bad_input}.
+it, unnamed networks) raises \code{hypergraphs_bad_input}.
 
 Every other column of \code{data} that is constant within a hyperedge (a
 session's date, a team's department) is kept as a hyperedge attribute in
@@ -185,6 +241,17 @@ Agrawal, R., & Srikant, R. (1994). Fast algorithms for mining association
 rules in large databases. In \emph{Proceedings of the 20th International
 Conference on Very Large Data Bases (VLDB)} (pp. 487-499). Morgan
 Kaufmann.
+
+Abuhay, T. M., Kovalchuk, S. V., Bochenina, K., Kampis, G.,
+Krzhizhanovskaya, V. V., & Lees, M. H. (2017). Analysis of computational
+science papers from ICCS 2001-2016 using topic modeling and graph theory.
+\emph{Procedia Computer Science}, 108, 7-17.
+\doi{10.1016/j.procs.2017.05.183}
+
+Cassi, L., Lahatte, A., Rafols, I., Sautier, P., & de Turckheim, E.
+(2017). Improving fitness: Mapping research priorities against societal
+needs on obesity. \emph{Journal of Informetrics}, 11(4), 1095-1113.
+\doi{10.1016/j.joi.2017.09.010}
 
 Perc, M., Gomez-Gardenes, J., Szolnoki, A., Floria, L. M., & Moreno, Y.
 (2013). Evolutionary dynamics of group interactions on structured

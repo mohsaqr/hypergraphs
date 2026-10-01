@@ -122,7 +122,7 @@
         paste(signif(median_expected, 3), collapse = ", "),
         paste(signif(inflation, 3), collapse = ", "),
         paste(names(by_size)[dense], collapse = ", ")),
-        class = "hypernets_dense_cooccurrence", call = NULL))
+        class = "hypergraphs_dense_cooccurrence", call = NULL))
     }
   } else {
     n_active <- sum(Reduce(`+`, degree_of) > 0)
@@ -148,7 +148,7 @@
         "a set can then pass only together with many others. ",
         "n_null = %d resolves every size."),
         n_null, 1 / (n_null + 1), paste(short, collapse = ", "), needed),
-        class = "hypernets_low_resolution", call = NULL))
+        class = "hypergraphs_low_resolution", call = NULL))
     }
     draws <- .svh_swap_counts(m, .svh_row_keys(target_rows), n_null)
     draws <- matrix(draws, nrow = length(tested))

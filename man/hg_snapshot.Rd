@@ -30,7 +30,7 @@ former \code{"all"} is deprecated: it is \code{"cumulative"} with \code{at} unse
 records their counts in \code{edge_multiplicity}.}
 }
 \value{
-A static \code{net_hg} usable by every hypernets hypergraph verb;
+A static \code{net_hg} usable by every hypergraphs hypergraph verb;
 its \code{params} record \code{at}, \code{window}, \code{temporal_mode} and the clock.
 }
 \description{

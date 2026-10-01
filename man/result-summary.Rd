@@ -3,40 +3,40 @@
 %   R/hypergraph_communities.R, R/hypergraph_mmsbm.R, R/hypergraph_motifs.R,
 %   R/memory_communities.R, R/memory_groups.R, R/memory_inference.R,
 %   R/simplicial_wrappers.R, R/text_topic_model.R
-\name{hg_get.hypernets_summary}
-\alias{hg_get.hypernets_summary}
-\alias{print.hypernets_summary}
+\name{hg_get.hypergraphs_summary}
+\alias{hg_get.hypergraphs_summary}
+\alias{print.hypergraphs_summary}
 \alias{result-summary}
-\alias{summary.hypernets_result}
-\alias{summary.hypernets_hypa}
-\alias{summary.hypernets_community_comparison}
+\alias{summary.hypergraphs_result}
+\alias{summary.hypergraphs_hypa}
+\alias{summary.hypergraphs_community_comparison}
 \alias{summary.hg_communities}
 \alias{summary.net_hg_mmsbm}
-\alias{summary.hypernets_motifs}
+\alias{summary.hypergraphs_motifs}
 \alias{summary.net_hon_communities}
 \alias{summary.net_hon_boot_group}
 \alias{summary.net_hon_group}
 \alias{summary.net_hon_boot}
 \alias{summary.net_hon_compare}
-\alias{summary.hypernets_simplicial}
+\alias{summary.hypergraphs_simplicial}
 \alias{summary.net_hg_topics}
 \title{Summaries of results}
 \usage{
-\method{hg_get}{hypernets_summary}(x, what = names(x)[1L], ...)
+\method{hg_get}{hypergraphs_summary}(x, what = names(x)[1L], ...)
 
-\method{print}{hypernets_summary}(x, n = 5L, ...)
+\method{print}{hypergraphs_summary}(x, n = 5L, ...)
 
-\method{summary}{hypernets_result}(object, ...)
+\method{summary}{hypergraphs_result}(object, ...)
 
-\method{summary}{hypernets_hypa}(object, ...)
+\method{summary}{hypergraphs_hypa}(object, ...)
 
-\method{summary}{hypernets_community_comparison}(object, ...)
+\method{summary}{hypergraphs_community_comparison}(object, ...)
 
 \method{summary}{hg_communities}(object, ...)
 
 \method{summary}{net_hg_mmsbm}(object, ...)
 
-\method{summary}{hypernets_motifs}(object, ...)
+\method{summary}{hypergraphs_motifs}(object, ...)
 
 \method{summary}{net_hon_communities}(object, ...)
 
@@ -48,12 +48,12 @@
 
 \method{summary}{net_hon_compare}(object, ...)
 
-\method{summary}{hypernets_simplicial}(object, ...)
+\method{summary}{hypergraphs_simplicial}(object, ...)
 
 \method{summary}{net_hg_topics}(object, ...)
 }
 \arguments{
-\item{x}{A \code{hypernets_summary}.}
+\item{x}{A \code{hypergraphs_summary}.}
 
 \item{what}{For \code{\link[=hg_get]{hg_get()}} on a summary: the name of one of its tables.
 Default: the first.}
@@ -70,7 +70,7 @@ sequences, \code{\link[=hg_bootstrap]{hg_bootstrap()}}, \code{\link[=hg_compare]
 \code{\link[=hg_homology]{hg_homology()}}, \code{\link[=hg_landscape]{hg_landscape()}} or \code{\link[=hg_qanalysis]{hg_qanalysis()}}.}
 }
 \value{
-A \code{hypernets_summary}: a named list of data frames. Its print
+A \code{hypergraphs_summary}: a named list of data frames. Its print
 method shows the first rows of each.
 }
 \description{

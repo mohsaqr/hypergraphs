@@ -2,8 +2,8 @@
 % Please edit documentation in R/hypergraph_motifs.R
 \name{hg_motifs}
 \alias{hg_motifs}
-\alias{hg_get.hypernets_motifs}
-\alias{plot.hypernets_motifs}
+\alias{hg_get.hypergraphs_motifs}
+\alias{plot.hypergraphs_motifs}
 \title{Y, T and O motif census with a hypergraph configuration null}
 \usage{
 hg_motifs(
@@ -21,9 +21,9 @@ hg_motifs(
   multiedges = TRUE
 )
 
-\method{hg_get}{hypernets_motifs}(x, what = c("test", "draws"), ...)
+\method{hg_get}{hypergraphs_motifs}(x, what = c("test", "draws"), ...)
 
-\method{plot}{hypernets_motifs}(x, motif = c("Y", "T", "O"), ...)
+\method{plot}{hypergraphs_motifs}(x, motif = c("Y", "T", "O"), ...)
 }
 \arguments{
 \item{hg}{A 3-uniform \code{net_hg} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
@@ -45,7 +45,7 @@ counts only, or \code{"draws"} for every null count.}
 \code{"cumulative"}) and multi-edge handling passed to
 \code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal.}
 
-\item{x}{A \code{hypernets_motifs} test table.}
+\item{x}{A \code{hypergraphs_motifs} test table.}
 
 \item{...}{Unused; for S3 consistency.}
 

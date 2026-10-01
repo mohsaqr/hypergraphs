@@ -1,10 +1,10 @@
 #' Low-Dimensional Hypergraph Embedding
 #'
-#' Returns the node coordinates computed by hypernets' existing hypergraph
+#' Returns the node coordinates computed by hypergraphs' existing hypergraph
 #' spectral or symmetric-NMF engine without exposing the incidental k-means
 #' assignments produced by [hg_cluster()].
 #'
-#' @param hg Any hypernets `net_hg`.
+#' @param hg Any hypergraphs `net_hg`.
 #' @param dimensions Number of embedding coordinates, between 2 and
 #'   `n_nodes - 1`.
 #' @param type Laplacian type: `"zhou"` or `"random_walk"`.

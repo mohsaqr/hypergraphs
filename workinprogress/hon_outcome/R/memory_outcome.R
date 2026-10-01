@@ -62,7 +62,7 @@
     if (!any(keep)) {
       stop(errorCondition(
         "`sequences` has no rows with both an actor and an action.",
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     state <- state[keep]
     actor <- actor[keep]
@@ -120,7 +120,7 @@
           paste0("`outcome` has ", length(others), " non-key columns (",
                  paste(others, collapse = ", "),
                  "); name the one to model with `outcome_col`."),
-          class = "hypernets_bad_input", call = NULL))
+          class = "hypergraphs_bad_input", call = NULL))
       }
       outcome_col <- others
     }
@@ -146,7 +146,7 @@
       paste0("`outcome` has duplicate keys (", paste(utils::head(dup, 5L),
                                                      collapse = ", "),
              "); it must hold one value per actor."),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   stats::setNames(as.numeric(values), keys)
 }
@@ -178,7 +178,7 @@
              " of the ", length(actors),
              " actors in the analysis sample; a cluster-robust covariance ",
              "needs every observation assigned to a cluster."),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   out
 }
@@ -402,7 +402,7 @@
             paste0("cluster '", cluster[idx[1L]], "' has ", length(idx),
                    " observation(s) and leverage 1: the jackknife is ",
                    "undefined there. Use `vcov = \"CR1\"`."),
-            class = c("hypernets_rank_deficient", "hypernets_bad_input"),
+            class = c("hypergraphs_rank_deficient", "hypergraphs_bad_input"),
             call = NULL))
         }
         crossprod(xg, qr.solve(leverage, resid[idx]))[, 1L]
@@ -702,7 +702,7 @@
 #' \code{sandwich::vcovCL(type = "HC1", cadjust = TRUE)}, and the test suite
 #' checks it against that package where it is installed. Cluster-robust
 #' standard errors are badly biased with few clusters, so fewer than
-#' \code{min_clusters} clusters raises a \code{hypernets_few_clusters}
+#' \code{min_clusters} clusters raises a \code{hypergraphs_few_clusters}
 #' warning.
 #'
 #' \strong{Measured coverage.} In the package's own simulation
@@ -730,19 +730,19 @@
 #' \code{\link{bootstrap_hon}()} for that uncertainty.
 #'
 #' \strong{Collinearity.} A rank-deficient design raises
-#' \code{hypernets_rank_deficient} rather than silently dropping terms, and a
+#' \code{hypergraphs_rank_deficient} rather than silently dropping terms, and a
 #' scaled condition index above 30 (Belsley, Kuh and Welsch 1980) warns with
 #' the same class.
 #'
-#' \strong{Conditions raised.} \code{hypernets_bad_input} (an input that
+#' \strong{Conditions raised.} \code{hypergraphs_bad_input} (an input that
 #' cannot be modelled at all: a malformed outcome, duplicate actor keys, a
 #' missing cluster label, fewer actors than terms, fewer clusters than terms);
-#' \code{hypernets_rank_deficient} (error on an exactly collinear or constant
+#' \code{hypergraphs_rank_deficient} (error on an exactly collinear or constant
 #' design, warning on a near-collinear one);
-#' \code{hypernets_dropped_actors} (warning: events that matched no node, or
+#' \code{hypergraphs_dropped_actors} (warning: events that matched no node, or
 #' actors excluded from the fit -- both are listed in the result);
-#' \code{hypernets_few_clusters} (warning); \code{hypernets_no_converge}
-#' (warning: IRLS hit its iteration bound); \code{hypernets_degenerate_fit}
+#' \code{hypergraphs_few_clusters} (warning); \code{hypergraphs_no_converge}
+#' (warning: IRLS hit its iteration bound); \code{hypergraphs_degenerate_fit}
 #' (warning: separation in a binomial fit, whose standard errors are then
 #' meaningless). Nothing is dropped or rescued silently.
 #'
@@ -932,20 +932,20 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
     if (length(feature_names) == 0L) {
       stop(errorCondition(
         "The `features` data.frame has no feature columns beside the key.",
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     is_num <- vapply(features[feature_names], is.numeric, logical(1L))
     if (!all(is_num)) {
       stop(errorCondition(
         paste0("Every feature column must be numeric; these are not: ",
                paste(feature_names[!is_num], collapse = ", "), "."),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     actors <- as.character(features[[by]])
     if (anyDuplicated(actors) > 0L) {
       stop(errorCondition(
         "The `features` data.frame must hold one row per actor.",
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     feature_matrix <- as.matrix(features[, feature_names, drop = FALSE])
     rownames(feature_matrix) <- actors
@@ -960,14 +960,14 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
         paste0("`features` must be a subset of \"centrality\", \"honem\", ",
                "or a data.frame; got: ",
                paste(unknown, collapse = ", "), "."),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     if (missing(sequences)) {
       stop(errorCondition(
         paste0("`sequences` is required: a net_hon does not carry the actor ",
                "identity of the trajectories it was built from, so the ",
                "per-actor features cannot be derived from `x` alone."),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     allowed_types <- eval(formals(hon_outcome)$centrality_type)
     unknown_types <- setdiff(centrality_type, allowed_types)
@@ -976,7 +976,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
         paste0("unknown `centrality_type`: ",
                paste(unknown_types, collapse = ", "), ". Choose from: ",
                paste(allowed_types, collapse = ", "), "."),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     centrality_type <- match.arg(centrality_type, several.ok = TRUE)
     feature_spec <- paste(features, collapse = " + ")
@@ -984,7 +984,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
                                  time = time)
     if (length(seqs) == 0L) {
       stop(errorCondition("`sequences` holds no actors.",
-                          class = "hypernets_bad_input", call = NULL))
+                          class = "hypergraphs_bad_input", call = NULL))
     }
     if (anyDuplicated(names(seqs)) > 0L) {
       # several sequences per actor are pooled into one visit profile
@@ -1019,7 +1019,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
                        "were excluded from the feature means (see ",
                        "as.data.frame(x, what = \"features\")$n_unmatched)."),
                 sum(visits$n_unmatched), sum(visits$n_events)),
-        class = "hypernets_dropped_actors"))
+        class = "hypergraphs_dropped_actors"))
     }
   }
 
@@ -1048,7 +1048,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
               nrow(dropped),
               paste(utils::head(unique(dropped$reason), 3L),
                     collapse = "; ")),
-      class = "hypernets_dropped_actors"))
+      class = "hypergraphs_dropped_actors"))
   }
 
   keep <- is.na(reason)
@@ -1061,7 +1061,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
     stop(errorCondition(
       sprintf(paste0("Only %d actor(s) remain for %d model terms; an ",
                      "outcome model needs more actors than terms."), n, k),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   # exact equality is the contract here: a Bernoulli outcome is 0 or 1, and a
   # count is a whole number -- neither is the result of a floating-point
@@ -1069,13 +1069,13 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
   if (identical(family, "binomial") && !all(y_fit %in% c(0, 1))) {
     stop(errorCondition(
       "`family = \"binomial\"` needs an outcome of 0s and 1s.",
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   if (identical(family, "poisson") &&
       (any(y_fit < 0) || any(abs(y_fit - round(y_fit)) > 0))) {
     stop(errorCondition(
       "`family = \"poisson\"` needs a non-negative integer outcome.",
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
 
   # ---- standardize, then guard the design --------------------------------
@@ -1089,7 +1089,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
              "cannot enter the model: ",
              paste(colnames(fmat)[constant], collapse = ", "),
              ". Drop them, or widen the sample."),
-      class = "hypernets_rank_deficient", call = NULL))
+      class = "hypergraphs_rank_deficient", call = NULL))
   }
   if (standardize) {
     centre <- colMeans(fmat)
@@ -1106,7 +1106,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
                      "is dropped silently -- remove a feature, or supply ",
                      "your own `features` data.frame."),
               qr_rank, ncol(X)),
-      class = "hypernets_rank_deficient", call = NULL))
+      class = "hypergraphs_rank_deficient", call = NULL))
   }
   # collinearity AMONG THE FEATURES: centred, then scaled to unit length, so
   # the diagnostic is invariant to `standardize` and to the units a feature
@@ -1121,7 +1121,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
                      "near-collinear, so individual estimates are poorly ",
                      "identified even though the fit succeeds."),
               condition_index),
-      class = "hypernets_rank_deficient"))
+      class = "hypergraphs_rank_deficient"))
   }
 
   # ---- cluster labels ----------------------------------------------------
@@ -1133,14 +1133,14 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
       stop(errorCondition(
         paste0("`nested_in` gives a single cluster; a cluster-robust ",
                "covariance needs at least two."),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     if (n_cl <= ncol(X)) {
       stop(errorCondition(
         sprintf(paste0("`nested_in` gives %d clusters for %d model terms; ",
                        "the cluster-robust meat is singular at G <= k."),
                 n_cl, ncol(X)),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     if (n_cl < min_clusters) {
       warning(warningCondition(
@@ -1148,7 +1148,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
                        "downward biased with few clusters and the t(%d) ",
                        "intervals may under-cover (Cameron & Miller 2015)."),
                 n_cl, n_cl - 1L),
-        class = "hypernets_few_clusters"))
+        class = "hypergraphs_few_clusters"))
     }
   }
 
@@ -1158,7 +1158,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
     warning(warningCondition(
       paste0("The IRLS fit did not converge in 100 iterations; the ",
              "estimates below are not a converged maximum likelihood fit."),
-      class = "hypernets_no_converge"))
+      class = "hypergraphs_no_converge"))
   }
   if (identical(family, "binomial")) {
     if (any(fit$fitted < 1e-8 | fit$fitted > 1 - 1e-8)) {
@@ -1166,7 +1166,7 @@ hon_outcome <- function(x, outcome, sequences, by = "actor",
         paste0("Some fitted probabilities are numerically 0 or 1 (complete ",
                "or quasi-complete separation); the standard errors below are ",
                "not trustworthy."),
-        class = "hypernets_degenerate_fit"))
+        class = "hypergraphs_degenerate_fit"))
     }
   }
 
@@ -1413,7 +1413,7 @@ as.data.frame.net_outcome <- function(x, row.names = NULL, optional = FALSE,
       stop(errorCondition(
         sprintf("`sort_by` and `significant` do not apply to what = \"%s\".",
                 what),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     out <- switch(what, features = x$features, dropped = x$dropped,
                   contrasts = .hoo_contrasts(x))
@@ -1474,7 +1474,7 @@ as.data.frame.net_outcome <- function(x, row.names = NULL, optional = FALSE,
 #'   of their effect; \code{NULL} keeps model order.
 #' @param ... Ignored.
 #' @return A ggplot object. An unknown \code{what} raises
-#'   \code{hypernets_bad_input}.
+#'   \code{hypergraphs_bad_input}.
 #' @inherit hon_outcome examples
 #' @export
 plot.net_outcome <- function(x, what = c("per_sd", "contrasts", "raw"),
@@ -1490,7 +1490,7 @@ plot.net_outcome <- function(x, what = c("per_sd", "contrasts", "raw"),
     stop(errorCondition(
       sprintf("`what` must be one of %s.",
               paste0("\"", allowed, "\"", collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   what <- what[[1L]]
   if (!is.null(sort_by)) sort_by <- match.arg(sort_by, "estimate")

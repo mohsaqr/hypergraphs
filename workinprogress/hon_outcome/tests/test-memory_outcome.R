@@ -49,16 +49,16 @@ testthat::skip_on_cran()
 test_that("longest-suffix decoding picks the longest history in the network", {
   nodes <- c("A", "B", "C", "A -> B", "A -> B -> C")
   index <- stats::setNames(seq_along(nodes), nodes)
-  idx <- hypernets:::.hoo_decode(c("A", "B", "C", "B"), index, max_order = 3L)
+  idx <- hypergraphs:::.hoo_decode(c("A", "B", "C", "B"), index, max_order = 3L)
   # position 1: "A"; 2: "A -> B"; 3: "A -> B -> C"; 4: "B" (no "B -> C -> B")
   expect_identical(nodes[idx], c("A", "A -> B", "A -> B -> C", "B"))
 
   # a state the network never saw matches nothing and is counted as unmatched
-  idx2 <- hypernets:::.hoo_decode(c("A", "Z", "B"), index, max_order = 3L)
+  idx2 <- hypergraphs:::.hoo_decode(c("A", "Z", "B"), index, max_order = 3L)
   expect_identical(idx2, c(1L, NA_integer_, 2L))
 
   # max_order caps the history length that is even tried
-  idx3 <- hypernets:::.hoo_decode(c("A", "B", "C"), index, max_order = 2L)
+  idx3 <- hypergraphs:::.hoo_decode(c("A", "B", "C"), index, max_order = 2L)
   expect_identical(nodes[idx3], c("A", "A -> B", "C"))
 })
 
@@ -73,7 +73,7 @@ test_that("a per-actor feature is the visit-weighted mean of the node value", {
   value <- stats::setNames(cen$pagerank, cen$node)
   one <- cp$seqs[["s01"]]
   index <- stats::setNames(seq_along(names(value)), names(value))
-  visited <- names(value)[hypernets:::.hoo_decode(one, index, max_order = 2L)]
+  visited <- names(value)[hypergraphs:::.hoo_decode(one, index, max_order = 2L)]
   expect_equal(feats$pagerank[feats$actor == "s01"],
                mean(value[visited]), tolerance = 1e-12)
   # every event of this corpus lives in the network
@@ -369,7 +369,7 @@ test_that("print, summary and plot work and say what was done", {
   expect_warning(
     fit <- hon_outcome(cp$hon, outcome = cp$outcome, sequences = cp$seqs,
                        nested_in = classes, min_clusters = 30L),
-    class = "hypernets_few_clusters")
+    class = "hypergraphs_few_clusters")
 
 
   expect_output(print(fit), "cluster-robust covariance")
@@ -395,17 +395,17 @@ test_that("print, summary and plot work and say what was done", {
 
 # ---- error paths, by class ----------------------------------------------
 
-test_that("bad input raises hypernets_bad_input", {
+test_that("bad input raises hypergraphs_bad_input", {
   cp <- .mo_corpus(n_actors = 20L)
   expect_error(hon_outcome(list(), outcome = cp$outcome, sequences = cp$seqs),
                "must be a net_hon")
   expect_error(
     hon_outcome(cp$hon, outcome = cp$outcome, features = "centrality"),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
   expect_error(
     hon_outcome(cp$hon, outcome = cp$outcome, sequences = cp$seqs,
                 features = "nonsense"),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
   expect_error(
     hon_outcome(cp$hon, outcome = unname(cp$outcome), sequences = cp$seqs),
     "named vector keyed by actor")
@@ -414,46 +414,46 @@ test_that("bad input raises hypernets_bad_input", {
                     score = c(cp$outcome, 1), stringsAsFactors = FALSE)
   expect_error(
     hon_outcome(cp$hon, outcome = dup, sequences = cp$seqs),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
 
   many <- data.frame(actor = cp$actors, score = as.numeric(cp$outcome),
                      other = 1, stringsAsFactors = FALSE)
   expect_error(hon_outcome(cp$hon, outcome = many, sequences = cp$seqs),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 
   # too few actors for the number of terms
   few <- cp$outcome[seq_len(3L)]
   expect_error(
     suppressWarnings(hon_outcome(cp$hon, outcome = few,
                                  sequences = cp$seqs[seq_len(3L)])),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
 
   # wrong outcome shape for the family
   expect_error(
     hon_outcome(cp$hon, outcome = cp$outcome, sequences = cp$seqs,
                 family = "binomial"),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
   expect_error(
     hon_outcome(cp$hon, outcome = cp$outcome, sequences = cp$seqs,
                 family = "poisson"),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
 })
 
-test_that("a rank-deficient design raises hypernets_rank_deficient", {
+test_that("a rank-deficient design raises hypergraphs_rank_deficient", {
   feats <- .mo_features(n = 60L)
   feats$f3 <- feats$f1 + feats$f2          # exactly collinear
   outcome <- stats::setNames(stats::rnorm(60L), feats$actor)
   expect_error(
     hon_outcome(.mo_hon0(), outcome = outcome,
                 features = feats),
-    class = "hypernets_rank_deficient")
+    class = "hypergraphs_rank_deficient")
 
   const <- .mo_features(n = 60L)
   const$f2 <- 1
   expect_error(
     hon_outcome(.mo_hon0(), outcome = outcome,
                 features = const),
-    class = "hypernets_rank_deficient")
+    class = "hypergraphs_rank_deficient")
 
   # near-collinear warns rather than failing, with the same class
   near <- .mo_features(n = 60L)
@@ -461,7 +461,7 @@ test_that("a rank-deficient design raises hypernets_rank_deficient", {
   expect_warning(
     hon_outcome(.mo_hon0(), outcome = outcome,
                 features = near),
-    class = "hypernets_rank_deficient")
+    class = "hypergraphs_rank_deficient")
 })
 
 test_that("cluster problems and dropped actors are surfaced, never silent", {
@@ -474,20 +474,20 @@ test_that("cluster problems and dropped actors are surfaced, never silent", {
   expect_error(
     hon_outcome(.mo_hon0(), outcome = outcome,
                 features = feats, outcome_col = "score", nested_in = "class"),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
 
   outcome$class <- rep(sprintf("g%d", seq_len(8L)), each = 5L)
   expect_warning(
     hon_outcome(.mo_hon0(), outcome = outcome,
                 features = feats, outcome_col = "score", nested_in = "class"),
-    class = "hypernets_few_clusters")
+    class = "hypergraphs_few_clusters")
 
   # an actor with no outcome is dropped, loudly, and recorded
   short <- outcome[seq_len(35L), c("actor", "score")]
   expect_warning(
     fit <- hon_outcome(.mo_hon0(), outcome = short,
                        features = feats, outcome_col = "score"),
-    class = "hypernets_dropped_actors")
+    class = "hypergraphs_dropped_actors")
   expect_identical(fit$n, 35L)
   dropped <- as.data.frame(fit, what = "dropped")
   expect_identical(nrow(dropped), 5L)
@@ -498,7 +498,7 @@ test_that("cluster problems and dropped actors are surfaced, never silent", {
   expect_error(
     hon_outcome(.mo_hon0(), outcome = outcome,
                 features = feats, outcome_col = "score", nested_in = "class"),
-    class = "hypernets_bad_input")
+    class = "hypergraphs_bad_input")
 })
 
 test_that("a separated binomial fit warns rather than reporting its SEs", {
@@ -519,7 +519,7 @@ test_that("a separated binomial fit warns rather than reporting its SEs", {
           invokeRestart("muffleWarning")
         }
       }),
-    class = "hypernets_degenerate_fit")
+    class = "hypergraphs_degenerate_fit")
   expect_gt(as.data.frame(fit)$std_error, 100)
 })
 
@@ -530,7 +530,7 @@ test_that("accessor arguments are validated", {
   expect_error(as.data.frame(fit, what = "nope"), "should be one of")
   expect_error(as.data.frame(fit, sort_by = "nope"), "should be one of")
   expect_error(as.data.frame(fit, what = "features", sort_by = "p"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(as.data.frame(fit, alpha = 0), "`alpha` must be")
   expect_error(as.data.frame(fit, top = 0L), "`top` must be")
   expect_error(plot(fit, alpha = 2), "`alpha` must be")
@@ -635,7 +635,7 @@ test_that("CR3 matches sandwich::vcovCL(type = 'HC3') to 1e-10", {
   n <- length(cl)
   X <- cbind(1, x1 = stats::rnorm(n), x2 = stats::rnorm(g)[cl])
   y <- as.vector(X %*% c(1, 0.4, -0.3) + stats::rnorm(g)[cl] + stats::rnorm(n))
-  fit <- hypernets:::.hoo_fit(X, y, family = "gaussian",
+  fit <- hypergraphs:::.hoo_fit(X, y, family = "gaussian",
                               cluster = as.character(cl), vcov = "CR3")
   dat <- data.frame(y = y, x1 = X[, 2L], x2 = X[, 3L], cl = factor(cl))
   ref <- sandwich::vcovCL(stats::lm(y ~ x1 + x2, data = dat),
@@ -644,7 +644,7 @@ test_that("CR3 matches sandwich::vcovCL(type = 'HC3') to 1e-10", {
   expect_identical(fit$vcov_type, "CR3")
   # CR3 carries no G/(G-1) factor -- the leverage term IS the correction, so
   # it must differ from CR1 rather than coincide with it
-  cr1 <- hypernets:::.hoo_fit(X, y, family = "gaussian",
+  cr1 <- hypergraphs:::.hoo_fit(X, y, family = "gaussian",
                               cluster = as.character(cl), vcov = "CR1")
   expect_false(isTRUE(all.equal(diag(fit$vcov), diag(cr1$vcov))))
   # and it is the more conservative of the two here
@@ -660,12 +660,12 @@ test_that("CR3 refuses a cluster it cannot jackknife", {
   X <- cbind(1, x = stats::rnorm(n), only_c = as.numeric(cl == "c"))
   y <- as.vector(X %*% c(1, 0.5, 2) + stats::rnorm(n))
   expect_error(
-    hypernets:::.hoo_fit(X, y, family = "gaussian", cluster = cl,
+    hypergraphs:::.hoo_fit(X, y, family = "gaussian", cluster = cl,
                          vcov = "CR3"),
-    class = "hypernets_rank_deficient"
+    class = "hypergraphs_rank_deficient"
   )
   expect_true(is.matrix(
-    hypernets:::.hoo_fit(X, y, family = "gaussian", cluster = cl,
+    hypergraphs:::.hoo_fit(X, y, family = "gaussian", cluster = cl,
                          vcov = "CR1")$vcov
   ))
 })
@@ -703,7 +703,7 @@ test_that("CR3 matches sandwich::vcovCL(type = 'HC3') for binomial and poisson",
   dat$yp <- stats::rpois(n, exp(eta))
   cases <- list(binomial = "yb", poisson = "yp")
   invisible(Map(function(family, resp) {
-    fit <- hypernets:::.hoo_fit(X, dat[[resp]], family = family,
+    fit <- hypergraphs:::.hoo_fit(X, dat[[resp]], family = family,
                                 cluster = as.character(cl), vcov = "CR3")
     ref_fit <- stats::glm(stats::reformulate(c("x1", "x2"), resp),
                           data = dat, family = family,
@@ -726,7 +726,7 @@ test_that("hon_outcome() refuses an unknown centrality_type", {
   expect_error(
     hon_outcome(hon, outcome = scores, sequences = seqs,
                 centrality_type = c("pagerank", "in_strength")),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 })
 
@@ -892,7 +892,7 @@ test_that("plot() draws every view and refuses an unknown one by class", {
   expect_match(default$labels$subtitle, "40 actors in 20 clusters")
   expect_match(default$labels$subtitle, "R-squared")
   expect_match(default$labels$x, "cp\\$outcome|outcome")
-  expect_error(plot(fit, what = "nope"), class = "hypernets_bad_input")
+  expect_error(plot(fit, what = "nope"), class = "hypergraphs_bad_input")
 
   set.seed(5)
   yb <- stats::setNames(stats::rbinom(40L, 1L, 0.5), cp$actors)
@@ -909,6 +909,6 @@ test_that("contrasts refuse sort_by / significant like the other side tables", {
   fit <- hon_outcome(cp$hon, outcome = cp$outcome, sequences = cp$seqs,
                      centrality_type = "pagerank")
   expect_error(as.data.frame(fit, what = "contrasts", sort_by = "p"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_identical(nrow(as.data.frame(fit, what = "contrasts")), 1L)
 })

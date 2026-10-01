@@ -91,7 +91,7 @@ test_that("a box that would sit on an earlier one moves below it", {
   centre <- c(mean(range(p$layers[[1L]]$data$x)), mean(range(p$layers[[1L]]$data$y)))
   expect_true(all(sqrt((far$x - centre[1L])^2 + (far$y - centre[2L])^2) >
                     sqrt((box$x - centre[1L])^2 + (box$y - centre[2L])^2)))
-  expect_error(plot(hg, title_gap = -1), class = "hypernets_bad_input")
+  expect_error(plot(hg, title_gap = -1), class = "hypergraphs_bad_input")
 })
 
 test_that("a one-member hyperedge gets its box beside its node", {
@@ -232,24 +232,24 @@ test_that("pieces = \"row\" sets disconnected pieces side by side", {
                    plot(connected)$layers[[2L]]$data)
 })
 
-test_that("the blob arguments reject bad input with hypernets_bad_input", {
+test_that("the blob arguments reject bad input with hypergraphs_bad_input", {
   hg <- .blob_hg()
   hg$edge_data$kind <- c("a", "b", "c")
-  expect_error(plot(hg, titles = "kind"), class = "hypernets_bad_input")
-  expect_error(plot(hg, titles = "nope"), class = "hypernets_bad_input")
-  expect_error(plot(hg, titles = NA), class = "hypernets_bad_input")
+  expect_error(plot(hg, titles = "kind"), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, titles = "nope"), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, titles = NA), class = "hypergraphs_bad_input")
   expect_error(plot(hg, titles = FALSE, notes = c(Hint = "x")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, titles = TRUE, notes = data.frame(group = "Hint")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, titles = TRUE, notes = c("unnamed")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, titles = TRUE, dismantled = TRUE),
-               class = "hypernets_bad_input")
-  expect_error(plot(hg, unit = 1), class = "hypernets_bad_input")
-  expect_error(plot(hg, unit = c("a", "b")), class = "hypernets_bad_input")
-  expect_error(plot(hg, title_prefix = 1), class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
+  expect_error(plot(hg, unit = 1), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, unit = c("a", "b")), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, title_prefix = 1), class = "hypergraphs_bad_input")
   expect_error(plot(hg, layout = "circle", pieces = "row"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(plot(hg, pieces = "column"))
 })

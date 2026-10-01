@@ -357,7 +357,7 @@ hg_laplacian <- function(hg,
     if (any(mass <= 0)) {
       stop(errorCondition(
         "a class received zero total spread mass; class_mass normalization is undefined",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     sweep(F_scores, 2L, mass, "/")
@@ -395,7 +395,7 @@ hg_laplacian <- function(hg,
       paste0("The hypergraph is not connected; the random walk has no ",
              "unique stationary distribution. Analyze components ",
              "separately."),
-      class = "hypernets_hypergraph_disconnected", call = NULL
+      class = "hypergraphs_hypergraph_disconnected", call = NULL
     ))
   }
   invisible(TRUE)

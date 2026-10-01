@@ -16,7 +16,7 @@ hg_project(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypergraphs
 \code{net_hg}.}
 
 \item{method}{Weighting. \code{"clique"} (default) sums incidence products;

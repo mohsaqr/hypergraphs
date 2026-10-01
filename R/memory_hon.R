@@ -1,7 +1,7 @@
 # ---- HON rule extraction core (private) + hg_get() for net_hon ----
 #
 # hon() wraps the Nestimate HON builder (see memory_wrappers.R).
-# hypernets keeps a PRIVATE copy of the eager ("hon") rule-extraction core
+# hypergraphs keeps a PRIVATE copy of the eager ("hon") rule-extraction core
 # because its own inference verbs, hg_bootstrap() and hg_compare(),
 # re-run extraction on reweighted counts (.hon_extract_rules_count, which
 # Nestimate does not have) and `:::` is not allowed. Every helper below is
@@ -71,7 +71,7 @@
 # expected, is a long table whose `action`/`actor`/`time` arguments were
 # forgotten. Refusing is deliberate -- routing it automatically would guess
 # the caller's intent. A wide frame of states never names its columns this
-# way (T1, V1, step_1, ...), so it passes. This guard is hypernets' addition;
+# way (T1, V1, step_1, ...), so it passes. This guard is hypergraphs' addition;
 # Nestimate's parser has none.
 .HON_LONG_COLUMNS <- list(
   action = c("action", "code", "state", "event", "activity", "verb"),
@@ -99,7 +99,7 @@
                    "ids and times would become states. To use it, pass the ",
                    "long-format arguments, e.g. `%s`."),
             paste(sprintf("`%s`", found), collapse = ", "), suggestion),
-    class = c("hypernets_long_format", "hypernets_bad_input"), call = NULL))
+    class = c("hypergraphs_long_format", "hypergraphs_bad_input"), call = NULL))
 }
 
 .hon_parse_input <- function(data, collapse_repeats = FALSE) {

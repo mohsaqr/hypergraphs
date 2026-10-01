@@ -13,40 +13,40 @@ Decisions 1 and 2 below were made on 2026-08-25 and **overturned the next
 day**. They are kept here with the evidence that overturned them, because the
 reasoning is the useful part.
 
-> ~~1. **hypernets is the fourth delegation sibling**, scaffolded now.~~
-> ~~2. **hypernets stays sequence/path only.** No hypergraph code here — the two
+> ~~1. **hypergraphs is the fourth delegation sibling**, scaffolded now.~~
+> ~~2. **hypergraphs stays sequence/path only.** No hypergraph code here — the two
 >    paradigms share no infrastructure (ordered k-grams vs unordered
 >    multi-way co-membership).~~
 
 **What disproved decision 2, within hours of taking it:**
 
 - `build_hypergraph()` needs clique enumeration, which lives in Nestimate's
-  `simplicial.R`. Scaffolding hypernets therefore required **copying a
-  171-line closure** into `hypernets/R/utils.R` behind an internal
+  `simplicial.R`. Scaffolding hypergraphs therefore required **copying a
+  171-line closure** into `hypergraphs/R/utils.R` behind an internal
   `build_simplicial()` shim. "Zero shared infrastructure" was false on day
   one.
 - B1 (`window_hypergraph()`), the first feature built after the split, takes
   **the same `action`/`actor`/`time` sequence input as `build_hon()`**. It is
   a sequence verb that emits hyperedges, and it had no natural home: it went
-  into hypernets, but hypernets had an equal claim.
+  into hypergraphs, but hypergraphs had an equal claim.
 - Nestimate has **zero internal consumers** of its own 1,956-line simplicial
   /TDA family once `hypergraph.R` departs — while
-  `build_simplicial(type = "pathway")` dispatches on hypernets' `net_hon`,
-  `net_hypa` and `net_mogen`. The TDA layer already read hypernets classes.
+  `build_simplicial(type = "pathway")` dispatches on hypergraphs' `net_hon`,
+  `net_hypa` and `net_mogen`. The TDA layer already read hypergraphs classes.
 - The literature the plan itself cites (Battiston et al. 2020; Bianconi 2021;
   Tian & Zafarani 2024) treats memory networks, simplicial complexes and
   hypergraphs as **one field**, called higher-order networks.
-- `honets` and `hypernets` are three characters apart, both ending in
+- `honets` and `hypergraphs` are three characters apart, both ending in
   `nets`, both higher-order packages by the same author. That is a
   usability defect independent of the architecture.
 
 The split had put a boundary through the middle of a field rather than
 between fields.
 
-**Decision now in force:** honets (renamed hypernets at 0.4.0, 2026-09-07) is
+**Decision now in force:** honets (renamed hypergraphs at 0.4.0, 2026-09-07) is
 *the* higher-order networks package, covering all three structure families
-under one taxonomy (see `?hypernets` and `CLAUDE.md`). The short-lived
-hypergraph package `hypernets` 0.1.2 is folded in and retired — nothing was thrown
+under one taxonomy (see `?hypergraphs` and `CLAUDE.md`). The short-lived
+hypergraph package `hypergraphs` 0.1.2 is folded in and retired — nothing was thrown
 away: its ten R files, tests, equivalence suite and both tutorials moved
 across, and 223 lines of duplication were **deleted** rather than
 maintained. Nestimate imports one sibling instead of two.
@@ -58,10 +58,10 @@ maintained. Nestimate imports one sibling instead of two.
 | Nestimate | estimation hub; re-exports delegated verbs | 0.9.0, untouched |
 | psychnets | cross-sectional psychometric networks | delegated |
 | idiographic | person-specific temporal models | delegated |
-| **honets** (now hypernets) | **higher-order networks: memory + simplicial + hypergraph** | **0.2.0 (T0 done for all three families)** |
-| ~~hypernets 0.1.2~~ | ~~hypergraphs~~ | **retired 2026-08-26, folded into honets** |
+| **honets** (now hypergraphs) | **higher-order networks: memory + simplicial + hypergraph** | **0.2.0 (T0 done for all three families)** |
+| ~~hypergraphs 0.1.2~~ | ~~hypergraphs~~ | **retired 2026-08-26, folded into honets** |
 
-## Track A — hypernets (higher-order / sequence paradigm)
+## Track A — hypergraphs (higher-order / sequence paradigm)
 
 New verbs stay in the existing one-file-per-method layout, each with shipped
 tests + an entry in `local_testing_and_equivalence/` where an oracle exists.
@@ -77,12 +77,12 @@ Suggested order: A1 first (pure house paradigm, no new theory, highest
 research value), then A2 (small, oracle exists), A3, A4.
 
 **CRAN sequencing:** hold the T1 CRAN submission until A1–A2 land, then
-submit as hypernets 0.2.0 — one submission instead of two.
+submit as hypergraphs 0.2.0 — one submission instead of two.
 
-## Track B — hypergraph family (was: hypernets)
+## Track B — hypergraph family (was: hypergraphs)
 
-All Track B work now lands in hypernets under the `hypergraph_*.R` files. The
-"hypernets" labels below are historical.
+All Track B work now lands in hypergraphs under the `hypergraph_*.R` files. The
+"hypergraphs" labels below are historical.
 
 | # | Feature | Verb sketch | Oracle / validation | Reference |
 |---|---|---|---|---|
@@ -92,10 +92,10 @@ All Track B work now lands in hypernets under the `hypergraph_*.R` files. The
 | B3 | Bayesian hypergraph reconstruction suite (Nestimate TODO HON-11..15): `reconstruct_hypergraph`, `hyperedge_significance`, `hypergraph_order_select`, `compare_hypergraphs`, soft clustering | as named in `Nestimate/TODO.md` | per-item oracles listed there | Young, Petri & Peixoto (2021) lineage per TODO |
 | B4 | kNN embedding hypergraph + NLP bridge vignette (quanteda/tidytext → `group_hypergraph()` → Laplacian machinery) | `knn_hypergraph(embeddings, k, weight = "cosine")` | `HyperG::knn_hypergraph` for unweighted construction; vignette-first before freezing the API | texthypergraph/TODO.md |
 
-Small carried-over items: `dual_hypergraph()` (hypernets, when a use-case
-appears), XGI second oracle for shipped centralities (hypernets equiv suite),
-`wasserstein_distance()` (**done 2026-09-02** in hypernets' simplicial family),
-random hypergraph samplers (**done 2026-09-02** with HyperG parity; hypernets owns
+Small carried-over items: `dual_hypergraph()` (hypergraphs, when a use-case
+appears), XGI second oracle for shipped centralities (hypergraphs equiv suite),
+`wasserstein_distance()` (**done 2026-09-02** in hypergraphs' simplicial family),
+random hypergraph samplers (**done 2026-09-02** with HyperG parity; hypergraphs owns
 simulation as part of its hypergraph family), per
 the simulation/computation split).
 
@@ -114,28 +114,28 @@ identity-tested. Carried-over items from `Nestimate/TODO.md`:
 
 ## Delegation tiers
 
-1. **T0 — DONE.** Memory family 2026-08-24 (hypernets 0.1.0); simplicial and
-   hypergraph families 2026-08-26 (hypernets 0.2.0, the latter via hypernets
+1. **T0 — DONE.** Memory family 2026-08-24 (hypergraphs 0.1.0); simplicial and
+   hypergraph families 2026-08-26 (hypergraphs 0.2.0, the latter via hypergraphs
    0.1.2). All three identity-tested against Nestimate 0.9.0. Nestimate
    untouched.
-2. **T1 — CRAN submission of hypernets 0.2.0.** `--as-cran` is already clean (0
+2. **T1 — CRAN submission of hypergraphs 0.2.0.** `--as-cran` is already clean (0
    errors, 0 warnings). Remaining: `cran-comments.md`, a decision on whether
    the pre-existing `test-hypa.R` warnings are worth clearing first.
 3. **T2 (Nestimate delegation release):** delete the memory, simplicial and
    hypergraph R files + moved helpers where unused elsewhere;
-   `Imports: hypernets`; thin forwarders (gimme pattern), mapping the renamed
-   surface — `bipartite_groups()` → `hypernets::group_hypergraph()`,
+   `Imports: hypergraphs`; thin forwarders (gimme pattern), mapping the renamed
+   surface — `bipartite_groups()` → `hypergraphs::group_hypergraph()`,
    `build_hypergraph(method =)` → `type =`, and the `net_*` result classes;
    move equivalence suites; htna gate + `--as-cran`.
 
 ## Bookkeeping done / to do
 
 - [x] `Nestimate/HYPERNETS-DELEGATION-PLAN.md` §6b — annotate: revisited
-      2026-08-25 (hypernets scaffolded), **reversed 2026-08-26** (folded into
-      hypernets); pointer here.
+      2026-08-25 (hypergraphs scaffolded), **reversed 2026-08-26** (folded into
+      hypergraphs); pointer here.
 - [ ] `Nestimate/todo/COVERAGE-CATCHUP.md` + `../texthypergraph/TODO.md` —
-      retarget the hypergraph and TDA items' repo labels Nestimate → hypernets at
+      retarget the hypergraph and TDA items' repo labels Nestimate → hypergraphs at
       T2 (not before; until T2 the shipping copies are Nestimate's).
-- [ ] Add hypernets to the `saqr_AR` skill family list
-      (`../Writing/saqr_Coding conventions.md`); remove hypernets.
-- [ ] Archive the `hypernets` GitHub repo with a README pointing at hypernets.
+- [ ] Add hypergraphs to the `saqr_AR` skill family list
+      (`../Writing/saqr_Coding conventions.md`); remove hypergraphs.
+- [ ] Archive the `hypergraphs` GitHub repo with a README pointing at hypergraphs.

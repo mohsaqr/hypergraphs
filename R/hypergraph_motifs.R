@@ -207,18 +207,18 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
     run = rep(seq_len(n), each = 3L), motif = rep(names(observed), n),
     count = as.numeric(null), row.names = NULL
   )
-  class(out) <- c("hypernets_motifs", "data.frame")
+  class(out) <- c("hypergraphs_motifs", "data.frame")
   out
 }
 
 #' @rdname hg_motifs
-#' @param x A `hypernets_motifs` test table.
+#' @param x A `hypergraphs_motifs` test table.
 #' @param ... Unused; for S3 consistency.
 #' @return For `hg_get()`, the test table (`what = "test"`) or every null
 #'   count (`what = "draws"`, columns `run`, `motif`, `count`) as a plain
 #'   data.frame.
 #' @export
-hg_get.hypernets_motifs <- function(x, what = c("test", "draws"), ...) {
+hg_get.hypergraphs_motifs <- function(x, what = c("test", "draws"), ...) {
   what <- match.arg(what)
   if (identical(what, "draws")) return(attr(x, "draws"))
   attr(x, "draws") <- NULL
@@ -228,7 +228,7 @@ hg_get.hypernets_motifs <- function(x, what = c("test", "draws"), ...) {
 
 #' @rdname result-summary
 #' @export
-summary.hypernets_motifs <- function(object, ...) .ho_summary(object)
+summary.hypergraphs_motifs <- function(object, ...) .ho_summary(object)
 
 #' @rdname hg_motifs
 #' @param motif Which motif's null distribution to draw: `"Y"` (default),
@@ -237,7 +237,7 @@ summary.hypernets_motifs <- function(object, ...) .ho_summary(object)
 #'   count as a histogram with the observed count as a vertical line and the
 #'   z-score annotated (the paper's Figure 7).
 #' @export
-plot.hypernets_motifs <- function(x, motif = c("Y", "T", "O"), ...) {
+plot.hypergraphs_motifs <- function(x, motif = c("Y", "T", "O"), ...) {
   motif <- match.arg(motif)
   draws <- hg_get(x, what = "draws")
   test <- hg_get(x)

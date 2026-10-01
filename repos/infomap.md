@@ -10,7 +10,7 @@
   network (state -> physical node) and a partition are handed to Infomap
   with `directed = True, two_level = True, no_infomap = True`, so Infomap
   only scores the given partition; flow and codelength agree to ~1e-14 bits.
-  A second test lets Infomap search and requires hypernets' search to reach
+  A second test lets Infomap search and requires hypergraphs' search to reach
   a codelength within 0.5% of Infomap's (memory and first-order maps); the
   partitions themselves are not required to match.
   `local_testing_and_equivalence/test-equiv-hon-communities-infomap.R`,

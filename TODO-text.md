@@ -1,9 +1,9 @@
 Superseded by ROADMAP.md (2026-09-29); kept as history.
 
-# hypernets text and hypergraph backlog
+# hypergraphs text and hypergraph backlog
 
 This is the maintained backlog after the texthypergraph merge. Historical
-Nestimate-era tasks are recorded in `ROADMAP-text.md`; hypernets does not depend
+Nestimate-era tasks are recorded in `ROADMAP-text.md`; hypergraphs does not depend
 on Nestimate and no work in this list requires modifying it.
 
 ## Paper-method completions
@@ -30,7 +30,7 @@ on Nestimate and no work in this list requires modifying it.
 - [x] Run a ten-seed UMAP/HDBSCAN baseline on R8, including a matched
   eight-cluster control, paired effects, and bootstrap confidence intervals.
 - [x] Run the promised benchmark through the actual Python `BERTopic` class
-  (0.17.4, `all-MiniLM-L6-v2`, ten seeds, three variants, two hypernets arms;
+  (0.17.4, `all-MiniLM-L6-v2`, ten seeds, three variants, two hypergraphs arms;
   `benchmarks/run_bertopic_benchmark.R`, results in `benchmarks/RESULTS.md`
   and the benchmarks article). The modular UMAP/HDBSCAN baseline keeps its
   own label.
@@ -56,4 +56,4 @@ on Nestimate and no work in this list requires modifying it.
   sources not stored locally.
 - [ ] Keep every `repos/*.md` note synchronized with shipped code and the
   current upstream release.
-- [ ] CRAN submission and flagship hypernets paper.
+- [ ] CRAN submission and flagship hypergraphs paper.

@@ -36,7 +36,7 @@ test_that("every summary element is a data frame and equals its hg_get() table",
   lapply(names(results), \(name) {
     fit <- results[[name]]
     s <- summary(fit)
-    expect_s3_class(s, "hypernets_summary")
+    expect_s3_class(s, "hypergraphs_summary")
     expect_true(all(vapply(s, is.data.frame, logical(1L))), info = name)
     tables <- intersect(names(s), .ho_what_values(fit))
     expect_gt(length(tables), 0L)
@@ -75,7 +75,7 @@ test_that("a validated complex summarises its tests", {
   expect_warning(
     sc <- simplicial(ring_sequences, type = "window", window = 3L,
                      validate = TRUE, n_null = 99L, seed = 1L),
-    class = "hypernets_low_resolution")
+    class = "hypergraphs_low_resolution")
   s <- summary(sc)
   expect_identical(s$validation, hg_get(sc, what = "validation"))
   expect_true("simplices" %in% names(s))

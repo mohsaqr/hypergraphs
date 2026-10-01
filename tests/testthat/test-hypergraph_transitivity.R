@@ -127,8 +127,8 @@ test_that("sort_by and n return the top rows", {
 
 test_that("broken contracts raise classed errors", {
   expect_error(hg_transitivity(list(incidence = diag(2))),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   hg <- .tr_hg(list(e1 = c("a", "b", "c")))
-  expect_error(hg_transitivity(hg, n = 0), class = "hypernets_bad_input")
+  expect_error(hg_transitivity(hg, n = 0), class = "hypergraphs_bad_input")
   expect_error(hg_transitivity(hg, type = "global"))
 })

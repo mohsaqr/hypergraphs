@@ -4,7 +4,7 @@
 \alias{hg_sequences}
 \title{Per-actor state sequences from a clustered corpus}
 \usage{
-hg_sequences(hg, clusters = NULL, actor, order_by, state = NULL)
+hg_sequences(hg, clusters = NULL, actor, order_by, state = NULL, topics = NULL)
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} -- more generally, any \code{net_hg}
@@ -17,8 +17,9 @@ holding document identifiers and a state column (\code{cluster} by default,
 or the column named by \code{state}). \code{NULL} (the default) takes the state
 from the documents table instead, in which case \code{state} is required.}
 
-\item{actor}{Name of the documents-table column identifying who produced
-each document. One sequence is returned per distinct value.}
+\item{actor}{Name of the documents-table column that groups the
+documents into sequences, such as an author, a participant, a course or
+a year. One sequence is returned per distinct value.}
 
 \item{order_by}{Name of the documents-table column ordering the documents
 within an actor -- a turn number, an index, a date or a timestamp.
@@ -29,6 +30,11 @@ through to the \code{time} column unchanged.}
 \code{clusters} supplied it names a column of \code{clusters} and defaults to
 \code{"cluster"}; with \code{clusters = NULL} it names a column of the documents
 table and has no default.}
+
+\item{topics}{A mixed-membership topic model of \code{hg} fitted by
+\code{\link[=hg_topics]{hg_topics()}}. Each document's state is then its main topic, the topic
+with its largest share (\code{hg_get(topics, what = "documents")}). Give
+\code{topics} instead of \code{clusters} and \code{state}.}
 }
 \value{
 A base \code{data.frame} with one row per document of \code{hg}, ordered by
@@ -60,7 +66,7 @@ hon(seqs, action = "action", actor = "actor", time = "time")
 
 Those three column names are fixed, which is what makes the second call
 the same every time. Passing the long table without \verb{action =} raises
-\code{hypernets_long_format}: read as wide (one trajectory per row) it would
+\code{hypergraphs_long_format}: read as wide (one trajectory per row) it would
 give the wrong model.
 
 This closes the one missing edge in the cross-family design:
@@ -70,7 +76,7 @@ clustering and the caller had to assemble the sequence table themselves.
 }
 \section{Conditions}{
 
-A \code{hypernets_bad_input} error is raised when \code{hg} is not a hypergraph,
+A \code{hypergraphs_bad_input} error is raised when \code{hg} is not a hypergraph,
 when it carries no documents table, when \code{actor}, \code{order_by} or \code{state}
 does not name a column of the table it is looked up in, when \code{clusters}
 lacks a \code{node} column or assigns a document more than one state, when

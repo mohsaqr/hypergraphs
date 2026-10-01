@@ -11,7 +11,7 @@
 # Oracle: XGI 0.10.2 clustering_coefficient / local_clustering_coefficient /
 # two_node_clustering_coefficient (local_testing_and_equivalence/
 # test-oracle-transitivity-xgi.R). XGI returns 0 where the coefficient is
-# undefined; hypernets returns NA (see @details).
+# undefined; hypergraphs returns NA (see @details).
 #
 # Estrada & Rodriguez-Velazquez's (2006) global C2(H) (hyper-triangles over
 # 2-paths) is NOT implemented: it has no independent oracle, and the worked
@@ -167,7 +167,7 @@
 #' few thousand hyperedges; the other variants use sparse products when the
 #' incidence is sparse.
 #'
-#' @param hg A hypernets `net_hg` ([network_hypergraph()],
+#' @param hg A hypergraphs `net_hg` ([network_hypergraph()],
 #'   [group_hypergraph()], [text_hypergraph()], ...), dense or sparse.
 #' @param type One or more of `"projection"` (default), `"extra_overlap"`,
 #'   `"two_node_union"`, `"two_node_min"`, `"two_node_max"`.
@@ -184,7 +184,7 @@
 #'   `NA` where undefined). For `what = "summary"`: one row per `type` with
 #'   columns `type`, `mean_local` and `n_undefined`.
 #'
-#' @section Conditions: Raises `hypernets_bad_input` when `hg` is not a
+#' @section Conditions: Raises `hypergraphs_bad_input` when `hg` is not a
 #'   `net_hg` or `n` is not a count.
 #'
 #' @references
@@ -241,7 +241,7 @@ hg_transitivity <- function(hg,
   if (!(length(n) == 1L && is.numeric(n) &&
         (is.infinite(n) || (is.finite(n) && n >= 1)))) {
     stop(errorCondition("`n` must be a single count >= 1",
-                        class = "hypernets_bad_input", call = NULL))
+                        class = "hypergraphs_bad_input", call = NULL))
   }
   membership <- .hg_membership(hg)
   values <- lapply(type, \(t) {

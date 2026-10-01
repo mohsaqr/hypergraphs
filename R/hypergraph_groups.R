@@ -75,13 +75,29 @@
 #' @param from,to Column names of a pairwise edge list, as an alternative to
 #'   `actor` and `cooccur_by`.
 #' @param member,cooccur_by Deprecated names of `actor` and `group`; using
-#'   them warns with a `hypernets_deprecated` condition.
-#' @param top Clustered sequences only: the number of most frequent state
-#'   sets of each group kept as hyperedges (default `8`).
-#' @param states Clustered sequences only: the states to keep, such as the
+#'   them warns with a `hypergraphs_deprecated` condition.
+#' @param top The number of most frequent sets kept as hyperedges, in each
+#'   value of `by` or over all groups; `Inf` keeps every set. For a data
+#'   frame, giving `top` or `by` counts sets (see "Frequent sets within
+#'   groups"), and `NULL` (default) with no `by` builds one hyperedge per
+#'   group. Clustered sequences and topic models keep `8` by default.
+#' @param states For counted sets: the states to keep, such as the
 #'   events of interest. Every other state is removed from each sequence's
 #'   set before counting, and a sequence left with no state is not counted.
-#'   `NULL` (default) keeps every state.
+#'   `NULL` (default) keeps every state. For a topic model, the topics to
+#'   keep.
+#' @param threshold Topic model only: the share at which a topic counts as
+#'   present in a document, one number in (0, 1]. Required for a topic
+#'   model and refused for any other input.
+#' @param by Count frequent sets instead of building one hyperedge per
+#'   group: the name of a column constant within each `group` (an outcome, a
+#'   cluster, a year). Each value of `group` is then one set, the `actor`
+#'   values it holds, and the `top` most frequent sets within each value of
+#'   `by` become hyperedges (see "Frequent sets within groups"). For a topic
+#'   model, a column of the documents table of the fitted hypergraph.
+#' @param min_size For counted sets (`by` or a topic model): the smallest set
+#'   counted (default `1`); `2` keeps only the sets of two or more. The share
+#'   of a set is still taken over all sets of its group.
 #'
 #' @return A `net_hg` object with the same structure produced by
 #'   [network_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
@@ -113,6 +129,36 @@
 #' Rows with `NA` in the actor, hyperedge or weight column are dropped
 #' silently.
 #'
+#' @section Frequent sets within groups:
+#' With `by` or `top`, a data frame is read as transactions. Each value of `group`
+#' (a trial, a session, a basket) is one set, the distinct `actor` values it
+#' holds, and the sets are counted within each value of `by`, which must be
+#' constant within a `group`. The `top` most frequent sets of each value of
+#' `by` become hyperedges, counted exactly as for clustered sequences below,
+#' and `hg_get(hg, what = "sets")` reads them with their `count` and `share`
+#' of the value's sets. Without `by`, the sets are counted over all groups
+#' together, under one value named after `group` (`"All sessions"`).
+#' `plot(hg, group = )` draws the sets of one value, every node sized by the
+#' sets that contain it. `states` keeps only
+#' the listed `actor` values, and `min_size` the sets of at least that many.
+#'
+#' @section Topic combinations:
+#' Given a mixed-membership topic model fitted by [hg_topics()], every
+#' document is reduced to the set of topics whose share in it is at least
+#' `threshold`, the thresholded topic presence used to build topic
+#' co-occurrence networks (Abuhay et al. 2017; Cassi et al. 2017). A
+#' document on love, hate and romance gives the set of those three topics.
+#' The `top` most frequent sets become hyperedges, counted exactly as for
+#' clustered sequences below, with each document as one transaction, and the
+#' topics are the nodes. `top = Inf` keeps every set, and `min_size = 2`
+#' keeps only the sets that combine two or more topics. `by` names a column of the documents table of
+#' the fitted hypergraph, such as a publication year or an author, and the
+#' sets are then counted within each of its values; `NULL` (default) counts
+#' them over all documents. A document with no topic at the threshold is not
+#' counted. Read the sets with `hg_get(hg, what = "sets")`; `count` is the
+#' number of documents with exactly that set and `share` its proportion of
+#' the group's documents.
+#'
 #' @section Clustered sequences:
 #' Given a clustering of sequences, every sequence of every group is reduced to
 #' the set of its distinct states (order and repetition dropped; `NA` and
@@ -135,7 +181,7 @@
 #' its group, set, size, count and share of the group's sequences) and
 #' `hg_get(hg, what = "state_counts")` (one row per group and
 #' state). A malformed clustering (no `$data`, assignments that do not match
-#' it, unnamed networks) raises `hypernets_bad_input`.
+#' it, unnamed networks) raises `hypergraphs_bad_input`.
 #'
 #' Every other column of `data` that is constant within a hyperedge (a
 #' session's date, a team's department) is kept as a hyperedge attribute in
@@ -178,6 +224,17 @@
 #' Conference on Very Large Data Bases (VLDB)} (pp. 487-499). Morgan
 #' Kaufmann.
 #'
+#' Abuhay, T. M., Kovalchuk, S. V., Bochenina, K., Kampis, G.,
+#' Krzhizhanovskaya, V. V., & Lees, M. H. (2017). Analysis of computational
+#' science papers from ICCS 2001-2016 using topic modeling and graph theory.
+#' \emph{Procedia Computer Science}, 108, 7-17.
+#' \doi{10.1016/j.procs.2017.05.183}
+#'
+#' Cassi, L., Lahatte, A., Rafols, I., Sautier, P., & de Turckheim, E.
+#' (2017). Improving fitness: Mapping research priorities against societal
+#' needs on obesity. \emph{Journal of Informetrics}, 11(4), 1095-1113.
+#' \doi{10.1016/j.joi.2017.09.010}
+#'
 #' Perc, M., Gomez-Gardenes, J., Szolnoki, A., Floria, L. M., & Moreno, Y.
 #' (2013). Evolutionary dynamics of group interactions on structured
 #' populations: a review. \emph{Journal of the Royal Society Interface}
@@ -190,7 +247,7 @@
 #'
 #'   A dense incidence with more than `.Machine$integer.max` cells cannot be
 #'   addressed by the flat cell index, and would exhaust memory well before
-#'   that. It raises the classed error `hypernets_dense_too_large` rather than
+#'   that. It raises the classed error `hypergraphs_dense_too_large` rather than
 #'   attempting the allocation; pass `sparse = TRUE` for data at that scale.
 #'
 #' @export
@@ -198,12 +255,30 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
                              nodes = NULL, sparse = FALSE, separator = NULL,
                              from = NULL, to = NULL,
                              member = NULL, cooccur_by = NULL,
-                             top = 8L, states = NULL) {
-  if (inherits(data, c("net_mmm", "net_clustering", "netobject_group"))) {
-    return(.thg_sequence_set_hypergraph(data, top = top, states = states))
+                             top = NULL, states = NULL, threshold = NULL,
+                             min_size = 1L, by = NULL) {
+  if (inherits(data, "net_hg_topics")) {
+    return(.thg_topic_set_hypergraph(data, threshold = threshold,
+                                     by = by, top = top %||% 8L,
+                                     states = states, min_size = min_size))
   }
-  if (!is.null(states)) {
-    .thg_bad_input("`states` applies to clustered sequences (a net_mmm, net_clustering or netobject_group), not to a data.frame")
+  if (!is.null(threshold)) {
+    .thg_bad_input("`threshold` applies to a topic model fitted by hg_topics()")
+  }
+  if (inherits(data, c("net_mmm", "net_clustering", "netobject_group"))) {
+    if (!is.null(by) || !identical(min_size, 1L)) {
+      .thg_bad_input(paste0("`by` and `min_size` apply to a data.frame or a ",
+                            "topic model; clustered sequences are counted ",
+                            "within their clusters"))
+    }
+    return(.thg_sequence_set_hypergraph(data, top = top %||% 8L,
+                                        states = states))
+  }
+  counted <- !is.null(by) || !is.null(top)
+  if (!counted && (!is.null(states) || !identical(min_size, 1L))) {
+    .thg_bad_input(paste0("`states` and `min_size` apply when sets are ",
+                          "counted: give `by` or `top`, a topic model, or ",
+                          "clustered sequences"))
   }
   stopifnot(is.data.frame(data))
   if (!is.null(separator)) {
@@ -261,6 +336,10 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
     "`group` must name one column of `data`" =
       is.character(group) && length(group) == 1L && group %in% names(data)
   )
+  if (counted) {
+    return(.thg_frame_set_hypergraph(data, member, group, by, top %||% 8L,
+                                     states, min_size))
+  }
   stopifnot(
     is.null(weight) ||
       (is.character(weight) && length(weight) == 1L && weight %in% names(data)),
@@ -320,7 +399,7 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
           "a dense incidence of %d members x %d groups (%.3g cells) cannot be built; use `sparse = TRUE`",
           n_members, n_groups, as.double(n_members) * n_groups
         ),
-        class = "hypernets_dense_too_large", call = NULL
+        class = "hypergraphs_dense_too_large", call = NULL
       ))
     }
     cell <- (gj - 1L) * n_members + mi
@@ -412,28 +491,47 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
                            anyNA(states))) {
     .thg_bad_input("`states` must be a character vector of state names to keep")
   }
-  grouped <- .coerce_grouped_sequences(x)
+  out <- .thg_set_hypergraph(.coerce_grouped_sequences(x), top, states,
+                             item_order = sort)
+  out$params <- c(out$params, list(
+    source = "clustered_sequences",
+    input = class(x)[1L],
+    top = as.integer(top),
+    states = states,
+    unit = "sequences"
+  ))
+  out$params <- out$params[!duplicated(names(out$params), fromLast = TRUE)]
+  out
+}
+
+# The shared core: `grouped` is a named list of groups, each a list of
+# transactions (character vectors of items). Each transaction reduces to the
+# set of its distinct items, ordered by `item_order`, and the `top` most
+# frequent sets of each group become hyperedges.
+.thg_set_hypergraph <- function(grouped, top, states, item_order,
+                                min_size = 1L, prefix = TRUE) {
   labels <- names(grouped)
   per_group <- lapply(labels, \(g) {
     sets <- lapply(grouped[[g]], \(v) {
       v <- unique(v)
       if (!is.null(states)) v <- v[v %in% states]
-      sort(v)
+      item_order(v)
     })
-    sets <- sets[lengths(sets) > 0L]
+    sets <- sets[lengths(sets) >= min_size]
     keys <- vapply(sets, paste, character(1L), collapse = " + ")
     # table() orders the sets by name; the stable order() then keeps that
     # name order among sets of equal count
     tab <- table(keys)
     ranked <- order(-as.vector(tab))
-    kept <- names(tab)[utils::head(ranked, as.integer(top))]
+    kept <- names(tab)[utils::head(ranked, min(top, length(ranked)))]
     counts <- as.integer(tab[kept])
     members <- sets[match(kept, keys)]
     in_state <- table(unlist(sets, use.names = FALSE))
     list(
       members = if (length(kept)) data.frame(
         state = unlist(members, use.names = FALSE),
-        edge = rep(paste0(g, ": ", kept), lengths(members)),
+        edge = rep(if (prefix) paste0(g, ": ", kept) else kept,
+                   lengths(members)),
         group = g,
         set = rep(kept, lengths(members)),
         count = rep(counts, lengths(members)),
@@ -450,18 +548,144 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
   })
   members <- do.call(rbind, lapply(per_group, `[[`, "members"))
   if (is.null(members) || !nrow(members)) {
-    .thg_bad_input("no sequence keeps a state: nothing to build a hyperedge from")
+    .thg_bad_input(paste0("no sequence or document keeps a state or topic: ",
+                          "nothing to build a hyperedge from"))
   }
   out <- group_hypergraph(members, actor = "state", group = "edge")
   out$group_sizes <- do.call(rbind, lapply(per_group, `[[`, "sizes"))
   out$state_counts <- do.call(rbind, lapply(per_group, `[[`, "nodes"))
   rownames(out$state_counts) <- NULL
+  out
+}
+
+# ---- Frequent sets of a data frame, counted within groups -----------------
+# Each value of `group` (a trial, a session, a basket) is one transaction, the
+# set of `actor` values it holds; the transactions are counted within the
+# values of `by` (an outcome, a cluster, a year), as for clustered sequences.
+.thg_frame_set_hypergraph <- function(data, actor, group, by, top, states,
+                                      min_size) {
+  if (!is.null(by) &&
+      (!is.character(by) || length(by) != 1L || !by %in% names(data))) {
+    .thg_bad_input("`by` must name one column of `data`")
+  }
+  if (!is.numeric(top) || length(top) != 1L || is.na(top) || top < 1 ||
+      (is.finite(top) && top != round(top))) {
+    .thg_bad_input("`top` must be one whole number of at least 1, or Inf")
+  }
+  if (!is.numeric(min_size) || length(min_size) != 1L ||
+      !is.finite(min_size) || min_size < 1 || min_size != round(min_size)) {
+    .thg_bad_input("`min_size` must be one whole number of at least 1")
+  }
+  if (!is.null(states) && (!is.character(states) || !length(states) ||
+                           anyNA(states))) {
+    .thg_bad_input("`states` must be a character vector of values to keep")
+  }
+  d <- data[stats::complete.cases(data[, c(actor, group, by)]),
+            c(actor, group, by), drop = FALSE]
+  if (!nrow(d)) {
+    .thg_bad_input("no complete row of `actor`, `group` and `by`")
+  }
+  items <- as.character(d[[actor]])
+  transaction <- as.character(d[[group]])
+  # without `by`, the sets are counted over every group together
+  label <- if (is.null(by)) {
+    rep(sprintf("All %ss", group), nrow(d))
+  } else {
+    as.character(d[[by]])
+  }
+  spread <- tapply(label, transaction, \(v) length(unique(v)))
+  if (any(spread > 1L)) {
+    .thg_bad_input(sprintf(paste0(
+      "`%s` must be constant within each `%s`; %d of them have more than one ",
+      "value"), by, group, sum(spread > 1L)))
+  }
+  transactions <- split(items, factor(transaction, levels = unique(transaction)))
+  of_transaction <- label[match(names(transactions), transaction)]
+  levels <- .thg_kw_natural(unique(of_transaction))
+  grouped <- lapply(stats::setNames(levels, levels),
+                    \(g) unname(transactions[of_transaction == g]))
+  out <- .thg_set_hypergraph(grouped, top, states, item_order = sort,
+                             min_size = as.integer(min_size),
+                             prefix = !is.null(by))
   out$params <- c(out$params, list(
-    source = "clustered_sequences",
-    input = class(x)[1L],
-    top = as.integer(top),
+    source = "frame_sets",
+    member = actor,
+    group = group,
+    by = by,
+    top = top,
+    min_size = as.integer(min_size),
     states = states,
-    unit = "sequences"
+    unit = paste0(group, "s"),
+    item = actor
+  ))
+  out$params <- out$params[!duplicated(names(out$params), fromLast = TRUE)]
+  out
+}
+
+# ---- Topic combinations of a mixed-membership topic model -----------------
+# Each document is a transaction whose items are the topics with a share of
+# at least `threshold` (the thresholded topic presence of Abuhay et al. 2017
+# and Cassi et al. 2017); the frequent sets are counted as for sequences.
+.thg_topic_set_hypergraph <- function(x, threshold, by, top, states,
+                                      min_size) {
+  if (!is.numeric(threshold) || length(threshold) != 1L ||
+      !is.finite(threshold) || threshold <= 0 || threshold > 1) {
+    .thg_bad_input(paste0("a topic model needs `threshold`, the share at ",
+                          "which a topic counts as present in a document, ",
+                          "one number in (0, 1]"))
+  }
+  if (!is.numeric(top) || length(top) != 1L || is.na(top) || top < 1 ||
+      (is.finite(top) && top != round(top))) {
+    .thg_bad_input("`top` must be one whole number of at least 1, or Inf")
+  }
+  if (!is.numeric(min_size) || length(min_size) != 1L ||
+      !is.finite(min_size) || min_size < 1 || min_size != round(min_size)) {
+    .thg_bad_input("`min_size` must be one whole number of at least 1")
+  }
+  if (!is.null(states) && (!is.character(states) || !length(states) ||
+                           anyNA(states))) {
+    .thg_bad_input("`states` must be a character vector of topics to keep")
+  }
+  shares <- x$shares
+  present <- shares[shares$share >= threshold, , drop = FALSE]
+  documents <- unique(shares$node)
+  topics_of <- split(present$topic, factor(present$node, levels = documents))
+  labels <- if (is.null(by)) {
+    rep("All documents", length(documents))
+  } else {
+    meta <- x$documents_table
+    if (!is.character(by) || length(by) != 1L || is.null(meta) ||
+        !by %in% names(meta)) {
+      .thg_bad_input(sprintf(paste0(
+        "`by` must name a column of the documents table of the fitted ",
+        "hypergraph (%s)"),
+        if (is.null(meta)) "none was kept" else
+          paste(setdiff(names(meta), "doc"), collapse = ", ")))
+    }
+    value <- meta[[by]][match(documents, meta$doc)]
+    if (anyNA(value)) {
+      .thg_bad_input(sprintf("`%s` is missing for some documents", by))
+    }
+    as.character(value)
+  }
+  levels <- .thg_kw_natural(unique(labels))
+  grouped <- lapply(stats::setNames(levels, levels),
+                    \(g) unname(topics_of[labels == g]))
+  natural <- \(v) v[order(as.integer(sub("^Topic ", "", v)))]
+  # ungrouped sets are named by their topics alone
+  out <- .thg_set_hypergraph(grouped, top, states, item_order = natural,
+                             min_size = as.integer(min_size),
+                             prefix = !is.null(by))
+  out$params <- c(out$params, list(
+    source = "topic_sets",
+    input = "net_hg_topics",
+    threshold = threshold,
+    by = by,
+    top = top,
+    min_size = as.integer(min_size),
+    states = states,
+    unit = "documents",
+    item = "topic"
   ))
   out$params <- out$params[!duplicated(names(out$params), fromLast = TRUE)]
   out

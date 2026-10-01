@@ -129,11 +129,11 @@ test_that("hg_degree_correlation: hand-computed Pearson across orders", {
 })
 
 test_that("broken contracts raise classed errors", {
-  expect_error(hg_assortativity(list()), class = "hypernets_bad_input")
+  expect_error(hg_assortativity(list()), class = "hypergraphs_bad_input")
   expect_error(hg_assortativity(.as_hg(list(s1 = "a", s2 = "b"))),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_degree_correlation(.as_hg(list(e1 = c("a", "b"),
                                                  e2 = c("b", "c")))),
-               class = "hypernets_bad_input")
-  expect_error(hg_degree_correlation(list()), class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
+  expect_error(hg_degree_correlation(list()), class = "hypergraphs_bad_input")
 })

@@ -72,7 +72,7 @@ drop-empties. Members empty after trimming are dropped, and a row left
 with no member contributes no hyperedge.}
 
 \item{cooccur_by}{Deprecated name of \code{group}; using it warns with a
-\code{hypernets_deprecated} condition.}
+\code{hypergraphs_deprecated} condition.}
 }
 \value{
 A \code{net_temporal_hypergraph} holding the membership table (\code{node},

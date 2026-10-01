@@ -89,7 +89,7 @@ document with its largest share (\code{"documents"}: \code{node}, \code{topic},
 \code{iterations}, \code{converged}, \code{best}, \code{agreement}). \code{print()} shows the
 topics, \code{summary()} every table, and \code{plot()} the top words of every
 topic. A start that reaches \code{max_iter} without converging raises the
-warning \code{hypernets_no_converge}.
+warning \code{hypergraphs_no_converge}.
 
 \code{plot()} returns a ggplot of the \code{n} most probable words of every
 topic, one panel per topic.
@@ -125,7 +125,7 @@ hyperedges as words.
 }
 \section{Conditions}{
 
-\code{hypernets_bad_input} for an input that is not a hypergraph, a \code{k}
+\code{hypergraphs_bad_input} for an input that is not a hypergraph, a \code{k}
 outside its range, or invalid control arguments.
 }
 

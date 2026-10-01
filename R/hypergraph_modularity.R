@@ -137,7 +137,7 @@
 #'   For `what = "communities"`: one row per community with `community`,
 #'   `n_nodes`, `volume` (summed weighted degree), `edge_contribution`,
 #'   `degree_tax` and `modularity`, sorted by decreasing `modularity`.
-#'   Raises `hypernets_bad_input` for a non-`net_hg` input, a partition that
+#'   Raises `hypergraphs_bad_input` for a non-`net_hg` input, a partition that
 #'   misses a node or has `NA` labels, or a hypergraph with no non-empty
 #'   hyperedge; invalid `edge_weights` fail the shared weight check.
 #' @references Kaminski, B., Poulin, V., Pralat, P., Szufel, P., &
@@ -303,7 +303,7 @@ hg_modularity <- function(hg, partition,
   if (!requireNamespace("igraph", quietly = TRUE)) {
     stop(errorCondition(
       "IRMM needs the suggested package `igraph` for the Louvain step",
-      class = "hypernets_missing_dependency", call = NULL
+      class = "hypergraphs_missing_dependency", call = NULL
     ))
   }
   whole <- function(x, name) {
@@ -369,7 +369,7 @@ hg_modularity <- function(hg, partition,
                     "(delta = %g) in %d of %d runs; see",
                     "hg_get(fit, what = \"runs\")"),
               max_iter, delta, sum(!runs$converged), n_runs),
-      class = "hypernets_no_converge", call = NULL
+      class = "hypergraphs_no_converge", call = NULL
     ))
   }
 

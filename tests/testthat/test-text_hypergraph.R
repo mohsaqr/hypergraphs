@@ -90,7 +90,7 @@ test_that("documents emptied by filtering are dropped with a classed warning", {
   expect_warning(
     hg <- text_hypergraph(c(a = "salt and soup", b = "and", c = "soup"),
                           stop_words = "and"),
-    class = "hypernets_dropped_documents"
+    class = "hypergraphs_dropped_documents"
   )
   docs <- hg_get(hg, what = "documents")
   expect_identical(docs$doc, c("a", "c"))
@@ -99,16 +99,16 @@ test_that("documents emptied by filtering are dropped with a classed warning", {
 test_that("contract violations raise classed errors", {
   expect_error(
     text_hypergraph(c(a = "and", b = "and"), stop_words = "and"),
-    class = "hypernets_empty_corpus"
+    class = "hypergraphs_empty_corpus"
   )
   expect_error(
     text_hypergraph(data.frame(txt = "salt")),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
   expect_error(
     text_hypergraph(data.frame(id = c("a", "a"), txt = c("x", "y")),
                     column = "txt", id = "id"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 })
 
@@ -200,7 +200,7 @@ test_that("text_hypergraph rejects a bad min_chars", {
 test_that("min_chars is refused for construction = 'knn'", {
   expect_error(
     text_hypergraph(c("a b", "c d"), construction = "knn", min_chars = 3L),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 })
 
@@ -208,22 +208,22 @@ test_that("the storage rule does not overflow on a large corpus", {
   skip_on_cran()
   # 60000 docs x 70000 words = 4.2e9 cells: the integer product overflows to
   # NA, which `isTRUE()` would read as "dense" and try to allocate ~34 Gb.
-  expect_true(hypernets:::.thg_choose_sparse(60000L, 70000L, "bag"))
-  expect_true(hypernets:::.thg_choose_sparse(46341L, 46341L, "sentence"))
-  expect_false(hypernets:::.thg_choose_sparse(10L, 10L, "bag"))
-  expect_false(hypernets:::.thg_choose_sparse(60000L, 70000L, "window"))
+  expect_true(hypergraphs:::.thg_choose_sparse(60000L, 70000L, "bag"))
+  expect_true(hypergraphs:::.thg_choose_sparse(46341L, 46341L, "sentence"))
+  expect_false(hypergraphs:::.thg_choose_sparse(10L, 10L, "bag"))
+  expect_false(hypergraphs:::.thg_choose_sparse(60000L, 70000L, "window"))
   # the decision is never NA, whatever the scale
   sizes <- c(1L, 1000L, 46341L, 60000L, .Machine$integer.max)
   decisions <- vapply(sizes,
-                      \(n) hypernets:::.thg_choose_sparse(n, n, "bag"),
+                      \(n) hypergraphs:::.thg_choose_sparse(n, n, "bag"),
                       logical(1))
   expect_false(anyNA(decisions))
 })
 
 test_that("the storage rule turns sparse exactly at the threshold", {
   skip_on_cran()
-  expect_false(hypernets:::.thg_choose_sparse(1000L, 999L, "bag"))
-  expect_true(hypernets:::.thg_choose_sparse(1000L, 1000L, "bag"))
+  expect_false(hypergraphs:::.thg_choose_sparse(1000L, 999L, "bag"))
+  expect_true(hypergraphs:::.thg_choose_sparse(1000L, 1000L, "bag"))
 })
 
 test_that("the vocabulary filter is one deterministic ranking", {
@@ -231,17 +231,17 @@ test_that("the vocabulary filter is one deterministic ranking", {
   total <- c(rare = 1L, common = 10L, mid = 5L, tie_b = 5L)
   # min_count alone reproduces the pre-0.4.6 rule exactly
   expect_identical(
-    hypernets:::.thg_keep_vocabulary(total, min_count = 5L),
+    hypergraphs:::.thg_keep_vocabulary(total, min_count = 5L),
     sort(names(total)[total >= 5L])
   )
   # max_words caps the head; ties (mid, tie_b at 5) break alphabetically
-  expect_identical(hypernets:::.thg_keep_vocabulary(total, max_words = 1L),
+  expect_identical(hypergraphs:::.thg_keep_vocabulary(total, max_words = 1L),
                    "common")
-  expect_identical(hypernets:::.thg_keep_vocabulary(total, max_words = 2L),
+  expect_identical(hypergraphs:::.thg_keep_vocabulary(total, max_words = 2L),
                    sort(c("common", "mid")))
   # the whole vocabulary survives the defaults
-  expect_identical(hypernets:::.thg_keep_vocabulary(total), sort(names(total)))
-  expect_identical(hypernets:::.thg_keep_vocabulary(total, coverage = 1),
+  expect_identical(hypergraphs:::.thg_keep_vocabulary(total), sort(names(total)))
+  expect_identical(hypergraphs:::.thg_keep_vocabulary(total, coverage = 1),
                    sort(names(total)))
 })
 
@@ -251,7 +251,7 @@ test_that("coverage retains at least the share of tokens it promises", {
   total <- stats::setNames(as.integer(stats::rpois(400, 8) + 1L),
                            sprintf("w%03d", seq_len(400)))
   shares <- c(0.5, 0.75, 0.9, 0.95, 0.99, 1)
-  kept <- lapply(shares, \(s) hypernets:::.thg_keep_vocabulary(total,
+  kept <- lapply(shares, \(s) hypergraphs:::.thg_keep_vocabulary(total,
                                                                coverage = s))
   retained <- vapply(kept,
                      \(k) sum(total[k]) / sum(total),
@@ -270,7 +270,7 @@ test_that("coverage retains at least the share of tokens it promises", {
   # smaller coverage never keeps more words
   expect_false(is.unsorted(vapply(kept, length, integer(1))))
   # and the filters compose: the strictest wins
-  both <- hypernets:::.thg_keep_vocabulary(total, coverage = 0.9,
+  both <- hypergraphs:::.thg_keep_vocabulary(total, coverage = 0.9,
                                            max_words = 10L)
   expect_length(both, 10L)
 })
@@ -328,7 +328,7 @@ test_that("the vocabulary filters reject bad input", {
   )
   expect_error(
     text_hypergraph(corpus, column = "text", id = "id", min_count = 99L),
-    class = "hypernets_empty_corpus"
+    class = "hypergraphs_empty_corpus"
   )
 })
 

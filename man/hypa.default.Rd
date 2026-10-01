@@ -2,7 +2,7 @@
 % Please edit documentation in R/dispatch.R
 \name{hypa.default}
 \alias{hypa.default}
-\alias{print.hypernets_hypa}
+\alias{print.hypergraphs_hypa}
 \title{Path anomalies (HYPA) in sequences}
 \usage{
 \method{hypa}{default}(
@@ -23,7 +23,7 @@
   ...
 )
 
-\method{print}{hypernets_hypa}(x, n = NULL, ...)
+\method{print}{hypergraphs_hypa}(x, n = NULL, ...)
 }
 \arguments{
 \item{x}{Sequences in any form described in \link{sequence-input}: a long
@@ -59,7 +59,7 @@ arguments (see \link{sequence-input}); leave the column names \code{NULL} for
 wide, list or model input.}
 
 \item{...}{Must be empty: an argument that only the hypergraph method
-takes (\code{top}) raises \code{hypernets_bad_input}.}
+takes (\code{top}) raises \code{hypergraphs_bad_input}.}
 }
 \value{
 A \code{net_hypa} object (also a \code{cograph_network}) that prints the

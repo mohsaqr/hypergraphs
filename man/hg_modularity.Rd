@@ -38,7 +38,7 @@ by \code{total_weight}, so \code{modularity = edge_contribution - degree_tax}),
 For \code{what = "communities"}: one row per community with \code{community},
 \code{n_nodes}, \code{volume} (summed weighted degree), \code{edge_contribution},
 \code{degree_tax} and \code{modularity}, sorted by decreasing \code{modularity}.
-Raises \code{hypernets_bad_input} for a non-\code{net_hg} input, a partition that
+Raises \code{hypergraphs_bad_input} for a non-\code{net_hg} input, a partition that
 misses a node or has \code{NA} labels, or a hypergraph with no non-empty
 hyperedge; invalid \code{edge_weights} fail the shared weight check.
 }

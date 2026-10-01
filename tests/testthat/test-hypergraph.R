@@ -281,12 +281,20 @@ test_that("separator rejects bad input by class", {
   wide <- data.frame(group = "g1", members = "a;b")
   expect_error(group_hypergraph(wide, actor = "members", group = "group",
                                 separator = c(";", ",")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(group_hypergraph(wide, actor = "nope", group = "group",
                                 separator = ";"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(group_hypergraph(data.frame(group = "g1", members = ";;"),
                                 actor = "members", group = "group",
                                 separator = ";"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
+})
+
+test_that("network_hypergraph() refuses a Vietoris-Rips type by class", {
+  m <- matrix(c(0, 1, 1, 1, 0, 1, 1, 1, 0), 3, 3,
+              dimnames = list(letters[1:3], letters[1:3]))
+  expect_error(network_hypergraph(m, type = "vr"), class = "hypergraphs_bad_input")
+  expect_error(network_hypergraph(m, type = "rips"),
+               class = "hypergraphs_bad_input")
 })

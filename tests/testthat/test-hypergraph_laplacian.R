@@ -322,9 +322,9 @@ test_that("disconnected hypergraphs raise a classed condition", {
                        stringsAsFactors = FALSE)
   hg <- group_hypergraph(events, actor = "person", group = "meeting")
   expect_error(hg_laplacian(hg),
-               class = "hypernets_hypergraph_disconnected")
+               class = "hypergraphs_hypergraph_disconnected")
   expect_error(.hg_cluster_fit(hg, k = 2),
-               class = "hypernets_hypergraph_disconnected")
+               class = "hypergraphs_hypergraph_disconnected")
 })
 
 test_that("argument contracts are enforced", {
@@ -397,5 +397,5 @@ test_that("zero-mass classes are refused with a classed condition", {
   f <- matrix(c(0.5, 0.4, 0, 0), nrow = 2,
               dimnames = list(c("n1", "n2"), c("A", "B")))
   expect_error(.hl_score_predictions(f, c("A", NA), "class_mass"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })

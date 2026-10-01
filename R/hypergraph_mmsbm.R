@@ -142,7 +142,7 @@
        loglik = if (finite) .mmsbm_loglik(B, A, u, w, C) else NA_real_)
 }
 
-# Validate a single number against a predicate, raising hypernets_bad_input.
+# Validate a single number against a predicate, raising hypergraphs_bad_input.
 .mmsbm_check_number <- function(x, arg, ok, what) {
   if (!(is.numeric(x) && length(x) == 1L && !is.na(x) && is.finite(x) &&
         isTRUE(ok(x)))) {
@@ -190,11 +190,11 @@
 #' optionally leaves out larger hyperedges too, as the authors'
 #' `--max_hye_size`; the default `NULL` keeps them all. A node left with no
 #' hyperedge has \eqn{u_i = 0} after the first step and no membership (`NA`),
-#' with a `hypernets_isolated_nodes` warning. A node that does lie in fitted
+#' with a `hypergraphs_isolated_nodes` warning. A node that does lie in fitted
 #' hyperedges can still have its memberships driven to zero (or to subnormal
 #' remnants) by the multiplicative EM updates; any row whose total is below
 #' the precision of the largest row is treated as having no membership
-#' (`NA`) and reported with a `hypernets_collapsed_membership` warning,
+#' (`NA`) and reported with a `hypergraphs_collapsed_membership` warning,
 #' rather than normalising remnants into spurious exact mixtures.
 #'
 #' The membership of node \eqn{i} in community \eqn{k} is
@@ -206,7 +206,7 @@
 #' [text_hypergraph()] with documents as nodes, the communities are topics
 #' and the memberships the documents' topic shares.
 #'
-#' @param hg A hypernets `net_hg` ([text_hypergraph()], [group_hypergraph()],
+#' @param hg A hypergraphs `net_hg` ([text_hypergraph()], [group_hypergraph()],
 #'   [window_hypergraph()], ...).
 #' @param k Number of communities, a whole number between 1 and the number of
 #'   nodes.
@@ -218,7 +218,7 @@
 #' @param tol Convergence tolerance (default `1e-5`), compared with the
 #'   change between two consecutive steps every `check_every` steps. A start
 #'   that hits `max_iter` first is reported as not converged; if the kept
-#'   start did not converge, a `hypernets_no_converge` warning is raised.
+#'   start did not converge, a `hypergraphs_no_converge` warning is raised.
 #' @param check_every Steps between convergence checks (default `10L`, as
 #'   the authors').
 #' @param criterion What must stop changing: `"membership"` (default), the
@@ -262,7 +262,7 @@
 #'   `print()` gives the fit, `summary()` one row per community (`community`,
 #'   `size` hard-assigned nodes, `mass` total membership, `mean_membership`
 #'   of its assigned nodes, `w_within`), and `plot()` the memberships, the
-#'   affinity or the restarts. Raises `hypernets_bad_input` for a non-hypergraph,
+#'   affinity or the restarts. Raises `hypergraphs_bad_input` for a non-hypergraph,
 #'   an invalid argument or no hyperedge of size two or more.
 #' @references
 #' Ruggeri, N., Contisciani, M., Battiston, F., & De Bacco, C. (2023).
@@ -360,12 +360,12 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
   if (!any(finite)) {
     stop(errorCondition(
       "every Hy-MMSBM start produced non-finite parameters",
-      class = "hypernets_no_converge", call = NULL))
+      class = "hypergraphs_no_converge", call = NULL))
   }
   if (!all(finite)) {
     warning(warningCondition(sprintf(
       "%d of %d Hy-MMSBM starts produced non-finite parameters and were discarded",
-      sum(!finite), nstart), class = "hypernets_no_converge", call = NULL))
+      sum(!finite), nstart), class = "hypergraphs_no_converge", call = NULL))
   }
   loglik <- vapply(fits, \(f) f$loglik, numeric(1L))
   best <- which.max(replace(loglik, !finite, -Inf))
@@ -374,7 +374,7 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
   if (!converged[best]) {
     warning(warningCondition(sprintf(
       "the kept Hy-MMSBM start did not converge in %d steps (tol = %g)",
-      as.integer(max_iter), tol), class = "hypernets_no_converge", call = NULL))
+      as.integer(max_iter), tol), class = "hypergraphs_no_converge", call = NULL))
   }
 
   # Communities numbered by decreasing total membership (ties: fitted order).
@@ -399,7 +399,7 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
     warning(warningCondition(sprintf(
       "%d node(s) belong to no hyperedge of size 2 or more and have no membership (NA): %s",
       sum(isolated), paste(utils::head(nodes[isolated], 5L), collapse = ", ")),
-      class = "hypernets_isolated_nodes", call = NULL))
+      class = "hypergraphs_isolated_nodes", call = NULL))
   }
   collapsed <- !isolated & rowSums(is.na(share)) > 0L
   if (any(collapsed)) {
@@ -408,7 +408,7 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
       "to zero under EM (no membership, NA): %s. Try more starts, another ",
       "k or `assortative`."),
       sum(collapsed), paste(utils::head(nodes[collapsed], 5L), collapse = ", ")),
-      class = "hypernets_collapsed_membership", call = NULL))
+      class = "hypergraphs_collapsed_membership", call = NULL))
   }
   # subnormal affinities and memberships are zero to working precision
   w[abs(w) < .Machine$double.xmin] <- 0

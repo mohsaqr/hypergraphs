@@ -1,11 +1,11 @@
 # Nestimate hypergraph module — historical source/oracle
 
 This note records the pre-consolidation implementation. As of 2026-09-29
-hypernets' DESCRIPTION does not list Nestimate, and the retained local
+hypergraphs' DESCRIPTION does not list Nestimate, and the retained local
 identity tests treat it as a frozen historical oracle. **Planned change**
-(ROADMAP.md Phase 0b, decided 2026-09-29): hypernets will `Import`
+(ROADMAP.md Phase 0b, decided 2026-09-29): hypergraphs will `Import`
 Nestimate (>= 0.8.5) and re-export its memory and simplicial verbs, while
-the hypergraph and text families stay hypernets' own; Nestimate itself does
+the hypergraph and text families stay hypergraphs' own; Nestimate itself does
 not change. Update this note when that lands. The original five exports
 (Nestimate CLAUDE.md, `R/hypergraph*.R`, `R/bipartite_groups.R`,
 `R/clique_expansion.R`) were:
@@ -32,7 +32,7 @@ igraph, Z/H vs clean-room tensor iteration; TOL 1e-10, cosine 1e-6 for
 sign/rotation-ambiguous eigenvectors).
 
 All listed capabilities plus Laplacians, clustering, transduction, window and
-kNN construction, PageRank and duals now live natively in hypernets, as does
+kNN construction, PageRank and duals now live natively in hypergraphs, as does
 the Wasserstein distance between persistence diagrams (`wasserstein_distance()`,
 `R/simplicial_distances.R`, shipped 2026-09-02; SciPy assignment oracle in
 `local_testing_and_equivalence/test-equiv-wasserstein-scipy.R`).

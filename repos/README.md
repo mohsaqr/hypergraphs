@@ -4,11 +4,11 @@ Maintained 2026-09-02; synced with the code 2026-09-29 (every "In use"
 below was re-checked by grepping `tests/` and `local_testing_and_equivalence/`
 for a call to that tool; upstream versions re-checked on PyPI/CRAN/GitHub). Runtime dependencies are deliberately separated from
 equivalence oracles and research references. Oracles are local-test tools,
-never hypernets runtime dependencies.
+never hypergraphs runtime dependencies.
 
 ## Runtime and peer packages
 
-| Package | Relationship to hypernets | Note |
+| Package | Relationship to hypergraphs | Note |
 |---|---|---|
 | cograph | Imported graph/plot engine after a hypergraph is projected; no export collisions | [`cograph.md`](cograph.md) |
 | Dynet | Separate temporal-network peer; never a dependency (installed 0.4.10; source `../Dyna` and r-universe 0.5.1; not on CRAN) | [`dynet.md`](dynet.md) |

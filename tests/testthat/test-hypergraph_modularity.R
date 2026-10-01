@@ -131,10 +131,10 @@ test_that("score table columns; sparse storage and input forms agree", {
 test_that("hg_modularity raises classed errors on bad input", {
   skip_on_cran()
   h <- .hgm_from_list(list(e1 = c("a", "b"), e2 = c("b", "c")))
-  expect_error(hg_modularity(list(), c(a = 1)), class = "hypernets_bad_input")
-  expect_error(hg_modularity(h, c(a = 1, b = 1)), class = "hypernets_bad_input")
+  expect_error(hg_modularity(list(), c(a = 1)), class = "hypergraphs_bad_input")
+  expect_error(hg_modularity(h, c(a = 1, b = 1)), class = "hypergraphs_bad_input")
   expect_error(hg_modularity(h, c(a = 1, b = NA, c = 2)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_modularity(h, c(a = 1, b = 1, c = 2), type = "nope"))
   expect_error(hg_modularity(h, c(a = 1, b = 1, c = 2), edge_weights = c(1, -1)))
 })
@@ -204,15 +204,15 @@ test_that("IRMM surfaces non-convergence and rejects bad controls", {
   fx <- .hgm_planted(5L)
   expect_warning(
     fit <- .hg_irmm_communities(fx$hg, n_runs = 2L, delta = 1e-12, max_iter = 1L),
-    class = "hypernets_no_converge"
+    class = "hypergraphs_no_converge"
   )
   expect_false(any(hg_get(fit, what = "runs")$converged))
   expect_error(.hg_irmm_communities(fx$hg, n_runs = 1L, delta = 0),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(.hg_irmm_communities(fx$hg, n_runs = 2L, seeds = 1L),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(.hg_irmm_communities(list(), n_runs = 1L),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hg_communities(type = \"irmm\") dispatches to the IRMM engine", {

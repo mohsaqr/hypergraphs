@@ -11,7 +11,7 @@
 #'
 #' @param ... The method's `...`.
 #' @param .for Human-readable description of the input the method serves.
-#' @return `NULL`, invisibly; raises `hypernets_bad_input` when `...` is not
+#' @return `NULL`, invisibly; raises `hypergraphs_bad_input` when `...` is not
 #'   empty.
 #' @noRd
 .ho_no_dots <- function(..., .for) {
@@ -49,13 +49,13 @@
 #'     onto the first-order states; see [hg_centrality.net_hon()].}
 #' }
 #' Each method keeps its own arguments; passing an argument that only the
-#' other method takes raises `hypernets_bad_input`.
+#' other method takes raises `hypergraphs_bad_input`.
 #'
 #' @param x A `net_hg` or a `net_hon`.
 #' @param ... Arguments of the method for `class(x)`.
 #' @return A base `data.frame`, one row per node (or per state), with one
 #'   column per requested centrality. Any other input raises
-#'   `hypernets_bad_input`.
+#'   `hypergraphs_bad_input`.
 #' @examples
 #' hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
 #' hg_centrality(hg, type = "clique")
@@ -86,13 +86,13 @@ hg_centrality.default <- function(x, ...) {
 #'     with the first-order map; see [hg_communities.net_hon()].}
 #' }
 #' Each method keeps its own arguments; passing an argument that only the
-#' other method takes raises `hypernets_bad_input`.
+#' other method takes raises `hypergraphs_bad_input`.
 #'
 #' @param x A `net_hg` or a `net_hon`.
 #' @param ... Arguments of the method for `class(x)`.
 #' @return An `hg_communities` object (hypergraph) or a
 #'   `net_hon_communities` object (memory network); read either with
-#'   [hg_get()]. Any other input raises `hypernets_bad_input`.
+#'   [hg_get()]. Any other input raises `hypergraphs_bad_input`.
 #' @examples
 #' seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
 #'              c("c", "h", "d", "c", "h", "d", "c"))
@@ -123,7 +123,7 @@ hg_communities.default <- function(x, ...) {
 #'     [hypa.default()].}
 #' }
 #' Each method keeps its own arguments; passing an argument that only the
-#' other method takes raises `hypernets_bad_input`.
+#' other method takes raises `hypergraphs_bad_input`.
 #'
 #' @param x A `net_hg`, or sequences.
 #' @param ... Arguments of the method for `class(x)`.
@@ -174,7 +174,7 @@ hypa <- function(x, ...) {
 #'   arguments (see [sequence-input]); leave the column names `NULL` for
 #'   wide, list or model input.
 #' @param ... Must be empty: an argument that only the hypergraph method
-#'   takes (`top`) raises `hypernets_bad_input`.
+#'   takes (`top`) raises `hypergraphs_bad_input`.
 #' @return A `net_hypa` object (also a `cograph_network`) that prints the
 #'   selected anomalous paths. `type`, `order_by` and `n` change only what is
 #'   printed and the default of [hg_get()]; every path is scored. Read the
@@ -213,18 +213,18 @@ hypa.default <- function(x, order = 2L, alpha = 0.05, min_count = 5L,
                              timezone = timezone)
   fit <- Nestimate::build_hypa(data, order = order, alpha = alpha,
                                min_count = min_count, p_adjust = p_adjust)
-  structure(fit, class = c("hypernets_hypa", class(fit)),
+  structure(fit, class = c("hypergraphs_hypa", class(fit)),
             hypa_view = list(type = type, order_by = order_by,
                              n = as.integer(n)))
 }
 
 #' @rdname result-summary
 #' @export
-summary.hypernets_hypa <- function(object, ...) .ho_summary(object)
+summary.hypergraphs_hypa <- function(object, ...) .ho_summary(object)
 
 #' @rdname hypa.default
 #' @export
-print.hypernets_hypa <- function(x, n = NULL, ...) {
+print.hypergraphs_hypa <- function(x, n = NULL, ...) {
   view <- attr(x, "hypa_view")
   cat(sprintf(paste0("Path anomalies (HYPA, order %d): %d of %d paths ",
                      "anomalous at alpha = %s (%d over, %d under, %s)\n"),
@@ -236,4 +236,4 @@ print.hypernets_hypa <- function(x, n = NULL, ...) {
 
 #' @rdname hg_get.net_hypa
 #' @export
-hg_get.hypernets_hypa <- function(x, ...) NextMethod()
+hg_get.hypergraphs_hypa <- function(x, ...) NextMethod()

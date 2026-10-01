@@ -14,7 +14,7 @@
   classes <- sort(unique(as.character(labels)))
   if (length(classes) < 2L) {
     stop(errorCondition("`labels` must contain at least two distinct classes.",
-                        class = "hypernets_bad_input", call = NULL))
+                        class = "hypergraphs_bad_input", call = NULL))
   }
   x <- if (identical(features, "incidence")) {
     hg$incidence
@@ -194,7 +194,7 @@ hg_hypergcn <- function(
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition(
       "hg_hypergcn() needs the torch package",
-      class = "hypernets_missing_torch", call = NULL
+      class = "hypergraphs_missing_torch", call = NULL
     ))
   }
   method <- match.arg(method)

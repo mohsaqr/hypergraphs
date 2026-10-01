@@ -11,7 +11,7 @@
 #' a HIF file (or a HIF JSON string) back into a `net_hg`. HIF is the
 #' interchange standard of the higher-order network libraries (XGI,
 #' HyperNetX, HypergraphX, HAT, SimpleHypergraphs.jl), so these two verbs move
-#' a hypergraph between hypernets and any of them.
+#' a hypergraph between hypergraphs and any of them.
 #'
 #' @section Mapping:
 #' \describe{
@@ -85,14 +85,14 @@
 #'   in `incidences`. `params` holds `source = "hg_read_hif"`,
 #'   `network_type` and the file's `metadata`.
 #'
-#'   Both verbs raise `hypernets_missing_dependency` without jsonlite.
-#'   `hg_read_hif()` raises `hypernets_bad_input` for text that is not JSON,
+#'   Both verbs raise `hypergraphs_missing_dependency` without jsonlite.
+#'   `hg_read_hif()` raises `hypergraphs_bad_input` for text that is not JSON,
 #'   a missing file, and a document that breaks the HIF schema (no
 #'   `incidences`, a record without its identifier, an unknown field, a
 #'   non-numeric weight, an unknown `network-type`), a duplicated node,
 #'   edge or (node, edge) pair, a zero incidence weight, a directed
 #'   hypergraph, or an attribute named like its record's identifier.
-#'   `hg_write_hif()` raises `hypernets_bad_input` for a non-`net_hg` input.
+#'   `hg_write_hif()` raises `hypergraphs_bad_input` for a non-`net_hg` input.
 #'
 #' @examples
 #' if (requireNamespace("jsonlite", quietly = TRUE)) {
@@ -308,7 +308,7 @@ hg_read_hif <- function(file, sparse = FALSE) {
   if (!requireNamespace("jsonlite", quietly = TRUE)) {
     stop(errorCondition(
       sprintf("`%s()` needs the suggested package `jsonlite`", fn),
-      class = "hypernets_missing_dependency", call = NULL
+      class = "hypergraphs_missing_dependency", call = NULL
     ))
   }
 }
@@ -461,6 +461,6 @@ hg_read_hif <- function(file, sparse = FALSE) {
     return(metadata)
   }
   scalar <- Filter(\(v) is.atomic(v) && length(v) == 1L && !is.na(v), params)
-  c(scalar, list(generator = sprintf("hypernets %s",
-                                     utils::packageVersion("hypernets"))))
+  c(scalar, list(generator = sprintf("hypergraphs %s",
+                                     utils::packageVersion("hypergraphs"))))
 }

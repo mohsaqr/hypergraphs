@@ -1,6 +1,6 @@
-Package: hypernets
+Package: hypergraphs
 Title: Higher-Order Network Analysis
-Version: 0.6.0
+Version: 0.6.1
 Authors@R: c(
     person("Mohammed", "Saqr", email = "saqr@saqr.me", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5881-3109"))
@@ -46,8 +46,8 @@ Description: Build and analyze higher-order networks, in which a relation
     embedding nearest neighbours), analysed with tidy verbs for clustering,
     keyword extraction, few-label classification, and null testing.
 License: MIT + file LICENSE
-URL: https://github.com/mohsaqr/hypernets, https://mohsaqr.github.io/hypernets/
-BugReports: https://github.com/mohsaqr/hypernets/issues
+URL: https://github.com/mohsaqr/hypergraphs, https://mohsaqr.github.io/hypergraphs/
+BugReports: https://github.com/mohsaqr/hypergraphs/issues
 Language: en-US
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

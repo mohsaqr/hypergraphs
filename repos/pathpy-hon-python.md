@@ -1,6 +1,6 @@
 # HON-family Python ecosystem — pathpy / pyHON / HYPA / HONEM
 
-One note for the *sequence* higher-order side (the hypernets paradigm, distinct
+One note for the *sequence* higher-order side (the hypergraphs paradigm, distinct
 from the hypergraph packages in this folder):
 
 - **pathpy** (Scholtes group) — the only real package (`pip install pathpy`):
@@ -8,7 +8,7 @@ from the hypergraph packages in this folder):
   selection; 2.2.0 is still the PyPI release and the oracle version.
   **pathpyG** is the newer PyTorch successor: latest release v0.2.0-alpha
   (GitHub pre-release, 2025-10-02), **not on PyPI** (checked 2026-09-29);
-  not used by any hypernets test.
+  not used by any hypergraphs test.
 - **pyHON** (github.com/xyjprc/hon) — Xu et al. reference BuildHON/BuildHON+;
   research code, not a package.
 - **HYPA** (github.com/tlarock/hypa) — LaRock et al. reference; research code.
@@ -19,10 +19,10 @@ from the hypergraph packages in this folder):
 - No Python package implements a permutation-based Markov-order test
   (`markov_order_test()` has no upstream equivalent).
 
-**Status for us**: already integrated — hypernets' local equivalence
+**Status for us**: already integrated — hypergraphs' local equivalence
 suite uses pyHON, pyMOGen, and pathpy as oracles via reticulate
 (`helper-python-equiv.R`; MOGen matches pathpy.MultiOrderModel at machine
 precision). `hon_communities()` is checked against the Python `infomap`
 package (tested with 2.15.1; see [`infomap.md`](infomap.md)). The parity
-proofs live in `hypernets/local_testing_and_equivalence/`; the HYPA reference
+proofs live in `hypergraphs/local_testing_and_equivalence/`; the HYPA reference
 code is the one planned addition (ROADMAP.md Phase 1).

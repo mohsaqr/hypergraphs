@@ -119,7 +119,7 @@ test_that("markov_order dispatches over netobject_group", {
                          "net_markov_order")))
   expect_invisible(print(res_grp))
 
-  # hypernets' accessor stacks the per-group tables under a `group` column
+  # hypergraphs' accessor stacks the per-group tables under a `group` column
   tab <- hg_get(res_grp)
   expect_identical(class(tab), "data.frame")
   expect_identical(names(tab), c("group", names(hg_get(res_grp[[1L]]))))

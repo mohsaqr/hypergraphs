@@ -13,7 +13,7 @@ hg_transitivity(
 )
 }
 \arguments{
-\item{hg}{A hypernets \code{net_hg} (\code{\link[=network_hypergraph]{network_hypergraph()}},
+\item{hg}{A hypergraphs \code{net_hg} (\code{\link[=network_hypergraph]{network_hypergraph()}},
 \code{\link[=group_hypergraph]{group_hypergraph()}}, \code{\link[=text_hypergraph]{text_hypergraph()}}, ...), dense or sparse.}
 
 \item{type}{One or more of \code{"projection"} (default), \code{"extra_overlap"},
@@ -87,7 +87,7 @@ few thousand hyperedges; the other variants use sparse products when the
 incidence is sparse.
 }
 \section{Conditions}{
- Raises \code{hypernets_bad_input} when \code{hg} is not a
+ Raises \code{hypergraphs_bad_input} when \code{hg} is not a
 \code{net_hg} or \code{n} is not a count.
 }
 

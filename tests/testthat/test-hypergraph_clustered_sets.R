@@ -1,7 +1,7 @@
 # ---- group_hypergraph() on Nestimate clusterings ----------------------------
 # The objects are built by structure (as Nestimate returns them), so these
 # tests need no Nestimate. Loading Nestimate re-registers S3 methods of
-# hypernets classes for the rest of the session, so the test on real
+# hypergraphs classes for the rest of the session, so the test on real
 # Nestimate objects lives in local_testing_and_equivalence/
 # (test-equiv-clustered-sets-eventdata.R).
 
@@ -136,34 +136,34 @@ test_that("plot(group =) draws one group's sets, sized and titled", {
   expect_identical(sort(colnames(hg_subset(hg, where = list(group = "Cluster 1"))$incidence)),
                    c("Cluster 1: a + b", "Cluster 1: a + b + c"))
   expect_s3_class(plot(hg), "ggplot")
-  expect_error(plot(hg, group = "Cluster 9"), class = "hypernets_bad_input")
-  expect_error(plot(hg, group = c("Cluster 1", "Cluster 2")), class = "hypernets_bad_input")
+  expect_error(plot(hg, group = "Cluster 9"), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, group = c("Cluster 1", "Cluster 2")), class = "hypergraphs_bad_input")
   plain <- group_hypergraph(data.frame(a = c("x", "y"), g = c("1", "1")), "a", "g")
-  expect_error(plot(plain, group = "1"), class = "hypernets_bad_input")
+  expect_error(plot(plain, group = "1"), class = "hypergraphs_bad_input")
 })
 
-test_that("malformed input raises hypernets_bad_input", {
+test_that("malformed input raises hypergraphs_bad_input", {
   bad <- .cs_mmm()
   bad$assignments <- bad$assignments[-1L]
-  expect_error(group_hypergraph(bad), class = "hypernets_bad_input")
+  expect_error(group_hypergraph(bad), class = "hypergraphs_bad_input")
   bad <- .cs_mmm()
   bad$assignments[1L] <- 5L
-  expect_error(group_hypergraph(bad), class = "hypernets_bad_input")
+  expect_error(group_hypergraph(bad), class = "hypergraphs_bad_input")
   bad <- .cs_mmm()
   bad$data <- NULL
-  expect_error(group_hypergraph(bad), class = "hypernets_bad_input")
-  expect_error(group_hypergraph(.cs_group(c("A", "A"))), class = "hypernets_bad_input")
+  expect_error(group_hypergraph(bad), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(.cs_group(c("A", "A"))), class = "hypergraphs_bad_input")
   unnamed <- .cs_group()
   names(unnamed) <- NULL
-  expect_error(group_hypergraph(unnamed), class = "hypernets_bad_input")
-  expect_error(group_hypergraph(.cs_mmm(), top = 0), class = "hypernets_bad_input")
-  expect_error(group_hypergraph(.cs_mmm(), states = 1), class = "hypernets_bad_input")
-  expect_error(group_hypergraph(.cs_mmm(), states = "zzz"), class = "hypernets_bad_input")
+  expect_error(group_hypergraph(unnamed), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(.cs_mmm(), top = 0), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(.cs_mmm(), states = 1), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(.cs_mmm(), states = "zzz"), class = "hypergraphs_bad_input")
   expect_error(group_hypergraph(.cs_data(), "V1", "V2", states = "a"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   plain <- group_hypergraph(data.frame(a = c("x", "y"), g = c("1", "1")), "a", "g")
-  expect_error(hg_get(plain, what = "sets"), class = "hypernets_bad_input")
-  expect_error(hg_get(plain, what = "state_counts"), class = "hypernets_bad_input")
+  expect_error(hg_get(plain, what = "sets"), class = "hypergraphs_bad_input")
+  expect_error(hg_get(plain, what = "state_counts"), class = "hypergraphs_bad_input")
 })
 
 test_that("data.frame input is unchanged (frozen before the clustering branch)", {

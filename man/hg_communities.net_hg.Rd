@@ -52,7 +52,7 @@ to \eqn{w'(e) = \frac{1}{m}\sum_{i=1}^{c} \frac{\delta(e) + c}{k_i(e) + 1}}
 and averaged with its previous weight, until the largest weight change
 is at most \code{delta}). IRMM reads the hypergraph directly, so \code{trials},
 \code{method}, \code{duplicate_edges}, \code{self_association}, \code{edge_source} and
-\code{directed} do not apply to it and raise \code{hypernets_bad_input} when
+\code{directed} do not apply to it and raise \code{hypergraphs_bad_input} when
 supplied. Each of the \code{n_runs} runs is one full IRMM fit whose Louvain
 steps draw from R's RNG under that run's seed (the caller's RNG state is
 restored); igraph is required.}
@@ -62,14 +62,14 @@ more than \code{delta} in a pass (default 0.01, the paper's threshold).}
 
 \item{max_iter}{For \code{type = "irmm"}: maximum reweighting passes (default
 50). A run that hits it is flagged \code{converged = FALSE} in the \code{"runs"}
-table and raises one \code{hypernets_no_converge} warning.}
+table and raises one \code{hypergraphs_no_converge} warning.}
 
 \item{edge_weights}{For \code{type = "irmm"}: initial positive hyperedge
 weights (one per hyperedge, or one value recycled). \code{NULL} uses the
 window counts of a \code{\link[=window_hypergraph]{window_hypergraph()}}, else unit weights.}
 
 \item{...}{Must be empty: an argument that only the memory-network
-method takes raises \code{hypernets_bad_input}.}
+method takes raises \code{hypergraphs_bad_input}.}
 }
 \value{
 An \code{hg_communities} object containing \code{medoid} (a tidy node/community

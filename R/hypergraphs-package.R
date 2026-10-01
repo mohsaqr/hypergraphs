@@ -1,15 +1,15 @@
-#' hypernets: Higher-Order Network Analysis
+#' hypergraphs: Higher-Order Network Analysis
 #'
 #' A higher-order network is one in which a relation reaches beyond a single
 #' pair of nodes at a single moment: either it *binds more than two nodes at
 #' once*, or it *depends on more than the current node*. The literature
 #' (Battiston et al. 2020; Bianconi 2021) organizes that idea into three
-#' structure families, and hypernets implements all three behind one taxonomy.
+#' structure families, and hypergraphs implements all three behind one taxonomy.
 #'
 #' @section Ownership:
 #'
 #' The memory-network and simplicial-complex estimators are imported from a
-#' sibling estimation package; hypernets wraps them under its own names
+#' sibling estimation package; hypergraphs wraps them under its own names
 #' ([hon()], [honem()], [mogen()], [hypa()], [markov_order()],
 #' [memory()], [hg_markov_stability()], [simplicial()],
 #' [hg_homology()], [hg_landscape()], [hg_bottleneck()], [hg_betti()],
@@ -17,9 +17,9 @@
 #' objects unchanged, so every number is the estimator's own. The wrappers
 #' add one sequence-input contract (long, wide, list or model input; see
 #' [sequence-input]), the [hg_get()] reader for every result class, and the
-#' verbs hypernets computes itself on top of them ([hg_bootstrap()],
+#' verbs hypergraphs computes itself on top of them ([hg_bootstrap()],
 #' [hg_compare()], [hg_centrality()], [hg_communities()],
-#' [hg_wasserstein()]). The hypergraph and text families are hypernets' own.
+#' [hg_wasserstein()]). The hypergraph and text families are hypergraphs' own.
 #'
 #' @section The three families:
 #'
@@ -86,7 +86,7 @@
 #'   \item{[hg_get()] is the one reader}{Every result object hands over its
 #'     tables through `hg_get(x, what = )` -- never through `$`. `what =`
 #'     selects a secondary table; filters, `sort_by` and `top` are named
-#'     arguments. hypernets' result classes also have `print()`,
+#'     arguments. hypergraphs' result classes also have `print()`,
 #'     `summary()` and `plot()` methods.}
 #' }
 #'

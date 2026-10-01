@@ -2,7 +2,7 @@
 % Please edit documentation in R/hypergraph_series.R
 \name{hg_growth}
 \alias{hg_growth}
-\alias{plot.hypernets_series}
+\alias{plot.hypergraphs_series}
 \title{Growth of a temporal hypergraph over time}
 \usage{
 hg_growth(
@@ -16,10 +16,10 @@ hg_growth(
   components = FALSE
 )
 
-\method{plot}{hypernets_series}(x, columns = NULL, facets = TRUE, ...)
+\method{plot}{hypergraphs_series}(x, columns = NULL, facets = TRUE, ...)
 }
 \arguments{
-\item{x}{A \code{hypernets_series} table (for \code{plot}).}
+\item{x}{A \code{hypergraphs_series} table (for \code{plot}).}
 
 \item{start, end}{Bounds of the measured period, as numbers on the
 hypergraph's clock or dates for a calendar hypergraph. Default: the
@@ -53,7 +53,7 @@ panel with a legend.}
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
-A base data.frame of class \code{hypernets_series}, one row per window,
+A base data.frame of class \code{hypergraphs_series}, one row per window,
 with \code{time} (the window start on the hypergraph's clock), \code{n_nodes},
 \code{n_edges}, \code{n_edges_distinct}, \code{n_memberships}, and for
 \code{mode = "active"} also \code{n_nodes_cumulative}, \code{n_edges_cumulative} and

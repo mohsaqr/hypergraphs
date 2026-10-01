@@ -466,7 +466,8 @@
 #'   caller's random number stream is left untouched.
 #' @param color_by Colour of the hulls: `NULL` (the hyperedges' count
 #'   attribute described above, else one colour), `"size"`
-#'   (hyperedge cardinality, sequential scale), the name of a column in the
+#'   (hyperedge cardinality, one Okabe-Ito colour per size), the name of a
+#'   column in the
 #'   edge metadata (`x$edge_data`), a vector named by hyperedge, or a vector
 #'   with one value per hyperedge. Character or factor values get the
 #'   Okabe-Ito palette; numeric values a sequential scale built from it.
@@ -599,7 +600,7 @@
 #'   and its number of sequences, `titles` defaults to `FALSE` and the
 #'   legends are stacked. A
 #'   name that is not a group, or a hypergraph without a `group` attribute,
-#'   raises `hypernets_bad_input`. `NULL` (default) draws every hyperedge.
+#'   raises `hypergraphs_bad_input`. `NULL` (default) draws every hyperedge.
 #' @param ... Unused; for S3 consistency.
 #' @return A ggplot object (with `dismantled = TRUE`, one facet per
 #'   hyperedge). With `node_sizes` and `direction` the nodes are polygon
@@ -607,7 +608,7 @@
 #'   triangle show; with `node_sizes` alone they are points with a size
 #'   legend. Title boxes are the last layer.
 #' @section Conditions:
-#' `hypernets_bad_input` for an invalid selector or layout, a `node_sizes`
+#' `hypergraphs_bad_input` for an invalid selector or layout, a `node_sizes`
 #' that misses a node or holds a negative value, a `direction` or
 #' `transitions` table without `from`, `to` and one non-negative numeric
 #' weight, a `direction` without `node_sizes`, `titles` that are not
@@ -731,6 +732,9 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   .thg_check_string(node_fill, "node_fill", colour = TRUE)
   .thg_check_string(arrow_fill, "arrow_fill", null_ok = TRUE, colour = TRUE)
   .thg_check_string(size_title, "size_title", null_ok = TRUE)
+  # what a node is called in the size legend: an event, or a topic for the
+  # topic combinations of a topic model
+  item <- x$params$item %||% "event"
   .thg_check_string(unit, "unit", null_ok = TRUE)
   .thg_check_string(title_prefix, "title_prefix")
   if (!is.numeric(title_gap) || length(title_gap) != 1L || !is.finite(title_gap) ||
@@ -800,6 +804,8 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     }
   }
   fill <- .thg_edge_aesthetic(x, color_by, "color_by")
+  # a size is a whole number of members: one colour per size, discrete
+  if (identical(color_by, "size")) fill <- factor(fill, levels = sort(unique(fill)))
   ltype <- .thg_edge_aesthetic(x, linetype_by, "linetype_by")
   if (!is.null(ltype) && is.numeric(ltype)) ltype <- as.character(ltype)
 
@@ -941,7 +947,8 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     transitions = transitions, style = arrow_style, node_fill = node_fill,
     arrow_fill = arrow_fill, labels = labels, label_size = label_size,
     node_size = node_size,
-    area_what = size_title %||% (if (!is.null(unit)) paste(unit, "with the event")),
+    area_what = size_title %||%
+      (if (!is.null(unit)) paste(unit, "with the", item)),
     unit = unit
   )
 
@@ -1155,7 +1162,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
 # (plot_blobs(), .direction_node_layers(), .transition_arrows()), rebuilt as
 # ordinary layers so no caller edits a finished plot's layers by index.
 
-# Stop with hypernets_bad_input unless `x` is one non-missing string -- one
+# Stop with hypergraphs_bad_input unless `x` is one non-missing string -- one
 # grDevices can read as a colour when `colour = TRUE` -- or, with
 # `null_ok = TRUE`, NULL.
 .thg_check_string <- function(x, arg, null_ok = FALSE, colour = FALSE) {

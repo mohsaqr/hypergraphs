@@ -16,7 +16,7 @@ hg_pagerank(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypergraphs
 \code{net_hg} (connected when \code{damping = 1}).}
 
 \item{damping}{Probability of following the hypergraph walk (default
@@ -72,8 +72,8 @@ with uniform teleportation it equals
 \code{hg_centrality(type = "pagerank")} (tested).
 }
 \section{Conditions}{
- Raises \code{hypernets_bad_input} for broken contracts and
-warns with \code{hypernets_no_converge} (returning the last iterate) when
+ Raises \code{hypergraphs_bad_input} for broken contracts and
+warns with \code{hypergraphs_no_converge} (returning the last iterate) when
 \code{max_iter} is reached before \code{tol}.
 }
 

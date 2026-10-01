@@ -54,9 +54,9 @@ test_that("hypa rejects bad input by class", {
   hg <- planted_hg()
   expect_error(hypa(hg, min_count = 0), "min_count")
   expect_error(hypa(hg, alpha = 2), "alpha")
-  expect_error(hypa(hg, p_adjust = "nope"), class = "hypernets_bad_input")
+  expect_error(hypa(hg, p_adjust = "nope"), class = "hypergraphs_bad_input")
   expect_error(hypa(hg, min_count = 10000L),
-               class = "hypernets_empty_result")
+               class = "hypergraphs_empty_result")
 })
 
 test_that("hypa is invariant to relabelling the nodes", {

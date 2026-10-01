@@ -170,18 +170,37 @@ test_that("unsupported input, non-square and NA matrices are errors", {
   expect_error(hg_markov_stability(matrix(c(0.5, NA, 0.5, 0.5), 2L, 2L)))
 })
 
-test_that("normalize = FALSE rejects a non-stochastic matrix", {
-  expect_error(hg_markov_stability(.ms_P * 2, normalize = FALSE))
+# every warning a call raises, muffled and counted
+.ms_warnings <- function(expr) {
+  seen <- character(0)
+  value <- withCallingHandlers(expr, warning = function(w) {
+    seen <<- c(seen, conditionMessage(w))
+    invokeRestart("muffleWarning")
+  })
+  list(value = value, warnings = seen)
+}
+
+test_that("normalize = FALSE rejects a non-stochastic matrix without warning", {
+  seen <- character(0)
+  expect_error(withCallingHandlers(
+    hg_markov_stability(.ms_P * 2, normalize = FALSE),
+    warning = function(w) {
+      seen <<- c(seen, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }))
+  expect_identical(seen, character(0))
 })
 
-test_that("normalize = TRUE rescales rows with a warning", {
-  expect_warning(ms <- hg_markov_stability(.ms_P * 2), "normaliz")
-  expect_equal(hg_get(ms, what = "stationary")$stationary,
+test_that("normalize = TRUE rescales rows with exactly one warning", {
+  run <- .ms_warnings(hg_markov_stability(.ms_P * 2))
+  expect_length(run$warnings, 1L)
+  expect_match(run$warnings, "normaliz")
+  expect_equal(hg_get(run$value, what = "stationary")$stationary,
                unname(.ms_pi), tolerance = 1e-12)
 })
 
 
-# ---- Higher-order input: the reason the verb lives in hypernets ----------
+# ---- Higher-order input: the reason the verb lives in hypergraphs ----------
 
 test_that("a net_hon gives one row per higher-order state", {
   hon <- hon(.ms_seqs(), max_order = 2L, min_freq = 50L)
@@ -232,7 +251,7 @@ test_that("a diagonal that is 1 in double precision is an absorbing state", {
                 0.5,       0.5), nrow = 2L, byrow = TRUE,
               dimnames = list(c("A", "B"), c("A", "B")))
   skip_if_not(identical(P[1L, 1L], 1))
-  expect_error(hg_markov_stability(P), class = "hypernets_not_ergodic")
+  expect_error(hg_markov_stability(P), class = "hypergraphs_not_ergodic")
 })
 
 
@@ -339,13 +358,13 @@ test_that("from and to restrict the passage table to hand-derived rows", {
 
 test_that("from/to on the wrong table or an unknown state is a classed error", {
   ms <- hg_markov_stability(.ms_P)
-  expect_error(hg_get(ms, from = "A"), class = "hypernets_bad_input")
+  expect_error(hg_get(ms, from = "A"), class = "hypergraphs_bad_input")
   expect_error(hg_get(ms, what = "stationary", to = "A"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_get(ms, what = "passage_time", from = "Q"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_get(ms, what = "passage_time", to = 1),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_get(ms, decreasing = NA), "`decreasing` must be")
 })
 

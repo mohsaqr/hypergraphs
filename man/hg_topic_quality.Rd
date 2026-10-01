@@ -2,7 +2,7 @@
 % Please edit documentation in R/text_topics.R
 \name{hg_topic_quality}
 \alias{hg_topic_quality}
-\alias{plot.hypernets_topic_quality}
+\alias{plot.hypergraphs_topic_quality}
 \title{Topic coherence and exclusivity}
 \usage{
 hg_topic_quality(
@@ -18,7 +18,7 @@ hg_topic_quality(
   topics = NULL
 )
 
-\method{plot}{hypernets_topic_quality}(x, ...)
+\method{plot}{hypergraphs_topic_quality}(x, ...)
 }
 \arguments{
 \item{hg}{The document hypergraph the topics describe: a bag-of-words
@@ -65,14 +65,14 @@ number of documents (its summed shares). Give \code{topics} instead of
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
-A base \code{data.frame} of class \code{hypernets_topic_quality}, one row per
+A base \code{data.frame} of class \code{hypergraphs_topic_quality}, one row per
 topic (cluster labels in natural order, or topics of \code{words} in natural
 order): \code{topic}, \code{size} (the cluster's documents; \code{NA} without
 \code{clusters}), \code{n_words} (top words scored), \code{coherence}, \code{exclusivity}
 (\code{NA} for fewer than two words, or \code{exclusivity = "none"}),
 \code{coherence_type} and \code{exclusivity_type}. \code{plot()} draws exclusivity
 against coherence with one labelled point per topic. Raises
-\code{hypernets_bad_input} for unknown node names, a malformed \code{words}
+\code{hypergraphs_bad_input} for unknown node names, a malformed \code{words}
 table, words outside the vocabulary, topics of \code{words} that are not
 cluster labels, a measure that needs \code{clusters} without them, or a
 hypergraph whose nodes are not documents.

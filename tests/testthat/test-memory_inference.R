@@ -13,15 +13,15 @@ test_that("weighted count aggregation equals re-counting the multiset", {
   set.seed(21)
   trajectories <- replicate(6, sample(letters[1:4], 10, replace = TRUE),
                             simplify = FALSE)
-  sc <- hypernets:::.hi_seq_counts(trajectories, max_order = 3L)
+  sc <- hypergraphs:::.hi_seq_counts(trajectories, max_order = 3L)
   results <- lapply(1:10, function(i) {
     w <- sample(0:3, 6, replace = TRUE)
     if (sum(w) == 0L) w[1L] <- 1L
-    env_fast <- hypernets:::.hi_count_env(sc, w)
+    env_fast <- hypergraphs:::.hi_count_env(sc, w)
     # genuine exception to the no-loop rule is not needed: rep() expands
     # the multiset that the slow reference re-counts
     multiset <- rep(trajectories, times = w)
-    env_slow <- hypernets:::.hon_build_observations(multiset, 3L)
+    env_slow <- hypergraphs:::.hon_build_observations(multiset, 3L)
     keys <- sort(ls(env_slow))
     expect_identical(sort(ls(env_fast)), keys)
     for (k in keys) {
@@ -154,7 +154,7 @@ test_that("methods: print, summary, plot, accessor filters", {
   expect_invisible(print(bs))
   expect_output(print(bs), "HON bootstrap")
   s <- summary(bs)
-  expect_s3_class(s, "hypernets_summary")
+  expect_s3_class(s, "hypergraphs_summary")
   expect_identical(s$edges, hg_get(bs))
   expect_identical(names(s$by_order), c("order", "n_edges", "mean_support",
                                         "min_support", "mean_ci_width"))
@@ -185,9 +185,9 @@ test_that("error paths: invalid arguments", {
   expect_error(hg_compare(.pair(seqs, list(c("a", "b")), 2)),
                "at least 2 sequences")
   expect_error(hg_compare(.pair(seqs, seqs, 2), groups = c("x", "x")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_compare(.pair(seqs, seqs, 2), n_perm = 1), "n_perm")
-  expect_error(hg_compare(seqs), class = "hypernets_bad_input")
+  expect_error(hg_compare(seqs), class = "hypergraphs_bad_input")
   expect_error(
     hg_bootstrap(data.frame(a = "x"), action = "missing"), "action")
 })
@@ -220,7 +220,7 @@ test_that("hon(group =) builds one network per group; hg_compare reads it", {
   expect_identical(unique(stacked$group), c("x", "y", "z"))
   expect_output(print(model), "3 groups")
   # three groups need an explicit pair; the pair equals the engine
-  expect_error(hg_compare(model, n_perm = 9), class = "hypernets_bad_input")
+  expect_error(hg_compare(model, n_perm = 9), class = "hypergraphs_bad_input")
   cmp <- hg_compare(model, groups = c("x", "z"), n_perm = 19, seed = 3)
   ref <- .hg_compare_pair(x, z, n_perm = 19, max_order = 2, min_freq = 1,
                           names = c("x", "z"), seed = 3)
@@ -238,5 +238,5 @@ test_that("hon(group =) builds one network per group; hg_compare reads it", {
   expect_s3_class(bg, "net_hon_boot_group")
   expect_identical(unique(summary(bg)$edges$group), c("early", "late"))
   expect_error(hon(long, actor = "id", action = "code", time = "t",
-                   group = c("a", "b")), class = "hypernets_bad_input")
+                   group = c("a", "b")), class = "hypergraphs_bad_input")
 })

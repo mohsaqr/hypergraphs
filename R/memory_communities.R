@@ -49,7 +49,7 @@
 #' Raise a classed bad-input error for the communities verb
 #' @noRd
 .hcm_bad_input <- function(msg) {
-  stop(errorCondition(msg, class = "hypernets_bad_input", call = NULL))
+  stop(errorCondition(msg, class = "hypergraphs_bad_input", call = NULL))
 }
 
 #' Flow on a directed state network (Infomap directed flow model)
@@ -80,7 +80,7 @@
     stop(errorCondition(
       paste0("the walk on this network has no unique stationary flow ",
              "(it is reducible); use `teleportation` > 0"),
-      class = c("hypernets_not_ergodic", "hypernets_bad_input"), call = NULL))
+      class = c("hypergraphs_not_ergodic", "hypergraphs_bad_input"), call = NULL))
   }
   pi <- qr.solve(qa, b)
   pi <- pmax(pi, 0)
@@ -454,8 +454,8 @@
 #'   physical node x module), `"modules"`, `"trials"`, `"first_order"` and
 #'   `"codelength"`; see [hg_get.net_hon_communities()].
 #' @section Conditions:
-#' `hypernets_bad_input` for a non-`net_hon` input, invalid arguments, or a
-#' partition that does not cover every state; `hypernets_not_ergodic` when
+#' `hypergraphs_bad_input` for a non-`net_hon` input, invalid arguments, or a
+#' partition that does not cover every state; `hypergraphs_not_ergodic` when
 #' `teleportation = 0` and the walk has no unique stationary flow.
 #' @references
 #' Rosvall, M., Esquivel, A. V., Lancichinetti, A., West, J. D., & Lambiotte,
@@ -489,7 +489,7 @@
 #' hg_get(comm)
 #' hg_get(comm, what = "physical")
 #' @param ... Must be empty: an argument that only the hypergraph method
-#'   takes raises `hypernets_bad_input`.
+#'   takes raises `hypergraphs_bad_input`.
 #' @export
 hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
                                    teleportation = 0.15, seed = 1L, ...) {
@@ -763,41 +763,64 @@ summary.net_hon_communities <- function(object, ...) .ho_summary(object)
   0.35 * top + 0.65 * top * sqrt(f / max(f))
 }
 
-#' Arguments handed to cograph::overlay_communities() for the state view
+#' Data for the memory-node view: the community hypergraph of memory nodes
 #'
-#' Kept separate from the drawing so tests can assert exactly what reaches
-#' cograph.
-#' @return list(args = <overlay_communities() arguments>, n_hidden =
-#'   zero-flow state nodes left out)
+#' Every community is a hyperedge over its memory nodes; a node's size is its
+#' flow and its direction the memory node its transitions most often reach.
+#' @return list(hypergraph, community, flow, sizes, moves, title, notes,
+#'   n_hidden)
 #' @noRd
-.hcm_state_plot_args <- function(x, show_zero_flow) {
+.hcm_state_plot_data <- function(x, show_zero_flow) {
   st <- x$states
   hidden <- if (show_zero_flow) 0L else sum(st$flow <= 0)
   if (!show_zero_flow) st <- st[st$flow > 0, , drop = FALSE]
   st <- st[order(st$community, st$node), , drop = FALSE]
-  W <- x$weights[st$node, st$node, drop = FALSE]
   mods <- sort(unique(st$community))
-  biggest <- max(tabulate(st$community))
-  # cograph's group layout: one ring per community; the ring widens with
-  # the community so large ones do not pile their nodes on top of each other
-  lay <- cograph::layout_groups(
-    cograph::as_cograph(W), st$community,
-    inner_radius = min(0.3, max(0.12, 0.006 * biggest)))
-  args <- list(
-    x = W,
-    communities = split(st$node, factor(st$community, levels = mods)),
-    blob_colors = .hcm_col(mods), blob_alpha = 0.18,
-    layout = as.matrix(lay),
-    groups = sprintf("Community %d", st$community),
-    legend = TRUE, legend_edge_colors = FALSE,
-    node_fill = .hcm_col(st$community),
-    node_size = .hcm_node_size(st$flow),
-    labels = st$node, label_size = if (nrow(st) > 40L) 0.45 else 0.8,
-    title_size = 1.1,
-    edge_color = "grey40", edge_alpha = 0.25, threshold = 0.05,
-    title = sprintf("%d communit%s of state nodes", length(mods),
-                    if (length(mods) == 1L) "y" else "ies"))
-  list(args = args, n_hidden = hidden)
+  community_names <- sprintf("Community %d", mods)
+  members <- data.frame(node = st$node,
+                        community = sprintf("Community %d", st$community),
+                        stringsAsFactors = FALSE)
+  hg <- group_hypergraph(members, actor = "node", group = "community")
+  counts <- tabulate(match(st$community, mods), nbins = length(mods))
+  lone <- mods[counts == 1L]
+  community <- stats::setNames(
+    factor(community_names, levels = community_names[counts > 1L]),
+    community_names)
+  sizes <- data.frame(node = st$node, value = st$flow,
+                      stringsAsFactors = FALSE)
+  W <- x$weights[st$node, st$node, drop = FALSE]
+  ij <- which(W > 0, arr.ind = TRUE)
+  moves <- data.frame(from = rownames(W)[ij[, 1L]], to = colnames(W)[ij[, 2L]],
+                      weight = W[ij], stringsAsFactors = FALSE)
+  module_flow <- tapply(st$flow, st$community, sum)
+  community_flow <- stats::setNames(
+    as.numeric(module_flow[as.character(mods)]), community_names)
+  # the memory nodes are placed by the walk's transitions between them, so a
+  # community's nodes sit together and communities that exchange flow sit
+  # side by side; membership alone would leave disjoint communities as
+  # unrelated islands
+  linked <- (W > 0 | t(W) > 0) * 1
+  diag(linked) <- 0
+  xy <- .thg_layout_packed(linked, seed = 1L)
+  layout <- data.frame(node = st$node, x = xy[, 1L], y = xy[, 2L],
+                       stringsAsFactors = FALSE)
+  notes <- c(
+    if (length(lone)) {
+      alone <- st$node[match(lone, st$community)]
+      sprintf("%s: a single memory node, drawn without a pebble.",
+              paste(sprintf("Community %d (%s)", lone, alone),
+                    collapse = ", "))
+    },
+    if (hidden > 0L) {
+      sprintf("%d memory node%s with no flow not drawn.",
+              hidden, if (hidden == 1L) "" else "s")
+    }
+  )
+  list(hypergraph = hg, community = community, flow = community_flow,
+       sizes = sizes, moves = moves, layout = layout,
+       title = sprintf("%d communit%s of memory nodes", length(mods),
+                       if (length(mods) == 1L) "y" else "ies"),
+       notes = notes, n_hidden = hidden)
 }
 
 #' The physical view as a community hypergraph plus its overlays
@@ -837,12 +860,12 @@ summary.net_hon_communities <- function(object, ...) .ho_summary(object)
   notes <- c(
     if (length(lone)) {
       alone <- ph$state[match(lone, ph$community)]
-      sprintf("%s: a single physical node, drawn without a pebble.",
+      sprintf("%s: a single state, drawn without a pebble.",
               paste(sprintf("Community %d (%s)", lone, alone),
                     collapse = ", "))
     },
     if (n_hidden > 0L) {
-      sprintf("%d zero-flow state%s not drawn (reached only by teleportation).",
+      sprintf("%d memory node%s with no flow not drawn.",
               n_hidden, if (n_hidden == 1L) "" else "s")
     }
   )
@@ -852,84 +875,153 @@ summary.net_hon_communities <- function(object, ...) .ho_summary(object)
     as.numeric(module_flow[as.character(mods)]), community_names)
   list(hypergraph = hg, community = community, flow = community_flow,
        sizes = sizes, moves = moves,
-       title = sprintf("%d communit%s, %d shared physical node%s",
+       title = sprintf("%d communit%s, %d shared state%s",
                        length(mods), if (length(mods) == 1L) "y" else "ies",
                        n_shared, if (n_shared == 1L) "" else "s"),
        notes = notes, n_hidden = n_hidden)
 }
 
+# Arguments for cograph::overlay_communities(): the TNA plot of a transition
+# network with one blob per community. `type = "network"` draws the network
+# of states (the memory network's flow projected onto states, so a state
+# shared by communities lies in each of their blobs); `type = "states"` the
+# network of memory nodes, placed by the walk's transitions between them.
+# Kept apart from the drawing so tests can read what reaches cograph.
+.hcm_overlay_args <- function(x, type, show_zero_flow) {
+  if (identical(type, "network")) {
+    ph <- x$physical
+    W <- x$physical_weights
+    nodes <- rownames(W)
+    flow <- as.numeric(tapply(ph$flow, ph$state, sum)[nodes])
+    flow[is.na(flow)] <- 0
+    # a state's colour is that of the community holding most of its flow
+    main <- vapply(nodes, \(v) {
+      rows <- ph[ph$state == v, , drop = FALSE]
+      if (!nrow(rows)) return(NA_integer_)
+      as.integer(rows$community[which.max(rows$flow)])
+    }, integer(1L))
+    communities <- split(ph$state, ph$community)
+    layout <- "spring"
+    edge_labels <- TRUE
+    n_hidden <- 0L
+    shared <- sum(tapply(ph$community, ph$state, length) > 1L)
+    title <- sprintf("%d communit%s, %d shared state%s",
+                     length(communities),
+                     if (length(communities) == 1L) "y" else "ies",
+                     shared, if (shared == 1L) "" else "s")
+  } else {
+    spec <- .hcm_state_plot_data(x, show_zero_flow)
+    st <- x$states
+    if (!show_zero_flow) st <- st[st$flow > 0, , drop = FALSE]
+    st <- st[order(st$community, st$node), , drop = FALSE]
+    nodes <- st$node
+    W <- x$weights[nodes, nodes, drop = FALSE]
+    flow <- st$flow
+    main <- as.integer(st$community)
+    communities <- split(st$node, st$community)
+    layout <- as.matrix(spec$layout[match(nodes, spec$layout$node),
+                                    c("x", "y")])
+    rownames(layout) <- nodes
+    edge_labels <- length(nodes) <= 20L
+    n_hidden <- spec$n_hidden
+    title <- if (n_hidden > 0L) {
+      sprintf("%s (%d with no flow not drawn)", spec$title, n_hidden)
+    } else {
+      spec$title
+    }
+  }
+  # row-normalised: the arrows carry transition probabilities
+  totals <- rowSums(W)
+  P <- W / ifelse(totals > 0, totals, 1)
+  names(communities) <- paste("Community", names(communities))
+  community_ids <- as.integer(sub("Community ", "", names(communities)))
+  list(args = list(
+    x = P, communities = communities, tna_styling = TRUE, directed = TRUE,
+    layout = layout,
+    blob_colors = .hcm_col(community_ids), blob_alpha = 0.15,
+    node_fill = ifelse(is.na(main), "#999999", .hcm_col(main)),
+    node_size = if (length(nodes) > 20L) {
+      1.4 + 2.6 * sqrt(pmax(flow, 0) / max(flow))
+    } else {
+      .hcm_node_size(pmax(flow, 1e-12), length(nodes))
+    },
+    labels = nodes, label_size = if (length(nodes) > 20L) 0.5 else 0.9,
+    edge_label_style = if (edge_labels) "estimate" else "none",
+    threshold = 0.05, title = title),
+    n_hidden = n_hidden)
+}
+
 #' Plot memory-network communities
 #'
 #' \describe{
-#'   \item{`type = "physical"` (default)}{every community is drawn as a
-#'     pebble around the physical nodes it holds, through
-#'     [plot.net_hg()] on the community hypergraph (member = physical
-#'     node, group = `"Community k"`, from `hg_get(x, what =
-#'     "physical")`). A physical node shared by several communities lies
-#'     inside each of their pebbles. Pebbles are coloured by community
-#'     (Okabe-Ito, legend "Community"). Each node is a black circle whose
-#'     area follows its physical flow (the memory network's visit rate summed
-#'     over its state nodes), and a triangle inside the circle points at the
-#'     physical node its link flow most often goes to next. Each community
-#'     has a title box with its name and flow (the visit rate of its state
-#'     nodes) beside its pebble, drawn by [plot.net_hg()] (haloed
-#'     labels, legend below, wide margins); the boxes sit a little further
-#'     out than there (`title_gap = 0.14`) to clear the labels of the nodes at
-#'     a pebble's rim. A
-#'     community holding a single physical node has no pebble of its own;
-#'     its title box sits by the node and the caption names it.}
-#'   \item{`type = "states"`}{the state nodes of the higher-order network,
-#'     drawn by [cograph::overlay_communities()], one ring per community
-#'     ([cograph::layout_groups()]), with community blobs, cograph's group
-#'     legend, short state labels, and faded edges (transition probability
-#'     below 0.05 hidden).}
+#'   \item{`type = "physical"` (default)}{every community as a pebble around
+#'     the states it holds, through [plot.net_hg()] on the community
+#'     hypergraph. A state shared by several communities lies inside each of
+#'     their pebbles. Every state is a circle whose area follows its flow,
+#'     with a triangle pointing at the state the walk most often moves to
+#'     next, and every community has a title box with its flow.}
+#'   \item{`type = "network"`}{the network of states as a transition network
+#'     analysis plot through [cograph::overlay_communities()]: every arrow is
+#'     a transition with its probability (transitions below 0.05 hidden),
+#'     every state a circle whose area follows its flow, coloured
+#'     (Okabe-Ito) by the community that holds most of its flow, and every
+#'     community a blob around its states, so a shared state lies in two
+#'     blobs.}
+#'   \item{`type = "states"`}{the network of memory nodes drawn in the same
+#'     way, laid out by the walk's transitions between them so that the nodes
+#'     of a community sit together. Memory nodes with no flow are left out
+#'     unless `show_zero_flow = TRUE`, and the title says how many. With more
+#'     than 20 nodes the probabilities are not printed on the arrows.}
 #' }
-#' State nodes with zero flow (reached only by teleportation, see
-#' [hg_communities()]) carry no physical flow and are never drawn in the
-#' physical view; the state view leaves them and the singleton communities
-#' they form out unless `show_zero_flow = TRUE`. A caption says how many were
-#' left out. The tables returned by [hg_get.net_hon_communities()] are
-#' unaffected.
+#' Memory nodes with no flow (reached only by random jumps, see
+#' [hg_communities()]) carry no flow of their states and are never drawn in
+#' the physical view. The tables returned by
+#' [hg_get.net_hon_communities()] are unaffected.
 #'
 #' @param x A `net_hon_communities` object.
-#' @param type `"physical"` (default) or `"states"`.
-#' @param show_zero_flow Draw zero-flow state nodes in the state view?
-#'   Default `FALSE`.
-#' @param ... For `type = "physical"`, passed to [plot.net_hg()]
-#'   (e.g. `seed`, `label_size`, `arrow_style = "outside"`, `layout`),
-#'   overriding the defaults set here; for `type = "states"`, passed to
-#'   [cograph::overlay_communities()] and on to [cograph::splot()].
-#' @return For `type = "physical"`, a ggplot object (print it to draw). For
-#'   `type = "states"`, `x`, invisibly (cograph draws with base graphics).
+#' @param type `"physical"` (default), `"network"` or `"states"`.
+#' @param show_zero_flow Draw the memory nodes with no flow in the
+#'   `type = "states"` view? Default `FALSE`.
+#' @param ... For `"physical"`, passed to [plot.net_hg()] (e.g. `seed`,
+#'   `label_size`, `arrow_style = "outside"`, `layout`); for `"network"` and
+#'   `"states"`, passed to [cograph::overlay_communities()] and on to
+#'   [cograph::splot()] (e.g. `layout`, `edge_label_style`, `threshold`,
+#'   `blob_alpha`). They override the defaults set here.
+#' @return For `"physical"`, a ggplot object (print it to draw). For
+#'   `"network"` and `"states"`, `x`, invisibly (cograph draws with base
+#'   graphics).
 #' @section Conditions:
-#' `hypernets_bad_input` from [plot.net_hg()] for arguments passed
+#' `hypergraphs_bad_input` from [plot.net_hg()] for arguments passed
 #' through `...` that it rejects.
+#' @references
+#' Saqr, M., López-Pernas, S., Törmänen, T., Kaliisa, R., Misiejuk, K., &
+#' Tikka, S. (2025). Transition network analysis: A novel framework for
+#' modeling, visualizing, and identifying the temporal patterns of learners
+#' and learning processes. \emph{Proceedings of the 15th International
+#' Learning Analytics and Knowledge Conference (LAK '25)}, 351-361.
+#' \doi{10.1145/3706468.3706513}
 #' @examples
 #' seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
 #'              c("c", "h", "d", "c", "h", "d", "c"))
 #' comm <- hg_communities(hon(seqs, max_order = 2L), trials = 2L)
 #' plot(comm)
+#' plot(comm, type = "network")
 #' plot(comm, type = "states")
 #' @export
-plot.net_hon_communities <- function(x, type = c("physical", "states"),
+plot.net_hon_communities <- function(x,
+                                     type = c("physical", "network",
+                                              "states"),
                                      show_zero_flow = FALSE, ...) {
   type <- match.arg(type)
   stopifnot("`show_zero_flow` must be TRUE or FALSE" =
               is.logical(show_zero_flow) && length(show_zero_flow) == 1L &&
               !is.na(show_zero_flow))
   dots <- list(...)
-  if (identical(type, "states")) {
-    spec <- .hcm_state_plot_args(x, show_zero_flow)
+  if (!identical(type, "physical")) {
+    spec <- .hcm_overlay_args(x, type, show_zero_flow)
     args <- spec$args
     args[names(dots)] <- dots
     do.call(cograph::overlay_communities, args)
-    if (spec$n_hidden > 0L) {
-      # a caption in the bottom margin, clear of the network
-      graphics::mtext(sprintf(
-        "%d zero-flow state%s not drawn (reached only by teleportation)",
-        spec$n_hidden, if (spec$n_hidden == 1L) "" else "s"),
-        side = 1L, line = 4, cex = 0.85)
-    }
     return(invisible(x))
   }
   spec <- .hcm_physical_plot_data(x)
@@ -939,8 +1031,7 @@ plot.net_hon_communities <- function(x, type = c("physical", "states"),
                color_by = spec$community, legend_title = "Community",
                titles = spec$flow, unit = "flow",
                node_sizes = spec$sizes, direction = spec$moves,
-               arrow_style = "inside",
-               size_title = "physical flow (visit rate summed over the node's states)",
+               arrow_style = "inside", size_title = "flow of the state",
                title_gap = 0.14)
   args[names(dots)] <- dots
   p <- do.call(plot.net_hg, args)
@@ -949,8 +1040,8 @@ plot.net_hon_communities <- function(x, type = c("physical", "states"),
   p + ggplot2::labs(
     title = spec$title,
     caption = paste(c(
-      "Circle area: physical flow (visit rate summed over the node's states).",
-      "Triangle: points to the event that most often follows it.",
+      "Circle area: the flow of the state, summed over its memory nodes.",
+      "Triangle: points to the state the walk most often moves to next.",
       spec$notes), collapse = "\n")
   ) + ggplot2::theme(plot.caption = ggplot2::element_text(hjust = 0),
                      plot.caption.position = "plot")

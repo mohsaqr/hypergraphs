@@ -1,4 +1,4 @@
-url: https://mohsaqr.github.io/hypernets
+url: https://mohsaqr.github.io/hypergraphs
 destination: pkgdown
 
 template:
@@ -7,7 +7,7 @@ template:
 reference:
 - title: Package
   contents:
-  - hypernets-package
+  - hypergraphs-package
 
 - title: Reading results
   desc: One reader for every object.
@@ -51,6 +51,7 @@ reference:
   desc: An arbitrary set of nodes bound as a unit.
 - subtitle: Constructors
   contents:
+  - hypergraph
   - network_hypergraph
   - window_hypergraph
   - group_hypergraph
@@ -117,7 +118,7 @@ reference:
   - hg_cluster
   - hg_keywords
   - hg_sequences
-  - hg_relations
+  - hg_network
   - hg_topic_sizes
   - hg_topics
   - hg_topic_search
@@ -141,6 +142,7 @@ reference:
   - long-data
   - covid_abstracts
   - covid_sample
+  - debug_events
   - covid_embeddings
   - icsid_tribunals
   - gfcc_decisions

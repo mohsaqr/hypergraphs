@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
                       warning = FALSE, fig.width = 7, fig.height = 5,
                       out.width = "100%")
-library(hypernets)
+library(hypergraphs)
 ```
 
 A topic model describes a corpus by a small number of themes. Each theme, or
@@ -218,6 +218,84 @@ model_quality
 plot(model_quality)
 ```
 
+## Topic combinations
+
+An abstract draws on several topics at once, and the topics it combines form
+a set. A network of topics keeps only the pairs of such a set. A hypergraph
+keeps the whole set, with every topic as a node and every combination of
+topics that occurs in the abstracts as a hyperedge.
+
+`group_hypergraph()` builds this hypergraph from the topic model. A topic
+counts as present in an abstract when its share is at least a threshold, as
+in the topic networks of Abuhay et al. (2017) and Cassi et al. (2017), and
+the set of an abstract is the topics present in it. The threshold here is
+0.2, a little over three times the even share of 1/16. `min_size = 2` keeps
+the abstracts that combine two or more topics, and `top = Inf` keeps every
+combination.
+
+```{r topic-sets}
+topic_sets <- group_hypergraph(topic_model, threshold = 0.2, min_size = 2,
+                               top = Inf)
+combinations <- hg_get(topic_sets, what = "sets")
+head(combinations)
+```
+
+```{r topic-sets-values, include = FALSE}
+multi_share <- function(threshold) {
+  sets <- hg_get(group_hypergraph(topic_model, threshold = threshold,
+                                  min_size = 2, top = Inf), what = "sets")
+  sum(sets$count) / abstracts_hg$n_nodes
+}
+n_combining <- sum(combinations$count)
+```
+
+At this threshold `r round(100 * n_combining / abstracts_hg$n_nodes, 1)`% of
+the abstracts combine two or more topics, in `r nrow(combinations)` distinct
+combinations. The proportion depends on the threshold. With 0.1 it is
+`r round(100 * multi_share(0.1), 1)`%, and with 0.3 it is
+`r round(100 * multi_share(0.3), 1)`%, so a count of combinations is reported
+together with its threshold. The eight most frequent combinations of three
+or more topics are plotted below. Every combination is a pebble around its
+topics, coloured by the number of abstracts that carry it, and every topic is
+a circle whose area is the number of these abstracts that contain it.
+
+```{r topic-sets-plot, fig.width = 9, fig.height = 7}
+frequent_triples <- group_hypergraph(topic_model, threshold = 0.2,
+                                     min_size = 3, top = 8)
+plot(frequent_triples, group = "All documents")
+```
+
+`by =` counts the combinations within a column of the documents table, such
+as the publication year.
+
+```{r topic-sets-year}
+sets_by_year <- group_hypergraph(topic_model, threshold = 0.2, min_size = 2,
+                                 by = "year", top = 2)
+hg_get(sets_by_year, what = "sets")
+```
+
+## The network of topics
+
+`hg_network()` reduces the combinations to pairs. With the same threshold,
+the weight of two topics is the number of abstracts in which both are present.
+The pairs above the upper quartile of the weights are drawn, with the width of
+an edge proportional to its weight.
+
+```{r topic-network}
+topic_network <- hg_network(abstracts_hg, topics = topic_model,
+                            threshold = 0.2)
+strong_pair <- with(topic_network, quantile(weight, 0.75))
+network_view <- hg_network(abstracts_hg, topics = topic_model,
+                           threshold = 0.2, what = "network")
+cograph::splot(network_view, minimum = strong_pair,
+               edge_width_range = c(0.5, 6), node_fill = "#56B4E9",
+               edge_color = "#0072B2")
+```
+
+Without a threshold, `hg_network()` relates two topics by the correlation of
+their shares over the abstracts, the simple topic correlation of the stm
+package (Roberts et al. 2019).
+
 ## A partition of the abstracts
 
 A partition is appropriate when the abstracts are each about one topic. It is
@@ -280,9 +358,20 @@ clustering also place most abstracts between clusters.
 
 ## References
 
+Abuhay, T. M., Kovalchuk, S. V., Bochenina, K., Kampis, G.,
+Krzhizhanovskaya, V. V., & Lees, M. H. (2017). Analysis of computational
+science papers from ICCS 2001-2016 using topic modeling and graph theory.
+*Procedia Computer Science*, 108, 7-17.
+https://doi.org/10.1016/j.procs.2017.05.183
+
 Bischof, J. M., & Airoldi, E. M. (2012). Summarizing topical content with word
 frequency and exclusivity. *Proceedings of the 29th International Conference
 on Machine Learning*, 201-208.
+
+Cassi, L., Lahatte, A., Rafols, I., Sautier, P., & de Turckheim, E. (2017).
+Improving fitness: Mapping research priorities against societal needs on
+obesity. *Journal of Informetrics*, 11(4), 1095-1113.
+https://doi.org/10.1016/j.joi.2017.09.010
 
 Gaussier, E., & Goutte, C. (2005). Relation between PLSA and NMF and
 implications. *Proceedings of SIGIR 2005*, 601-602.
@@ -314,6 +403,10 @@ factorization. *Advances in Neural Information Processing Systems*, 13,
 Mimno, D., Wallach, H. M., Talley, E., Leenders, M., & McCallum, A. (2011).
 Optimizing semantic coherence in topic models. *Proceedings of EMNLP 2011*,
 262-272.
+
+Roberts, M. E., Stewart, B. M., & Tingley, D. (2019). stm: An R package for
+structural topic models. *Journal of Statistical Software*, 91(2), 1-40.
+https://doi.org/10.18637/jss.v091.i02
 
 Roberts, M. E., Stewart, B. M., Tingley, D., Lucas, C., Leder-Luis, J.,
 Gadarian, S. K., Albertson, B., & Rand, D. G. (2014). Structural topic models

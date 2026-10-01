@@ -17,7 +17,7 @@ hg_communities(x, ...)
 \value{
 An \code{hg_communities} object (hypergraph) or a
 \code{net_hon_communities} object (memory network); read either with
-\code{\link[=hg_get]{hg_get()}}. Any other input raises \code{hypernets_bad_input}.
+\code{\link[=hg_get]{hg_get()}}. Any other input raises \code{hypergraphs_bad_input}.
 }
 \description{
 One verb, two estimators, chosen by the class of \code{x}:
@@ -30,7 +30,7 @@ memory networks: overlapping modules of the physical states, compared
 with the first-order map; see \code{\link[=hg_communities.net_hon]{hg_communities.net_hon()}}.}
 }
 Each method keeps its own arguments; passing an argument that only the
-other method takes raises \code{hypernets_bad_input}.
+other method takes raises \code{hypergraphs_bad_input}.
 }
 \examples{
 seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),

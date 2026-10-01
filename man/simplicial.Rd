@@ -2,9 +2,9 @@
 % Please edit documentation in R/simplicial_wrappers.R
 \name{simplicial}
 \alias{simplicial}
-\alias{plot.hypernets_simplicial}
-\alias{hg_get.hypernets_simplicial}
-\alias{print.hypernets_simplicial}
+\alias{plot.hypergraphs_simplicial}
+\alias{hg_get.hypergraphs_simplicial}
+\alias{print.hypergraphs_simplicial}
 \title{Simplicial complex from sequences, a network or a memory network}
 \usage{
 simplicial(
@@ -33,11 +33,11 @@ simplicial(
   ...
 )
 
-\method{plot}{hypernets_simplicial}(x, y, dismantled = FALSE, top = NULL, ...)
+\method{plot}{hypergraphs_simplicial}(x, y, dismantled = FALSE, top = NULL, ...)
 
-\method{hg_get}{hypernets_simplicial}(x, ...)
+\method{hg_get}{hypergraphs_simplicial}(x, ...)
 
-\method{print}{hypernets_simplicial}(x, n = 10L, ...)
+\method{print}{hypergraphs_simplicial}(x, n = 10L, ...)
 }
 \arguments{
 \item{x}{Sequences for \code{type = "window"}, in any form described in
@@ -99,7 +99,7 @@ smallest possible p-value is \code{1 / (n_null + 1)}, and a set can pass on
 its own only if this is at most \code{alpha} divided by the number of
 possible sets of its size. \code{NULL} (default) takes the smallest number
 that meets this for every size, and at least 999. A number given here
-that does not meet it raises the warning \code{hypernets_low_resolution}
+that does not meet it raises the warning \code{hypergraphs_low_resolution}
 with the number that would.}
 
 \item{seed}{For \code{null = "swap"}: a seed for the shuffles, applied locally
@@ -171,7 +171,7 @@ window, as with many actors who meet in small groups. On dense data, such
 as a few actions that all occur together often, it expects more
 co-occurrence than the windows can hold and validates little; when the
 median tested set of a size is expected in one window or more it raises
-the warning \code{hypernets_dense_cooccurrence}. For either
+the warning \code{hypergraphs_dense_cooccurrence}. For either
 null the p-values of the sets of each size are corrected with the
 Benjamini-Hochberg false discovery rate over all possible sets of that
 size, and a set is validated when its adjusted p-value is at most
@@ -194,7 +194,7 @@ simplices must be exactly the cliques igraph enumerates on the same
 thresholded graph (when igraph is installed), and its Euler characteristic
 from the face counts must equal the alternating sum of its Betti numbers
 (the Euler-Poincare identity). A failed check raises the warning
-\code{hypernets_simplicial_unverified}; the complex is returned either way.
+\code{hypergraphs_simplicial_unverified}; the complex is returned either way.
 }
 \examples{
 adj <- matrix(c(0, 1, 1, 0,

@@ -20,7 +20,7 @@ hg_neural(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}),
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypergraphs \code{net_hg}),
 dense or sparse.}
 
 \item{labels}{The known labels: a named character vector (names are

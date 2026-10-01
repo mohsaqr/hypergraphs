@@ -14,7 +14,7 @@ hg_classify(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypergraphs \code{net_hg}).}
 
 \item{labels}{The known labels: a named character vector (names are
 node identifiers -- documents under \code{nodes = "doc"} -- values their

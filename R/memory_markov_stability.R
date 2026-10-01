@@ -25,7 +25,7 @@
 #'   states. Restrict the `what = "passage_time"` table to passages leaving
 #'   the `from` states and arriving at the `to` states. Only that table has
 #'   `from`/`to` columns; using either with another `what`, or naming a state
-#'   the chain does not have, raises `hypernets_bad_input`.
+#'   the chain does not have, raises `hypergraphs_bad_input`.
 #' @param top Integer or `NULL`. Keep only the first `top` rows, applied
 #'   last: after `what`, `from`/`to` and `sort_by`.
 #' @return A base `data.frame`. For `what = "states"`, one row per state with
@@ -63,7 +63,7 @@ hg_get.net_markov_stability <- function(x, what = c("states",
       sprintf(paste0("`from` and `to` filter the passage table; ",
                      "what = \"%s\" has no from/to columns. ",
                      "Use what = \"passage_time\"."), what),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   mpt <- x$mpt
   .hms_check_states(from, "from", mpt$states)
@@ -118,21 +118,21 @@ hg_get.net_markov_stability <- function(x, what = c("states",
 #' @param states `NULL` or the character vector the caller passed.
 #' @param arg Argument name, for the message.
 #' @param known Character vector of the chain's states.
-#' @return `NULL`, invisibly; raises `hypernets_bad_input` on bad input.
+#' @return `NULL`, invisibly; raises `hypergraphs_bad_input` on bad input.
 #' @noRd
 .hms_check_states <- function(states, arg, known) {
   if (is.null(states)) return(invisible(NULL))
   if (!is.character(states) || !length(states) || anyNA(states)) {
     stop(errorCondition(
       sprintf("`%s` must be a non-empty character vector of states.", arg),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   unknown <- setdiff(states, known)
   if (length(unknown)) {
     stop(errorCondition(
       sprintf("`%s` names state(s) the chain does not have: %s.", arg,
               paste(unknown, collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   invisible(NULL)
 }

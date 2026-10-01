@@ -117,7 +117,7 @@
 #' coefficients on degree-matched random hypergraphs, not against 0;
 #' `"uniform"` is centred near 0 under random mixing.
 #'
-#' @param hg A hypernets `net_hg`, dense or sparse.
+#' @param hg A hypergraphs `net_hg`, dense or sparse.
 #' @param type One or more of `"uniform"` (default), `"top_2"`,
 #'   `"top_bottom"`.
 #' @param scale `"rank"` (default; Chodrow's generalized Spearman) or
@@ -127,7 +127,7 @@
 #'   `scale`, `assortativity` (in `[-1, 1]`, `NA` when undefined) and
 #'   `n_edges` (the hyperedges of size at least two that entered).
 #'
-#' @section Conditions: Raises `hypernets_bad_input` when `hg` is not a
+#' @section Conditions: Raises `hypergraphs_bad_input` when `hg` is not a
 #'   `net_hg` or has no hyperedge with at least two members.
 #'
 #' @references
@@ -167,7 +167,7 @@ hg_assortativity <- function(hg, type = "uniform",
     stop(errorCondition(
       paste("degree assortativity needs at least one hyperedge",
             "with two or more members"),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   x <- if (identical(scale, "rank")) {
@@ -201,16 +201,16 @@ hg_assortativity <- function(hg, type = "uniform",
 #' hypergraphx. A pair is `NA` when one of the two sequences is constant.
 #' hypergraphx 1.8.0 `degree_correlation()` returns the full
 #' `(max_size - 1)`-square matrix, including sizes with no hyperedge (all
-#' `NaN`); hypernets returns one row per pair of sizes that occur. Tested
+#' `NaN`); hypergraphs returns one row per pair of sizes that occur. Tested
 #' against hypergraphx at `1e-12`.
 #'
-#' @param hg A hypernets `net_hg`, dense or sparse.
+#' @param hg A hypergraphs `net_hg`, dense or sparse.
 #'
 #' @return A base `data.frame`, one row per pair of present hyperedge sizes
 #'   `size_1 < size_2`, with columns `size_1`, `size_2`, `correlation`
 #'   (Pearson, `NA` when undefined) and `n_nodes`.
 #'
-#' @section Conditions: Raises `hypernets_bad_input` when `hg` is not a
+#' @section Conditions: Raises `hypergraphs_bad_input` when `hg` is not a
 #'   `net_hg` or has fewer than two distinct hyperedge sizes of at least
 #'   two.
 #'
@@ -241,7 +241,7 @@ hg_degree_correlation <- function(hg) {
     stop(errorCondition(
       paste("cross-order degree correlation needs at least two distinct",
             "hyperedge sizes >= 2"),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   by_size <- vapply(present, \(s) {

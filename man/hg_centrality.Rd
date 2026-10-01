@@ -17,7 +17,7 @@ hg_centrality(x, ...)
 \value{
 A base \code{data.frame}, one row per node (or per state), with one
 column per requested centrality. Any other input raises
-\code{hypernets_bad_input}.
+\code{hypergraphs_bad_input}.
 }
 \description{
 One verb, two estimators, chosen by the class of \code{x}:
@@ -31,7 +31,7 @@ betweenness and closeness of the higher-order topology, projected
 onto the first-order states; see \code{\link[=hg_centrality.net_hon]{hg_centrality.net_hon()}}.}
 }
 Each method keeps its own arguments; passing an argument that only the
-other method takes raises \code{hypernets_bad_input}.
+other method takes raises \code{hypergraphs_bad_input}.
 }
 \examples{
 hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))

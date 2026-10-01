@@ -180,7 +180,7 @@
 #'   default, keeps every word; `0.99` keeps the words carrying 99% of the
 #'   tokens. Applied together with `max_words` and `min_count`, the strictest
 #'   wins. Documents left with no tokens are dropped with a
-#'   `hypernets_dropped_documents` warning.
+#'   `hypergraphs_dropped_documents` warning.
 #' @param min_chars Minimum number of characters for a word to be kept
 #'   (default `1L`, keep everything). Raise it to drop the single letters
 #'   and short fragments that initials, enumerations and hyphenated
@@ -208,19 +208,19 @@
 #'   the null test currently require the dense representation.
 #'
 #' @return An object of class `c("text_hypergraph", "net_hg")` -- a
-#'   [group_hypergraph()] hypergraph accepted by every hypernets
+#'   [group_hypergraph()] hypergraph accepted by every hypergraphs
 #'   hypergraph verb and by [hg_measures()], [hg_centrality()],
 #'   [hg_cluster()], and [hg_classify()] -- with a `text` field recording the
 #'   corpus tables. Use [hg_get.text_hypergraph()] for the tidy
 #'   weight table, and its `what` argument for the document and vocabulary
 #'   tables.
 #'
-#' @section Conditions: Raises `hypernets_bad_input` (broken argument contract,
+#' @section Conditions: Raises `hypergraphs_bad_input` (broken argument contract,
 #'   including bag-only arguments passed to other constructions),
-#'   `hypernets_empty_corpus` (no document survives tokenization and filtering),
-#'   `hypernets_missing_embeddings` (`construction = "knn"` with neither
+#'   `hypergraphs_empty_corpus` (no document survives tokenization and filtering),
+#'   `hypergraphs_missing_embeddings` (`construction = "knn"` with neither
 #'   `embeddings` nor the sbert package), and warns with
-#'   `hypernets_dropped_documents` when some documents end up empty.
+#'   `hypergraphs_dropped_documents` when some documents end up empty.
 #'
 #' @references
 #' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with less:
@@ -278,7 +278,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
   if (isTRUE(sparse) && !construction %in% c("bag", "sentence")) {
     stop(errorCondition(
       "`sparse = TRUE` currently supports the bag and sentence constructions only",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   weight <- match.arg(weight)
@@ -309,7 +309,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
         !column %in% names(x)) {
       stop(errorCondition(
         "when `x` is a data.frame, `column` must name one of its columns",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     text <- as.character(x[[column]])
@@ -319,14 +319,14 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       if (!is.character(id) || length(id) != 1L || !id %in% names(x)) {
         stop(errorCondition(
           "`id` must name a column of `x`",
-          class = "hypernets_bad_input", call = NULL
+          class = "hypergraphs_bad_input", call = NULL
         ))
       }
       doc_id <- as.character(x[[id]])
       if (anyNA(doc_id) || anyDuplicated(doc_id) > 0L) {
         stop(errorCondition(
           sprintf("`%s` must hold unique, non-missing document IDs", id),
-          class = "hypernets_bad_input", call = NULL
+          class = "hypergraphs_bad_input", call = NULL
         ))
       }
     }
@@ -337,7 +337,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     if (anyNA(doc_id) || anyDuplicated(doc_id) > 0L || !all(nzchar(doc_id))) {
       stop(errorCondition(
         "names of `x` must be unique, non-empty document IDs",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     meta <- NULL
@@ -379,7 +379,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
   if (length(words) == 0L) {
     stop(errorCondition(
       "no document contains any token after tokenization and filtering",
-      class = "hypernets_empty_corpus", call = NULL
+      class = "hypergraphs_empty_corpus", call = NULL
     ))
   }
   long <- data.frame(
@@ -399,7 +399,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
         "no word survives `min_count = %d`, `max_words = %s` and `coverage = %g`",
         as.integer(min_count), format(max_words), coverage
       ),
-      class = "hypernets_empty_corpus", call = NULL
+      class = "hypergraphs_empty_corpus", call = NULL
     ))
   }
   vocabulary_full <- length(total)
@@ -427,7 +427,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
         "%d document(s) had no remaining tokens and were dropped: %s",
         length(dropped), paste(dropped, collapse = ", ")
       ),
-      class = "hypernets_dropped_documents"
+      class = "hypergraphs_dropped_documents"
     ))
   }
 
@@ -454,7 +454,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     if (identical(weight, "tfidf")) {
       stop(errorCondition(
         "`weight = \"tfidf\"` applies to the bag construction only; sentence hyperedges are weighted by in-sentence counts",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     names(sentence_tokens) <- doc_id
@@ -488,7 +488,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     if (identical(weight, "tfidf")) {
       stop(errorCondition(
         "`weight = \"tfidf\"` applies to the bag construction only; windowed hyperedges are weighted by window counts",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     doc_tokens <- tokens[lengths(tokens) > 0L]
@@ -581,14 +581,14 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       identical(weight, "tfidf")) {
     stop(errorCondition(
       "`stop_words`, `min_count`, `min_chars`, `max_words`, `coverage`, and `weight` apply to token-based constructions, not construction = \"knn\"",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   if (is.null(embeddings)) {
     if (!requireNamespace("sbert", quietly = TRUE)) {
       stop(errorCondition(
         "construction = \"knn\" needs an `embeddings` matrix, or the sbert package installed to compute one",
-        class = "hypernets_missing_embeddings", call = NULL
+        class = "hypergraphs_missing_embeddings", call = NULL
       ))
     }
     embeddings <- sbert::encode(text, model = model)
@@ -605,7 +605,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
             "`embeddings` has %d rows but the corpus has %d documents",
             nrow(embeddings), length(doc_id)
           ),
-          class = "hypernets_bad_input", call = NULL
+          class = "hypergraphs_bad_input", call = NULL
         ))
       }
       rownames(embeddings) <- doc_id
@@ -613,7 +613,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       if (!setequal(rownames(embeddings), doc_id)) {
         stop(errorCondition(
           "rownames of `embeddings` must match the document IDs",
-          class = "hypernets_bad_input", call = NULL
+          class = "hypergraphs_bad_input", call = NULL
         ))
       }
       embeddings <- embeddings[doc_id, , drop = FALSE]
@@ -732,7 +732,7 @@ hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
   if (identical(what, "sentences") && is.null(x$text$sentences)) {
     stop(errorCondition(
       "`what = \"sentences\"` needs construction = \"sentence\"",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   x$text[[what]]

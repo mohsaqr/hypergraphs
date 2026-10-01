@@ -68,7 +68,8 @@ caller's random number stream is left untouched.}
 
 \item{color_by}{Colour of the hulls: \code{NULL} (the hyperedges' count
 attribute described above, else one colour), \code{"size"}
-(hyperedge cardinality, sequential scale), the name of a column in the
+(hyperedge cardinality, one Okabe-Ito colour per size), the name of a
+column in the
 edge metadata (\code{x$edge_data}), a vector named by hyperedge, or a vector
 with one value per hyperedge. Character or factor values get the
 Okabe-Ito palette; numeric values a sequential scale built from it.}
@@ -227,7 +228,7 @@ shares (listed in the subtitle), the figure is titled with the group
 and its number of sequences, \code{titles} defaults to \code{FALSE} and the
 legends are stacked. A
 name that is not a group, or a hypergraph without a \code{group} attribute,
-raises \code{hypernets_bad_input}. \code{NULL} (default) draws every hyperedge.}
+raises \code{hypergraphs_bad_input}. \code{NULL} (default) draws every hyperedge.}
 
 \item{...}{Unused; for S3 consistency.}
 }
@@ -279,7 +280,7 @@ size and the frame spent on structure.
 }
 \section{Conditions}{
 
-\code{hypernets_bad_input} for an invalid selector or layout, a \code{node_sizes}
+\code{hypergraphs_bad_input} for an invalid selector or layout, a \code{node_sizes}
 that misses a node or holds a negative value, a \code{direction} or
 \code{transitions} table without \code{from}, \code{to} and one non-negative numeric
 weight, a \code{direction} without \code{node_sizes}, \code{titles} that are not

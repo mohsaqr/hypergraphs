@@ -156,20 +156,20 @@ test_that("hg_sequences() raises classed conditions on bad input", {
 
   expect_error(
     hg_sequences(hg, topics, actor = "teacher", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
   expect_error(
     hg_sequences(hg, topics, actor = "student", order_by = "when"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
   # No clusters and no state: nothing says what the states are.
   expect_error(
     hg_sequences(hg, actor = "student", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
   expect_error(
     hg_sequences(hg, actor = "student", order_by = "turn", state = "topic"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
   # A partition of something other than the documents (here, the words).
   words <- hg_cluster(text_hypergraph(seq_posts, column = "text",
@@ -177,19 +177,19 @@ test_that("hg_sequences() raises classed conditions on bad input", {
                       k = 2L, seed = 1L)
   expect_error(
     hg_sequences(hg, words, actor = "student", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
   # Not a hypergraph at all, and a hypergraph with no documents table.
   expect_error(
     hg_sequences(seq_posts, topics, actor = "student", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
   expect_error(
     hg_sequences(
       group_hypergraph(data.frame(member = c("a", "b"), group = c("g", "g"))),
       topics, actor = "student", order_by = "turn"
     ),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 })
 
@@ -203,13 +203,13 @@ test_that("hg_sequences() refuses missing and ambiguous input", {
   hg_gappy <- text_hypergraph(gappy, column = "text", stop_words = seq_stop)
   expect_error(
     hg_sequences(hg_gappy, topics, actor = "student", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 
   duplicated_nodes <- rbind(topics, topics)
   expect_error(
     hg_sequences(hg, duplicated_nodes, actor = "student", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 
   partial <- data.frame(node = docs$doc, cluster = docs$phase,
@@ -217,7 +217,7 @@ test_that("hg_sequences() refuses missing and ambiguous input", {
   partial$cluster[3L] <- NA_character_
   expect_error(
     hg_sequences(hg, partial, actor = "student", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 
   expect_error(
@@ -239,7 +239,7 @@ test_that("hg_sequences() names the state column with `state`", {
   )
   expect_error(
     hg_sequences(hg, states, actor = "student", order_by = "turn"),
-    class = "hypernets_bad_input"
+    class = "hypergraphs_bad_input"
   )
 })
 

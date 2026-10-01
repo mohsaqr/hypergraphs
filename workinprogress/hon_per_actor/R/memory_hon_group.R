@@ -56,7 +56,7 @@
 #' higher-order one. Pass `min_transitions` to state a different floor.
 #'
 #' Units below the floor raise one warning of class
-#' `hypernets_insufficient_support` naming them (the condition carries the
+#' `hypergraphs_insufficient_support` naming them (the condition carries the
 #' full list in its `actors` field) and are left out of the container. With
 #' `keep_sparse = TRUE` they are fitted anyway and flagged
 #' `sufficient = FALSE` in `as.data.frame(x, what = "actors")`; the warning
@@ -78,11 +78,11 @@
 #' is refused.
 #'
 #' @section Conditions:
-#' * `hypernets_bad_input` -- `by` missing from the data, of the wrong
+#' * `hypergraphs_bad_input` -- `by` missing from the data, of the wrong
 #'   length, containing `NA`, given with model-object input; `min_transitions`
 #'   not a single whole number \eqn{\ge 1}; `min_transitions` or
 #'   `keep_sparse` given without `by`.
-#' * `hypernets_insufficient_support` -- warning when some units fall below
+#' * `hypergraphs_insufficient_support` -- warning when some units fall below
 #'   the floor; error when no unit can be fitted.
 #'
 #' @references
@@ -175,7 +175,7 @@ NULL
                      "`min_transitions` or pool the data."),
               .hon_group_by_label(by), floor_used, max(n_transitions)),
       actors = sparse,
-      class = c("hypernets_insufficient_support", "hypernets_bad_input"),
+      class = c("hypergraphs_insufficient_support", "hypergraphs_bad_input"),
       call = NULL))
   }
   if (length(sparse)) .hon_group_warn_sparse(sparse, floor_used, keep_sparse)
@@ -215,12 +215,12 @@ NULL
   if (!ok_floor) {
     stop(errorCondition(
       "`min_transitions` must be NULL or a single whole number >= 1.",
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   if (!(is.logical(keep_sparse) && length(keep_sparse) == 1L &&
         !is.na(keep_sparse))) {
     stop(errorCondition("`keep_sparse` must be TRUE or FALSE.",
-                        class = "hypernets_bad_input", call = NULL))
+                        class = "hypergraphs_bad_input", call = NULL))
   }
   invisible(NULL)
 }
@@ -232,13 +232,13 @@ NULL
     stop(errorCondition(
       paste0("`by` needs the unit of every trajectory, which a model object ",
              "does not carry; pass the sequence data.frame instead."),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   units <- if (is.data.frame(data)) {
     if (!(is.character(by) && length(by) == 1L && by %in% names(data))) {
       stop(errorCondition(
         "`by` must name one column of `data`.",
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     data[[by]]
   } else if (is.list(data)) {
@@ -247,19 +247,19 @@ NULL
         sprintf(paste0("For list input `by` must have one entry per ",
                        "trajectory (%d), not %d."),
                 length(data), length(by)),
-        class = "hypernets_bad_input", call = NULL))
+        class = "hypergraphs_bad_input", call = NULL))
     }
     by
   } else {
     stop(errorCondition(
       "`data` must be a data.frame or a list of trajectories when `by` is given.",
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   if (anyNA(units)) {
     stop(errorCondition(
       sprintf("`by` has %d missing unit label(s); drop or label them first.",
               sum(is.na(units))),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   as.character(units)
 }
@@ -313,7 +313,7 @@ NULL
             length(sparse), floor_used, fate,
             paste(shown, collapse = ", "), more),
     actors = sparse,
-    class = "hypernets_insufficient_support", call = NULL))
+    class = "hypergraphs_insufficient_support", call = NULL))
 }
 
 # ---------------------------------------------------------------------------
@@ -349,7 +349,7 @@ NULL
 #'   `sufficient`, `fitted`, and for fitted units `n_nodes`, `n_edges`,
 #'   `max_order_observed` (`NA` otherwise).
 #' @section Conditions:
-#' Raises `hypernets_bad_input` for an `actor` label that is not a unit of
+#' Raises `hypergraphs_bad_input` for an `actor` label that is not a unit of
 #' `x`.
 #' @references
 #' Xu, J., Wickramarathne, T. L., & Chawla, N. V. (2016). Representing
@@ -405,7 +405,7 @@ as.data.frame.net_hon_group <- function(x, row.names = NULL, optional = FALSE,
     stop(errorCondition(
       sprintf("`actor` names no unit of this model: %s.",
               paste(unknown, collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   invisible(NULL)
 }
@@ -500,7 +500,7 @@ summary.net_hon_group <- function(object, ...) {
 #' @return For `"edges"` and `"support"`, the `ggplot` from cograph; for
 #'   `"network"`, `x` invisibly (cograph draws with base graphics).
 #' @section Conditions:
-#' Raises `hypernets_bad_input` for an unknown `what`, for `what =
+#' Raises `hypergraphs_bad_input` for an unknown `what`, for `what =
 #' "network"` without exactly one fitted `actor`, and when the edge view has
 #' no rule left to draw.
 #' @references
@@ -523,7 +523,7 @@ plot.net_hon_group <- function(x, what = c("edges", "support", "network"),
     stop(errorCondition(
       sprintf("`what` must be one of %s.",
               paste0("\"", views, "\"", collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   switch(what,
          edges = .hon_group_plot_edges(x, actor, order_min, top, ...),
@@ -537,7 +537,7 @@ plot.net_hon_group <- function(x, what = c("edges", "support", "network"),
   rules <- as.data.frame(x, actor = actor, order_min = order_min)
   if (!nrow(rules)) {
     stop(errorCondition("No rule left to draw for these units / `order_min`.",
-                        class = "hypernets_bad_input", call = NULL))
+                        class = "hypergraphs_bad_input", call = NULL))
   }
   total <- tapply(rules$count, rules$path, sum)
   paths <- names(total)[order(-total, names(total))]
@@ -585,7 +585,7 @@ plot.net_hon_group <- function(x, what = c("edges", "support", "network"),
         actor %in% names(x$models))) {
     stop(errorCondition(
       "`what = \"network\"` needs `actor =` naming one fitted unit.",
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   m <- x$models[[actor]]
   defaults <- list(x = m$weights, minimum = 0.05, label_size = 0.7,

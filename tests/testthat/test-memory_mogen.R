@@ -229,9 +229,9 @@ test_that("hg_get(what = 'paths') top limits rows returned", {
 # --- hg_get(what = "paths"): k outside [2, max_order + 1] ---
 test_that("hg_get(what = 'paths') rejects k outside the fitted orders", {
   m <- mogen(list(c("A", "B", "C"), c("B", "C", "A")), max_order = 1L)
-  expect_error(hg_get(m, what = "paths", k = 1L), class = "hypernets_bad_input")
-  expect_error(hg_get(m, what = "paths", k = 3L), class = "hypernets_bad_input")
-  expect_error(hg_get(m, what = "paths", k = 2.5), class = "hypernets_bad_input")
+  expect_error(hg_get(m, what = "paths", k = 1L), class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, what = "paths", k = 3L), class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, what = "paths", k = 2.5), class = "hypergraphs_bad_input")
 })
 
 # --- hg_get(what = "paths"): trailing NAs of a wide frame end a sequence ---
@@ -308,5 +308,5 @@ test_that("hg_get(what = 'paths') takes a range of path lengths", {
                    {x <- hg_get(m, what = "paths", k = 3L, top = 2L)
                     x <- x[setdiff(names(x), "k")]; rownames(x) <- 3:4; x})
   expect_true(all(table(both$k) <= 2L))
-  expect_error(hg_get(m, what = "paths", k = c(2L, 9L)), class = "hypernets_bad_input")
+  expect_error(hg_get(m, what = "paths", k = c(2L, 9L)), class = "hypergraphs_bad_input")
 })

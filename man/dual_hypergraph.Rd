@@ -7,7 +7,7 @@
 dual_hypergraph(hg)
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypergraphs
 \code{net_hg}.}
 }
 \value{

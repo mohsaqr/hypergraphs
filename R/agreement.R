@@ -89,7 +89,7 @@
   if (!node %in% names(x)) {
     stop(errorCondition(
       sprintf("`%s` has no `%s` column", arg, node),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   column <- if (is.null(label)) {
@@ -107,7 +107,7 @@
       } else {
         sprintf("`%s` has no `%s` column", arg, label)
       },
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   data.frame(node = as.character(x[[node]]),
@@ -223,13 +223,13 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
     # table()-based indices drop NA labels; drop them for every column alike
     warning(warningCondition(sprintf(
       "%d node(s) without a label in `x` or `y` are left out of the comparison",
-      sum(unlabelled)), class = "hypernets_missing_labels", call = NULL))
+      sum(unlabelled)), class = "hypergraphs_missing_labels", call = NULL))
     joined <- joined[!unlabelled, , drop = FALSE]
   }
   if (nrow(joined) == 0L) {
     stop(errorCondition(
       "`x` and `y` share no node names; nothing to compare",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   if (identical(what, "table")) {
@@ -295,7 +295,7 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
 #' A subsample can disconnect the hypergraph (a word that tied two groups of
 #' documents may not be drawn); [hg_cluster()] cannot cut a disconnected
 #' hypergraph, so that run is not scored, is counted in `n_failed`, and a
-#' warning of class `hypernets_hypergraph_disconnected` reports the count.
+#' warning of class `hypergraphs_hypergraph_disconnected` reports the count.
 #'
 #' The `eigengap` column is the gap \eqn{\lambda_{k+1} - \lambda_k} between
 #' consecutive eigenvalues of the full hypergraph's Laplacian (the `gap`
@@ -310,7 +310,7 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
 #' deterministic on this embedding, not whether the structure survives a
 #' change of sample, and it never resamples the data.
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
+#' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`).
 #' @param k Vector of cluster counts to test, each at least 2.
 #' @param type `"zhou"` or `"random_walk"`, the Laplacian of [hg_cluster()].
 #' @param resample `"subset"` (default) for subsampling stability, or
@@ -345,7 +345,7 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
 #'   `identical_partition` (are the two partitions literally identical,
 #'   labels included) and `ari` (their adjusted Rand index).
 #'
-#'   Raises `hypernets_bad_input` for a `fraction` outside (0, 1), a
+#'   Raises `hypergraphs_bad_input` for a `fraction` outside (0, 1), a
 #'   subsample too small to hold `k` clusters, a non-positive `n_boot`, or
 #'   `what = "clusters"` with `resample = "seeds"`.
 #' @references
@@ -437,7 +437,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
       fit <- tryCatch(
         hg_cluster(sub, k = k[[i]], type = type, seed = seed,
                    nstart = nstart),
-        hypernets_hypergraph_disconnected = function(e) NULL
+        hypergraphs_hypergraph_disconnected = function(e) NULL
       )
       if (is.null(fit)) return(NULL)
       .thg_best_jaccard(full[[i]][sub$nodes],
@@ -471,7 +471,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
                      "were not scored (k = %s)"),
               paste(unique(n_failed), collapse = "/"), as.integer(n_boot),
               paste(k[n_failed > 0], collapse = ", ")),
-      class = "hypernets_hypergraph_disconnected", call = NULL
+      class = "hypergraphs_hypergraph_disconnected", call = NULL
     ))
   }
   if (identical(what, "clusters")) {

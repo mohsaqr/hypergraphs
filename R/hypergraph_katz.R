@@ -41,7 +41,7 @@
         alpha > 0)) {
     stop(errorCondition(
       "`alpha` must be a single positive number below 1 / lambda_max",
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   adjacency <- .hg_katz_adjacency(hg)
@@ -52,7 +52,7 @@
       sprintf(paste0("`alpha` = %g does not make the Katz series converge: ",
                      "it must be below 1 / lambda_max = %g"),
               alpha, 1 / lambda),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   n <- nrow(adjacency)

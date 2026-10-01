@@ -44,7 +44,7 @@
 #' as a few actions that all occur together often, it expects more
 #' co-occurrence than the windows can hold and validates little; when the
 #' median tested set of a size is expected in one window or more it raises
-#' the warning `hypernets_dense_cooccurrence`. For either
+#' the warning `hypergraphs_dense_cooccurrence`. For either
 #' null the p-values of the sets of each size are corrected with the
 #' Benjamini-Hochberg false discovery rate over all possible sets of that
 #' size, and a set is validated when its adjusted p-value is at most
@@ -67,7 +67,7 @@
 #' thresholded graph (when igraph is installed), and its Euler characteristic
 #' from the face counts must equal the alternating sum of its Betti numbers
 #' (the Euler-Poincare identity). A failed check raises the warning
-#' `hypernets_simplicial_unverified`; the complex is returned either way.
+#' `hypergraphs_simplicial_unverified`; the complex is returned either way.
 #'
 #' @param x Sequences for `type = "window"`, in any form described in
 #'   [sequence-input]; a square weighted matrix, a network object carrying
@@ -98,7 +98,7 @@
 #'   its own only if this is at most `alpha` divided by the number of
 #'   possible sets of its size. `NULL` (default) takes the smallest number
 #'   that meets this for every size, and at least 999. A number given here
-#'   that does not meet it raises the warning `hypernets_low_resolution`
+#'   that does not meet it raises the warning `hypergraphs_low_resolution`
 #'   with the number that would.
 #' @param seed For `null = "swap"`: a seed for the shuffles, applied locally
 #'   so the global random state is restored. `NULL` (default) uses the
@@ -229,7 +229,7 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
                            time = time, session = session,
                            time_threshold = time_threshold,
                            timezone = timezone)
-    return(structure(sc, class = c("hypernets_simplicial", class(sc))))
+    return(structure(sc, class = c("hypergraphs_simplicial", class(sc))))
   }
   if (type %in% c("vr", "rips")) x <- .sc_distances(x)
   sc <- Nestimate::build_simplicial(x, type = type, threshold = threshold,
@@ -241,7 +241,7 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
     .sc_verify(sc, x, threshold = threshold, max_dim = max_dim)
   }
   # one added class, so plot() shows the simplices through cograph
-  structure(sc, class = c("hypernets_simplicial", class(sc)))
+  structure(sc, class = c("hypergraphs_simplicial", class(sc)))
 }
 
 #' @rdname simplicial
@@ -251,7 +251,7 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
 #' @param top For `plot()`: the number of maximal simplices to draw, in the
 #'   order described under Value. `NULL` (default) draws all of them.
 #' @export
-plot.hypernets_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
+plot.hypergraphs_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
                                       ...) {
   stopifnot(
     "`dismantled` must be TRUE or FALSE" =
@@ -315,16 +315,16 @@ plot.hypernets_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
 
 #' @rdname simplicial
 #' @export
-hg_get.hypernets_simplicial <- function(x, ...) NextMethod()
+hg_get.hypergraphs_simplicial <- function(x, ...) NextMethod()
 
 #' @rdname result-summary
 #' @export
-summary.hypernets_simplicial <- function(object, ...) .ho_summary(object)
+summary.hypergraphs_simplicial <- function(object, ...) .ho_summary(object)
 
 #' @rdname simplicial
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @export
-print.hypernets_simplicial <- function(x, n = 10L, ...) {
+print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
   betti <- hg_betti(x)
   kind <- switch(x$type %||% "",
     window = if (is.null(x$validation)) {
@@ -362,7 +362,7 @@ print.hypernets_simplicial <- function(x, n = 10L, ...) {
 #' @param x The input it was built from.
 #' @param threshold,max_dim The construction arguments.
 #' @return `NULL`, invisibly; raises the warning
-#'   `hypernets_simplicial_unverified` when a check fails.
+#'   `hypergraphs_simplicial_unverified` when a check fails.
 #' @noRd
 .sc_verify <- function(sc, x, threshold, max_dim) {
   problems <- character(0)
@@ -401,7 +401,7 @@ print.hypernets_simplicial <- function(x, n = 10L, ...) {
     warning(warningCondition(
       paste0("simplicial(): the clique complex failed verification: ",
              paste(problems, collapse = "; "), "."),
-      class = "hypernets_simplicial_unverified", call = NULL))
+      class = "hypergraphs_simplicial_unverified", call = NULL))
   }
   invisible(NULL)
 }

@@ -3,14 +3,14 @@
 \name{hg_get}
 \alias{hg_get}
 \alias{hg_get.default}
-\title{Read a table from any hypernets object}
+\title{Read a table from any hypergraphs object}
 \usage{
 hg_get(x, what = NULL, ...)
 
 \method{hg_get}{default}(x, what = NULL, ...)
 }
 \arguments{
-\item{x}{A hypernets object.}
+\item{x}{A hypergraphs object.}
 
 \item{what}{\code{NULL} (default) for the object's primary table, or the name
 of one of its tables (see \emph{Tables by class}).}
@@ -22,7 +22,7 @@ and \code{top} (the first \code{top} rows, applied last).}
 \value{
 A base \code{data.frame}, one row per observation of the selected
 table. An object of a class without a method raises
-\code{hypernets_bad_input}, naming the class.
+\code{hypergraphs_bad_input}, naming the class.
 }
 \description{
 \code{hg_get()} is the single reader of the package. Every object a
@@ -68,7 +68,7 @@ network)}{\code{"states"} (default), \code{"physical"}, \code{"modules"},
 \item{\code{persistence_landscape} (\code{\link[=hg_landscape]{hg_landscape()}})}{\code{"landscape"}.}
 \item{\code{hg_communities} (\code{\link[=hg_communities]{hg_communities()}} on a hypergraph)}{see
 \code{\link[=hg_get.hg_communities]{hg_get.hg_communities()}}.}
-\item{\code{hypernets_community_comparison}, \code{hypernets_motifs},
+\item{\code{hypergraphs_community_comparison}, \code{hypergraphs_motifs},
 \code{net_hg_mmsbm}}{see their methods.}
 }
 }

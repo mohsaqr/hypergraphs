@@ -1,6 +1,6 @@
 # ---- Wasserstein distance between persistence diagrams ----
 #
-# hg_wasserstein() is hypernets' own verb on the persistent_homology
+# hg_wasserstein() is hypergraphs' own verb on the persistent_homology
 # objects hg_homology() returns (hg_homology(), hg_bottleneck() and
 # hg_landscape() wrap the Nestimate estimators). It needs
 # two Nestimate internals, kept as private copies because `:::` is not

@@ -67,7 +67,7 @@ count reaches this share of all tokens, a number in \verb{(0, 1]}. \code{1}, the
 default, keeps every word; \code{0.99} keeps the words carrying 99\% of the
 tokens. Applied together with \code{max_words} and \code{min_count}, the strictest
 wins. Documents left with no tokens are dropped with a
-\code{hypernets_dropped_documents} warning.}
+\code{hypergraphs_dropped_documents} warning.}
 
 \item{min_chars}{Minimum number of characters for a word to be kept
 (default \code{1L}, keep everything). Raise it to drop the single letters
@@ -104,7 +104,7 @@ the null test currently require the dense representation.}
 }
 \value{
 An object of class \code{c("text_hypergraph", "net_hg")} -- a
-\code{\link[=group_hypergraph]{group_hypergraph()}} hypergraph accepted by every hypernets
+\code{\link[=group_hypergraph]{group_hypergraph()}} hypergraph accepted by every hypergraphs
 hypergraph verb and by \code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_centrality]{hg_centrality()}},
 \code{\link[=hg_cluster]{hg_cluster()}}, and \code{\link[=hg_classify]{hg_classify()}} -- with a \code{text} field recording the
 corpus tables. Use \code{\link[=hg_get.text_hypergraph]{hg_get.text_hypergraph()}} for the tidy
@@ -166,12 +166,12 @@ filtering happen before windowing, so removing a token closes the gap it
 leaves in the sequence.
 }
 \section{Conditions}{
- Raises \code{hypernets_bad_input} (broken argument contract,
+ Raises \code{hypergraphs_bad_input} (broken argument contract,
 including bag-only arguments passed to other constructions),
-\code{hypernets_empty_corpus} (no document survives tokenization and filtering),
-\code{hypernets_missing_embeddings} (\code{construction = "knn"} with neither
+\code{hypergraphs_empty_corpus} (no document survives tokenization and filtering),
+\code{hypergraphs_missing_embeddings} (\code{construction = "knn"} with neither
 \code{embeddings} nor the sbert package), and warns with
-\code{hypernets_dropped_documents} when some documents end up empty.
+\code{hypergraphs_dropped_documents} when some documents end up empty.
 }
 
 \examples{

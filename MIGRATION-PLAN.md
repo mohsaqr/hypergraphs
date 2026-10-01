@@ -1,16 +1,16 @@
 Superseded by ROADMAP.md (2026-09-29); kept as history.
 
-# Migration plan — texthypergraph folds into hypernets
+# Migration plan — texthypergraph folds into hypergraphs
 
 **Status (2026-09-01): EXECUTED in the working tree, uncommitted.** See
 `HANDOFF.md` / `CHANGES.md` for what was done and the measured results.
 Deviations from the plan below, found while executing it:
 
-- `Nestimate::bipartite_groups()` does not exist in hypernets under that name;
+- `Nestimate::bipartite_groups()` does not exist in hypergraphs under that name;
   it is `group_hypergraph(member =)` — a pure rename with `identical()`
   output (verified on binary and weighted builds). Four call sites and all
   test fixtures were renamed.
-- The spectral S3 methods: **hypernets' were kept, not ours** — they are the
+- The spectral S3 methods: **hypergraphs' were kept, not ours** — they are the
   superset (plot methods, `top =`, scalar `edge_weights`, window-count
   defaults). Only the `normalization` argument and its helper
   (`.hl_score_predictions()`) were ported.
@@ -20,7 +20,7 @@ Deviations from the plan below, found while executing it:
 - Brought in by file copy in the working tree, not `git subtree add` —
   both trees were uncommitted and the user asked for a clean merge; the
   texthypergraph history stays in its own (retired) repo.
-- CI moved *to* hypernets (it had none): `R-CMD-check.yaml`, `pkgdown.yaml`,
+- CI moved *to* hypergraphs (it had none): `R-CMD-check.yaml`, `pkgdown.yaml`,
   `_pkgdown.yml` (destination `pkgdown/`, since `docs/` holds the hand-knit
   family documents).
 - `Tutorial_docs/hon_inference.{Rmd,html}` (deleted on disk, tracked at
@@ -29,18 +29,18 @@ Deviations from the plan below, found while executing it:
 ---
 
 
-**Decision (2026-09-01):** one package. `hypernets` is the home and keeps its
+**Decision (2026-09-01):** one package. `hypergraphs` is the home and keeps its
 name; `texthypergraph` becomes its text family. Nothing moves until this plan
 is approved.
 
 ## Why one package
 
 - `texthypergraph` is 52% generic hypergraph math, and ~1,100 of those lines
-  duplicate hypernets exactly (verified numerically identical this session, not
+  duplicate hypergraphs exactly (verified numerically identical this session, not
   assumed).
 - **The merge drops the `Nestimate` dependency.** texthypergraph imports three
   Nestimate functions in code — `bipartite_groups`, `hypergraph_measures`,
-  `hypergraph_centrality` (`wtna` appears only in comments). hypernets already
+  `hypergraph_centrality` (`wtna` appears only in comments). hypergraphs already
   has all three. CRAN's Nestimate is 0.8.5 while texthypergraph requires
   >= 0.9.0, so today texthypergraph **cannot** be submitted; merged, the
   dependency disappears and the blocker with it.
@@ -53,10 +53,10 @@ is approved.
 
 | Repo | State |
 |---|---|
-| hypernets | hypergraph fold-in **untracked** (13 R, 12 tests, 47 man); rename in flight (`hon.R` -> `memory_hon.R` x7); 48 modified; `Tutorial_docs/hon_inference.{Rmd,html}` deleted on disk but tracked at HEAD. HEAD has **zero** hypergraph exports. |
+| hypergraphs | hypergraph fold-in **untracked** (13 R, 12 tests, 47 man); rename in flight (`hon.R` -> `memory_hon.R` x7); 48 modified; `Tutorial_docs/hon_inference.{Rmd,html}` deleted on disk but tracked at HEAD. HEAD has **zero** hypergraph exports. |
 | texthypergraph | 44 files uncommitted — everything since 0.6.2 (HyperGAT, agreement API, projection tier). Version 0.6.4. |
 
-Also note: until hypernets commits the fold-in, the only *committed* copy of the
+Also note: until hypergraphs commits the fold-in, the only *committed* copy of the
 hypergraph engine is `mohsaqr/hypernet_retired` (private). Do not delete that
 repo until this migration is committed.
 
@@ -66,9 +66,9 @@ All three are the spectral trio texthypergraph migrated on 2026-08-25.
 
 | Export | Resolution |
 |---|---|
-| `hypergraph_laplacian` | identical signature and values -> **keep hypernets'**, delete ours |
-| `hypergraph_cluster` | identical signature and values -> **keep hypernets'**, delete ours |
-| `hypergraph_transduction` | **KEEP OURS.** Ours has `normalization = c("none", "class_mass")`; hypernets' does not. That is the Zhu et al. (2003) class-mass fix, without which Zhou transduction predicts the majority class for every node under imbalanced seeds (R8: all 2,189 test docs -> "earn"). Dropping it silently regresses every benchmark. |
+| `hypergraph_laplacian` | identical signature and values -> **keep hypergraphs'**, delete ours |
+| `hypergraph_cluster` | identical signature and values -> **keep hypergraphs'**, delete ours |
+| `hypergraph_transduction` | **KEEP OURS.** Ours has `normalization = c("none", "class_mass")`; hypergraphs' does not. That is the Zhu et al. (2003) class-mass fix, without which Zhou transduction predicts the majority class for every node under imbalanced seeds (R8: all 2,189 test docs -> "earn"). Dropping it silently regresses every benchmark. |
 
 S3 methods colliding (`print`/`summary`/`as.data.frame` for
 `net_hypergraph_cluster` and `net_hypergraph_transduction`): keep one set,
@@ -80,12 +80,12 @@ under Rule 0.
 Each pair is already verified numerically identical, so collapsing is a
 deletion plus a parity test, never a rewrite.
 
-| texthypergraph | hypernets | Keep |
+| texthypergraph | hypergraphs | Keep |
 |---|---|---|
-| `R/spectral.R` (592) | `R/hypergraph_laplacian.R` (746) | hypernets', plus our `normalization` arg ported onto `hypergraph_transduction` |
-| `R/pagerank.R` (196) | hypernets' B2 hypergraph PageRank | compare first — ours has `personalized =` and `sort_by =`; keep the superset |
+| `R/spectral.R` (592) | `R/hypergraph_laplacian.R` (746) | hypergraphs', plus our `normalization` arg ported onto `hypergraph_transduction` |
+| `R/pagerank.R` (196) | hypergraphs' B2 hypergraph PageRank | compare first — ours has `personalized =` and `sort_by =`; keep the superset |
 | `hg_project(method = "clique")` | `R/hypergraph_expansion.R` (93) | both — `clique_expansion()` stays as the engine, `hg_project()` as the tidy verb, with an `identical()` parity test |
-| `text_hypergraph(construction = "window")` | `R/hypergraph_window.R` (312) | both — ours tokenises text, hypernets' takes sequences; assert the reduction identity |
+| `text_hypergraph(construction = "window")` | `R/hypergraph_window.R` (312) | both — ours tokenises text, hypergraphs' takes sequences; assert the reduction identity |
 
 ## File moves
 
@@ -104,7 +104,7 @@ Straight copies, prefixed `text_` where they are text-specific:
     R/agreement.R          -> R/agreement.R            (207, generic — used by all families)
     R/sparse.R             -> R/hypergraph_sparse.R    (364)
     R/spectral.R           -> DELETE (except the normalization arg)
-    R/pagerank.R           -> merge into hypernets' PageRank
+    R/pagerank.R           -> merge into hypergraphs' PageRank
     R/data.R               -> merged into R/data.R
 
 Tests move alongside, one file per source file, names matching.
@@ -124,7 +124,7 @@ Title/Description need rewriting to cover four families including text.
 - `data/`: no collision — `covid_abstracts`, `covid_embeddings` join
   `ai_long`, `human_long`. `data-raw/` moves too.
 - `Tutorial_docs/`: 3 texthypergraph tutorials join the 2 ported from
-  hypernets. Resolve the deleted `hon_inference.{Rmd,html}` first.
+  hypergraphs. Resolve the deleted `hon_inference.{Rmd,html}` first.
 - `benchmarks/` (R8/R52/MR/Ohsumed/20NG harness) and
   `vignettes/articles/benchmarks.Rmd` move as-is; add `benchmarks/` to
   `.Rbuildignore`.
@@ -135,16 +135,16 @@ Title/Description need rewriting to cover four families including text.
 
 ## Order
 
-1. Commit hypernets' fold-in + rename (resolve the `hon_inference` deletion).
+1. Commit hypergraphs' fold-in + rename (resolve the `hon_inference` deletion).
 2. Commit texthypergraph 0.6.5.
 3. Bring texthypergraph in with history preserved (`git subtree add`), not a
    file copy.
 4. Apply the collision and duplicate resolutions above.
 5. `devtools::document()`, full suite, `R CMD check --as-cran`.
-   Baselines to meet or beat: **hypernets 1993 pass / 0 fail**,
+   Baselines to meet or beat: **hypergraphs 1993 pass / 0 fail**,
    **texthypergraph 491 pass / 0 fail**, both checks 0/0/0.
 6. Update `CLAUDE.md`, `ROADMAP.md`, `TODO.md`; retire texthypergraph's repo
-   the same way hypernets was (private + `_retired` suffix), and only then
+   the same way hypergraphs was (private + `_retired` suffix), and only then
    consider releasing `hypernet_retired`.
 
 ## Risks
@@ -158,6 +158,6 @@ Title/Description need rewriting to cover four families including text.
 
 ## Not in scope
 
-Moving `build_hypergraph()` out of hypernets (it needs `build_simplicial()` —
-this is what killed hypernets), any new methods, and the remaining v0.7
+Moving `build_hypergraph()` out of hypergraphs (it needs `build_simplicial()` —
+this is what killed hypergraphs), any new methods, and the remaining v0.7
 roadmap items.

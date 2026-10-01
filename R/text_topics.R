@@ -19,7 +19,7 @@
     stop(errorCondition(
       paste0("Unknown node names in `clusters`: ",
              paste(unknown, collapse = ", ")),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   groups <- factor(as.character(assignment)[match(hg$nodes,
@@ -39,11 +39,11 @@
 #'   `node`, `cluster`), or a named vector of cluster labels.
 #' @param weights `NULL` (default), or a numeric vector named by document
 #'   giving each document's weight.
-#' @return A base `data.frame` of class `hypernets_topic_sizes`, one row per
+#' @return A base `data.frame` of class `hypergraphs_topic_sizes`, one row per
 #'   topic in natural order: `topic`, `n`, `share`, and with `weights`
 #'   also `weighted_n` and `weighted_share`. `plot()` draws the shares as
 #'   horizontal bars, weighted beside unweighted when both exist. Raises
-#'   `hypernets_bad_input` for unknown node names or weights that do not name
+#'   `hypergraphs_bad_input` for unknown node names or weights that do not name
 #'   every clustered document.
 #' @examples
 #' hg <- text_hypergraph(c(
@@ -72,7 +72,7 @@ hg_topic_sizes <- function(hg, clusters, weights = NULL) {
     if (!ok) {
       stop(errorCondition(
         "`weights` must be a numeric vector named by every clustered document",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     weighted <- tapply(as.numeric(weights[assigned]), groups[!is.na(groups)],
@@ -81,7 +81,7 @@ hg_topic_sizes <- function(hg, clusters, weights = NULL) {
     out$weighted_share <- out$weighted_n / sum(out$weighted_n)
   }
   rownames(out) <- NULL
-  class(out) <- c("hypernets_topic_sizes", "data.frame")
+  class(out) <- c("hypergraphs_topic_sizes", "data.frame")
   out
 }
 
@@ -89,7 +89,7 @@ hg_topic_sizes <- function(hg, clusters, weights = NULL) {
 #' @param x A table returned by the verb.
 #' @param ... Unused; for S3 consistency.
 #' @export
-plot.hypernets_topic_sizes <- function(x, ...) {
+plot.hypergraphs_topic_sizes <- function(x, ...) {
   d <- .ho_plain(x)
   long <- data.frame(topic = d$topic, measure = "share", value = d$share,
                      stringsAsFactors = FALSE)
@@ -209,14 +209,14 @@ plot.hypernets_topic_sizes <- function(x, ...) {
 #'   given: `"probability"` (default) or `"share"`; see Details.
 #' @param frexw Weight on exclusivity in FREX, in (0, 1) (default `0.7`, as
 #'   in `stm`).
-#' @return A base `data.frame` of class `hypernets_topic_quality`, one row per
+#' @return A base `data.frame` of class `hypergraphs_topic_quality`, one row per
 #'   topic (cluster labels in natural order, or topics of `words` in natural
 #'   order): `topic`, `size` (the cluster's documents; `NA` without
 #'   `clusters`), `n_words` (top words scored), `coherence`, `exclusivity`
 #'   (`NA` for fewer than two words, or `exclusivity = "none"`),
 #'   `coherence_type` and `exclusivity_type`. `plot()` draws exclusivity
 #'   against coherence with one labelled point per topic. Raises
-#'   `hypernets_bad_input` for unknown node names, a malformed `words`
+#'   `hypergraphs_bad_input` for unknown node names, a malformed `words`
 #'   table, words outside the vocabulary, topics of `words` that are not
 #'   cluster labels, a measure that needs `clusters` without them, or a
 #'   hypergraph whose nodes are not documents.
@@ -348,7 +348,7 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   })
   out <- do.call(rbind, rows)
   rownames(out) <- NULL
-  class(out) <- c("hypernets_topic_quality", "data.frame")
+  class(out) <- c("hypergraphs_topic_quality", "data.frame")
   out
 }
 
@@ -411,7 +411,7 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   })
   out <- do.call(rbind, rows)
   rownames(out) <- NULL
-  class(out) <- c("hypernets_topic_quality", "data.frame")
+  class(out) <- c("hypergraphs_topic_quality", "data.frame")
   out
 }
 
@@ -548,7 +548,7 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
 #' @param x A table returned by the verb.
 #' @param ... Unused; for S3 consistency.
 #' @export
-plot.hypernets_topic_quality <- function(x, ...) {
+plot.hypergraphs_topic_quality <- function(x, ...) {
   d <- .ho_plain(x)
   coherence_label <- switch(d$coherence_type[[1L]] %||% "npmi_cluster",
                             umass = "coherence (UMass, sum over word pairs)",
@@ -598,12 +598,12 @@ plot.hypernets_topic_quality <- function(x, ...) {
 #'   `node`, `cluster`), or a named vector of cluster labels.
 #' @param type,edge_weights Passed to [hg_cluster()] to reproduce the
 #'   embedding the partition was cut in (defaults as there).
-#' @return A base `data.frame` of class `hypernets_membership`, one row per
+#' @return A base `data.frame` of class `hypergraphs_membership`, one row per
 #'   document and topic: `node`, `cluster` (the hard label), `topic`,
 #'   `membership` (rows of one document sum to one). `plot()` draws, per
 #'   topic, the distribution of its documents' membership in it: a topic
 #'   whose documents sit near 1 is compact, one whose documents spread
-#'   towards 0.5 overlaps its neighbours. Raises `hypernets_bad_input` for
+#'   towards 0.5 overlaps its neighbours. Raises `hypergraphs_bad_input` for
 #'   unknown node names.
 #' @references
 #' Bezdek, J. C. (1981). *Pattern Recognition with Fuzzy Objective Function
@@ -653,7 +653,7 @@ hg_membership <- function(hg, clusters, type = c("zhou", "random_walk"),
   out <- out[order(match(out$node, rownames(x)),
                    match(out$topic, levels(group_of))), , drop = FALSE]
   rownames(out) <- NULL
-  class(out) <- c("hypernets_membership", "data.frame")
+  class(out) <- c("hypergraphs_membership", "data.frame")
   out
 }
 
@@ -661,7 +661,7 @@ hg_membership <- function(hg, clusters, type = c("zhou", "random_walk"),
 #' @param x A table returned by the verb.
 #' @param ... Unused; for S3 consistency.
 #' @export
-plot.hypernets_membership <- function(x, ...) {
+plot.hypergraphs_membership <- function(x, ...) {
   d <- .ho_plain(x)
   own <- d[d$cluster == d$topic, , drop = FALSE]
   own$topic <- factor(own$topic, levels = rev(.thg_kw_natural(unique(own$topic))))
@@ -698,7 +698,7 @@ plot.hypernets_membership <- function(x, ...) {
 #' two differ, because the Zhou Laplacian reads only the binary pattern.
 #' A cluster may hold nodes and no hyperedges, or the reverse.
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`) with no empty
+#' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`) with no empty
 #'   node or hyperedge.
 #' @param k Number of co-clusters, at least 2.
 #' @param seed Seed for the k-means starts; the caller's random number stream
@@ -712,7 +712,7 @@ plot.hypernets_membership <- function(x, ...) {
 #'   (filtered by `role`), with columns `node` (the node or hyperedge name),
 #'   `role` (`"node"` or `"hyperedge"`) and `cluster` (`"Cluster 1"`, ...,
 #'   numbered by first appearance in that row order); with
-#'   `what = "embedding"` also `dim1..dimL`. Raises `hypernets_bad_input` for
+#'   `what = "embedding"` also `dim1..dimL`. Raises `hypergraphs_bad_input` for
 #'   a `k` below 2 or above the number of rows, or an empty node or
 #'   hyperedge (zero degree, where the scaling is undefined).
 #' @references

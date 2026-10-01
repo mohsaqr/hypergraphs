@@ -66,10 +66,10 @@ test_that("hg_agreement what = 'table' reproduces the contingency counts", {
 test_that("hg_agreement raises classed errors on bad input", {
   good <- data.frame(node = c("a", "b"), cluster = c("A", "B"))
   expect_error(hg_agreement(good, data.frame(node = c("a", "b"))),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_agreement(good, data.frame(node = c("x", "y"),
                                              cluster = c("A", "B"))),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hg_stability(resample = 'seeds') keeps the two-seed solver check", {
@@ -91,7 +91,7 @@ test_that("hg_stability validates its contract", {
   expect_error(hg_stability(hg, k = 2, resample = "seeds", seeds = c(1, 1)),
                "distinct")
   expect_error(hg_stability(hg, k = 2, resample = "seeds", what = "clusters"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 # base kmeans() (Hartigan-Wong) warns "did not converge in 100 iterations"
@@ -190,7 +190,7 @@ test_that("a subsample that disconnects the hypergraph is counted and warned", {
   hg <- text_hypergraph(docs)
   expect_warning(
     out <- hg_stability(hg, k = 2, n_boot = 30, fraction = 0.6),
-    class = "hypernets_hypergraph_disconnected"
+    class = "hypergraphs_hypergraph_disconnected"
   )
   expect_gt(out$n_failed, 0L)
   expect_identical(out$n_runs + out$n_failed, 30L)
@@ -199,14 +199,14 @@ test_that("a subsample that disconnects the hypergraph is counted and warned", {
 test_that("hg_stability raises classed errors for a bad resampling design", {
   hg <- planted_hg()
   expect_error(hg_stability(hg, k = 2, fraction = 1),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_stability(hg, k = 2, fraction = 0),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_stability(hg, k = 2, n_boot = 0),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   # floor(0.1 * 36) = 3 nodes cannot hold 3 clusters
   expect_error(hg_stability(hg, k = 3, fraction = 0.1),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("the best-match Jaccard follows Hennig's definition", {
@@ -348,10 +348,10 @@ test_that("hg_agreement node and label selectors read any two tables", {
   expect_identical(one_name$n, 4L)
   expect_equal(one_name$agreement, 3 / 4)
   expect_error(hg_agreement(predictions, corpus, node = "id"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_agreement(predictions, corpus, node = c("node", "id"),
                             label = c("predicted", "nope")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_agreement(predictions, corpus, node = c("a", "b", "c")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })

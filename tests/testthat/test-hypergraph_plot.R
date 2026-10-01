@@ -15,14 +15,14 @@ testthat::skip_on_cran()
 }
 
 test_that("fill selectors map to Okabe-Ito colours or the ramp", {
-  discrete <- hypernets:::.thg_fill_colours(c("x", "y", "x"))
+  discrete <- hypergraphs:::.thg_fill_colours(c("x", "y", "x"))
   expect_identical(discrete$colours, unname(discrete$palette[c("x", "y", "x")]))
-  expect_identical(unname(discrete$palette), hypernets:::.thg_okabe_ito[1:2])
-  numeric <- hypernets:::.thg_fill_colours(c(2, 12, 7))
+  expect_identical(unname(discrete$palette), hypergraphs:::.thg_okabe_ito[1:2])
+  numeric <- hypergraphs:::.thg_fill_colours(c(2, 12, 7))
   expect_null(numeric$palette)
   expect_identical(numeric$colours[1L], toupper("#F0E442"))
   expect_identical(numeric$colours[2L], toupper("#0072B2"))
-  constant <- hypernets:::.thg_fill_colours(c(3, 3))
+  constant <- hypergraphs:::.thg_fill_colours(c(3, 3))
   expect_identical(constant$colours[1L], constant$colours[2L])
 })
 
@@ -43,7 +43,7 @@ test_that("plot.net_hg draws one hull per drawable hyperedge, largest first", {
 test_that("a hull is the member hull widened by exactly the padding", {
   xs <- c(0, 1, 0.5)
   ys <- c(0, 0, 1)
-  ring <- hypernets:::.thg_hull(xs, ys, radius = 0.1, n_arc = 720L)
+  ring <- hypergraphs:::.thg_hull(xs, ys, radius = 0.1, n_arc = 720L)
   # every member lies inside, at least `radius` from the outline
   inside <- vapply(seq_along(xs), function(i) {
     min(sqrt((ring$x - xs[i])^2 + (ring$y - ys[i])^2))
@@ -55,13 +55,13 @@ test_that("a hull is the member hull widened by exactly the padding", {
   }, numeric(1L))
   expect_equal(max(reach), 0.1, tolerance = 1e-9)
   # two members give a stadium: width across is twice the radius
-  stadium <- hypernets:::.thg_hull(c(0, 1), c(0, 0), radius = 0.2, n_arc = 720L)
+  stadium <- hypergraphs:::.thg_hull(c(0, 1), c(0, 0), radius = 0.2, n_arc = 720L)
   expect_equal(diff(range(stadium$y)), 0.4, tolerance = 1e-6)
 })
 
 test_that("the bipartite layout places nodes and hyperedges in one frame", {
   hg <- .plot_fixture()
-  pos <- hypernets:::.thg_positions(hg, "bipartite", seed = 2L)
+  pos <- hypergraphs:::.thg_positions(hg, "bipartite", seed = 2L)
   expect_identical(names(pos$nodes), c("node", "x", "y"))
   expect_identical(names(pos$edges), c("hyperedge", "x", "y"))
   expect_identical(pos$edges$hyperedge, colnames(hg$incidence))
@@ -70,7 +70,7 @@ test_that("the bipartite layout places nodes and hyperedges in one frame", {
   # one factor scales both axes, so the longer axis spans exactly [0, 1]
   expect_equal(max(diff(range(both$x)), diff(range(both$y))), 1)
   # a projection layout puts each hyperedge at the centroid of its members
-  spring <- hypernets:::.thg_positions(hg, "spring", seed = 2L)
+  spring <- hypergraphs:::.thg_positions(hg, "spring", seed = 2L)
   e1 <- hg$hyperedges[[1L]]
   expect_equal(spring$edges$x[1L], mean(spring$nodes$x[e1]))
 })
@@ -89,7 +89,7 @@ test_that("dismantled panels ink exactly the members of their hyperedge", {
                      function(idx) hg$nodes[idx])
   lapply(names(shown), function(e) expect_setequal(shown[[e]], expected[[e]]))
   expect_error(plot(hg, dismantled = TRUE, edge_labels = TRUE),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("plot.net_hg returns a ggplot for every selector", {
@@ -112,28 +112,28 @@ test_that("plot.net_hg returns a ggplot for every selector", {
 
 test_that("a layout table is reused and validated", {
   hg <- .plot_fixture()
-  pos <- hypernets:::.thg_layout(hg, "spring", seed = 3L)
+  pos <- hypergraphs:::.thg_layout(hg, "spring", seed = 3L)
   expect_identical(names(pos), c("node", "x", "y"))
   expect_identical(pos$node, hg$nodes)
   expect_true(all(pos$x >= 0 & pos$x <= 1 & pos$y >= 0 & pos$y <= 1))
-  again <- hypernets:::.thg_layout(hg, pos, seed = 1L)
+  again <- hypergraphs:::.thg_layout(hg, pos, seed = 1L)
   expect_equal(again$x, pos$x)
   layout_plot <- plot(hg, layout = pos)
   expect_s3_class(layout_plot, "ggplot")
-  expect_error(plot(hg, layout = pos[-1, ]), class = "hypernets_bad_input")
+  expect_error(plot(hg, layout = pos[-1, ]), class = "hypergraphs_bad_input")
 })
 
 test_that("plot.net_hg rejects bad selectors", {
   hg <- .plot_fixture()
-  expect_error(plot(hg, color_by = "nope"), class = "hypernets_bad_input")
-  expect_error(plot(hg, color_by = 1:3), class = "hypernets_bad_input")
-  expect_error(plot(hg, color_by = c(e1 = 1)), class = "hypernets_bad_input")
-  expect_error(plot(hg, labels = c("A", "B")), class = "hypernets_bad_input")
+  expect_error(plot(hg, color_by = "nope"), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, color_by = 1:3), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, color_by = c(e1 = 1)), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, labels = c("A", "B")), class = "hypergraphs_bad_input")
   expect_error(plot(hg, alpha = 2))
   singletons <- group_hypergraph(
     data.frame(member = c("a", "b"), event = c("e1", "e2")), "member", "event"
   )
-  expect_error(plot(singletons), class = "hypernets_bad_input")
+  expect_error(plot(singletons), class = "hypergraphs_bad_input")
 })
 
 test_that("one variable for colour and line type gives one merged legend", {
@@ -156,7 +156,7 @@ test_that("a pebble keeps every member inside with room, and stays convex", {
   radius <- 0.045
   checks <- vapply(point_sets, function(pts) {
     vapply(c(2, 5, 8), function(detail) {
-      shape <- hypernets:::.thg_pebble(pts$x, pts$y, radius, detail)
+      shape <- hypergraphs:::.thg_pebble(pts$x, pts$y, radius, detail)
       # inside: each member lies on the inner side of every outline edge
       ex <- c(shape$x[-1L], shape$x[1L]) - shape$x
       ey <- c(shape$y[-1L], shape$y[1L]) - shape$y
@@ -185,8 +185,8 @@ test_that("a pebble keeps every member inside with room, and stays convex", {
 test_that("detail = Inf is the unsmoothed rounded hull", {
   xs <- c(0, 1, 0.4)
   ys <- c(0, 0.2, 0.9)
-  expect_identical(hypernets:::.thg_pebble(xs, ys, 0.05, Inf),
-                   hypernets:::.thg_hull(xs, ys, 0.05, n_arc = 48L))
+  expect_identical(hypergraphs:::.thg_pebble(xs, ys, 0.05, Inf),
+                   hypergraphs:::.thg_hull(xs, ys, 0.05, n_arc = 48L))
 })
 
 test_that("outline = 'fill' maps the outline, a colour fixes it", {
@@ -217,17 +217,27 @@ test_that("every hyperedge label lies inside its own pebble", {
     drawn <- levels(shapes$hyperedge)
     all(vapply(seq_along(drawn), function(i) {
       ring <- shapes[shapes$hyperedge == drawn[i], , drop = FALSE]
-      hypernets:::.thg_in_convex(ring$x, ring$y, anchors$x[i], anchors$y[i])
+      hypergraphs:::.thg_in_convex(ring$x, ring$y, anchors$x[i], anchors$y[i])
     }, logical(1L)))
   }, logical(1L))
   expect_true(all(inside))
-  expect_true(hypernets:::.thg_in_convex(c(0, 1, 1, 0), c(0, 0, 1, 1), 0.5, 0.5))
-  expect_false(hypernets:::.thg_in_convex(c(0, 1, 1, 0), c(0, 0, 1, 1), 1.5, 0.5))
+  expect_true(hypergraphs:::.thg_in_convex(c(0, 1, 1, 0), c(0, 0, 1, 1), 0.5, 0.5))
+  expect_false(hypergraphs:::.thg_in_convex(c(0, 1, 1, 0), c(0, 0, 1, 1), 1.5, 0.5))
+})
+
+test_that("hyperedge size is coloured discretely, one colour per size", {
+  hg <- .plot_fixture()
+  p <- plot(hg, color_by = "size")
+  built <- ggplot2::ggplot_build(p)
+  fill_scale <- built$plot$scales$get_scales("fill")
+  expect_true(fill_scale$is_discrete())
+  expect_setequal(fill_scale$get_limits(),
+                  as.character(sort(unique(hg_get(hg)$size))))
 })
 
 test_that("a whole-number colour scale gets whole-number legend breaks", {
   hg <- .plot_fixture()
-  p <- plot(hg, color_by = "size")
+  p <- plot(hg, color_by = c(e1 = 2L, e2 = 3L, e3 = 5L, e4 = 7L))
   # breaks exist only once the scale has been trained on the data
   breaks <- ggplot2::ggplot_build(p)$plot$scales$get_scales("fill")$get_breaks()
   breaks <- breaks[!is.na(breaks)]
@@ -244,11 +254,11 @@ test_that("the force-directed layout is seeded, local, and pulls neighbours in",
   set.seed(99)
   before <- stats::runif(1L)
   set.seed(99)
-  first <- hypernets:::.thg_layout_fr(ring, seed = 4L)
+  first <- hypergraphs:::.thg_layout_fr(ring, seed = 4L)
   # the caller's stream is untouched: the next draw is the one it would be
   expect_identical(stats::runif(1L), before)
-  expect_identical(hypernets:::.thg_layout_fr(ring, seed = 4L), first)
-  expect_false(isTRUE(all.equal(hypernets:::.thg_layout_fr(ring, seed = 5L),
+  expect_identical(hypergraphs:::.thg_layout_fr(ring, seed = 4L), first)
+  expect_false(isTRUE(all.equal(hypergraphs:::.thg_layout_fr(ring, seed = 5L),
                                 first)))
   gaps <- as.matrix(stats::dist(first))
   expect_lt(mean(gaps[ring == 1]), mean(gaps[ring == 0 & row(gaps) != col(gaps)]))
@@ -269,27 +279,27 @@ test_that("center pins the named nodes in the middle of every layout", {
   # they are from each other's centroid, and the other nodes surround them
   # (their centroid lies inside the other nodes' convex hull)
   surrounded <- function(layout, seed) {
-    pos <- hypernets:::.thg_positions(hg, layout, seed, center = middle)$nodes
+    pos <- hypergraphs:::.thg_positions(hg, layout, seed, center = middle)$nodes
     inner <- pos$node %in% middle
     hub <- c(mean(pos$x[inner]), mean(pos$y[inner]))
     gap <- sqrt((pos$x - hub[1L])^2 + (pos$y - hub[2L])^2)
     outer <- pos[!inner, , drop = FALSE]
     hull <- grDevices::chull(outer$x, outer$y)
     max(gap[inner]) < min(gap[!inner]) &&
-      hypernets:::.thg_in_convex(outer$x[hull], outer$y[hull], hub[1L], hub[2L])
+      hypergraphs:::.thg_in_convex(outer$x[hull], outer$y[hull], hub[1L], hub[2L])
   }
   closeness <- surrounded
   expect_true(all(vapply(1:5, function(s) closeness("bipartite", s), logical(1L))))
   expect_true(all(vapply(1:5, function(s) closeness("spring", s), logical(1L))))
   expect_true(closeness("circle", 1L))
   expect_s3_class(plot(hg, center = middle), "ggplot")
-  expect_error(plot(hg, center = "nope"), class = "hypernets_bad_input")
+  expect_error(plot(hg, center = "nope"), class = "hypergraphs_bad_input")
   # a name missing from this hypergraph is skipped when another one matches
   expect_s3_class(plot(hg, center = c("a1", "nope")), "ggplot")
-  expect_error(plot(hg, center = 1), class = "hypernets_bad_input")
-  table_layout <- hypernets:::.thg_layout(hg, "spring", 1L)
+  expect_error(plot(hg, center = 1), class = "hypergraphs_bad_input")
+  table_layout <- hypergraphs:::.thg_layout(hg, "spring", 1L)
   expect_error(plot(hg, layout = table_layout, center = middle),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("pinned vertices never move in the force-directed layout", {
@@ -297,7 +307,7 @@ test_that("pinned vertices never move in the force-directed layout", {
   star[1L, 2:6] <- 1
   star <- star + t(star)
   pinned <- c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE)
-  xy <- hypernets:::.thg_layout_fr(star, seed = 3L, pinned = pinned)
-  ring <- hypernets:::.thg_ring(pinned, radius = sqrt(6) / 4)
+  xy <- hypergraphs:::.thg_layout_fr(star, seed = 3L, pinned = pinned)
+  ring <- hypergraphs:::.thg_ring(pinned, radius = sqrt(6) / 4)
   expect_equal(xy[pinned, , drop = FALSE], ring[pinned, , drop = FALSE])
 })

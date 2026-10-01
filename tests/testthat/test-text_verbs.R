@@ -86,11 +86,11 @@ test_that("hg_classify matches the engine and preserves given labels", {
 })
 
 test_that("every verb rejects a non-hypergraph with a classed error", {
-  expect_error(hg_measures(42), class = "hypernets_bad_input")
-  expect_error(hg_centrality(list()), class = "hypernets_bad_input")
-  expect_error(hg_cluster("x", k = 2), class = "hypernets_bad_input")
+  expect_error(hg_measures(42), class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(list()), class = "hypergraphs_bad_input")
+  expect_error(hg_cluster("x", k = 2), class = "hypergraphs_bad_input")
   expect_error(hg_classify(NULL, labels = c(a = "x")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hg_centrality sort_by and n select without user-side subsetting", {
@@ -172,7 +172,7 @@ test_that("hg_keywords works on sparse hypergraphs and vector input", {
   expect_identical(nrow(kw), 4L)
   expect_true(all(kw$rank %in% c(1L, 2L)))
   expect_error(hg_keywords(hg, c(zz = "a", cooking_1 = "b")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_keywords(hg, labels, n = 0), "positive")
 })
 
@@ -261,25 +261,25 @@ test_that("hg_keywords type = contracts are enforced by class", {
   word_groups <- stats::setNames(rep(c("x", "y"), length.out = window$n_nodes),
                                  window$nodes)
   expect_error(hg_keywords(window, word_groups, type = "frequency"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_keywords(window, word_groups, type = "ctfidf"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_keywords(window, word_groups, type = "centrality"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   # mass still works on any hypergraph
   mass <- hg_keywords(window, word_groups)
   expect_s3_class(mass, "data.frame")
   expect_error(hg_keywords(hg, .kw_clusters, type = "attention"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_keywords(hg, .kw_clusters,
                            scores = data.frame(node = "cooking_1")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_keywords(hg, .kw_clusters,
                            scores = data.frame(node = "zz", word = "w",
                                                attention = 1)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_keywords(hg, .kw_clusters, type = "nope"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("`scores` aggregates a hand-built external table as its own block", {
@@ -307,7 +307,7 @@ test_that("several `type`s stack into one table and plot", {
                 \(t) hg_keywords(hg, .kw_clusters, n = 3, type = t))
   many <- hg_keywords(hg, .kw_clusters, n = 3,
                       type = c("frequency", "ctfidf", "centrality"))
-  expect_s3_class(many, "hypernets_keywords")
+  expect_s3_class(many, "hypergraphs_keywords")
   expect_named(many, c("type", "cluster", "size", "rank", "word", "score",
                        "share", "n_docs"))
   many_table <- .ho_plain(many)
@@ -322,11 +322,11 @@ test_that("several `type`s stack into one table and plot", {
   expect_identical(wide$type, rep(c("ctfidf", "frequency"), each = 2L))
   p <- plot(many)
   expect_s3_class(p, "ggplot")
-  expect_error(plot(wide), class = "hypernets_bad_input")
+  expect_error(plot(wide), class = "hypergraphs_bad_input")
   expect_error(hg_keywords(hg, .kw_clusters, type = c("mass", "nope")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_keywords(hg, .kw_clusters, type = c("mass", "mass")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("sort_by = 'share' and min_docs rank and filter as documented", {
@@ -414,9 +414,9 @@ test_that("construction = 'sentence' binds the words of each sentence", {
                         stop_words = .sent_sw, min_count = 2L)
   expect_setequal(mc$nodes, c("soup", "telescope", "stars", "night"))
   expect_error(text_hypergraph(.sent_docs, construction = "sentence",
-                               weight = "tfidf"), class = "hypernets_bad_input")
+                               weight = "tfidf"), class = "hypergraphs_bad_input")
   expect_error(hg_get(bag, what = "sentences"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_output(print(sh), "sentence hyperedges: 7 sentences")
 })
 
@@ -452,7 +452,7 @@ test_that("a sentence hypergraph scopes centrality to the cluster's sentences", 
   expect_identical(subset(mass, cluster == "food" & word == "soup")$score, 3)
   other <- text_hypergraph(c(zz = "unrelated words here."),
                            construction = "sentence")
-  expect_error(hg_keywords(other, clusters), class = "hypernets_bad_input")
+  expect_error(hg_keywords(other, clusters), class = "hypergraphs_bad_input")
 })
 
 test_that("hg_cluster(edge_weights) reaches both engines and 'idf' reads the vocabulary", {
@@ -491,11 +491,11 @@ test_that("hg_cluster(edge_weights) reaches both engines and 'idf' reads the voc
   e_unit <- hg_cluster(dense, k = 2, seed = 1, what = "eigenvalues")
   expect_equal(e_scalar$value, e_unit$value)
   expect_error(hg_cluster(counts, k = 2, edge_weights = "idf"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_cluster(dense, k = 2, edge_weights = c(1, 2)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_cluster(dense, k = 2, edge_weights = -1),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("the keyword print method is compact and the default centrality is pagerank", {
@@ -515,7 +515,7 @@ test_that("the keyword print method is compact and the default centrality is pag
 
 test_that("hg_relations is the bibliometric co-occurrence of topics through words", {
   hg <- .kw_fixture(weight = "n")
-  rel <- hg_relations(hg, .kw_clusters)
+  rel <- hg_network(hg, clusters = .kw_clusters)
   expect_named(rel, c("source", "target", "weight"))
   expect_identical(nrow(rel), 1L)
   expect_identical(rel$source, "food")
@@ -528,36 +528,36 @@ test_that("hg_relations is the bibliometric co-occurrence of topics through word
   expect_equal(rel$weight, co["food", "sky"])
   expect_equal(rel$weight, 1)
   d <- diag(co)
-  association <- hg_relations(hg, .kw_clusters, similarity = "association")
+  association <- hg_network(hg, clusters = .kw_clusters, similarity = "association")
   expect_equal(association$weight,
                co["food", "sky"] / (d[["food"]] * d[["sky"]]))
-  cosine <- hg_relations(hg, .kw_clusters, similarity = "cosine")
+  cosine <- hg_network(hg, clusters = .kw_clusters, similarity = "cosine")
   expect_equal(cosine$weight,
                co["food", "sky"] / sqrt(d[["food"]] * d[["sky"]]))
-  jaccard <- hg_relations(hg, .kw_clusters, similarity = "jaccard")
+  jaccard <- hg_network(hg, clusters = .kw_clusters, similarity = "jaccard")
   expect_equal(jaccard$weight,
                co["food", "sky"] / (d[["food"]] + d[["sky"]] - co["food", "sky"]))
-  inclusion <- hg_relations(hg, .kw_clusters, similarity = "inclusion")
+  inclusion <- hg_network(hg, clusters = .kw_clusters, similarity = "inclusion")
   expect_equal(inclusion$weight,
                co["food", "sky"] / min(d[["food"]], d[["sky"]]))
-  equivalence <- hg_relations(hg, .kw_clusters, similarity = "equivalence")
+  equivalence <- hg_network(hg, clusters = .kw_clusters, similarity = "equivalence")
   expect_equal(equivalence$weight,
                co["food", "sky"]^2 / (d[["food"]] * d[["sky"]]))
   # three topics: pairs in natural order, zero-weight pairs dropped
   three <- stats::setNames(c("Cluster 1", "Cluster 2", "Cluster 10", "Cluster 10"),
                            .kw_clusters$node)
-  rel3 <- hg_relations(hg, three)
+  rel3 <- hg_network(hg, clusters = three)
   expect_true(all(paste(rel3$source, rel3$target) %in%
                     c("Cluster 1 Cluster 2", "Cluster 1 Cluster 10",
                       "Cluster 2 Cluster 10")))
   expect_true(all(rel3$weight > 0))
-  net <- hg_relations(hg, .kw_clusters, what = "network")
+  net <- hg_network(hg, clusters = .kw_clusters, what = "network")
   expect_s3_class(net, "cograph_network")
   expect_identical(nrow(net$edges), 1L)
   expect_setequal(net$nodes$name, c("food", "sky"))
   expect_identical(net$nodes$size, c(2L, 2L))
-  expect_error(hg_relations(hg, c(zz = "a", cooking_1 = "b")),
-               class = "hypernets_bad_input")
+  expect_error(hg_network(hg, clusters = c(zz = "a", cooking_1 = "b")),
+               class = "hypergraphs_bad_input")
   expect_identical(hg_relations, hg_relations)
 })
 
@@ -661,7 +661,7 @@ test_that("hg_keywords refuses a word-node hypergraph instead of mislabelling do
   # before 0.6.0 this returned document ids (cooking_2, space_1, ...) in the
   # `word` column
   expect_error(hg_keywords(word_hg, word_topics),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   # the document orientation is unaffected
   doc_hg <- text_hypergraph(docs, stop_words = stops)
   kw <- .ho_plain(hg_keywords(doc_hg, hg_cluster(doc_hg, k = 2, seed = 1),

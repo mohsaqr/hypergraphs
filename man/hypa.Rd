@@ -26,7 +26,7 @@ against the same null (HYPA); returns a \code{net_hypa} object. See
 \code{\link[=hypa.default]{hypa.default()}}.}
 }
 Each method keeps its own arguments; passing an argument that only the
-other method takes raises \code{hypernets_bad_input}.
+other method takes raises \code{hypergraphs_bad_input}.
 }
 \examples{
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),

@@ -7,7 +7,7 @@
 hg_assortativity(hg, type = "uniform", scale = c("rank", "degree"))
 }
 \arguments{
-\item{hg}{A hypernets \code{net_hg}, dense or sparse.}
+\item{hg}{A hypergraphs \code{net_hg}, dense or sparse.}
 
 \item{type}{One or more of \code{"uniform"} (default), \code{"top_2"},
 \code{"top_bottom"}.}
@@ -69,7 +69,7 @@ coefficients on degree-matched random hypergraphs, not against 0;
 \code{"uniform"} is centred near 0 under random mixing.
 }
 \section{Conditions}{
- Raises \code{hypernets_bad_input} when \code{hg} is not a
+ Raises \code{hypergraphs_bad_input} when \code{hg} is not a
 \code{net_hg} or has no hyperedge with at least two members.
 }
 

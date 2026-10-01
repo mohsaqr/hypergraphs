@@ -23,7 +23,7 @@ enter the multiplicity correction.}
 over-represented first. \code{NULL} (default) keeps every scored pair.}
 
 \item{...}{Must be empty: an argument that only the sequence method
-takes (\code{order}, \code{action}, ...) raises \code{hypernets_bad_input}.}
+takes (\code{order}, \code{action}, ...) raises \code{hypergraphs_bad_input}.}
 }
 \value{
 A base \code{data.frame}, one row per scored pair, most significantly

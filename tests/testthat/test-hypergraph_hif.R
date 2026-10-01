@@ -124,7 +124,7 @@ test_that("a hand-written HIF file gives the hand-computed hypergraph", {
   expect_identical(hg$params$metadata, list(name = "toy"))
 })
 
-test_that("malformed or unsupported HIF raises hypernets_bad_input", {
+test_that("malformed or unsupported HIF raises hypergraphs_bad_input", {
   bad <- c(
     not_json = "{not json",
     no_incidences = '{"nodes": []}',
@@ -142,13 +142,13 @@ test_that("malformed or unsupported HIF raises hypernets_bad_input", {
     attr_clash = '{"incidences": [], "nodes": [{"node": 1, "attrs": {"weight": 2}}]}'
   )
   lapply(names(bad), \(case) {
-    expect_error(hg_read_hif(bad[[case]]), class = "hypernets_bad_input",
+    expect_error(hg_read_hif(bad[[case]]), class = "hypergraphs_bad_input",
                  label = case)
   })
   expect_error(hg_read_hif(tempfile(fileext = ".json")),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_write_hif(list(incidence = diag(2))),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hg_get() reaches the HIF node and incidence tables", {
@@ -163,7 +163,7 @@ test_that("hg_get() reaches the HIF node and incidence tables", {
   expect_identical(nrow(hg_get(back, what = "node_data", top = 2L)), 2L)
   plain <- group_hypergraph(data.frame(p = c("a", "b"), g = c("x", "x")),
                             actor = "p", group = "g")
-  expect_error(hg_get(plain, what = "node_data"), class = "hypernets_bad_input")
+  expect_error(hg_get(plain, what = "node_data"), class = "hypergraphs_bad_input")
 })
 
 test_that("missing attribute values are omitted, not written as null", {

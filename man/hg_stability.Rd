@@ -18,7 +18,7 @@ hg_stability(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypergraphs \code{net_hg}).}
 
 \item{k}{Vector of cluster counts to test, each at least 2.}
 
@@ -64,7 +64,7 @@ cluster of the full partition, with \code{k}, \code{cluster}, \code{size} (its n
 \code{identical_partition} (are the two partitions literally identical,
 labels included) and \code{ari} (their adjusted Rand index).
 
-Raises \code{hypernets_bad_input} for a \code{fraction} outside (0, 1), a
+Raises \code{hypergraphs_bad_input} for a \code{fraction} outside (0, 1), a
 subsample too small to hold \code{k} clusters, a non-positive \code{n_boot}, or
 \code{what = "clusters"} with \code{resample = "seeds"}.
 }
@@ -94,7 +94,7 @@ restored on exit.
 A subsample can disconnect the hypergraph (a word that tied two groups of
 documents may not be drawn); \code{\link[=hg_cluster]{hg_cluster()}} cannot cut a disconnected
 hypergraph, so that run is not scored, is counted in \code{n_failed}, and a
-warning of class \code{hypernets_hypergraph_disconnected} reports the count.
+warning of class \code{hypergraphs_hypergraph_disconnected} reports the count.
 
 The \code{eigengap} column is the gap \eqn{\lambda_{k+1} - \lambda_k} between
 consecutive eigenvalues of the full hypergraph's Laplacian (the \code{gap}

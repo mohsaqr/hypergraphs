@@ -55,7 +55,7 @@ the node weight and attributes an HIF file carried; for
 \code{what = "incidence_data"}, one row per incidence with \code{node}, \code{edge}
 and its attributes; for \code{what = "edge_data"}, one row per hyperedge
 with \code{edge} and its attributes. Asking for any of these tables of a
-hypergraph without it raises \code{hypernets_bad_input}.
+hypergraph without it raises \code{hypergraphs_bad_input}.
 }
 \description{
 One row per hyperedge: its identifier, size (number of distinct member

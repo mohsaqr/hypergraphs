@@ -49,7 +49,7 @@ test_that("the measures of a complex are the estimator's", {
   expect_identical(hg_get(sc, what = "degree", normalized = TRUE), ref)
   expect_identical(hg_get(sc, what = "degree", top = 2L),
                    utils::head(hg_degree(sc), 2L))
-  expect_error(hg_degree(list()), class = "hypernets_bad_input")
+  expect_error(hg_degree(list()), class = "hypergraphs_bad_input")
 })
 
 test_that("hg_homology, hg_landscape and hg_bottleneck are the estimator's", {
@@ -138,7 +138,7 @@ test_that("direction = 'both' joins a pair only when both weights reach threshol
   expect_identical(simplicial(w, direction = "either"), simplicial(w))  # default unchanged
   expect_error(simplicial(w, direction = "sideways"))
   expect_error(simplicial(1:3, threshold = 0.3, direction = "both"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hg_homology() of a window complex follows the count filtration", {
@@ -205,7 +205,7 @@ test_that("a Vietoris-Rips complex takes points as well as distances", {
   expect_identical(hg_homology(points, type = "vr", max_dim = 2L),
                    hg_homology(distances, type = "vr", max_dim = 2L))
   expect_error(simplicial(data.frame(a = letters[1:3], b = letters[3:1]),
-                          type = "vr"), class = "hypernets_bad_input")
+                          type = "vr"), class = "hypergraphs_bad_input")
 })
 
 test_that("hg_get(what = \"betti\") tabulates the Betti numbers", {

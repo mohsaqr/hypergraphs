@@ -102,7 +102,7 @@ hg_get.net_mogen <- function(x, what = c("orders", "transitions", "paths",
       sprintf(paste0("`k` must be a single whole number from 2 to %d (the ",
                      "model's highest order plus one); refit mogen() with a ",
                      "larger `max_order` for longer paths."), max_k),
-      class = "hypernets_bad_input", call = NULL))
+      class = "hypergraphs_bad_input", call = NULL))
   }
   tr <- Nestimate::mogen_transitions(x, order = as.integer(k) - 1L,
                                      min_count = 1L)

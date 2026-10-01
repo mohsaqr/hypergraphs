@@ -45,8 +45,8 @@ and from the other states of a first-order Markov chain.
 The quantities are defined only for an irreducible chain, one in which
 every state can reach every other. A chain that is not irreducible (a
 transient or absorbing state, or several closed classes, as a pruned
-higher-order network can have) raises \code{hypernets_not_ergodic}, a
-\code{hypernets_bad_input}, naming those states.
+higher-order network can have) raises \code{hypergraphs_not_ergodic}, a
+\code{hypergraphs_bad_input}, naming those states.
 }
 
 \examples{

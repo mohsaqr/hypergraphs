@@ -37,7 +37,7 @@ by the row key, ascending in both directions: \code{state}, or \code{from} then
 states. Restrict the \code{what = "passage_time"} table to passages leaving
 the \code{from} states and arriving at the \code{to} states. Only that table has
 \code{from}/\code{to} columns; using either with another \code{what}, or naming a state
-the chain does not have, raises \code{hypernets_bad_input}.}
+the chain does not have, raises \code{hypergraphs_bad_input}.}
 
 \item{top}{Integer or \code{NULL}. Keep only the first \code{top} rows, applied
 last: after \code{what}, \code{from}/\code{to} and \code{sort_by}.}

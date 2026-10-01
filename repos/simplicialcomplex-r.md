@@ -17,7 +17,7 @@
   are TDAstats (ripser) for persistent homology and SciPy
   `linear_sum_assignment` for the Wasserstein assignment. NOT a delegation
   target (third-party, 0.1.x, different conventions).
-- **Collision caution**: its expanding TDA surface overlaps hypernets names;
+- **Collision caution**: its expanding TDA surface overlaps hypergraphs names;
   oracle scripts must use explicit namespaces rather than attach both.
 - **Links**: https://cran.r-project.org/package=SimplicialComplex ·
   https://github.com/TDA-R/SimplicialComplex

@@ -27,9 +27,9 @@ testthat::skip_on_cran()
 
 test_that("a long table is refused instead of silently read as wide", {
   long <- .lf_long()
-  expect_error(hg_bootstrap(long, n_boot = 2L), class = "hypernets_long_format")
-  expect_error(hg_bootstrap(long, n_boot = 2L), class = "hypernets_bad_input")
-  expect_error(hon(long), class = "hypernets_long_format")
+  expect_error(hg_bootstrap(long, n_boot = 2L), class = "hypergraphs_long_format")
+  expect_error(hg_bootstrap(long, n_boot = 2L), class = "hypergraphs_bad_input")
+  expect_error(hon(long), class = "hypergraphs_long_format")
 })
 
 test_that("the message names the columns and the remedy", {
@@ -71,15 +71,15 @@ test_that("the guard does not fire on the wide frames the verbs accept", {
 })
 
 test_that("detection is on names, case-insensitively, and needs two of three", {
-  expect_null(hypernets:::.hon_guard_long_format(list(c("A", "B"))))
-  expect_null(hypernets:::.hon_guard_long_format(.lf_wide()))
+  expect_null(hypergraphs:::.hon_guard_long_format(list(c("A", "B"))))
+  expect_null(hypergraphs:::.hon_guard_long_format(.lf_wide()))
   shouty <- .lf_long()
   names(shouty) <- toupper(names(shouty))
-  expect_error(hypernets:::.hon_guard_long_format(shouty),
-               class = "hypernets_long_format")
+  expect_error(hypergraphs:::.hon_guard_long_format(shouty),
+               class = "hypergraphs_long_format")
   two_of_three <- .lf_long()[, c("user", "code")]
-  expect_error(hypernets:::.hon_guard_long_format(two_of_three),
-               class = "hypernets_long_format")
+  expect_error(hypergraphs:::.hon_guard_long_format(two_of_three),
+               class = "hypergraphs_long_format")
 })
 
 test_that("hg_sequences output is one sequence bare and per actor with arguments", {
@@ -102,7 +102,7 @@ test_that("hg_sequences output is one sequence bare and per actor with arguments
   # its columns are named action and time, so they are found by name; with
   # no actor the events form one sequence, which bootstrap cannot resample
   expect_message(expect_error(hg_bootstrap(seqs, n_boot = 2L)),
-                 class = "hypernets_single_sequence")
+                 class = "hypergraphs_single_sequence")
   fit <- hg_bootstrap(seqs, action = "action", actor = "actor", time = "time",
                        n_boot = 2L, seed = 1L)
   expect_identical(fit$n_trajectories, 2L)

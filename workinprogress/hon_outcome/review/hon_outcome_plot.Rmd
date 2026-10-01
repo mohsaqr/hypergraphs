@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
                       comment = "", fig.width = 8, fig.height = 4.8,
                       out.width = "100%", dpi = 130)
-library(hypernets)
+library(hypergraphs)
 ```
 
 ## What is being compared with what
@@ -49,7 +49,7 @@ describe_per_sd <- function(fit, who, verb_gauss = "score",
                             odds_of = "the outcome") {
   d <- as.data.frame(fit)
   d <- d[order(d$p_adj, d$feature), , drop = FALSE]
-  lab <- hypernets:::.hoo_feature_label(d$feature)
+  lab <- hypergraphs:::.hoo_feature_label(d$feature)
   lines <- vapply(seq_len(nrow(d)), function(i) {
     ci <- sprintf("95%% CI %s to %s; BH-adjusted p = %s",
                   num(d$per_sd_low[i]), num(d$per_sd_high[i]),
@@ -70,7 +70,7 @@ describe_per_sd <- function(fit, who, verb_gauss = "score",
 
 describe_contrasts <- function(fit, who, pct = FALSE) {
   d <- as.data.frame(fit, what = "contrasts")
-  lab <- hypernets:::.hoo_feature_label(d$feature)
+  lab <- hypergraphs:::.hoo_feature_label(d$feature)
   show <- if (pct) function(v) sprintf("%s%%", num(100 * v)) else num
   lines <- vapply(seq_len(nrow(d)), function(i) {
     sprintf(paste0("For %s, a %s at the 25th percentile (%s) is predicted ",

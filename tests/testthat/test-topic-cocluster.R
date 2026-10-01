@@ -74,10 +74,10 @@ test_that("co-clustering invariants: weight scale, sparse storage, seed", {
 
 test_that("hg_cocluster raises classed errors", {
   hg <- text_hypergraph(.cc_docs, stop_words = .cc_stops)
-  expect_error(hg_cocluster(hg, k = 1), class = "hypernets_bad_input")
-  expect_error(hg_cocluster(hg, k = 1000), class = "hypernets_bad_input")
+  expect_error(hg_cocluster(hg, k = 1), class = "hypergraphs_bad_input")
+  expect_error(hg_cocluster(hg, k = 1000), class = "hypergraphs_bad_input")
   empty <- hg
   empty$incidence[, 1L] <- 0
-  expect_error(hg_cocluster(empty, k = 2), class = "hypernets_bad_input")
-  expect_error(hg_cocluster(list(), k = 2), class = "hypernets_bad_input")
+  expect_error(hg_cocluster(empty, k = 2), class = "hypergraphs_bad_input")
+  expect_error(hg_cocluster(list(), k = 2), class = "hypergraphs_bad_input")
 })

@@ -27,9 +27,9 @@
 #'     keeps each actor or session in one sequence however long the gaps.
 #'     `timezone` is the time zone of timestamps that carry none (default
 #'     `"UTC"`). Events with a missing actor or session raise
-#'     `hypernets_bad_input`; a missing action stays in its sequence as a
+#'     `hypergraphs_bad_input`; a missing action stays in its sequence as a
 #'     gap. Without `actor` all events form one sequence, announced by the
-#'     message `hypernets_single_sequence`.}
+#'     message `hypergraphs_single_sequence`.}
 #'   \item{Wide data.frame or character matrix}{one sequence per row;
 #'     trailing `NA`s end a sequence.}
 #'   \item{List}{one character vector per sequence.}
@@ -41,10 +41,10 @@
 #'
 #' A data.frame with columns named like an event table (`code`, `state`,
 #' `user`, `timestamp`, ...) that is passed without `action =` and has no
-#' `action` column raises `hypernets_long_format` (a
-#' `hypernets_bad_input`): read as wide, its actor ids and times would
+#' `action` column raises `hypergraphs_long_format` (a
+#' `hypergraphs_bad_input`): read as wide, its actor ids and times would
 #' silently become states. `actor`, `time` or `session` without an action
-#' column raises `hypernets_bad_input`.
+#' column raises `hypergraphs_bad_input`.
 #' @keywords internal
 NULL
 
@@ -322,8 +322,8 @@ memory <- function(data, order = 2L, min_count = 5L, base = 2,
 #' The quantities are defined only for an irreducible chain, one in which
 #' every state can reach every other. A chain that is not irreducible (a
 #' transient or absorbing state, or several closed classes, as a pruned
-#' higher-order network can have) raises `hypernets_not_ergodic`, a
-#' `hypernets_bad_input`, naming those states.
+#' higher-order network can have) raises `hypergraphs_not_ergodic`, a
+#' `hypergraphs_bad_input`, naming those states.
 #' @references
 #' Kemeny, J. G., & Snell, J. L. (1976). \emph{Finite Markov Chains}.
 #' Springer.
@@ -347,13 +347,22 @@ hg_markov_stability <- function(data, normalize = TRUE,
                              timezone = timezone,
                              lists = "wide")
   data <- .ho_unresult(data)
-  .hms_check_irreducible(.hms_chain_structure(data))
+  .hms_check_irreducible(.hms_chain_structure(.hms_support(data)))
   .ho_result(Nestimate::markov_stability(data, normalize = normalize))
+}
+
+# Irreducibility depends only on which transitions are possible, so a matrix
+# is checked on a row-normalised copy; the estimator then warns about (or
+# refuses) unnormalised rows once, as `normalize` asks.
+.hms_support <- function(data) {
+  if (!is.matrix(data)) return(data)
+  totals <- rowSums(data)
+  data / ifelse(totals > 0, totals, 1)
 }
 
 # The chain's structure; a state with no outgoing transition (a dead end a
 # pruned network can leave) is reported by the estimator with a plain error,
-# raised here as hypernets_not_ergodic. Every other error passes unchanged.
+# raised here as hypergraphs_not_ergodic. Every other error passes unchanged.
 .hms_chain_structure <- function(data) {
   tryCatch(Nestimate::chain_structure(data), error = function(e) {
     message <- conditionMessage(e)
@@ -363,7 +372,7 @@ hg_markov_stability <- function(data, normalize = TRUE,
       "the chain is not irreducible (no outgoing transition from: %s), so ",
       "its stationary distribution, return times and passage times are not ",
       "defined. Lower `min_freq` or `max_order` of the network."),
-      dead_ends), class = c("hypernets_not_ergodic", "hypernets_bad_input"),
+      dead_ends), class = c("hypergraphs_not_ergodic", "hypergraphs_bad_input"),
       call = NULL))
   })
 }
@@ -390,5 +399,5 @@ hg_markov_stability <- function(data, normalize = TRUE,
     "return times and passage times are not defined. Lower `min_freq` or ",
     "`max_order` of the network, or analyse one recurrent class."),
     paste(parts, collapse = "; ")),
-    class = c("hypernets_not_ergodic", "hypernets_bad_input"), call = NULL))
+    class = c("hypergraphs_not_ergodic", "hypergraphs_bad_input"), call = NULL))
 }

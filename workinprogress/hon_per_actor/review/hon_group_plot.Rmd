@@ -11,8 +11,8 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = "",
 ```
 
 ```{r fit}
-library(hypernets)
-data("human_long", package = "hypernets")
+library(hypergraphs)
+data("human_long", package = "hypergraphs")
 fits <- build_hon(human_long, action = "code", actor = "session_id",
                   time = "timestamp", by = "project", max_order = 2L)
 ```

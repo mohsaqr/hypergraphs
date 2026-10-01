@@ -2,7 +2,7 @@
 % Please edit documentation in R/text_topic_model.R
 \name{hg_topic_search}
 \alias{hg_topic_search}
-\alias{plot.hypernets_topic_search}
+\alias{plot.hypergraphs_topic_search}
 \title{Choose the number of topics by coherence and exclusivity}
 \usage{
 hg_topic_search(
@@ -18,7 +18,7 @@ hg_topic_search(
   n_cores = 2L
 )
 
-\method{plot}{hypernets_topic_search}(x, ...)
+\method{plot}{hypergraphs_topic_search}(x, ...)
 }
 \arguments{
 \item{hg}{A \code{net_hg} or \code{text_hypergraph}.}
@@ -52,7 +52,7 @@ serial one. Default \code{FALSE}.}
 \item{...}{Unused.}
 }
 \value{
-A base \code{data.frame} of class \code{hypernets_topic_search}, one row
+A base \code{data.frame} of class \code{hypergraphs_topic_search}, one row
 per number of topics: \code{k}, \code{coherence} and \code{exclusivity} (means over
 the topics), \code{divergence} (of the kept start), \code{agreement} (mean
 agreement of the topics across the starts; \code{NA} with \code{nstart = 1}),
@@ -60,7 +60,7 @@ agreement of the topics across the starts; \code{NA} with \code{nstart = 1}),
 coherence, one labelled point per number of topics, the frontier
 joined by a line and drawn as filled points. Conditions are those of
 \code{\link[=hg_topics]{hg_topics()}}; a start that does not converge raises
-\code{hypernets_no_converge}.
+\code{hypergraphs_no_converge}.
 }
 \description{
 Fits \code{\link[=hg_topics]{hg_topics()}} for every number of topics in \code{k} and scores each

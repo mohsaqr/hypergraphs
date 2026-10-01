@@ -16,7 +16,7 @@ hg_embed(
 )
 }
 \arguments{
-\item{hg}{Any hypernets \code{net_hg}.}
+\item{hg}{Any hypergraphs \code{net_hg}.}
 
 \item{dimensions}{Number of embedding coordinates, between 2 and
 \code{n_nodes - 1}.}
@@ -39,7 +39,7 @@ A data frame with \code{node}, stationary mass \code{pi}, and
 \code{dim1} through \verb{dim<dimensions>}.
 }
 \description{
-Returns the node coordinates computed by hypernets' existing hypergraph
+Returns the node coordinates computed by hypergraphs' existing hypergraph
 spectral or symmetric-NMF engine without exposing the incidental k-means
 assignments produced by \code{\link[=hg_cluster]{hg_cluster()}}.
 }

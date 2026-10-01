@@ -49,7 +49,7 @@ weights of \code{hon$matrix}.}
 \item{max_iter, tol}{Power-iteration controls for PageRank.}
 
 \item{max_paths}{Integer cap on the shortest paths enumerated for
-betweenness. Exceeding it raises a \code{hypernets_too_many_paths} error
+betweenness. Exceeding it raises a \code{hypergraphs_too_many_paths} error
 rather than silently truncating. Default \code{1e6}.}
 
 \item{sort_by}{\code{NULL} (alphabetical by state or node, the default) or
@@ -62,7 +62,7 @@ applied after any filter and after \code{sort_by}, so \code{sort_by} and
 \code{top} compose. Default \code{NULL} returns every row.}
 
 \item{...}{Must be empty: an argument that only the hypergraph method
-takes raises \code{hypernets_bad_input}.}
+takes raises \code{hypergraphs_bad_input}.}
 }
 \value{
 A \code{data.frame}, one row per first-order state (or per

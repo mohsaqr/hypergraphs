@@ -12,7 +12,7 @@
 #' and kNN hypergraphs are returned as plain `net_hg` objects (their
 #' corpus bookkeeping does not transpose meaningfully).
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
+#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypergraphs
 #'   `net_hg`.
 #' @return A hypergraph whose incidence is the transpose of `hg`'s: a
 #'   `text_hypergraph` with flipped `nodes` for bag constructions, otherwise

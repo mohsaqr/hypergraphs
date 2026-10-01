@@ -183,7 +183,7 @@ test_that("print and summary work via shared net_hg methods", {
 # Integration with bundled dataset ----------------------------------------
 
 test_that("works on bundled human_long dataset (long-format event data)", {
-  data("human_long", package = "hypernets")
+  data("human_long", package = "hypergraphs")
   hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
   expect_s3_class(hg, "net_hg")
   expect_gt(hg$n_nodes, 0L)
@@ -246,8 +246,70 @@ test_that("an unaddressable dense incidence is refused, not attempted", {
   d <- data.frame(member = sprintf("m%d", seq_len(n)),
                   group = sprintf("g%d", seq_len(n)))
   expect_error(group_hypergraph(d, actor = "member", group = "group"),
-               class = "hypernets_dense_too_large")
+               class = "hypergraphs_dense_too_large")
   expect_s3_class(group_hypergraph(d, actor = "member", group = "group",
                                    sparse = TRUE),
                   "net_hg")
+})
+
+test_that("group_hypergraph(by =) counts each group's set within by", {
+  events <- data.frame(
+    item = c("a", "b", "a", "b", "a", "c", "a", "b", "b", "c"),
+    basket = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5),
+    shop = c("x", "x", "x", "x", "x", "x", "y", "y", "y", "y"))
+  sets <- group_hypergraph(events, actor = "item", group = "basket",
+                           by = "shop", top = Inf)
+  table_sets <- hg_get(sets, what = "sets")
+  x_sets <- subset(table_sets, group == "x")
+  expect_identical(x_sets$set, c("a + b", "a + c"))
+  expect_identical(x_sets$count, c(2L, 1L))
+  expect_equal(x_sets$share, c(2, 1) / 3)
+  y_sets <- subset(table_sets, group == "y")
+  expect_setequal(y_sets$set, c("a + b", "b + c"))
+  expect_output(print(sets), "sets of item per basket, counted within shop")
+  # top keeps the most frequent; min_size drops the small sets
+  top_one <- hg_get(group_hypergraph(events, actor = "item", group = "basket",
+                                     by = "shop", top = 1), what = "sets")
+  expect_identical(subset(top_one, group == "x")$set, "a + b")
+  expect_s3_class(plot(sets, group = "x"), "ggplot")
+})
+
+test_that("group_hypergraph(by =) refuses a by that varies within a group", {
+  events <- data.frame(item = c("a", "b"), basket = c(1, 1),
+                       shop = c("x", "y"))
+  expect_error(group_hypergraph(events, actor = "item", group = "basket",
+                                by = "shop"),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(events, actor = "item", group = "basket",
+                                by = "nope"),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(events, actor = "item", group = "basket",
+                                min_size = 2),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("debug_events runs follow the after-Fail rule", {
+  first <- subset(debug_events, session == 1L)
+  after_fail <- c(FALSE, head(first$event, -1L) == "Fail")
+  run_number <- as.integer(sub("^[0-9]+[.]", "", first$run))
+  expect_identical(run_number, cumsum(after_fail) + 1L)
+  groups <- tapply(debug_events$group, debug_events$session,
+                   \(v) length(unique(v)))
+  expect_true(all(groups == 1L))
+  expect_length(unique(debug_events$event), 17L)
+  expect_identical(anyNA(debug_events), FALSE)
+})
+
+test_that("group_hypergraph(top =) without by counts over all groups", {
+  events <- data.frame(
+    item = c("a", "b", "a", "b", "a", "c", "a", "b"),
+    basket = c(1, 1, 2, 2, 3, 3, 4, 4))
+  sets <- hg_get(group_hypergraph(events, actor = "item", group = "basket",
+                                  top = Inf), what = "sets")
+  expect_identical(unique(sets$group), "All baskets")
+  expect_identical(sets$set, c("a + b", "a + c"))
+  expect_identical(sets$count, c(3L, 1L))
+  # neither by nor top: one hyperedge per basket, as before
+  plain <- group_hypergraph(events, actor = "item", group = "basket")
+  expect_identical(plain$n_hyperedges, 4L)
 })

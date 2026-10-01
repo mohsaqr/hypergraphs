@@ -74,14 +74,14 @@ test_that("invariants: positivity, relabelling, monotone in alpha", {
   expect_true(all(larger$katz > base$katz))
 })
 
-test_that("alpha outside (0, 1 / lambda_max) raises hypernets_bad_input", {
+test_that("alpha outside (0, 1 / lambda_max) raises hypergraphs_bad_input", {
   hg <- .kz_hg(list(e1 = c("a", "b", "c")))    # K_3: lambda_max = 2
-  expect_error(.hg_katz_fit(hg, alpha = 0.5), class = "hypernets_bad_input")
-  expect_error(.hg_katz_fit(hg, alpha = 0), class = "hypernets_bad_input")
+  expect_error(.hg_katz_fit(hg, alpha = 0.5), class = "hypergraphs_bad_input")
+  expect_error(.hg_katz_fit(hg, alpha = 0), class = "hypergraphs_bad_input")
   expect_error(.hg_katz_fit(hg, alpha = c(0.1, 0.2)),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(.hg_katz_fit(list(), alpha = 0.1),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_silent(.hg_katz_fit(hg, alpha = 0.49))
 })
 
@@ -97,10 +97,10 @@ test_that("hg_centrality(type = 'katz') delegates to the engine", {
                           alpha = 0.03)
   expect_equal(sparse$katz, out$katz, tolerance = 1e-12)
   expect_error(hg_centrality(hg, type = "katz"),
-               class = "hypernets_bad_input")
+               class = "hypergraphs_bad_input")
   expect_error(hg_centrality(.kz_hg(kz_edges, sparse = TRUE),
                              type = c("katz", "clique"), alpha = 0.03),
-               class = "hypernets_sparse_unsupported")
+               class = "hypergraphs_sparse_unsupported")
   top <- hg_centrality(hg, type = "katz", alpha = 0.03, sort_by = "katz",
                        n = 3)
   expect_identical(top$katz, sort(out$katz, decreasing = TRUE)[1:3])

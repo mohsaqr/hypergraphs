@@ -15,7 +15,7 @@
 #' trailing copyright notices, bare numbers, and optionally stop words. Each
 #' step is a switch. The result has the same length (or the same rows) as the
 #' input; a text that falls below `min_content` becomes the empty string,
-#' which [text_hypergraph()] then drops with a `hypernets_dropped_documents`
+#' which [text_hypergraph()] then drops with a `hypergraphs_dropped_documents`
 #' warning, so nothing leaves the corpus silently.
 #'
 #' @param x A character vector, or a data.frame with a text column.
@@ -57,7 +57,7 @@
 #'   fragment scores low; `0.5` is a sensible floor for abstracts.
 #' @return `x` with the text cleaned: a character vector of the same length
 #'   (names kept), or the same data.frame with `column` replaced. `NA` and
-#'   low-content texts become `""`. Raises `hypernets_bad_input` for a
+#'   low-content texts become `""`. Raises `hypergraphs_bad_input` for a
 #'   malformed `x`, `column` or switch.
 #' @references
 #' Manning, C. D., Raghavan, P., & Schütze, H. (2008). *Introduction to
@@ -88,7 +88,7 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   if (length(bad_flag) > 0L) {
     stop(errorCondition(
       sprintf("`%s` must be TRUE or FALSE", bad_flag[[1L]]),
-      class = "hypernets_bad_input", call = NULL
+      class = "hypergraphs_bad_input", call = NULL
     ))
   }
   stopifnot(
@@ -110,7 +110,7 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
         !column %in% names(x)) {
       stop(errorCondition(
         "when `x` is a data.frame, `column` must name one of its columns",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     text <- as.character(x[[column]])
@@ -118,13 +118,13 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
     if (!is.character(x)) {
       stop(errorCondition(
         "`x` must be a character vector or a data.frame",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     if (!is.null(column)) {
       stop(errorCondition(
         "`column` applies only when `x` is a data.frame",
-        class = "hypernets_bad_input", call = NULL
+        class = "hypergraphs_bad_input", call = NULL
       ))
     }
     text <- x

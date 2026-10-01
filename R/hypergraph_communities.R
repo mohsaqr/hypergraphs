@@ -1,5 +1,5 @@
 # Repeated Infomap on the association projection, following the paper's
-# representation-comparison workflow. hypernets owns the hypergraph projection;
+# representation-comparison workflow. hypergraphs owns the hypergraph projection;
 # cograph owns the graph clustering and quality kernels.
 
 .thg_partition_vector <- function(partition, nodes) {
@@ -55,7 +55,7 @@
 #'   and averaged with its previous weight, until the largest weight change
 #'   is at most `delta`). IRMM reads the hypergraph directly, so `trials`,
 #'   `method`, `duplicate_edges`, `self_association`, `edge_source` and
-#'   `directed` do not apply to it and raise `hypernets_bad_input` when
+#'   `directed` do not apply to it and raise `hypergraphs_bad_input` when
 #'   supplied. Each of the `n_runs` runs is one full IRMM fit whose Louvain
 #'   steps draw from R's RNG under that run's seed (the caller's RNG state is
 #'   restored); igraph is required.
@@ -63,7 +63,7 @@
 #'   more than `delta` in a pass (default 0.01, the paper's threshold).
 #' @param max_iter For `type = "irmm"`: maximum reweighting passes (default
 #'   50). A run that hits it is flagged `converged = FALSE` in the `"runs"`
-#'   table and raises one `hypernets_no_converge` warning.
+#'   table and raises one `hypergraphs_no_converge` warning.
 #' @param edge_weights For `type = "irmm"`: initial positive hyperedge
 #'   weights (one per hyperedge, or one value recycled). `NULL` uses the
 #'   window counts of a [window_hypergraph()], else unit weights.
@@ -103,7 +103,7 @@
 #'   hg_get(irmm, what = "runs")
 #' }
 #' @param ... Must be empty: an argument that only the memory-network
-#'   method takes raises `hypernets_bad_input`.
+#'   method takes raises `hypergraphs_bad_input`.
 #' @export
 hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
                                   seeds = NULL,
@@ -143,7 +143,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
   if (!requireNamespace("igraph", quietly = TRUE)) {
     stop(errorCondition(
       "`hg_communities()` needs the suggested package `igraph` for Infomap",
-      class = "hypernets_missing_dependency", call = NULL
+      class = "hypergraphs_missing_dependency", call = NULL
     ))
   }
   whole <- function(x, name) {
@@ -263,7 +263,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   `what = "quality"`.
 #' @param edge_source Hyperedge sources for the citation and self-association
 #'   projections when scoring, as in [hg_project()].
-#' @return A `hypernets_community_comparison` object. `hg_get()` returns
+#' @return A `hypergraphs_community_comparison` object. `hg_get()` returns
 #'   its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
 #'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest_size`,
 #'   `second_size` and `balance` = second / largest), `"similarity"` (one
@@ -353,14 +353,14 @@ hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
     sizes = do.call(rbind, size_rows),
     similarity = do.call(rbind, similarity_rows),
     quality = quality
-  ), class = "hypernets_community_comparison")
+  ), class = "hypergraphs_community_comparison")
 }
 
 #' @rdname hg_compare_communities
-#' @param x A `hypernets_community_comparison` object.
+#' @param x A `hypergraphs_community_comparison` object.
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @export
-print.hypernets_community_comparison <- function(x, n = 10L, ...) {
+print.hypergraphs_community_comparison <- function(x, n = 10L, ...) {
   cat(sprintf("Community comparison across %d representations: %s\n",
               length(x$models), paste(x$models, collapse = ", ")))
   .ho_print_table(x, n)
@@ -371,7 +371,7 @@ print.hypernets_community_comparison <- function(x, n = 10L, ...) {
 #' @param what Which table: `"summary"` (default), `"similarity"`, `"sizes"`
 #'   or `"quality"`.
 #' @export
-hg_get.hypernets_community_comparison <- function(x,
+hg_get.hypergraphs_community_comparison <- function(x,
                                                   what = c("summary",
                                                            "similarity",
                                                            "sizes",
@@ -388,7 +388,7 @@ hg_get.hypernets_community_comparison <- function(x,
 
 #' @rdname result-summary
 #' @export
-summary.hypernets_community_comparison <- function(object, ...) {
+summary.hypergraphs_community_comparison <- function(object, ...) {
   .ho_summary(object)
 }
 
@@ -400,7 +400,7 @@ summary.hg_communities <- function(object, ...) .ho_summary(object)
 #' @param ... For `plot`, unused.
 #' @return For `plot`, a ggplot object.
 #' @export
-plot.hypernets_community_comparison <- function(x, what = c("sizes", "similarity"),
+plot.hypergraphs_community_comparison <- function(x, what = c("sizes", "similarity"),
                                              ...) {
   what <- match.arg(what)
   if (identical(what, "sizes")) {

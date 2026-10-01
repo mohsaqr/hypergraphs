@@ -4,59 +4,56 @@
 \alias{plot.net_hon_communities}
 \title{Plot memory-network communities}
 \usage{
-\method{plot}{net_hon_communities}(x, type = c("physical", "states"), show_zero_flow = FALSE, ...)
+\method{plot}{net_hon_communities}(x, type = c("physical", "network", "states"), show_zero_flow = FALSE, ...)
 }
 \arguments{
 \item{x}{A \code{net_hon_communities} object.}
 
-\item{type}{\code{"physical"} (default) or \code{"states"}.}
+\item{type}{\code{"physical"} (default), \code{"network"} or \code{"states"}.}
 
-\item{show_zero_flow}{Draw zero-flow state nodes in the state view?
-Default \code{FALSE}.}
+\item{show_zero_flow}{Draw the memory nodes with no flow in the
+\code{type = "states"} view? Default \code{FALSE}.}
 
-\item{...}{For \code{type = "physical"}, passed to \code{\link[=plot.net_hg]{plot.net_hg()}}
-(e.g. \code{seed}, \code{label_size}, \code{arrow_style = "outside"}, \code{layout}),
-overriding the defaults set here; for \code{type = "states"}, passed to
-\code{\link[cograph:overlay_communities]{cograph::overlay_communities()}} and on to \code{\link[cograph:splot]{cograph::splot()}}.}
+\item{...}{For \code{"physical"}, passed to \code{\link[=plot.net_hg]{plot.net_hg()}} (e.g. \code{seed},
+\code{label_size}, \code{arrow_style = "outside"}, \code{layout}); for \code{"network"} and
+\code{"states"}, passed to \code{\link[cograph:overlay_communities]{cograph::overlay_communities()}} and on to
+\code{\link[cograph:splot]{cograph::splot()}} (e.g. \code{layout}, \code{edge_label_style}, \code{threshold},
+\code{blob_alpha}). They override the defaults set here.}
 }
 \value{
-For \code{type = "physical"}, a ggplot object (print it to draw). For
-\code{type = "states"}, \code{x}, invisibly (cograph draws with base graphics).
+For \code{"physical"}, a ggplot object (print it to draw). For
+\code{"network"} and \code{"states"}, \code{x}, invisibly (cograph draws with base
+graphics).
 }
 \description{
 \describe{
-\item{\code{type = "physical"} (default)}{every community is drawn as a
-pebble around the physical nodes it holds, through
-\code{\link[=plot.net_hg]{plot.net_hg()}} on the community hypergraph (member = physical
-node, group = \code{"Community k"}, from \code{hg_get(x, what = "physical")}). A physical node shared by several communities lies
-inside each of their pebbles. Pebbles are coloured by community
-(Okabe-Ito, legend "Community"). Each node is a black circle whose
-area follows its physical flow (the memory network's visit rate summed
-over its state nodes), and a triangle inside the circle points at the
-physical node its link flow most often goes to next. Each community
-has a title box with its name and flow (the visit rate of its state
-nodes) beside its pebble, drawn by \code{\link[=plot.net_hg]{plot.net_hg()}} (haloed
-labels, legend below, wide margins); the boxes sit a little further
-out than there (\code{title_gap = 0.14}) to clear the labels of the nodes at
-a pebble's rim. A
-community holding a single physical node has no pebble of its own;
-its title box sits by the node and the caption names it.}
-\item{\code{type = "states"}}{the state nodes of the higher-order network,
-drawn by \code{\link[cograph:overlay_communities]{cograph::overlay_communities()}}, one ring per community
-(\code{\link[cograph:layout_groups]{cograph::layout_groups()}}), with community blobs, cograph's group
-legend, short state labels, and faded edges (transition probability
-below 0.05 hidden).}
+\item{\code{type = "physical"} (default)}{every community as a pebble around
+the states it holds, through \code{\link[=plot.net_hg]{plot.net_hg()}} on the community
+hypergraph. A state shared by several communities lies inside each of
+their pebbles. Every state is a circle whose area follows its flow,
+with a triangle pointing at the state the walk most often moves to
+next, and every community has a title box with its flow.}
+\item{\code{type = "network"}}{the network of states as a transition network
+analysis plot through \code{\link[cograph:overlay_communities]{cograph::overlay_communities()}}: every arrow is
+a transition with its probability (transitions below 0.05 hidden),
+every state a circle whose area follows its flow, coloured
+(Okabe-Ito) by the community that holds most of its flow, and every
+community a blob around its states, so a shared state lies in two
+blobs.}
+\item{\code{type = "states"}}{the network of memory nodes drawn in the same
+way, laid out by the walk's transitions between them so that the nodes
+of a community sit together. Memory nodes with no flow are left out
+unless \code{show_zero_flow = TRUE}, and the title says how many. With more
+than 20 nodes the probabilities are not printed on the arrows.}
 }
-State nodes with zero flow (reached only by teleportation, see
-\code{\link[=hg_communities]{hg_communities()}}) carry no physical flow and are never drawn in the
-physical view; the state view leaves them and the singleton communities
-they form out unless \code{show_zero_flow = TRUE}. A caption says how many were
-left out. The tables returned by \code{\link[=hg_get.net_hon_communities]{hg_get.net_hon_communities()}} are
-unaffected.
+Memory nodes with no flow (reached only by random jumps, see
+\code{\link[=hg_communities]{hg_communities()}}) carry no flow of their states and are never drawn in
+the physical view. The tables returned by
+\code{\link[=hg_get.net_hon_communities]{hg_get.net_hon_communities()}} are unaffected.
 }
 \section{Conditions}{
 
-\code{hypernets_bad_input} from \code{\link[=plot.net_hg]{plot.net_hg()}} for arguments passed
+\code{hypergraphs_bad_input} from \code{\link[=plot.net_hg]{plot.net_hg()}} for arguments passed
 through \code{...} that it rejects.
 }
 
@@ -65,5 +62,14 @@ seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
              c("c", "h", "d", "c", "h", "d", "c"))
 comm <- hg_communities(hon(seqs, max_order = 2L), trials = 2L)
 plot(comm)
+plot(comm, type = "network")
 plot(comm, type = "states")
+}
+\references{
+Saqr, M., López-Pernas, S., Törmänen, T., Kaliisa, R., Misiejuk, K., &
+Tikka, S. (2025). Transition network analysis: A novel framework for
+modeling, visualizing, and identifying the temporal patterns of learners
+and learning processes. \emph{Proceedings of the 15th International
+Learning Analytics and Knowledge Conference (LAK '25)}, 351-361.
+\doi{10.1145/3706468.3706513}
 }

@@ -15,7 +15,7 @@ hg_null_test(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypergraphs
 \code{net_hg}.}
 
 \item{statistic}{Statistics to test; any of \code{"pairwise_participation"},
@@ -71,8 +71,8 @@ are the 2.5\% and 97.5\% null quantiles -- report them with the observed
 value, not the p-value alone.
 }
 \section{Conditions}{
- Raises \code{hypernets_bad_input} for broken contracts.
-\code{method = "configuration"} signals a \code{hypernets_configuration_collapse}
+ Raises \code{hypergraphs_bad_input} for broken contracts.
+\code{method = "configuration"} signals a \code{hypergraphs_configuration_collapse}
 warning when stub matching collapses more than 1\% of memberships on
 average, which happens whenever hyperedges are large relative to the
 vertex set -- the usual case in the document orientation.

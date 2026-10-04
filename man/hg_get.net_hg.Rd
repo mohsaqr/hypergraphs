@@ -6,8 +6,7 @@
 \usage{
 \method{hg_get}{net_hg}(
   x,
-  what = c("edges", "nodes", "memberships", "sets", "state_counts", "node_data",
-    "edge_data", "incidence_data"),
+  what = c("edges", "nodes", "memberships", "sets", "state_counts", "edge_data"),
   ...,
   sort_by = NULL,
   top = NULL
@@ -20,9 +19,8 @@
 for one row per node, or \code{"memberships"} for one row per node-in-
 hyperedge cell of the incidence matrix. A hypergraph of clustered
 sequences (\code{\link[=group_hypergraph]{group_hypergraph()}} on a clustering of sequences) also has
-\code{"sets"} and \code{"state_counts"}. A hypergraph read with \code{\link[=read_hif]{read_hif()}}
-also has \code{"node_data"} and \code{"incidence_data"}; \code{"edge_data"} returns the
-per-hyperedge attribute table any constructor or HIF file attached.}
+\code{"sets"} and \code{"state_counts"}. \code{"edge_data"} returns the per-hyperedge
+attribute table a constructor attached.}
 
 \item{...}{Additional arguments (ignored).}
 
@@ -50,12 +48,9 @@ group with exactly that set) and \code{share} (\code{count} over the group's
 sequences), in group order and decreasing count. For
 \code{what = "state_counts"}, one row per group and state with \code{group},
 \code{node}, \code{count} (sequences of the group containing the state) and
-\code{share}. For \code{what = "node_data"}, one row per node with \code{node} and
-the node weight and attributes an HIF file carried; for
-\code{what = "incidence_data"}, one row per incidence with \code{node}, \code{edge}
-and its attributes; for \code{what = "edge_data"}, one row per hyperedge
-with \code{edge} and its attributes. Asking for any of these tables of a
-hypergraph without it raises \code{hypergraphs_bad_input}.
+\code{share}. For \code{what = "edge_data"}, one row per hyperedge with \code{edge}
+and its attributes; asking for it of a hypergraph without an attribute
+table raises \code{hypergraphs_bad_input}.
 }
 \description{
 One row per hyperedge: its identifier, size (number of distinct member

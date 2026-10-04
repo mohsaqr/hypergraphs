@@ -190,3 +190,33 @@ NULL
 #' @examples
 #' ring_communities
 "ring_communities"
+
+#' Simulated forum posts whose topics follow second-order memory
+#'
+#' A corpus whose sequence of topics can only be described with memory.
+#' Thirty students each write twelve posts. Each post is about one of three
+#' topics, cooking, astronomy or gardening, and holds seven words drawn with
+#' replacement from the vocabulary of its topic and one everyday word
+#' (`night`, `today`, `week`, `friends`) shared by all topics. The first two
+#' topics of a student are drawn at random. After two different topics, the
+#' next topic is the third one with probability 0.8 and otherwise drawn at
+#' random; after a repeated topic, it is drawn at random. A first-order model
+#' of the topic sequence cannot represent this rule.
+#'
+#' @format A data frame with 360 rows (one per post) and 5 columns:
+#' \describe{
+#'   \item{post}{Character. The post identifier, `st01_t01` to `st30_t12`.}
+#'   \item{student}{Character. The author, `st01` to `st30`.}
+#'   \item{turn}{Integer. The position of the post among the author's
+#'     posts, 1 to 12.}
+#'   \item{topic}{Character. The topic drawn by the simulation.}
+#'   \item{text}{Character. The text of the post, eight words.}
+#' }
+#' @source Simulated with seed 11 by `data-raw/forum_posts.R`.
+#' @seealso [hg_sequences()], which turns a clustering of these posts into
+#'   one sequence of topics per student.
+#' @examples
+#' head(forum_posts)
+#' forum_hg <- text_hypergraph(forum_posts, column = "text", id = "post")
+#' forum_hg
+"forum_posts"

@@ -105,8 +105,8 @@
 #' @section Tables by class:
 #' \describe{
 #'   \item{`net_hg` (hypergraphs)}{`"edges"` (default), `"nodes"`,
-#'     `"memberships"`, `"sets"`, `"state_counts"`, `"node_data"`,
-#'     `"edge_data"`, `"incidence_data"`; see [hg_get.net_hg()].}
+#'     `"memberships"`, `"sets"`, `"state_counts"`, `"edge_data"`;
+#'     see [hg_get.net_hg()].}
 #'   \item{`text_hypergraph`}{`"weights"` (default), `"documents"`,
 #'     `"vocabulary"`, `"sentences"`; see [hg_get.text_hypergraph()].}
 #'   \item{`hg_hypergat`}{Predictions (default), evaluation, document text,

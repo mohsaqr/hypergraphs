@@ -270,8 +270,6 @@ print.net_hg <- function(x, n = 10L, ...) {
                 .thg_set_rule(x$params),
                 if (is.null(x$params$group)) "" else
                   sprintf(", within each %s", x$params$group)))
-  } else if (identical(x$params$source, "read_hif")) {
-    cat("Source: Hypergraph Interchange Format (read_hif())\n")
   } else if (identical(x$params$source, "random_hypergraph")) {
     cat(sprintf("Source: random %s model\n", x$params$model))
   } else {
@@ -301,9 +299,8 @@ print.net_hg <- function(x, n = 10L, ...) {
 #'   for one row per node, or `"memberships"` for one row per node-in-
 #'   hyperedge cell of the incidence matrix. A hypergraph of clustered
 #'   sequences ([group_hypergraph()] on a clustering of sequences) also has
-#'   `"sets"` and `"state_counts"`. A hypergraph read with [read_hif()]
-#'   also has `"node_data"` and `"incidence_data"`; `"edge_data"` returns the
-#'   per-hyperedge attribute table any constructor or HIF file attached.
+#'   `"sets"` and `"state_counts"`. `"edge_data"` returns the per-hyperedge
+#'   attribute table a constructor attached.
 #' @return A data.frame. For `what = "edges"`, one row per hyperedge with
 #'   columns `hyperedge` (character id), `size` (integer), `members`
 #'   (the member nodes, comma separated), and `weight` (numeric window count,
@@ -320,12 +317,9 @@ print.net_hg <- function(x, n = 10L, ...) {
 #'   sequences), in group order and decreasing count. For
 #'   `what = "state_counts"`, one row per group and state with `group`,
 #'   `node`, `count` (sequences of the group containing the state) and
-#'   `share`. For `what = "node_data"`, one row per node with `node` and
-#'   the node weight and attributes an HIF file carried; for
-#'   `what = "incidence_data"`, one row per incidence with `node`, `edge`
-#'   and its attributes; for `what = "edge_data"`, one row per hyperedge
-#'   with `edge` and its attributes. Asking for any of these tables of a
-#'   hypergraph without it raises `hypergraphs_bad_input`.
+#'   `share`. For `what = "edge_data"`, one row per hyperedge with `edge`
+#'   and its attributes; asking for it of a hypergraph without an attribute
+#'   table raises `hypergraphs_bad_input`.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
@@ -338,11 +332,11 @@ print.net_hg <- function(x, n = 10L, ...) {
 #' hg_get(hg, what = "memberships")
 #' @export
 hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
-                                      "sets", "state_counts", "node_data",
-                                      "edge_data", "incidence_data"), ...,
+                                      "sets", "state_counts", "edge_data"),
+                          ...,
                           sort_by = NULL, top = NULL) {
   what <- match.arg(what)
-  if (what %in% c("node_data", "edge_data", "incidence_data")) {
+  if (identical(what, "edge_data")) {
     if (is.null(x[[what]])) {
       .thg_bad_input(sprintf(
         "`what = \"%s\"`: this hypergraph carries no %s table", what, what))

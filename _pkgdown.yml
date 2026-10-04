@@ -62,7 +62,6 @@ reference:
   - hg_snapshots
   - hg_subset
   - random_hypergraph
-  - write_hif
 - subtitle: Measures and centralities
   contents:
   - hg_measures
@@ -100,6 +99,7 @@ reference:
   - hypa.net_hg
   - hg_neural
   - hg_hypergat
+  - predict.hg_hypergat
   - heterogeneous_hgat
   - hg_hypergcn
   - hg_hnhn
@@ -127,6 +127,7 @@ reference:
   - hg_stability
   - hg_agreement
   - hg_seeds
+  - hg_dictionary
   - hg_classify
 
 - title: Methods
@@ -147,6 +148,7 @@ reference:
   - gfcc_citations
   - ring_sequences
   - ring_communities
+  - forum_posts
 
 articles:
 - title: Hypergraphs

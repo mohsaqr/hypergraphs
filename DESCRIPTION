@@ -70,7 +70,6 @@ Imports:
 Suggests:
     gridExtra,
     igraph,
-    jsonlite,
     knitr,
     png,
     rmarkdown,

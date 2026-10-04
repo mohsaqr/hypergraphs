@@ -274,3 +274,35 @@ test_that("hg_sequences() sorts calendar times and breaks ties by document", {
     hg_sequences(hg_flat, flat_states, actor = "student", order_by = "turn")
   )
 })
+
+test_that("forum_posts has the documented structure and topic vocabulary", {
+  expect_identical(dim(forum_posts), c(360L, 5L))
+  expect_identical(names(forum_posts),
+                   c("post", "student", "turn", "topic", "text"))
+  expect_identical(anyNA(forum_posts), FALSE)
+  expect_identical(anyDuplicated(forum_posts$post), 0L)
+  expect_setequal(unique(forum_posts$topic),
+                  c("cooking", "astronomy", "gardening"))
+  expect_identical(as.vector(table(forum_posts$student)), rep(12L, 30L))
+  # every post is eight words: seven from one topic, one everyday word
+  words <- strsplit(forum_posts$text, " ", fixed = TRUE)
+  expect_identical(lengths(words), rep(8L, 360L))
+  everyday <- c("night", "today", "week", "friends")
+  expect_true(all(vapply(words, \(w) w[8L] %in% everyday, logical(1L))))
+})
+
+test_that("forum_posts topics carry the planted second-order rule", {
+  topic_sequences <- hg_sequences(
+    text_hypergraph(forum_posts, column = "text", id = "post"),
+    actor = "student", order_by = "turn", state = "topic"
+  )
+  fit <- hon(topic_sequences, actor = "actor", max_order = 2L)
+  rules <- hg_get(fit, order_min = 2L, sort_by = "probability", top = 6L)
+  # the six "two different topics -> the third" rules lead, near 0.8 + 0.2/3
+  third <- vapply(seq_len(nrow(rules)), \(i) {
+    seen <- strsplit(rules$from[i], " -> ", fixed = TRUE)[[1L]]
+    length(unique(seen)) == 2L && !rules$to[i] %in% seen
+  }, logical(1L))
+  expect_true(all(third))
+  expect_true(all(abs(rules$probability - (0.8 + 0.2 / 3)) < 0.1))
+})

@@ -44,8 +44,8 @@ orderings and \verb{top =} are named arguments of the method for that class.
 
 \describe{
 \item{\code{net_hg} (hypergraphs)}{\code{"edges"} (default), \code{"nodes"},
-\code{"memberships"}, \code{"sets"}, \code{"state_counts"}, \code{"node_data"},
-\code{"edge_data"}, \code{"incidence_data"}; see \code{\link[=hg_get.net_hg]{hg_get.net_hg()}}.}
+\code{"memberships"}, \code{"sets"}, \code{"state_counts"}, \code{"edge_data"};
+see \code{\link[=hg_get.net_hg]{hg_get.net_hg()}}.}
 \item{\code{text_hypergraph}}{\code{"weights"} (default), \code{"documents"},
 \code{"vocabulary"}, \code{"sentences"}; see \code{\link[=hg_get.text_hypergraph]{hg_get.text_hypergraph()}}.}
 \item{\code{hg_hypergat}}{Predictions (default), evaluation, document text,

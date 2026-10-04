@@ -199,7 +199,7 @@ test_that("print and summary run and report the windowed source", {
   # bipartite print line no longer vanishes either
   bp <- group_hypergraph(
     data.frame(p = c("a", "b", "a"), g = c("g1", "g1", "g2")),
-    actor = "p", group = "g")
+    node = "p", hyperedge = "g")
   expect_output(print(bp), "group membership")
 })
 
@@ -236,7 +236,7 @@ test_that("downstream verbs consume windowed hypergraphs", {
   expect_s3_class(ce, "data.frame")
   expect_identical(nrow(ce), hg$n_nodes)
   expect_identical(ce$node, hg$nodes)
-  net <- hg_clique_expansion(hg)
+  net <- pairwise_network(hg)
   expect_s3_class(net, "netobject")
 })
 

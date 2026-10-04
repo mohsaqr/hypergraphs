@@ -1,4 +1,4 @@
-# ---- hg_clique_expansion() tests --------------------------------------------
+# ---- pairwise_network() tests --------------------------------------------
 
 # Helpers ------------------------------------------------------------------
 
@@ -24,17 +24,17 @@
 # Structure ----------------------------------------------------------------
 
 test_that("returns a netobject + cograph_network", {
-  net <- hg_clique_expansion(.ce_hg_one_triangle())
+  net <- pairwise_network(.ce_hg_one_triangle())
   expect_s3_class(net, "netobject")
   expect_s3_class(net, "cograph_network")
-  expect_identical(net$method, "hg_clique_expansion")
+  expect_identical(net$method, "pairwise_network")
   expect_false(net$directed)
 })
 
 # Weight semantics: single triangle ----------------------------------------
 
 test_that("single triangle becomes K3 with all unit weights", {
-  net <- hg_clique_expansion(.ce_hg_one_triangle())
+  net <- pairwise_network(.ce_hg_one_triangle())
   W <- net$weights
   expect_equal(W["A", "B"], 1)
   expect_equal(W["A", "C"], 1)
@@ -58,7 +58,7 @@ test_that("pair shared by k hyperedges has weight k", {
          size_distribution = setNames(2L, "size_3"),
          params = list()),
     class = "net_hg")
-  W <- hg_clique_expansion(hg)$weights
+  W <- pairwise_network(hg)$weights
   expect_equal(W["A", "B"], 2)  # shared by both
   expect_equal(W["A", "C"], 1)  # only h1
   expect_equal(W["B", "C"], 1)  # only h1
@@ -81,7 +81,7 @@ test_that("size-2 hyperedges become single edges", {
          size_distribution = setNames(2L, "size_2"),
          params = list()),
     class = "net_hg")
-  W <- hg_clique_expansion(hg)$weights
+  W <- pairwise_network(hg)$weights
   expect_equal(W["A", "B"], 1)
   expect_equal(W["B", "C"], 1)
   expect_equal(W["A", "C"], 0)
@@ -96,7 +96,7 @@ test_that("empty hypergraph -> all-zero adjacency", {
          nodes = c("A", "B", "C"), n_nodes = 3L, n_hyperedges = 0L,
          size_distribution = integer(0), params = list()),
     class = "net_hg")
-  net <- hg_clique_expansion(hg)
+  net <- pairwise_network(hg)
   expect_equal(sum(net$weights), 0)
   expect_equal(dim(net$weights), c(3L, 3L))
   expect_equal(net$n_edges, 0L)
@@ -113,8 +113,8 @@ test_that("weighted=FALSE binarises incidence before projecting", {
          size_distribution = setNames(1L, "size_3"),
          params = list()),
     class = "net_hg")
-  W_w  <- hg_clique_expansion(hg, weighted = TRUE)$weights
-  W_uw <- hg_clique_expansion(hg, weighted = FALSE)$weights
+  W_w  <- pairwise_network(hg, weighted = TRUE)$weights
+  W_uw <- pairwise_network(hg, weighted = FALSE)$weights
   # Weighted: W[A,B] = 2*5 = 10
   expect_equal(W_w["A", "B"], 10)
   expect_equal(W_w["A", "C"], 6)
@@ -127,7 +127,7 @@ test_that("weighted=FALSE binarises incidence before projecting", {
 
 # Roundtrip with group_hypergraph -----------------------------------------
 
-test_that("group_hypergraph -> hg_clique_expansion is consistent", {
+test_that("group_hypergraph -> pairwise_network is consistent", {
   # 3 sessions: S1=(A,B,C), S2=(A,B), S3=(B,C,D)
   d <- data.frame(
     member  = c("A", "B", "C",  "A", "B",  "B", "C", "D"),
@@ -135,7 +135,7 @@ test_that("group_hypergraph -> hg_clique_expansion is consistent", {
     stringsAsFactors = FALSE
   )
   hg <- group_hypergraph(d, "member", "session")
-  W  <- hg_clique_expansion(hg)$weights
+  W  <- pairwise_network(hg)$weights
   # AB shared by S1 and S2 => 2;  BC by S1 and S3 => 2;  CD by S3 => 1
   expect_equal(W["A", "B"], 2)
   expect_equal(W["B", "C"], 2)
@@ -145,7 +145,7 @@ test_that("group_hypergraph -> hg_clique_expansion is consistent", {
 
 # Roundtrip: network_hypergraph then expand ---------------------------------
 
-test_that("network_hypergraph(p=0) -> hg_clique_expansion preserves the graph", {
+test_that("network_hypergraph(p=0) -> pairwise_network preserves the graph", {
   # Pure pairwise (p=0) hypergraph from a network. Expanding back must
   # match the binarised input adjacency.
   set.seed(7)
@@ -156,27 +156,27 @@ test_that("network_hypergraph(p=0) -> hg_clique_expansion preserves the graph", 
   storage.mode(adj) <- "double"
   rownames(adj) <- colnames(adj) <- LETTERS[seq_len(n)]
   hg  <- network_hypergraph(adj, p = 0, include_pairwise = TRUE)
-  W   <- hg_clique_expansion(hg)$weights
+  W   <- pairwise_network(hg)$weights
   expect_equal(W, adj, ignore_attr = TRUE)
 })
 
 # Input validation --------------------------------------------------------
 
 test_that("rejects non-net_hg input", {
-  expect_error(hg_clique_expansion(matrix(0, 3, 3)),
+  expect_error(pairwise_network(matrix(0, 3, 3)),
                "net_hg")
-  expect_error(hg_clique_expansion(list()), "net_hg")
+  expect_error(pairwise_network(list()), "net_hg")
 })
 
 test_that("rejects non-logical weighted argument", {
-  expect_error(hg_clique_expansion(.ce_hg_one_triangle(), weighted = "yes"))
+  expect_error(pairwise_network(.ce_hg_one_triangle(), weighted = "yes"))
 })
 
 # Records provenance in $params -------------------------------------------
 
 test_that("params records source, weighted flag, hyperedge count + size dist", {
-  net <- hg_clique_expansion(.ce_hg_one_triangle(), weighted = TRUE)
-  expect_equal(net$params$source, "hg_clique_expansion")
+  net <- pairwise_network(.ce_hg_one_triangle(), weighted = TRUE)
+  expect_equal(net$params$source, "pairwise_network")
   expect_true(net$params$weighted)
   expect_equal(net$params$n_hyperedges, 1L)
   expect_equal(unname(net$params$hypergraph_size_distribution), 1L)

@@ -183,7 +183,7 @@
 #' window_hypergraph(wide, window = 2L, step = 2L)
 #'
 #' @seealso [network_hypergraph()], [group_hypergraph()],
-#'   [hg_measures()], [hg_cluster()], [hg_clique_expansion()]
+#'   [hg_measures()], [hg_cluster()], [pairwise_network()]
 #'
 #' @export
 window_hypergraph <- function(data, window = 3L, step = 1L,

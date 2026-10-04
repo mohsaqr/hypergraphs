@@ -76,7 +76,7 @@
 #'   actor = c("a","b","c", "a","b","d", "a","b","e", "c","d","e", "a","b","f"),
 #'   group = rep(c("g1","g2","g3","g4","g5"), each = 3)
 #' )
-#' hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+#' hg <- group_hypergraph(memberships, node = "actor", hyperedge = "group")
 #' hypa(hg, min_count = 2L)
 #' @param ... Must be empty: an argument that only the sequence method
 #'   takes (`order`, `action`, ...) raises `hypergraphs_bad_input`.

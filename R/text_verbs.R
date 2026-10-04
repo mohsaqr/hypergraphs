@@ -55,7 +55,7 @@
 #' @return A base `data.frame`, one row per node, edge, edge pair, measure,
 #'   distinct value, or component according to `what`.
 #' @seealso [network_hypergraph()], [group_hypergraph()],
-#'   [hg_clique_expansion()].
+#'   [pairwise_network()].
 #'
 #' @references
 #' Lee, G., Bu, F., Eliassi-Rad, T., & Shin, K. (2025). A survey on
@@ -97,7 +97,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
   if (.thg_is_sparse(hg)) {
     return(.thg_sparse_measures(hg, what))
   }
-  m <- .hg_measures_fit(hg)
+  m <- .hg_measures_fit(hg, pairs = identical(what, "overlap"))
   edges <- colnames(hg$incidence)
   switch(what,
     nodes = data.frame(
@@ -183,7 +183,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 #' eigenvector of \eqn{W}. Equivalent to running
-#' `igraph::eigen_centrality()` on [hg_clique_expansion()] output.
+#' `igraph::eigen_centrality()` on [pairwise_network()] output.
 #'
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
 #' eigen-equation on the hyperedge tensor,
@@ -240,7 +240,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #'
 #' @return A base `data.frame`, one row per node (or the `n` requested rows),
 #'   with one column per requested centrality.
-#' @seealso [network_hypergraph()], [hg_clique_expansion()],
+#' @seealso [network_hypergraph()], [pairwise_network()],
 #'   [hg_measures()].
 #'
 #' @references
@@ -558,7 +558,9 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #' @param hg The hypergraph the clustering was computed on, or the
 #'   sentence hypergraph of the same documents (see Sentence scope).
 #' @param clusters The tidy table returned by [hg_cluster()] (columns
-#'   `node`, `cluster`), or a named vector of cluster labels.
+#'   `node`, `cluster`), a named vector of cluster labels, or the name of a
+#'   column of the hypergraph's document table, so a group variable of the
+#'   corpus such as `"period"` gives its words directly.
 #' @param n Keywords per cluster (default `10`); `Inf` returns all.
 #' @param type Which score ranks the words: any of `"mass"`,
 #'   `"frequency"`, `"ctfidf"`, `"centrality"`. Several at once give one
@@ -655,20 +657,13 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
     "`collapse` must be TRUE or FALSE" =
       isTRUE(collapse) || isFALSE(collapse)
   )
-  assignment <- .thg_labels_input(clusters)
+  assignment <- .thg_resolve_labels(hg, clusters)
   stopifnot(
     "`clusters` must be a data.frame or a named vector" =
       !is.null(names(assignment))
   )
   scope <- .thg_kw_scope(hg)
-  unknown <- setdiff(names(assignment), scope$docs)
-  if (length(unknown) > 0L) {
-    stop(errorCondition(
-      paste0("Unknown node names in `clusters`: ",
-             paste(unknown, collapse = ", ")),
-      class = "hypergraphs_bad_input", call = NULL
-    ))
-  }
+  assignment <- .thg_known_assignment(assignment, scope$docs, hg)
   groups <- factor(as.character(assignment)[match(scope$docs,
                                                   names(assignment))])
   groups <- factor(groups, levels = .thg_kw_natural(levels(groups)))
@@ -957,7 +952,7 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
     if (nrow(sub) == 0L) {
       return(row)
     }
-    word_hg <- group_hypergraph(sub, actor = "word", group = "edge",
+    word_hg <- group_hypergraph(sub, node = "word", hyperedge = "edge",
                                 weight = "weight")
     values <- .hg_centrality_fit(word_hg, type = centrality)
     row[values$node] <- values[[centrality]]
@@ -1045,7 +1040,8 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
 #'
 #' @param hg The document hypergraph the topics were computed on.
 #' @param clusters A partition: the tidy table returned by [hg_cluster()]
-#'   (columns `node`, `cluster`), or a named vector of cluster labels.
+#'   (columns `node`, `cluster`), a named vector of cluster labels, or the
+#'   name of a column of the hypergraph's document table.
 #' @param topics A mixed-membership topic model of `hg` fitted by
 #'   [hg_topics()]. Give `clusters` or `topics`.
 #' @param threshold Topic model only: the share at which a topic counts as
@@ -1098,8 +1094,8 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
 #'   space_2 = "astronomers aimed the telescope at the stars all night"
 #' ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
 #' topics <- hg_cluster(hg, k = 2, seed = 1)
-#' hg_network(hg, clusters = topics)
-#' hg_network(hg, clusters = topics, similarity = "cosine")
+#' topic_network(hg, clusters = topics)
+#' topic_network(hg, clusters = topics, similarity = "cosine")
 #'
 #' corpus <- c(
 #'   a = "soup salt onion soup broth", b = "salt soup broth onion",
@@ -1107,9 +1103,9 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
 #'   e = "soup stars salt sky night broth", f = "onion salt stars broth")
 #' corpus_hg <- text_hypergraph(corpus)
 #' model <- hg_topics(corpus_hg, k = 2, nstart = 2)
-#' hg_network(corpus_hg, topics = model, threshold = 0.2)
+#' topic_network(corpus_hg, topics = model, threshold = 0.2)
 #' @export
-hg_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
+topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
                        cutoff = 0.01,
                        similarity = c("none", "association", "cosine",
                                       "jaccard", "inclusion",
@@ -1128,19 +1124,12 @@ hg_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
   if (!is.null(threshold)) {
     .thg_bad_input("`threshold` applies to a topic model (`topics`)")
   }
-  assignment <- .thg_labels_input(clusters)
+  assignment <- .thg_resolve_labels(hg, clusters)
   stopifnot(
     "`clusters` must be a data.frame or a named vector" =
       !is.null(names(assignment))
   )
-  unknown <- setdiff(names(assignment), hg$nodes)
-  if (length(unknown) > 0L) {
-    stop(errorCondition(
-      paste0("Unknown node names in `clusters`: ",
-             paste(unknown, collapse = ", ")),
-      class = "hypergraphs_bad_input", call = NULL
-    ))
-  }
+  assignment <- .thg_known_assignment(assignment, hg$nodes, hg)
   groups <- factor(as.character(assignment)[match(hg$nodes,
                                                   names(assignment))])
   groups <- factor(groups, levels = .thg_kw_natural(levels(groups)))
@@ -1231,28 +1220,6 @@ hg_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
                    what)
 }
 
-#' Relations between topics (deprecated)
-#'
-#' `hg_relations()` is the former name of [hg_network()] for a partition and
-#' returns the same result. It warns with the class `hypergraphs_deprecated`.
-#'
-#' @inheritParams hg_network
-#' @return The value of `hg_network(hg, clusters = clusters, similarity =,
-#'   what =)`.
-#' @keywords internal
-#' @export
-hg_relations <- function(hg, clusters,
-                         similarity = c("none", "association", "cosine",
-                                        "jaccard", "inclusion",
-                                        "equivalence"),
-                         what = c("edges", "network")) {
-  warning(warningCondition(
-    "hg_relations() is deprecated; use hg_network(hg, clusters = ...)",
-    class = "hypergraphs_deprecated", call = NULL))
-  hg_network(hg, clusters = clusters, similarity = match.arg(similarity),
-             what = match.arg(what))
-}
-
 #' Transductive label spreading on a hypergraph
 #'
 #' Semi-supervised classification of hypergraph nodes by the regularization
@@ -1269,8 +1236,17 @@ hg_relations <- function(hg, clusters,
 #' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`).
 #' @param labels The known labels: a named character vector (names are
 #'   node identifiers -- documents under `nodes = "doc"` -- values their
-#'   class labels), or a tidy data.frame with a `node` column and a
-#'   `label`, `cluster` or `predicted` column.
+#'   class labels), a tidy data.frame with a `node` column and a
+#'   `label`, `cluster` or `predicted` column, or the name of a column of
+#'   the hypergraph's document table, which a [text_hypergraph()] fills
+#'   with the input's other columns (`labels = "period"`).
+#' @param holdout `NULL` (default) uses every given label and returns the
+#'   predictions. A share in `(0, 1)` hides that share of the labels, drawn
+#'   within each class, predicts them from the rest, and returns an
+#'   [hg_classification][hg_get.hg_classification] that prints the held-out
+#'   accuracy and balanced accuracy.
+#' @param seed Seed of the held-out draw (default `1`); the caller's
+#'   random-number stream is restored.
 #' @param xi Numeric in `(0, 1)`. Spreading coefficient (default `0.99`);
 #'   larger values weight the hypergraph structure more relative to the
 #'   initial labels.
@@ -1283,6 +1259,10 @@ hg_relations <- function(hg, clusters,
 #' @param type,edge_weights Passed to [hg_laplacian()].
 #' @return A base `data.frame`, one row per node, with columns `node`,
 #'   `label` (the given label or `NA`), `predicted`, `score`, and `margin`.
+#'   With `holdout`, an `hg_classification`: the same table with `label`
+#'   holding the true label, `split` (`"train"` or `"test"`) and `correct`
+#'   for the held-out documents; read its evaluation with [hg_get()]
+#'   (`what = "accuracy"`, `"classes"`, `"confusion"`).
 #' @references
 #' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
@@ -1302,23 +1282,27 @@ hg_relations <- function(hg, clusters,
 hg_classify <- function(hg, labels, xi = 0.99,
                         type = c("zhou", "random_walk"),
                         normalization = c("none", "class_mass"),
-                        edge_weights = NULL) {
+                        edge_weights = NULL, holdout = NULL, seed = 1L) {
   .thg_check_hg(hg)
   type <- match.arg(type)
   normalization <- match.arg(normalization)
-  labels <- .thg_labels_input(labels)
+  labels <- .thg_resolve_labels(hg, labels)
+  split <- if (!is.null(holdout)) .thg_holdout_split(labels, holdout, seed)
+  known <- if (is.null(split)) labels else split$known
   fit <- if (.thg_is_sparse(hg)) {
-    .thg_sparse_transduction(hg, labels = labels, xi = xi, type = type,
+    .thg_sparse_transduction(hg, labels = known, xi = xi, type = type,
                              edge_weights = edge_weights,
                              normalization = normalization)
   } else {
-    .hg_transduction_fit(hg, labels = labels, xi = xi, type = type,
+    .hg_transduction_fit(hg, labels = known, xi = xi, type = type,
                          edge_weights = edge_weights,
                          normalization = normalization)
   }
   out <- fit$predictions
   rownames(out) <- NULL
-  out
+  if (is.null(split)) return(out)
+  .thg_classification(out, labels, split$hidden, method = "hg_classify",
+                      holdout = holdout)
 }
 
 # Graded membership from the SymNMF factor: each node's row normalised to
@@ -1342,4 +1326,31 @@ hg_classify <- function(hg, labels, xi = 0.99,
                    match(out$cluster, paste("Cluster", seq_len(k)))), ]
   rownames(out) <- NULL
   out
+}
+
+# The labels of `clusters` restricted to the hypergraph's nodes. A label for
+# a document that text_hypergraph() dropped as empty, or for a node that
+# hg_subset() removed, is set aside with a `hypergraphs_dropped_documents`
+# warning, so the table that built the hypergraph can be passed back whole;
+# any other unknown name is an error.
+.thg_known_assignment <- function(assignment, known, hg, arg = "clusters") {
+  unknown <- setdiff(names(assignment), known)
+  if (length(unknown) == 0L) return(assignment)
+  dropped <- c(if (is.list(hg$text)) hg$text$dropped,
+               hg$params$subset$removed)
+  stray <- setdiff(unknown, dropped)
+  if (length(stray) > 0L) {
+    stop(errorCondition(
+      paste0("Unknown node names in `", arg, "`: ",
+             paste(stray, collapse = ", ")),
+      class = "hypergraphs_bad_input", call = NULL
+    ))
+  }
+  warning(warningCondition(
+    sprintf(paste0("%d node(s) in `%s` are not in the hypergraph (dropped as ",
+                   "empty or removed by hg_subset()) and are left out"),
+            length(unknown), arg),
+    class = "hypergraphs_dropped_documents", call = NULL
+  ))
+  assignment[!names(assignment) %in% unknown]
 }

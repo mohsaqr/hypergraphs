@@ -34,10 +34,10 @@
 (default; the paper's hypergraph-derived representations \code{bh}, \code{bhs},
 \code{mh}, \code{mhs}) or the \code{"citation"} projection (its classic graph
 representations \code{bg}, \code{mg}, and with \code{directed = FALSE} their undirected
-variants \code{bgu}, \code{mgu}). See \code{\link[=hg_project]{hg_project()}}.}
+variants \code{bgu}, \code{mgu}). See \code{\link[=pairwise_network]{pairwise_network()}}.}
 
 \item{duplicate_edges, self_association, edge_source}{Projection controls
-passed to \code{\link[=hg_project]{hg_project()}}. Together these reproduce the paper's
+passed to \code{\link[=pairwise_network]{pairwise_network()}}. Together these reproduce the paper's
 binary/multi and self-association representations.}
 
 \item{directed}{For \code{method = "citation"}: run Infomap with directed flow

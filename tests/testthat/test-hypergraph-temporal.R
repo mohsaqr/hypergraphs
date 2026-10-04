@@ -5,7 +5,7 @@ test_that("contact hypergraphs are instantaneous, and cumulative on request", {
     year = rep(1:3, each = 2),
     source = rep(c("s1", "s2", "s3"), each = 2)
   )
-  thg <- temporal_hypergraph(dat, actor = "member", group = "event",
+  thg <- temporal_hypergraph(dat, node = "member", hyperedge = "event",
                              time = "year")
   expect_s3_class(thg, "net_temporal_hypergraph")
   expect_equal(thg$times, 1:3)
@@ -37,7 +37,7 @@ test_that("interval snapshots use closed intervals", {
     arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
     start = rep(c(1, 2), each = 3), end = rep(c(3, 2), each = 3)
   )
-  thg <- temporal_hypergraph(dat, actor = "arbitrator", group = "case",
+  thg <- temporal_hypergraph(dat, node = "arbitrator", hyperedge = "case",
                              start = "start", end = "end")
   expect_equal(thg$format, "interval")
   active_two <- hg_snapshot(thg, 2)
@@ -61,7 +61,7 @@ test_that("an edge list gives hyperedges of size two", {
   expect_equal(static$n_hyperedges, 3)
   expect_equal(static$nodes, c("a", "b", "c"))
   expect_error(temporal_hypergraph(contacts, from = "from", to = "to",
-                                   actor = "from", time = "time"),
+                                   node = "from", time = "time"),
                class = "hypergraphs_bad_input")
 })
 
@@ -70,7 +70,7 @@ test_that("snapshot duplicate handling records multiplicity", {
     member = rep(c("a", "b", "c"), 2),
     event = rep(c("e1", "e2"), each = 3), time = 1
   )
-  thg <- temporal_hypergraph(dat, actor = "member", group = "event",
+  thg <- temporal_hypergraph(dat, node = "member", hyperedge = "event",
                              time = "time")
   multi <- hg_snapshot(thg, 1, multiedges = TRUE)
   simple <- hg_snapshot(thg, 1, multiedges = FALSE)
@@ -83,18 +83,18 @@ test_that("temporal constructors reject invalid spells and read per-row times as
   # since 0.3.11 a time that varies within a hyperedge is a membership time:
   # the hyperedge spans the hull and each membership is a contact
   spread <- data.frame(member = c("a", "b"), event = "e1", time = c(1, 2))
-  th <- temporal_hypergraph(spread, actor = "member", group = "event", time = "time")
+  th <- temporal_hypergraph(spread, node = "member", hyperedge = "event", time = "time")
   expect_true(th$params$membership_times)
   expect_identical(th$edge_data$start, 1)
   expect_identical(th$edge_data$end, 2)
   expect_identical(th$memberships$end, c(1, 2))
-  detected <- temporal_hypergraph(spread, actor = "member", group = "event")
+  detected <- temporal_hypergraph(spread, node = "member", hyperedge = "event")
   expect_identical(hg_get(detected), hg_get(th))
   interval <- data.frame(member = "a", event = "e1", start = 2, end = 1)
-  expect_error(temporal_hypergraph(interval, actor = "member", group = "event",
+  expect_error(temporal_hypergraph(interval, node = "member", hyperedge = "event",
                                    start = "start", end = "end"),
                class = "hypergraphs_bad_input")
-  expect_error(temporal_hypergraph(spread, actor = "member", group = "event",
+  expect_error(temporal_hypergraph(spread, node = "member", hyperedge = "event",
                                    time = "time", start = "time"),
                class = "hypergraphs_bad_input")
 })
@@ -104,18 +104,18 @@ test_that("temporal constructors reject invalid spells and read per-row times as
 test_that("deprecated argument names still work and warn with a class", {
   dat <- data.frame(member = c("a", "b"), event = "e1", time = 1)
   expect_warning(
-    old <- temporal_hypergraph(dat, actor = "member", cooccur_by = "event", time = "time"),
+    old <- temporal_hypergraph(dat, node = "member", cooccur_by = "event", time = "time"),
     class = "hypergraphs_deprecated"
   )
-  new <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
+  new <- temporal_hypergraph(dat, node = "member", hyperedge = "event", time = "time")
   expect_identical(old, new)
-  new_group <- group_hypergraph(dat, actor = "member", group = "event")
+  new_group <- group_hypergraph(dat, node = "member", hyperedge = "event")
   expect_warning(
-    old_member <- group_hypergraph(dat, member = "member", group = "event"),
+    old_member <- group_hypergraph(dat, member = "member", hyperedge = "event"),
     class = "hypergraphs_deprecated"
   )
   expect_warning(
-    old_by <- group_hypergraph(dat, actor = "member", cooccur_by = "event"),
+    old_by <- group_hypergraph(dat, node = "member", cooccur_by = "event"),
     class = "hypergraphs_deprecated"
   )
   expect_identical(old_member, new_group)
@@ -141,7 +141,7 @@ test_that("columns are detected from Dynet's alias table, case-insensitively", {
   expect_error(temporal_hypergraph(data.frame(x = 1, y = 2, time = 1)),
                class = "hypergraphs_bad_input")
   copresence <- data.frame(student = c("a", "b"), seminar = "s1", time = 1)
-  expect_error(temporal_hypergraph(copresence, actor = "student"),
+  expect_error(temporal_hypergraph(copresence, node = "student"),
                class = "hypergraphs_bad_input")
   static <- group_hypergraph(spells)
   expect_identical(static$n_hyperedges, 2L)
@@ -183,10 +183,10 @@ test_that("calendar times become offsets from an origin in a reported unit", {
 test_that("`time` is a contact clock and the cumulative view is a mode", {
   dat <- data.frame(member = c("a", "b", "b", "c"), event = rep(c("e1", "e2"), each = 2),
                     time = rep(c(1, 3), each = 2), stop = rep(c(2, 4), each = 2))
-  expect_error(temporal_hypergraph(dat, actor = "member", group = "event",
+  expect_error(temporal_hypergraph(dat, node = "member", hyperedge = "event",
                                    time = "time", end = "stop"),
                class = "hypergraphs_bad_input")
-  contact <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
+  contact <- temporal_hypergraph(dat, node = "member", hyperedge = "event", time = "time")
   expect_identical(contact$format, "contact")
   between <- hg_snapshot(contact, at = 2)
   expect_identical(between$n_hyperedges, 0L)
@@ -207,9 +207,9 @@ test_that("observation bounds clip the grid without rewriting memberships", {
   seats <- data.frame(case = rep(c("A", "B"), each = 2),
                       arbitrator = c("p1", "a1", "p2", "a2"),
                       start = rep(c(1, 5), each = 2), end = rep(c(3, NA), each = 2))
-  open <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+  open <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                               start = "start", end = "end")
-  bounded <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+  bounded <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                                  start = "start", end = "end",
                                  observation_start = 2, observation_end = 8)
   expect_identical(bounded$observation, c(start = 2, end = 8))
@@ -218,7 +218,7 @@ test_that("observation bounds clip the grid without rewriting memberships", {
   expect_identical(hg_get(bounded), hg_get(open))
   expect_error(hg_snapshot(bounded, at = 1), class = "hypergraphs_outside_observation")
   expect_error(hg_growth(bounded, start = 9), class = "hypergraphs_outside_observation")
-  expect_error(temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+  expect_error(temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                                    start = "start", end = "end",
                                    observation_start = 5, observation_end = 2),
                class = "hypergraphs_bad_input")
@@ -274,10 +274,10 @@ test_that("INVARIANT: hypergraphs and Dynet agree on which actor pairs are ever 
   dynet_spells <- as.data.frame(dn)
   dynet_pairs <- unique(paste(pmin(dynet_spells$from, dynet_spells$to),
                               pmax(dynet_spells$from, dynet_spells$to)))
-  thg <- temporal_hypergraph(log, actor = "student", group = "seminar",
+  thg <- temporal_hypergraph(log, node = "student", hyperedge = "seminar",
                              start = "start", end = "end")
   aggregate <- hg_snapshot(thg, mode = "cumulative")
-  projection <- hg_project(aggregate)
+  projection <- hg_get(pairwise_network(aggregate))
   hypergraphs_pairs <- unique(paste(pmin(projection$from, projection$to),
                                pmax(projection$from, projection$to)))
   expect_setequal(hypergraphs_pairs, dynet_pairs)

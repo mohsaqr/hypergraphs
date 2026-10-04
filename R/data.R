@@ -85,8 +85,8 @@ NULL
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
 #' @examples
 #' head(icsid_tribunals)
-#' tribunals <- temporal_hypergraph(icsid_tribunals, actor = "arbitrator",
-#'                                  group = "case", start = "constituted",
+#' tribunals <- temporal_hypergraph(icsid_tribunals, node = "arbitrator",
+#'                                  hyperedge = "case", start = "constituted",
 #'                                  end = "concluded")
 #' summary(tribunals)
 "icsid_tribunals"
@@ -143,8 +143,8 @@ NULL
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
 #' @examples
 #' head(gfcc_citations)
-#' blocks <- temporal_hypergraph(gfcc_citations, actor = "cited",
-#'                               group = "block", time = "date_citing",
+#' blocks <- temporal_hypergraph(gfcc_citations, node = "cited",
+#'                               hyperedge = "block", time = "date_citing",
 #'                               nodes = gfcc_decisions, sparse = TRUE)
 #' summary(blocks)
 "gfcc_citations"

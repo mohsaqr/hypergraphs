@@ -10,13 +10,13 @@
 
 # Sparse bipartite constructor mirroring group_hypergraph():
 # sorted vertex/edge names, summed weights, same top-level fields.
-.thg_sparse_bipartite <- function(long, actor, group, weight) {
-  member <- actor
+.thg_sparse_bipartite <- function(long, node, hyperedge, weight) {
+  member <- node
   vertices <- sort(unique(long[[member]]))
-  edges <- sort(unique(long[[group]]))
+  edges <- sort(unique(long[[hyperedge]]))
   incidence <- Matrix::sparseMatrix(
     i = match(long[[member]], vertices),
-    j = match(long[[group]], edges),
+    j = match(long[[hyperedge]], edges),
     x = as.numeric(long[[weight]]),
     dims = c(length(vertices), length(edges)),
     dimnames = list(vertices, edges)
@@ -258,11 +258,7 @@
   n <- hg$n_nodes
   nodes <- hg$nodes
   lab <- if (!is.null(names(labels))) {
-    unknown <- setdiff(names(labels), nodes)
-    if (length(unknown) > 0L) {
-      stop("Unknown node names in `labels`: ",
-           paste(unknown, collapse = ", "), call. = FALSE)
-    }
+    labels <- .thg_known_assignment(labels, nodes, hg, arg = "labels")
     full <- rep(NA_character_, n)
     full[match(names(labels), nodes)] <- as.character(labels)
     full

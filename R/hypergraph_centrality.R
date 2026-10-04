@@ -57,7 +57,7 @@
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 #' eigenvector of \eqn{W}. Equivalent to running
-#' `igraph::eigen_centrality()` on [hg_clique_expansion()] output.
+#' `igraph::eigen_centrality()` on [pairwise_network()] output.
 #'
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
 #' eigen-equation on the hyperedge tensor,
@@ -97,7 +97,7 @@
 #' factorial penalty for length and matches the implementation used by
 #' HypergraphX 1.5 in the legal-hypergraphs analysis.
 #'
-#' @seealso [network_hypergraph()], [hg_clique_expansion()],
+#' @seealso [network_hypergraph()], [pairwise_network()],
 #'   [hg_measures()].
 #'
 #' @references

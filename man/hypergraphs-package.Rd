@@ -51,11 +51,11 @@ topology \code{\link[=hg_homology]{hg_homology()}}, \code{\link[=hg_landscape]{h
 a unit, with no requirement that its subsets also be relations.
 Constructors \code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\link[=window_hypergraph]{window_hypergraph()}},
 \code{\link[=group_hypergraph]{group_hypergraph()}}, \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}; random models
-\code{\link[=hg_sample_gnp]{hg_sample_gnp()}}, \code{\link[=hg_sample_sbm]{hg_sample_sbm()}}, \code{\link[=hg_sample_uniform]{hg_sample_uniform()}}; measures \code{\link[=hg_measures]{hg_measures()}},
+\code{\link[=random_hypergraph]{random_hypergraph()}}; measures \code{\link[=hg_measures]{hg_measures()}},
 \code{\link[=hg_centrality]{hg_centrality()}}; spectral methods \code{\link[=hg_laplacian]{hg_laplacian()}},
 \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_classify]{hg_classify()}}; PageRank
-\code{\link[=hg_pagerank]{hg_pagerank()}}; embeddings \code{\link[=hg_embed]{hg_embed()}}; projections \code{\link[=hg_clique_expansion]{hg_clique_expansion()}},
-\code{\link[=hg_project]{hg_project()}}, \code{\link[=hg_line_graph]{hg_line_graph()}},
+\code{\link[=hg_pagerank]{hg_pagerank()}}; embeddings \code{\link[=hg_embed]{hg_embed()}}; projections \code{\link[=pairwise_network]{pairwise_network()}},
+\code{\link[=hg_line_graph]{hg_line_graph()}},
 \code{\link[=dual_hypergraph]{dual_hypergraph()}}; temporal views \code{\link[=hg_snapshot]{hg_snapshot()}},
 \code{\link[=hg_snapshots]{hg_snapshots()}}; hyperedge tables \code{\link[=hg_edges]{hg_edges()}} and
 s-centrality \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}; communities
@@ -111,7 +111,7 @@ family is the corpus front end of the hypergraph family: a
 it, and every \verb{hg_*()} verb takes any \code{net_hg} in return.
 \code{\link[=simplicial]{simplicial()}} with \code{type = "pathway"} turns a memory network into a
 simplicial complex; \code{\link[=window_hypergraph]{window_hypergraph()}} turns the same sequences into a
-hypergraph; \code{\link[=hg_clique_expansion]{hg_clique_expansion()}} projects a hypergraph back to a pairwise
+hypergraph; \code{\link[=pairwise_network]{pairwise_network()}} projects a hypergraph back to a pairwise
 network that any of the first-order tools accept.
 \code{hg_get(x, what = "pathways")} on a memory network hands its
 sequence-derived path strings to the other two.

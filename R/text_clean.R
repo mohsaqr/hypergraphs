@@ -22,8 +22,9 @@
 #' @param column When `x` is a data.frame, the name of its text column.
 #' @param html Decode HTML entities (`&amp;`, `&nbsp;`, `&#8217;`, ...) and
 #'   strip tags (default `TRUE`).
-#' @param encoding Repair common UTF-8-read-as-Latin-1 mojibake (the
-#'   three-character garble of a curly apostrophe) and normalise typographic
+#' @param encoding Repair UTF-8-read-as-Latin-1 mojibake (the
+#'   three-character garble of a curly apostrophe, the four-character garble
+#'   of an emoji) and normalise typographic
 #'   quotes, dashes and non-breaking spaces to their ASCII forms (default
 #'   `TRUE`).
 #' @param citations Remove bracketed reference numbers (`[12]`, `[3, 4]`,
@@ -36,6 +37,17 @@
 #'   under `copyright_max` characters, plus "All rights reserved" (default
 #'   `TRUE`).
 #' @param copyright_max Longest tail treated as a notice (default `300`).
+#' @param boilerplate Remove publisher boilerplate wherever it occurs in a
+#'   text, not only at the end (default `FALSE`): publisher names (IEEE,
+#'   Elsevier, Springer, Wiley, Taylor & Francis, Informa, Emerald,
+#'   Routledge, SAGE, MDPI, Frontiers, Oxford and Cambridge University
+#'   Press, the American Chemical Society and its Division of Chemical
+#'   Education), company suffixes (Inc, Ltd, LLC, B.V., GmbH) and the
+#'   phrases of licence and rights notices ("all rights reserved", "under
+#'   exclusive licence", "the author(s)", "published by", "open access",
+#'   "Creative Commons", CC licence codes, "copyright"). Publishers change
+#'   the wording of their notices over time, so a classifier trained on
+#'   abstracts with boilerplate learns the publisher and the year.
 #' @param numbers Remove bare numbers, percentages and years (default
 #'   `TRUE`). Numbers never enter a text hypergraph's vocabulary anyway (the
 #'   tokeniser keeps alphabetic tokens), so this matters for display and for
@@ -78,11 +90,12 @@
 #' @export
 clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
                        citations = TRUE, urls = TRUE, copyright = TRUE,
-                       copyright_max = 300L, numbers = TRUE,
-                       remove = NULL, stop_words = NULL, min_chars = 0L,
-                       min_content = 0) {
+                       copyright_max = 300L, boilerplate = FALSE,
+                       numbers = TRUE, remove = NULL, stop_words = NULL,
+                       min_chars = 0L, min_content = 0) {
   flags <- list(html = html, encoding = encoding, citations = citations,
-                urls = urls, copyright = copyright, numbers = numbers)
+                urls = urls, copyright = copyright, boilerplate = boilerplate,
+                numbers = numbers)
   bad_flag <- names(flags)[!vapply(flags, \(f) isTRUE(f) || isFALSE(f),
                                    logical(1))]
   if (length(bad_flag) > 0L) {
@@ -135,6 +148,7 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   if (isTRUE(encoding)) text <- .thg_clean_encoding(text)
   if (isTRUE(urls)) text <- .thg_clean_urls(text)
   if (isTRUE(copyright)) text <- .thg_clean_copyright(text, copyright_max)
+  if (isTRUE(boilerplate)) text <- .thg_clean_boilerplate(text)
   if (isTRUE(citations)) text <- .thg_clean_citations(text)
   for (pattern in remove) {
     text <- gsub(paste0("(?i)", pattern), " ", text, perl = TRUE)
@@ -191,7 +205,48 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   text
 }
 
+# Characters of Windows-1252 whose byte lies in 0x80-0x9F (the euro sign,
+# curly quotes, dashes, ...), as code points, in byte order; NA where the
+# byte is undefined in Windows-1252.
+.thg_cp1252_high <- function() {
+  vapply(as.raw(0x80:0x9f), \(b) {
+    ch <- iconv(rawToChar(b), from = "CP1252", to = "UTF-8")
+    if (is.na(ch)) NA_integer_ else utf8ToInt(ch)
+  }, integer(1L))
+}
+
+# UTF-8 text that was read as Windows-1252 or Latin-1 and written back as
+# UTF-8: each byte of a multi-byte character became a character of its own
+# (an emoji's four bytes give "\u00f0\u0178\u2018\u008d"). A run of such
+# characters, a lead byte of a multi-byte sequence followed by continuation
+# bytes, is turned back into its bytes and decoded as UTF-8; a run that does
+# not decode is left as it was, so genuine accented text survives.
+.thg_clean_mojibake <- function(text) {
+  high <- .thg_cp1252_high()
+  continuation <- paste0("[\u0080-\u00bf",
+                         paste(intToUtf8(stats::na.omit(high), multiple = TRUE),
+                               collapse = ""), "]")
+  run <- paste0("[\u00c2-\u00f4]", continuation, "{1,3}")
+  hit <- grepl(run, text, perl = TRUE)
+  if (!any(hit)) return(text)
+  repair <- function(piece) {
+    points <- utf8ToInt(piece)
+    bytes <- ifelse(points < 256L, points, match(points, high) + 127L)
+    if (anyNA(bytes)) return(piece)
+    decoded <- rawToChar(as.raw(bytes))
+    Encoding(decoded) <- "UTF-8"
+    if (validUTF8(decoded)) decoded else piece
+  }
+  matches <- gregexpr(run, text[hit], perl = TRUE)
+  pieces <- regmatches(text[hit], matches)
+  regmatches(text[hit], matches) <- lapply(pieces, \(v) {
+    vapply(v, repair, character(1L), USE.NAMES = FALSE)
+  })
+  text
+}
+
 .thg_clean_encoding <- function(text) {
+  text <- .thg_clean_mojibake(text)
   # UTF-8 bytes of curly quotes / dashes read as Latin-1 begin with
   # a-circumflex + euro sign; the third character tells which mark it was
   garble <- "\u00e2\u20ac"
@@ -231,10 +286,41 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
 
 .thg_clean_copyright <- function(text, max_chars) {
   sign <- "\u00a9"
-  tail <- sprintf("(?i)(?:%s|\\(c\\)|\\bcopyright\\b)[^%s]{0,%d}$",
-                  sign, sign, as.integer(max_chars))
+  # "Copyright (c) 2020" and "Copyright \u00a9 2020" put the word before the
+  # sign; the optional prefix takes the word with the notice
+  tail <- sprintf(
+    "(?i)(?:\\bcopyright\\b\\s*)?(?:%s|\\(c\\)|\\bcopyright\\b)[^%s]{0,%d}$",
+    sign, sign, as.integer(max_chars))
   text <- gsub(tail, " ", text, perl = TRUE)
   gsub("(?i)\\ball rights reserved\\.?", " ", text, perl = TRUE)
+}
+
+# Publisher boilerplate removed anywhere in a text by `boilerplate = TRUE`:
+# names of publishers, company suffixes and the phrases of licence notices.
+# Surnames that also name a publisher are matched only in the publisher's
+# full name ("Taylor & Francis"), so a cited author named Taylor survives.
+.thg_boilerplate_patterns <- c(
+  "\\b(?:ieee|elsevier|springer(?:\\s+nature)?|john\\s+wiley(?:\\s*&\\s*sons)?|wiley(?:-blackwell)?)\\b",
+  "\\btaylor\\s*(?:&|and)\\s*francis(?:\\s+group)?\\b",
+  "\\b(?:informa\\s+uk(?:\\s+limited)?|emerald(?:\\s+publishing)?(?:\\s+limited)?|routledge|sage\\s+publications|mdpi|frontiers\\s+media)\\b",
+  "\\b(?:oxford|cambridge)\\s+university\\s+press\\b",
+  "\\bamerican\\s+chemical\\s+society\\b",
+  "\\bdivision\\s+of\\s+chemical\\s+education\\b",
+  "\\b(?:inc|ltd|llc|gmbh|b\\.v)\\b\\.?",
+  "\\ball\\s+rights\\s+reserved\\b",
+  "\\b(?:under\\s+)?exclusive\\s+licen[cs]e(?:\\s+to)?\\b",
+  "\\bthe\\s+authors?\\s*(?:\\(s\\))?",
+  "\\bpublished\\s+by\\b",
+  "\\bopen\\s+access\\b",
+  "\\bcreative\\s+commons\\b",
+  "\\bcc\\s+by(?:-nc)?(?:-nd|-sa)?(?:\\s+\\d\\.\\d)?\\b",
+  "\\bcopyright\\b"
+)
+
+.thg_clean_boilerplate <- function(text) {
+  pattern <- paste0("(?i)(?:", paste(.thg_boilerplate_patterns,
+                                     collapse = "|"), ")")
+  gsub(pattern, " ", text, perl = TRUE)
 }
 
 .thg_clean_citations <- function(text) {

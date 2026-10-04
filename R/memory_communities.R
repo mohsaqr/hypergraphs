@@ -780,7 +780,7 @@ summary.net_hon_communities <- function(object, ...) .ho_summary(object)
   members <- data.frame(node = st$node,
                         community = sprintf("Community %d", st$community),
                         stringsAsFactors = FALSE)
-  hg <- group_hypergraph(members, actor = "node", group = "community")
+  hg <- group_hypergraph(members, node = "node", hyperedge = "community")
   counts <- tabulate(match(st$community, mods), nbins = length(mods))
   lone <- mods[counts == 1L]
   community <- stats::setNames(
@@ -838,7 +838,7 @@ summary.net_hon_communities <- function(object, ...) .ho_summary(object)
   members <- data.frame(state = ph$state,
                         community = sprintf("Community %d", ph$community),
                         stringsAsFactors = FALSE)
-  hg <- group_hypergraph(members, actor = "state", group = "community")
+  hg <- group_hypergraph(members, node = "state", hyperedge = "community")
   # a community with one physical node has no pebble, so it gets no colour
   # key either (an empty key reads as a missing colour); the caption names it
   counts <- tabulate(match(ph$community, mods), nbins = length(mods))

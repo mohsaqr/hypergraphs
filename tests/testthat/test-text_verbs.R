@@ -239,7 +239,7 @@ test_that("type = 'centrality' equals .hg_centrality_fit on the cluster", {
                     centrality = "clique")
   layer <- hg_get(hg, what = "weights")
   sky <- subset(layer, doc %in% c("space_1", "space_2"))
-  sky_hg <- group_hypergraph(sky, actor = "word", group = "doc",
+  sky_hg <- group_hypergraph(sky, node = "word", hyperedge = "doc",
                              weight = "weight")
   direct <- .hg_centrality_fit(sky_hg, type = "clique")
   got <- subset(kw, cluster == "sky")
@@ -433,7 +433,7 @@ test_that("a sentence hypergraph scopes centrality to the cluster's sentences", 
   sky_edges <- sents$edge[sents$doc %in% c("space_1", "space_2")]
   sh_table <- hg_get(sh)
   sky <- subset(sh_table, edge %in% sky_edges)
-  sky_hg <- group_hypergraph(sky, actor = "word", group = "edge",
+  sky_hg <- group_hypergraph(sky, node = "word", hyperedge = "edge",
                              weight = "weight")
   direct <- .hg_centrality_fit(sky_hg, type = "clique")
   got <- subset(kw, cluster == "sky")
@@ -513,9 +513,9 @@ test_that("the keyword print method is compact and the default centrality is pag
   expect_equal(pr$score, explicit$score)
 })
 
-test_that("hg_relations is the bibliometric co-occurrence of topics through words", {
+test_that("topic_network is the bibliometric co-occurrence of topics through words", {
   hg <- .kw_fixture(weight = "n")
-  rel <- hg_network(hg, clusters = .kw_clusters)
+  rel <- topic_network(hg, clusters = .kw_clusters)
   expect_named(rel, c("source", "target", "weight"))
   expect_identical(nrow(rel), 1L)
   expect_identical(rel$source, "food")
@@ -528,37 +528,36 @@ test_that("hg_relations is the bibliometric co-occurrence of topics through word
   expect_equal(rel$weight, co["food", "sky"])
   expect_equal(rel$weight, 1)
   d <- diag(co)
-  association <- hg_network(hg, clusters = .kw_clusters, similarity = "association")
+  association <- topic_network(hg, clusters = .kw_clusters, similarity = "association")
   expect_equal(association$weight,
                co["food", "sky"] / (d[["food"]] * d[["sky"]]))
-  cosine <- hg_network(hg, clusters = .kw_clusters, similarity = "cosine")
+  cosine <- topic_network(hg, clusters = .kw_clusters, similarity = "cosine")
   expect_equal(cosine$weight,
                co["food", "sky"] / sqrt(d[["food"]] * d[["sky"]]))
-  jaccard <- hg_network(hg, clusters = .kw_clusters, similarity = "jaccard")
+  jaccard <- topic_network(hg, clusters = .kw_clusters, similarity = "jaccard")
   expect_equal(jaccard$weight,
                co["food", "sky"] / (d[["food"]] + d[["sky"]] - co["food", "sky"]))
-  inclusion <- hg_network(hg, clusters = .kw_clusters, similarity = "inclusion")
+  inclusion <- topic_network(hg, clusters = .kw_clusters, similarity = "inclusion")
   expect_equal(inclusion$weight,
                co["food", "sky"] / min(d[["food"]], d[["sky"]]))
-  equivalence <- hg_network(hg, clusters = .kw_clusters, similarity = "equivalence")
+  equivalence <- topic_network(hg, clusters = .kw_clusters, similarity = "equivalence")
   expect_equal(equivalence$weight,
                co["food", "sky"]^2 / (d[["food"]] * d[["sky"]]))
   # three topics: pairs in natural order, zero-weight pairs dropped
   three <- stats::setNames(c("Cluster 1", "Cluster 2", "Cluster 10", "Cluster 10"),
                            .kw_clusters$node)
-  rel3 <- hg_network(hg, clusters = three)
+  rel3 <- topic_network(hg, clusters = three)
   expect_true(all(paste(rel3$source, rel3$target) %in%
                     c("Cluster 1 Cluster 2", "Cluster 1 Cluster 10",
                       "Cluster 2 Cluster 10")))
   expect_true(all(rel3$weight > 0))
-  net <- hg_network(hg, clusters = .kw_clusters, what = "network")
+  net <- topic_network(hg, clusters = .kw_clusters, what = "network")
   expect_s3_class(net, "cograph_network")
   expect_identical(nrow(net$edges), 1L)
   expect_setequal(net$nodes$name, c("food", "sky"))
   expect_identical(net$nodes$size, c(2L, 2L))
-  expect_error(hg_network(hg, clusters = c(zz = "a", cooking_1 = "b")),
+  expect_error(topic_network(hg, clusters = c(zz = "a", cooking_1 = "b")),
                class = "hypergraphs_bad_input")
-  expect_identical(hg_relations, hg_relations)
 })
 
 # --- hg_cluster(n =) caps the eigenvalue table ------------------------------
@@ -569,7 +568,7 @@ test_that("hg_cluster(what = 'eigenvalues') honours n", {
     actor = sample(letters[1:12], 200, TRUE),
     group = paste0("g", sample(30, 200, TRUE))
   )
-  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  hg <- group_hypergraph(memberships, node = "actor", hyperedge = "group")
   full <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues")
   capped <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues", n = 5)
   expect_identical(nrow(capped), 5L)
@@ -587,7 +586,7 @@ test_that("hg_cluster rejects a bad n", {
     actor = sample(letters[1:8], 100, TRUE),
     group = paste0("g", sample(20, 100, TRUE))
   )
-  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  hg <- group_hypergraph(memberships, node = "actor", hyperedge = "group")
   expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = 0), "`n`")
   expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = c(2, 3)), "`n`")
 })
@@ -600,7 +599,7 @@ test_that("hg_cluster(what = 'eigenvalues') honours n", {
     actor = sample(letters[1:12], 200, TRUE),
     group = paste0("g", sample(30, 200, TRUE))
   )
-  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  hg <- group_hypergraph(memberships, node = "actor", hyperedge = "group")
   full <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues")
   capped <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues", n = 5)
   expect_identical(nrow(capped), 5L)
@@ -618,7 +617,7 @@ test_that("hg_cluster rejects a bad n", {
     actor = sample(letters[1:8], 100, TRUE),
     group = paste0("g", sample(20, 100, TRUE))
   )
-  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  hg <- group_hypergraph(memberships, node = "actor", hyperedge = "group")
   expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = 0), "`n`")
   expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = c(2, 3)), "`n`")
 })
@@ -626,7 +625,7 @@ test_that("hg_cluster rejects a bad n", {
 test_that("hg_centrality exposes the engine's PageRank path unchanged (G1)", {
   hg <- group_hypergraph(data.frame(p = c("a", "b", "c", "a", "d", "c"),
                                     g = c("x", "x", "y", "y", "y", "z")),
-                         actor = "p", group = "g")
+                         node = "p", hyperedge = "g")
   expect_identical(
     hg_centrality(hg, type = c("clique", "pagerank"), damping = 0.7,
                   edge_weights = c(1, 2, 1)),
@@ -639,7 +638,7 @@ test_that("hg_centrality exposes the engine's PageRank path unchanged (G1)", {
 test_that("hg_classify passes edge_weights to the engine unchanged (G1)", {
   hg <- group_hypergraph(data.frame(p = c("a", "b", "c", "a", "d", "c"),
                                     g = c("x", "x", "y", "y", "y", "z")),
-                         actor = "p", group = "g")
+                         node = "p", hyperedge = "g")
   seeds <- c(a = "L1", d = "L2")
   engine <- .hg_transduction_fit(hg, labels = seeds, edge_weights = c(1, 2, 1))$predictions
   rownames(engine) <- NULL
@@ -668,4 +667,30 @@ test_that("hg_keywords refuses a word-node hypergraph instead of mislabelling do
                                   n = 3))
   expect_true(all(kw$word %in% colnames(doc_hg$incidence)))
   expect_false(any(kw$word %in% names(docs)))
+})
+
+test_that("documents dropped as empty are set aside from `clusters` with a warning", {
+  corpus <- data.frame(
+    node = c("a", "b", "c", "d", "e"),
+    text = c("soup salt onion broth", "salt soup onion broth",
+             "stars sky moon night", "sky stars moon night", "the and of"),
+    label = c("food", "food", "sky", "sky", "sky")
+  )
+  expect_warning(
+    hg <- text_hypergraph(corpus, column = "text", id = "node",
+                          stop_words = stop_words_en()),
+    class = "hypergraphs_dropped_documents"
+  )
+  expect_identical(hg$text$dropped, "e")
+  expect_warning(kw <- hg_keywords(hg, corpus, n = 2),
+                 class = "hypergraphs_dropped_documents")
+  # the result equals the call without the dropped document
+  expect_identical(kw, hg_keywords(hg, subset(corpus, node != "e"), n = 2))
+  expect_warning(sizes <- hg_topic_sizes(hg, corpus),
+                 class = "hypergraphs_dropped_documents")
+  expect_identical(sum(sizes$n), 4L)
+  # a name that never was a document is still an error
+  typo <- rbind(corpus, data.frame(node = "zz", text = "x", label = "sky"))
+  expect_error(suppressWarnings(hg_keywords(hg, typo, n = 2)),
+               class = "hypergraphs_bad_input")
 })

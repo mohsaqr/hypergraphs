@@ -9,7 +9,7 @@ testthat::skip_on_cran()
   group_hypergraph(
     data.frame(member = unlist(edges),
                edge = sprintf("e%03d", rep(seq_along(edges), lengths(edges)))),
-    actor = "member", group = "edge")
+    node = "member", hyperedge = "edge")
 }
 
 # Two planted groups a1..a6 and b1..b6, dense inside, two bridges.

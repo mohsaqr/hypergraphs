@@ -9,7 +9,7 @@
     group = rep(names(edges), lengths(edges)),
     stringsAsFactors = FALSE
   )
-  group_hypergraph(long, actor = "member", group = "group", sparse = sparse)
+  group_hypergraph(long, node = "member", hyperedge = "group", sparse = sparse)
 }
 
 all_types <- c("projection", "extra_overlap", "two_node_union",

@@ -41,8 +41,8 @@
                              padding = padding)
   } else {
     layout <- match.arg(layout, c("spring", "circle"))
-    projection <- as.matrix(hg_project(hg, method = "clique",
-                                       weighted = FALSE, what = "matrix"))
+    projection <- as.matrix(.hg_projection(hg, type = "clique",
+                                           weighted = FALSE, what = "matrix"))
     xy <- if (identical(layout, "spring")) {
       .thg_layout_packed((projection != 0) * 1, seed = seed, pinned = centred,
                          padding = padding)
@@ -122,22 +122,6 @@
                                 parts, seq_along(parts)))
   rows <- unlist(split(seq_along(component), component), use.names = FALSE)
   stacked[order(rows), , drop = FALSE]
-}
-
-# Connected components of an undirected adjacency matrix as labels 1..K.
-# Label propagation: each vertex repeatedly takes the smallest label in its
-# closed neighbourhood, settling after as many passes as the graph is wide.
-# Graph traversal is the justified exception to the no-loop rule.
-.thg_components <- function(adjacency) {
-  neighbourhood <- adjacency != 0
-  diag(neighbourhood) <- TRUE
-  label <- seq_len(nrow(adjacency))
-  repeat {
-    settled <- apply(neighbourhood, 1L, function(near) min(label[near]))
-    if (identical(settled, label)) break
-    label <- settled
-  }
-  match(label, sort(unique(label)))
 }
 
 # Shelf packing of the component boxes into a roughly square frame: boxes are
@@ -359,9 +343,13 @@
       values <- hg$edge_data[[by]]
       return(values[match(edge_names, as.character(hg$edge_data$edge))])
     }
+    # the hyperedge weights the printed table shows (the window counts)
+    if (identical(by, "weight") && !is.null(hg$window_counts)) {
+      return(as.numeric(hg$window_counts))
+    }
     if (m != 1L) {
       .thg_bad_input(sprintf(
-        "`%s` must be \"size\", a column of the edge metadata, or one value per hyperedge",
+        "`%s` must be \"size\", \"weight\", a column of the edge metadata, or one value per hyperedge",
         arg
       ))
     }
@@ -431,9 +419,16 @@
 #' (a colour bar 2.5 cm per key, discrete legends at most four keys to a
 #' row) and the plot has wide margins (40, 130, 30 and 130 pt) so title
 #' boxes outside the pebbles are not cut. The look of
-#' earlier versions is partly available through arguments: `alpha = 0.45`,
-#' `label_size = 3` and `pieces = "packed"`; the legend position and margins
+#' earlier versions is partly available through arguments: `alpha = 0.45`
+#' and `label_size = 3`; the legend position and margins
 #' through `ggplot2::theme()` added to the result.
+#'
+#' A hypergraph whose hyperedges repeat the same members, such as the trials
+#' of an event log, is drawn as its distinct sets: each set once, coloured by
+#' its number of copies, with each node sized by the hyperedges that contain
+#' it. A call that styles or labels the hyperedges one by one (`titles`,
+#' `color_by`, `linetype_by`, `edge_labels`, `notes`, `dismantled`) draws
+#' every hyperedge.
 #'
 #' A hypergraph that falls into several disconnected pieces is laid out one
 #' piece at a time and the pieces are then packed into a roughly square frame.
@@ -465,9 +460,11 @@
 #' @param seed Seed for the force-directed layouts (default `1`); the
 #'   caller's random number stream is left untouched.
 #' @param color_by Colour of the hulls: `NULL` (the hyperedges' count
-#'   attribute described above, else one colour), `"size"`
-#'   (hyperedge cardinality, one Okabe-Ito colour per size), the name of a
-#'   column in the
+#'   attribute described above, the window counts of a
+#'   [window_hypergraph()], else one colour), `"size"`
+#'   (hyperedge cardinality, one Okabe-Ito colour per size), `"weight"`
+#'   (the hyperedge weights of a [window_hypergraph()], the number of
+#'   windows behind each hyperedge), the name of a column in the
 #'   edge metadata (`x$edge_data`), a vector named by hyperedge, or a vector
 #'   with one value per hyperedge. Character or factor values get the
 #'   Okabe-Ito palette; numeric values a sequential scale built from it.
@@ -581,17 +578,19 @@
 #'   name of the hyperedges' count attribute described above, else those
 #'   texts stay generic.
 #' @param pieces How the bipartite layout places a hypergraph that falls into
-#'   disconnected pieces: `"row"` (default; every piece is laid out in a
+#'   disconnected pieces: `"packed"` (default; pieces are laid out one by
+#'   one and packed into a square frame, so each takes room in proportion to
+#'   its size) or `"row"` (every piece is laid out in a
 #'   frame of its own, as if drawn alone, and the frames are set side by
 #'   side 1.4 frame widths apart, in order of the piece's most prominent
 #'   hyperedge -- see `titles` -- with a piece of one node at the middle of
-#'   its frame) or `"packed"` (pieces are laid out one by one and packed into
-#'   a square frame). Only the bipartite layout has pieces; `"row"` given
+#'   its frame). Only the bipartite layout has pieces; `"row"` given
 #'   with another layout is an error.
 #' @param title_gap Distance of each title box beyond its pebble, in layout
 #'   units (the layout spans 0 to 1; default `0.06`).
 #' @param group Draw one group only: the name of a value of the hyperedges'
-#'   `group` attribute, such as `"Cluster 1"` of a [group_hypergraph()] built
+#'   `group` attribute (a hypergraph of counted sets with a single group is
+#'   drawn as that group without it), such as `"Cluster 1"` of a [group_hypergraph()] built
 #'   from a clustering of sequences. Only that group's hyperedges and their
 #'   members are drawn; for clustered sequences each node is sized by the
 #'   sequences of the group containing it (unless `node_sizes` is given),
@@ -660,7 +659,7 @@
 #'   state = c("Wrong", "Hint", "Retry", "Wrong", "Question", "Retry"),
 #'   trials = c(120, 120, 120, 80, 80, 80)
 #' )
-#' trial_groups <- group_hypergraph(members, actor = "state", group = "group")
+#' trial_groups <- group_hypergraph(members, node = "state", hyperedge = "group")
 #' event_trials <- data.frame(state = c("Wrong", "Hint", "Question", "Retry"),
 #'                            trials = c(200, 120, 80, 190))
 #' plot(trial_groups, node_sizes = event_trials)
@@ -683,6 +682,21 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                 notes = NULL, unit = NULL, pieces = NULL,
                                 title_gap = 0.06, group = NULL, ...) {
   .thg_check_hg(x)
+  # repeated member sets are drawn once each, as the distinct sets of all the
+  # hyperedges coloured by their number of copies, unless the call styles or
+  # labels the hyperedges one by one
+  per_hyperedge <- !is.null(titles) || !is.null(color_by) ||
+    !is.null(linetype_by) || !isFALSE(edge_labels) || !is.null(notes) ||
+    isTRUE(dismantled)
+  if (!per_hyperedge && is.null(x$group_sizes) && x$n_hyperedges > 1L &&
+      anyDuplicated(lapply(x$hyperedges, sort))) {
+    x <- .thg_distinct_sets(x)
+  }
+  # a hypergraph of counted sets with one group is drawn as that group
+  if (is.null(group) && !is.null(x$state_counts) &&
+      length(unique(x$group_sizes$group)) == 1L) {
+    group <- x$group_sizes$group[1L]
+  }
   group_title <- NULL
   if (!is.null(group)) {
     selected <- .thg_select_group(x, group)
@@ -695,7 +709,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   }
   arrow_style <- match.arg(arrow_style)
   explicit_pieces <- !is.null(pieces)
-  pieces <- match.arg(pieces %||% "row", c("packed", "row"))
+  pieces <- match.arg(pieces %||% "packed", c("packed", "row"))
   stopifnot(
     "`alpha` must be a number in (0, 1]" =
       is.numeric(alpha) && length(alpha) == 1L && alpha > 0 && alpha <= 1,
@@ -744,17 +758,22 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   # A numeric hyperedge attribute (such as a count of trials that
   # group_hypergraph() kept because it is constant within each group) is
   # what the pebbles show unless the call says otherwise: it colours them,
-  # writes the title boxes and names the unit. Of several, an attribute with
-  # one value on every hyperedge (a membership share of 1 throughout) tells
-  # them apart no better than none and gives way to the one that varies;
-  # otherwise the call has to choose.
+  # writes the title boxes and names the unit. An attribute with one value on
+  # every hyperedge (a membership share of 1 throughout, or the session
+  # number of the runs of one session) tells them apart no better than none
+  # and is never chosen; of several that vary, the call has to choose.
   numeric_attributes <- Filter(function(column) {
     is.numeric(x$edge_data[[column]]) && all(is.finite(x$edge_data[[column]]))
   }, setdiff(names(x$edge_data), "edge"))
   varying <- Filter(function(column) length(unique(x$edge_data[[column]])) > 1L,
                     numeric_attributes)
-  count <- if (length(numeric_attributes) == 1L) numeric_attributes else
-    if (length(varying) == 1L) varying
+  count <- if (length(varying) == 1L) varying
+  # a window hypergraph is coloured by its window counts, without title boxes
+  if (is.null(count) && !is.null(x$window_counts) &&
+      length(unique(x$window_counts)) > 1L) {
+    color_by <- color_by %||% "weight"
+    unit <- unit %||% "windows"
+  }
   color_by <- color_by %||% count
   unit <- unit %||% x$params$unit %||% count
   titles <- titles %||% (if (is.null(count) || isTRUE(dismantled)) FALSE else count)
@@ -1564,4 +1583,20 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     data.frame(node = at$node, x = at$x + shift, y = at$y,
                stringsAsFactors = FALSE)
   }))
+}
+
+# The distinct member sets of a hypergraph whose hyperedges repeat, as the
+# set hypergraph of one group named after the hyperedges ("All trials"), each
+# set carrying its number of copies: what plot() draws for such a hypergraph.
+.thg_distinct_sets <- function(x) {
+  unit <- x$params$hyperedge %||% "hyperedge"
+  members <- lapply(x$hyperedges, \(idx) x$nodes[idx])
+  grouped <- stats::setNames(list(members), sprintf("All %ss", unit))
+  out <- .thg_set_hypergraph(grouped, top = Inf, states = NULL,
+                             item_order = sort, prefix = FALSE)
+  out$params <- c(out$params, list(source = "frame_sets",
+                                   unit = paste0(unit, "s"),
+                                   item = x$params$node %||% "node"))
+  out$params <- out$params[!duplicated(names(out$params), fromLast = TRUE)]
+  out
 }

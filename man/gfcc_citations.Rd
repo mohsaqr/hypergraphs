@@ -32,8 +32,8 @@ with \code{date_citing > date_cited}.
 }
 \examples{
 head(gfcc_citations)
-blocks <- temporal_hypergraph(gfcc_citations, actor = "cited",
-                              group = "block", time = "date_citing",
+blocks <- temporal_hypergraph(gfcc_citations, node = "cited",
+                              hyperedge = "block", time = "date_citing",
                               nodes = gfcc_decisions, sparse = TRUE)
 summary(blocks)
 }

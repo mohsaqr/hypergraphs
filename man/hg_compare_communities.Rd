@@ -24,7 +24,7 @@ projection its own fit used, and the scores are available as
 \code{what = "quality"}.}
 
 \item{edge_source}{Hyperedge sources for the citation and self-association
-projections when scoring, as in \code{\link[=hg_project]{hg_project()}}.}
+projections when scoring, as in \code{\link[=pairwise_network]{pairwise_network()}}.}
 
 \item{x}{A \code{hypergraphs_community_comparison} object.}
 

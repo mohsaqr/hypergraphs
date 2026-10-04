@@ -1,33 +1,98 @@
 # Random hypergraph generators. The model definitions follow HyperG's four
-# core samplers, but return hypergraphs' net_hg representation and use
-# names that do not mask HyperG when both packages are loaded.
+# core samplers, but return hypergraphs' net_hg representation.
 
-#' Sample Bernoulli-Incidence Random Hypergraphs
+#' Random hypergraphs
 #'
-#' Generates an Erdos--Renyi-style random hypergraph with `n` nodes and `m`
-#' hyperedges by drawing every incidence independently as Bernoulli(`p`). If
-#' `m` is omitted it is Poisson with mean `lambda`, or `n * p` when `lambda`
-#' is also omitted. Empty and singleton hyperedges are retained because they
-#' are valid outcomes of this incidence model.
+#' Samples a hypergraph from one of four random models, chosen with `type`.
 #'
-#' @param n Number of nodes.
-#' @param m Number of hyperedges. For `hg_sample_gnp()`, `NULL` draws it from
-#'   a Poisson distribution. For the uniform and regular models it is
-#'   required.
-#' @param p Incidence probability in `[0, 1]`.
-#' @param lambda Optional Poisson mean for `m`.
-#' @param seed Optional reproducibility seed. The caller's RNG state is
+#' `"gnp"` is the Erdos--Renyi-style model: `n` nodes and `m` hyperedges, with
+#' every incidence drawn independently as Bernoulli(`p`). If `m` is omitted
+#' it is Poisson with mean `lambda`, or `n * p` when `lambda` is also omitted.
+#' Empty and singleton hyperedges are retained, since they are outcomes of the
+#' model.
+#'
+#' `"uniform"` makes every hyperedge contain exactly `k` distinct nodes, and
+#' `"regular"` makes every node belong to exactly `k` distinct hyperedges.
+#' Sampling weights `prob` can be unequal.
+#'
+#' `"sbm"` samples a graph stochastic block model and extends every sampled
+#' pair of nodes to a hyperedge with further members from the blocks of the
+#' pair; `impurity` of the added members can then be replaced by nodes outside
+#' those blocks.
+#'
+#' Each type takes its own arguments, given by name; an argument that the
+#' chosen type does not take is an error.
+#'
+#' @param type The model: `"uniform"` (default), `"regular"`, `"gnp"` or
+#'   `"sbm"`.
+#' @param ... The arguments of the model, by name:
+#'   \describe{
+#'     \item{`n`}{Number of nodes (all types; for `"sbm"`, `NULL` uses
+#'       `sum(block_sizes)`).}
+#'     \item{`m`}{Number of hyperedges (`"uniform"`, `"regular"`, `"gnp"`;
+#'       for `"gnp"`, `NULL` draws it from a Poisson distribution).}
+#'     \item{`k`}{Hyperedge size (`"uniform"`) or node degree
+#'       (`"regular"`).}
+#'     \item{`prob`}{Sampling weights, length `n` for `"uniform"` and length
+#'       `m` for `"regular"`; `NULL` is equal weights.}
+#'     \item{`p`}{Incidence probability in `[0, 1]` (`"gnp"`).}
+#'     \item{`lambda`}{Poisson mean of `m` (`"gnp"`).}
+#'     \item{`P`}{Symmetric block-to-block pair probability matrix
+#'       (`"sbm"`).}
+#'     \item{`block_sizes`}{Positive integer block sizes (`"sbm"`).}
+#'     \item{`d`}{Hyperedge size, recycled across sampled pairs; with
+#'       `variable_size = TRUE`, the Poisson mean of the size minus two
+#'       (`"sbm"`).}
+#'     \item{`impurity`}{Number of added members replaced by nodes outside
+#'       the blocks of the pair (`"sbm"`, default 0).}
+#'     \item{`variable_size`}{Draw sizes as `2 + Poisson(d)` (`"sbm"`,
+#'       default `FALSE`).}
+#'     \item{`absolute_purity`}{Replacements come only from outside the blocks
+#'       of the pair (`"sbm"`, default `TRUE`).}
+#'   }
+#' @param seed Optional seed; the random number state of the caller is
 #'   restored on exit.
-#' @return A `net_hg` with binary incidence and model parameters in
-#'   `$params`.
+#' @return A `net_hg` with binary incidence and the model parameters in
+#'   `$params`; for `"sbm"`, `$blocks` records the planted block of each
+#'   node.
+#' @section Conditions:
+#' `hypergraphs_bad_input` for an argument the chosen type does not take, or
+#' an argument given without a name.
 #' @references
 #' Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
 #' 1.0.0.
 #' @examples
-#' h <- hg_sample_gnp(n = 20, m = 8, p = 0.2, seed = 1)
-#' summary(h)
+#' uniform <- random_hypergraph("uniform", n = 20, m = 8, k = 3, seed = 1)
+#' hg_measures(uniform, what = "distribution", measure = "size")
+#' regular <- random_hypergraph("regular", n = 20, m = 8, k = 2, seed = 1)
+#' hg_measures(regular, what = "distribution", measure = "hyperdegree")
+#' bernoulli <- random_hypergraph("gnp", n = 20, m = 8, p = 0.2, seed = 1)
+#' bernoulli
+#' blocks <- matrix(c(0.5, 0.05, 0.05, 0.5), 2, 2)
+#' planted <- random_hypergraph("sbm", P = blocks, block_sizes = c(10, 10),
+#'                              d = 3, seed = 1)
+#' hg_get(planted, what = "nodes")
 #' @export
-hg_sample_gnp <- function(n, m = NULL, p, lambda = NULL, seed = NULL) {
+random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
+                              ..., seed = NULL) {
+  type <- match.arg(type)
+  sampler <- switch(type, uniform = .hgr_sample_uniform,
+                    regular = .hgr_sample_regular, gnp = .hgr_sample_gnp,
+                    sbm = .hgr_sample_sbm)
+  args <- list(...)
+  given <- names(args) %||% rep("", length(args))
+  if (any(!nzchar(given))) {
+    .thg_bad_input("the arguments of random_hypergraph() are given by name")
+  }
+  unused <- setdiff(given, setdiff(names(formals(sampler)), "seed"))
+  if (length(unused)) {
+    .thg_bad_input(sprintf("`type = \"%s\"` does not take %s", type,
+                           paste0("`", unused, "`", collapse = ", ")))
+  }
+  do.call(sampler, c(args, list(seed = seed)))
+}
+
+.hgr_sample_gnp <- function(n, m = NULL, p, lambda = NULL, seed = NULL) {
   n <- .hgr_count(n, "n", minimum = 1L)
   .hgr_probability(p, "p")
   if (!is.null(lambda)) {
@@ -48,41 +113,14 @@ hg_sample_gnp <- function(n, m = NULL, p, lambda = NULL, seed = NULL) {
   dimnames(incidence) <- list(paste0("V", seq_len(n)),
                               if (m) paste0("h", seq_len(m)) else character())
   .hgr_from_incidence(
-    incidence, "hg_sample_gnp",
+    incidence, "random_hypergraph",
     list(model = "gnp", n = n, m = m, p = p, lambda = lambda, seed = seed)
   )
 }
 
-#' Sample Stochastic-Block-Model Hypergraphs
-#'
-#' Samples a graph stochastic block model and augments every sampled dyad to
-#' a hyperedge. Additional members come from the endpoint blocks; `impurity`
-#' members can then be replaced by nodes outside those blocks. This is the
-#' hypergraph SBM construction used by HyperG.
-#'
-#' @param n Total node count; `NULL` uses `sum(block_sizes)`.
-#' @param P Symmetric block-to-block dyad probability matrix.
-#' @param block_sizes Positive integer community sizes.
-#' @param d Hyperedge size, recycled across sampled dyads. With
-#'   `variable_size = TRUE`, it is instead the Poisson mean and two is added.
-#' @param impurity Non-negative integer number of augmented members replaced
-#'   by nodes outside the endpoint blocks when possible.
-#' @param variable_size Draw sizes as `2 + Poisson(d)`.
-#' @param absolute_purity If true, impurity replacements must come from
-#'   outside the endpoint blocks; otherwise any nonmember may be used.
-#' @inheritParams hg_sample_gnp
-#' @return A `net_hg`; `$blocks` records each node's planted block.
-#' @references
-#' Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
-#' 1.0.0.
-#' @examples
-#' P <- matrix(c(.5, .05, .05, .5), 2, 2)
-#' h <- hg_sample_sbm(P = P, block_sizes = c(10, 10), d = 3, seed = 1)
-#' hg_get(h, what = "nodes")
-#' @export
-hg_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
-                          variable_size = FALSE, absolute_purity = TRUE,
-                          seed = NULL) {
+.hgr_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
+                            variable_size = FALSE, absolute_purity = TRUE,
+                            seed = NULL) {
   if (!is.numeric(block_sizes) || !length(block_sizes) ||
       any(!is.finite(block_sizes)) || any(block_sizes < 1) ||
       any(block_sizes != as.integer(block_sizes))) {
@@ -158,7 +196,7 @@ hg_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
   })
   incidence <- .hgr_edges_to_incidence(edges, n)
   out <- .hgr_from_incidence(
-    incidence, "hg_sample_sbm",
+    incidence, "random_hypergraph",
     list(model = "sbm", n = n, P = P, block_sizes = block_sizes, d = d,
          impurity = impurity, variable_size = variable_size,
          absolute_purity = absolute_purity, seed = seed)
@@ -167,28 +205,7 @@ hg_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
   out
 }
 
-#' Sample Uniform or Regular Random Hypergraphs
-#'
-#' `hg_sample_uniform()` makes every hyperedge contain exactly `k` distinct
-#' nodes. `hg_sample_regular()` makes every node incident to exactly `k`
-#' distinct hyperedges. Sampling probabilities can be unequal.
-#'
-#' @param k Hyperedge size for the uniform model; node degree for the regular
-#'   model.
-#' @param prob Sampling weights: length `n` for the uniform model and length
-#'   `m` for the regular model. `NULL` is uniform.
-#' @inheritParams hg_sample_gnp
-#' @return A `net_hg`.
-#' @references
-#' Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
-#' 1.0.0.
-#' @examples
-#' u <- hg_sample_uniform(20, 8, k = 3, seed = 1)
-#' r <- hg_sample_regular(20, 8, k = 2, seed = 1)
-#' hg_measures(u, what = "distribution", measure = "size")
-#' hg_measures(r, what = "distribution", measure = "hyperdegree")
-#' @export
-hg_sample_uniform <- function(n, m, k, prob = NULL, seed = NULL) {
+.hgr_sample_uniform <- function(n, m, k, prob = NULL, seed = NULL) {
   n <- .hgr_count(n, "n", 1L)
   m <- .hgr_count(m, "m", 0L)
   k <- .hgr_count(k, "k", 0L)
@@ -202,14 +219,12 @@ hg_sample_uniform <- function(n, m, k, prob = NULL, seed = NULL) {
                                         character()))
   for (j in seq_len(m)) incidence[sample.int(n, k, prob = prob), j] <- 1L
   .hgr_from_incidence(
-    incidence, "hg_sample_uniform",
+    incidence, "random_hypergraph",
     list(model = "uniform", n = n, m = m, k = k, prob = prob, seed = seed)
   )
 }
 
-#' @rdname hg_sample_uniform
-#' @export
-hg_sample_regular <- function(n, m, k, prob = NULL, seed = NULL) {
+.hgr_sample_regular <- function(n, m, k, prob = NULL, seed = NULL) {
   n <- .hgr_count(n, "n", 1L)
   m <- .hgr_count(m, "m", 1L)
   k <- .hgr_count(k, "k", 0L)
@@ -222,7 +237,7 @@ hg_sample_regular <- function(n, m, k, prob = NULL, seed = NULL) {
                                       paste0("h", seq_len(m))))
   for (i in seq_len(n)) incidence[i, sample.int(m, k, prob = prob)] <- 1L
   .hgr_from_incidence(
-    incidence, "hg_sample_regular",
+    incidence, "random_hypergraph",
     list(model = "regular", n = n, m = m, k = k, prob = prob, seed = seed)
   )
 }

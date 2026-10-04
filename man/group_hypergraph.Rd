@@ -2,12 +2,12 @@
 % Please edit documentation in R/hypergraph_groups.R
 \name{group_hypergraph}
 \alias{group_hypergraph}
-\title{Hypergraph from co-occurrence data or an edge list}
+\title{Hypergraph from membership data or an edge list}
 \usage{
 group_hypergraph(
   data,
-  actor = NULL,
-  group = NULL,
+  node = NULL,
+  hyperedge = NULL,
   weight = NULL,
   nodes = NULL,
   sparse = FALSE,
@@ -20,28 +20,29 @@ group_hypergraph(
   states = NULL,
   threshold = NULL,
   min_size = 1L,
-  by = NULL
+  group = NULL,
+  min_share = NULL
 )
 }
 \arguments{
-\item{data}{Data frame in long format, one row per actor-in-group or per
+\item{data}{Data frame in long format, one row per node in a hyperedge or per
 edge; or a clustering of sequences -- a mixture Markov
 fit (\code{net_mmm}), a distance clustering (\code{net_clustering}), or the
 per-cluster networks built from either (\code{netobject_group}). See
 "Clustered sequences" below.}
 
-\item{actor}{Character. Name of the column whose values become the
-hypergraph's nodes (members, participants, actors).}
+\item{node}{Character. Name of the column whose values become the
+hypergraph's nodes (people, events, words, items).}
 
-\item{group}{Character. Name of the column whose shared values bind
-actors into one hyperedge (groups, sessions, teams) -- Dynet's
-co-presence vocabulary. When neither pair of columns is named, \code{from}
-and \code{to} are detected case-insensitively from the alias table
-\code{\link[=temporal_hypergraph]{temporal_hypergraph()}} uses (\code{source}/\code{target}, \code{sender}/\code{receiver},
-...), and failing that \code{actor} and \code{group}.}
+\item{hyperedge}{Character. Name of the column whose shared values bind
+nodes into one hyperedge (sessions, trials, teams, citation blocks).
+When neither pair of columns is named, \code{from} and \code{to} are detected
+case-insensitively from the alias table \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} uses
+(\code{source}/\code{target}, \code{sender}/\code{receiver}, ...), and failing that \code{node}
+and \code{hyperedge}.}
 
 \item{weight}{Character or \code{NULL}. If supplied, the column is summed per
-\verb{(actor, hyperedge)} pair to produce a weighted incidence matrix. Default
+\verb{(node, hyperedge)} pair to produce a weighted incidence matrix. Default
 \code{NULL} produces a 0/1 binary incidence matrix.}
 
 \item{nodes}{Optional vector giving the complete node universe. This keeps
@@ -52,7 +53,7 @@ decision is a node but some decisions are never cited.}
 \item{sparse}{Logical. Store incidence as a sparse \code{Matrix}? Use this for
 large, sparse event data such as the full GFCC citation-block corpus.}
 
-\item{separator}{Split the \code{actor} column on this string, one row per
+\item{separator}{Split the \code{node} column on this string, one row per
 member, before building. Bibliographic exports ship a hyperedge's members
 as a single delimited cell -- EUR-Lex \code{citationcelex} and \code{eurovoc},
 Scopus and Web of Science reference and keyword fields -- so
@@ -61,16 +62,17 @@ drop-empties. Members empty after trimming are dropped, and a row left
 with no member contributes no hyperedge.}
 
 \item{from, to}{Column names of a pairwise edge list, as an alternative to
-\code{actor} and \code{cooccur_by}.}
+\code{node} and \code{hyperedge}.}
 
-\item{member, cooccur_by}{Deprecated names of \code{actor} and \code{group}; using
+\item{member, cooccur_by}{Deprecated names of \code{node} and \code{hyperedge}; using
 them warns with a \code{hypergraphs_deprecated} condition.}
 
 \item{top}{The number of most frequent sets kept as hyperedges, in each
-value of \code{by} or over all groups; \code{Inf} keeps every set. For a data
-frame, giving \code{top} or \code{by} counts sets (see "Frequent sets within
-groups"), and \code{NULL} (default) with no \code{by} builds one hyperedge per
-group. Clustered sequences and topic models keep \code{8} by default.}
+value of \code{group} or over all hyperedges; \code{Inf} keeps every set. For a
+data frame, giving \code{top}, \code{group} or \code{min_share} counts sets (see
+"Frequent sets within groups"), and with none of them every value of
+\code{hyperedge} becomes one hyperedge. Clustered sequences and topic models
+keep \code{8} by default.}
 
 \item{states}{For counted sets: the states to keep, such as the
 events of interest. Every other state is removed from each sequence's
@@ -82,16 +84,23 @@ keep.}
 present in a document, one number in (0, 1]. Required for a topic
 model and refused for any other input.}
 
-\item{min_size}{For counted sets (\code{by} or a topic model): the smallest set
+\item{min_size}{For counted sets (\code{group}, \code{top}, \code{min_share} or a topic model): the smallest set
 counted (default \code{1}); \code{2} keeps only the sets of two or more. The share
 of a set is still taken over all sets of its group.}
 
-\item{by}{Count frequent sets instead of building one hyperedge per
-group: the name of a column constant within each \code{group} (an outcome, a
-cluster, a year). Each value of \code{group} is then one set, the \code{actor}
-values it holds, and the \code{top} most frequent sets within each value of
-\code{by} become hyperedges (see "Frequent sets within groups"). For a topic
-model, a column of the documents table of the fitted hypergraph.}
+\item{group}{The comparison variable: count frequent sets separately
+within each value of this column, which must be constant within each
+\code{hyperedge} (an outcome, a cluster, a year). Each value of \code{hyperedge}
+is then one set, the \code{node} values it holds, and the \code{top} most frequent
+sets within each value of \code{group} become hyperedges (see "Frequent sets
+within groups"). For a topic model, a column of the documents table of
+the fitted hypergraph.}
+
+\item{min_share}{For counted sets: the minimum support, the smallest share
+of a group's sets that a set must reach to be kept, one number in
+(0, 1]. Giving it counts sets like \code{top}; with no \code{top}, every set that
+reaches the share is kept (Agrawal & Srikant 1994). \code{NULL} (default)
+applies no minimum.}
 }
 \value{
 A \code{net_hg} object with the same structure produced by
@@ -106,9 +115,9 @@ For clustered sequences the object also has \code{group_sizes} and
 }
 \description{
 Constructs a \link[=network_hypergraph]{net_hg} the way a network is
-defined from data. \strong{Co-presence data} name an \code{actor} and a \code{group}:
-every actor sharing one value of \code{group} (a session, a team, a citation
-block) belongs to one hyperedge. An \strong{edge
+defined from data. \strong{Membership data} name a \code{node} and a \code{hyperedge}:
+every node sharing one value of \code{hyperedge} (a session, a team, a
+citation block) belongs to one hyperedge. An \strong{edge
 list} names \code{from} and \code{to}, and every row is a hyperedge of size two.
 An optional \code{weight} column produces a weighted incidence matrix.
 }
@@ -129,7 +138,7 @@ directly. The two functions are complementary:
 observed and triadic structure must be inferred from triangles.
 }
 
-Rows with \code{NA} in the actor, hyperedge or weight column are dropped
+Rows with \code{NA} in the node, hyperedge or weight column are dropped
 silently.
 }
 \note{
@@ -145,17 +154,18 @@ attempting the allocation; pass \code{sparse = TRUE} for data at that scale.
 }
 \section{Frequent sets within groups}{
 
-With \code{by} or \code{top}, a data frame is read as transactions. Each value of \code{group}
-(a trial, a session, a basket) is one set, the distinct \code{actor} values it
-holds, and the sets are counted within each value of \code{by}, which must be
-constant within a \code{group}. The \code{top} most frequent sets of each value of
-\code{by} become hyperedges, counted exactly as for clustered sequences below,
+With \code{group}, \code{top} or \code{min_share}, a data frame is read as transactions.
+Each value of \code{hyperedge} (a trial, a session, a basket) is one set, the
+distinct \code{node} values it holds, and the sets are counted within each value
+of \code{group}, which must be constant within a \code{hyperedge}. The \code{top} most
+frequent sets of each value of \code{group} become hyperedges, counted exactly as for clustered sequences below,
 and \code{hg_get(hg, what = "sets")} reads them with their \code{count} and \code{share}
-of the value's sets. Without \code{by}, the sets are counted over all groups
-together, under one value named after \code{group} (\code{"All sessions"}).
+of the value's sets. Without \code{group}, the sets are counted over all
+hyperedges together, under one value named after \code{hyperedge}
+(\code{"All sessions"}).
 \code{plot(hg, group = )} draws the sets of one value, every node sized by the
 sets that contain it. \code{states} keeps only
-the listed \code{actor} values, and \code{min_size} the sets of at least that many.
+the listed \code{node} values, and \code{min_size} the sets of at least that many.
 }
 
 \section{Topic combinations}{
@@ -168,7 +178,7 @@ document on love, hate and romance gives the set of those three topics.
 The \code{top} most frequent sets become hyperedges, counted exactly as for
 clustered sequences below, with each document as one transaction, and the
 topics are the nodes. \code{top = Inf} keeps every set, and \code{min_size = 2}
-keeps only the sets that combine two or more topics. \code{by} names a column of the documents table of
+keeps only the sets that combine two or more topics. \code{group} names a column of the documents table of
 the fitted hypergraph, such as a publication year or an author, and the
 sets are then counted within each of its values; \code{NULL} (default) counts
 them over all documents. A document with no topic at the threshold is not
@@ -205,7 +215,7 @@ it, unnamed networks) raises \code{hypergraphs_bad_input}.
 Every other column of \code{data} that is constant within a hyperedge (a
 session's date, a team's department) is kept as a hyperedge attribute in
 the result's \code{edge_data} table, one row per hyperedge, where
-\code{\link[=hg_subset]{hg_subset()}}'s \code{where} argument and \code{\link[=hg_project]{hg_project()}}'s \code{edge_source} can
+\code{\link[=hg_subset]{hg_subset()}}'s \code{where} argument and \code{\link[=pairwise_network]{pairwise_network()}}'s \code{edge_source} can
 use it. Columns that vary within a hyperedge describe memberships, not
 hyperedges, and are left out.
 }
@@ -217,7 +227,7 @@ df <- data.frame(
   session = c("S1", "S1", "S1", "S2", "S2",
               "S3", "S3", "S3", "S3")
 )
-hg <- group_hypergraph(df, actor = "person", group = "session")
+hg <- group_hypergraph(df, node = "person", hyperedge = "session")
 print(hg)
 summary(hg)
 

@@ -10,7 +10,7 @@
                 "m4", "m4", "m4", "m5", "m5"),
     stringsAsFactors = FALSE
   )
-  group_hypergraph(events, actor = "person", group = "meeting")
+  group_hypergraph(events, node = "person", hyperedge = "meeting")
 }
 
 # Small weighted hypergraph (EDVW cells) - connected
@@ -22,7 +22,7 @@
     hours = c(2, 1, 1, 3, 2, 1, 2, 2, 4, 1, 1),
     stringsAsFactors = FALSE
   )
-  group_hypergraph(events, actor = "person", group = "meeting",
+  group_hypergraph(events, node = "person", hyperedge = "meeting",
                    weight = "hours")
 }
 
@@ -320,7 +320,7 @@ test_that("disconnected hypergraphs raise a classed condition", {
   events <- data.frame(person = c("a", "b", "c", "d"),
                        meeting = c("m1", "m1", "m2", "m2"),
                        stringsAsFactors = FALSE)
-  hg <- group_hypergraph(events, actor = "person", group = "meeting")
+  hg <- group_hypergraph(events, node = "person", hyperedge = "meeting")
   expect_error(hg_laplacian(hg),
                class = "hypergraphs_hypergraph_disconnected")
   expect_error(.hg_cluster_fit(hg, k = 2),

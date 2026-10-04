@@ -29,8 +29,8 @@ test_that("the factorization matches the hand formula, weighted", {
     meeting = c("m1", "m1", "m1", "m2", "m2", "m3", "m3"),
     w = 1
   )
-  hg <- group_hypergraph(events, actor = "person",
-                                    group = "meeting", weight = "w")
+  hg <- group_hypergraph(events, node = "person",
+                                    hyperedge = "meeting", weight = "w")
   w <- c(2, 1, 3)
   parts <- .thg_hgnn_factor(hg, edge_weights = w)
   h <- (hg$incidence != 0) * 1

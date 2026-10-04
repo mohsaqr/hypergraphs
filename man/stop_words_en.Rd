@@ -4,17 +4,25 @@
 \alias{stop_words_en}
 \title{English function-word stop list}
 \usage{
-stop_words_en()
+stop_words_en(type = c("minimal", "snowball"))
+}
+\arguments{
+\item{type}{\code{"minimal"} (default) or \code{"snowball"}.}
 }
 \value{
 A sorted character vector of lowercase English function words.
+Raises \code{hypergraphs_bad_input} for an unknown \code{type}.
 }
 \description{
-A small, fixed list of English function words (articles, prepositions,
-conjunctions, pronouns, auxiliaries) for the \code{stop_words} argument of
-\code{\link[=text_hypergraph]{text_hypergraph()}}. Deliberately minimal and versioned with the package:
-corpus-specific boilerplate (e.g. "study", "results" in an abstract
-corpus) should be added by the caller, as in
+A fixed list of English function words for the \code{stop_words} argument of
+\code{\link[=text_hypergraph]{text_hypergraph()}} and \code{\link[=clean_text]{clean_text()}}. \code{type = "minimal"} (the default)
+is a small list of articles, prepositions, conjunctions and auxiliaries,
+deliberately minimal and versioned with the package. \code{type = "snowball"}
+is the English stop list of the Snowball project (Porter 2001), 174 words
+that add the personal pronouns, the forms of "do" and the contractions
+("i", "you", "don't", "i'm"), which chat messages and other informal text
+are full of. Corpus-specific boilerplate (e.g. "study", "results" in an
+abstract corpus) is added by the caller, as in
 \code{c(stop_words_en(), "study", "results")}.
 }
 \examples{
@@ -23,9 +31,13 @@ hg <- text_hypergraph(
   stop_words = stop_words_en()
 )
 hg_get(hg, what = "vocabulary")
+length(stop_words_en(type = "snowball"))
 }
 \references{
 Manning, C. D., Raghavan, P., & Schütze, H. (2008). \emph{Introduction to
 Information Retrieval}. Cambridge University Press.
 \doi{10.1017/CBO9780511809071}
+
+Porter, M. F. (2001). Snowball: A language for stemming algorithms.
+\url{https://snowballstem.org/texts/introduction.html}
 }

@@ -88,10 +88,10 @@ test_that("sparse clustering recovers the same planted partition", {
                 "m4", "m4", "m4", "m5", "m5"),
     w = 1
   )
-  dense_hg <- group_hypergraph(events, actor = "person",
-                                          group = "meeting", weight = "w")
+  dense_hg <- group_hypergraph(events, node = "person",
+                                          hyperedge = "meeting", weight = "w")
   sparse_hg <- hypergraphs:::.thg_sparse_bipartite(
-    events, actor = "person", group = "meeting", weight = "w"
+    events, node = "person", hyperedge = "meeting", weight = "w"
   )
   dense_cl <- hg_cluster(dense_hg, k = 2, seed = 1)
   sparse_cl <- hg_cluster(sparse_hg, k = 2, seed = 1)
@@ -127,8 +127,8 @@ test_that("unsupported sparse paths refuse with classed errors", {
   big_long <- data.frame(v = rep(c("x", "y"), each = 2100),
                          e = paste0("e", c(seq_len(2100), seq_len(2100))),
                          w = 1)
-  big <- hypergraphs:::.thg_sparse_bipartite(big_long, actor = "v",
-                                                group = "e", weight = "w")
+  big <- hypergraphs:::.thg_sparse_bipartite(big_long, node = "v",
+                                                hyperedge = "e", weight = "w")
   expect_error(hg_measures(big, what = "overlap"),
                class = "hypergraphs_sparse_too_large")
 })

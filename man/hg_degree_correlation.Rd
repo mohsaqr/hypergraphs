@@ -45,7 +45,7 @@ groups <- data.frame(
   group  = c("p1", "p1", "p2", "p2", "p3", "p3", "p4", "p4",
              "t1", "t1", "t1", "t2", "t2", "t2", "t3", "t3", "t3")
 )
-hg <- group_hypergraph(groups, actor = "member", group = "group")
+hg <- group_hypergraph(groups, node = "member", hyperedge = "group")
 hg_degree_correlation(hg)
 }
 \references{

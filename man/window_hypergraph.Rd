@@ -107,5 +107,5 @@ International Conference on Machine Learning}, PMLR 97, 1172-1181.
 }
 \seealso{
 \code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\link[=group_hypergraph]{group_hypergraph()}},
-\code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_clique_expansion]{hg_clique_expansion()}}
+\code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=pairwise_network]{pairwise_network()}}
 }

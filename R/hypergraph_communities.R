@@ -40,9 +40,9 @@
 #'   (default; the paper's hypergraph-derived representations `bh`, `bhs`,
 #'   `mh`, `mhs`) or the `"citation"` projection (its classic graph
 #'   representations `bg`, `mg`, and with `directed = FALSE` their undirected
-#'   variants `bgu`, `mgu`). See [hg_project()].
+#'   variants `bgu`, `mgu`). See [pairwise_network()].
 #' @param duplicate_edges,self_association,edge_source Projection controls
-#'   passed to [hg_project()]. Together these reproduce the paper's
+#'   passed to [pairwise_network()]. Together these reproduce the paper's
 #'   binary/multi and self-association representations.
 #' @param directed For `method = "citation"`: run Infomap with directed flow
 #'   on the source-to-member graph? Default `FALSE`.
@@ -163,14 +163,14 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
   seeds <- as.integer(seeds)
 
   projection <- if (identical(method, "association")) {
-    hg_project(
-      hg, method = "association", what = "matrix",
+    .hg_projection(
+      hg, type = "association", what = "matrix",
       duplicate_edges = duplicate_edges,
       self_association = self_association, edge_source = edge_source
     )
   } else {
-    hg_project(
-      hg, method = "citation", what = "matrix",
+    .hg_projection(
+      hg, type = "citation", what = "matrix",
       duplicate_edges = duplicate_edges, edge_source = edge_source,
       directed = directed
     )
@@ -262,7 +262,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   projection its own fit used, and the scores are available as
 #'   `what = "quality"`.
 #' @param edge_source Hyperedge sources for the citation and self-association
-#'   projections when scoring, as in [hg_project()].
+#'   projections when scoring, as in [pairwise_network()].
 #' @return A `hypergraphs_community_comparison` object. `hg_get()` returns
 #'   its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
 #'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest_size`,
@@ -556,14 +556,14 @@ hg_community_quality <- function(hg, partition,
   method <- match.arg(method)
   duplicate_edges <- match.arg(duplicate_edges)
   projection <- if (identical(method, "association")) {
-    hg_project(
-      hg, method = "association", what = "matrix",
+    .hg_projection(
+      hg, type = "association", what = "matrix",
       duplicate_edges = duplicate_edges,
       self_association = self_association, edge_source = edge_source
     )
   } else {
-    hg_project(
-      hg, method = "citation", what = "matrix",
+    .hg_projection(
+      hg, type = "citation", what = "matrix",
       duplicate_edges = duplicate_edges, edge_source = edge_source
     )
   }

@@ -16,12 +16,12 @@ fixture <- function(weight = 1) {
              "e4", "e4", "e4", "e4"),
     w = weight
   )
-  group_hypergraph(long, actor = "vertex", group = "edge",
+  group_hypergraph(long, node = "vertex", hyperedge = "edge",
                               weight = "w")
 }
 
 test_that("association weights match the hand-computed values", {
-  got <- hg_project(fixture(), method = "association")
+  got <- hg_get(pairwise_network(fixture(), type = "association"))
   expect_identical(names(got), c("from", "to", "weight"))
   expect_identical(got$from, c("a", "a", "a", "b", "b", "c"))
   expect_identical(got$to, c("b", "c", "d", "c", "d", "d"))
@@ -29,7 +29,7 @@ test_that("association weights match the hand-computed values", {
 })
 
 test_that("clique weights match the hand-computed values", {
-  got <- hg_project(fixture(), method = "clique")
+  got <- hg_get(pairwise_network(fixture(), type = "clique"))
   expect_identical(got$from, c("a", "a", "a", "b", "b", "c"))
   expect_identical(got$to, c("b", "c", "d", "c", "d", "d"))
   expect_equal(got$weight, c(2, 2, 2, 2, 1, 2))
@@ -40,7 +40,7 @@ test_that("INVARIANT: association degree equals hyperdegree", {
   # weighted degree in the projection is the number of incident hyperedges.
   # This is the random-walk property the 1/(|e| - 1) normalisation exists for.
   hg <- fixture()
-  w <- hg_project(hg, method = "association", what = "matrix")
+  w <- pairwise_network(hg, type = "association")$weights
   expect_equal(as.numeric(rowSums(w)),
                as.numeric(rowSums(hg$incidence != 0)))
   expect_equal(as.numeric(rowSums(w)), c(3, 2, 3, 3))
@@ -57,7 +57,7 @@ test_that("INVARIANT: association degree counts non-singleton hyperedges", {
   membership <- hg$incidence != 0
   expect_true(any(colSums(membership) == 1))
   shared <- membership[, colSums(membership) >= 2, drop = FALSE]
-  w <- hg_project(hg, method = "association", what = "matrix")
+  w <- pairwise_network(hg, type = "association")$weights
   expect_equal(as.numeric(rowSums(w)), as.numeric(rowSums(shared)))
 })
 
@@ -69,28 +69,28 @@ test_that("INVARIANT: projections are invariant to input row order", {
              "e4", "e4", "e3"),
     w = 1
   )
-  shuffled <- group_hypergraph(long, actor = "vertex",
-                                          group = "edge", weight = "w")
-  association <- hg_project(hg, method = "association")
-  association_shuffled <- hg_project(shuffled, method = "association")
+  shuffled <- group_hypergraph(long, node = "vertex",
+                                          hyperedge = "edge", weight = "w")
+  association <- hg_get(pairwise_network(hg, type = "association"))
+  association_shuffled <- hg_get(pairwise_network(shuffled, type = "association"))
   expect_equal(association, association_shuffled)
   line <- hg_line_graph(hg)
   line_shuffled <- hg_line_graph(shuffled)
   expect_equal(line, line_shuffled)
 })
 
-test_that("clique projection matches hg_clique_expansion()", {
+test_that("the clique projection is tcrossprod(incidence) with a zero diagonal", {
   hg <- fixture(weight = c(2, 1, 3, 1, 4, 2, 1, 1, 5, 1, 2))
-  ours <- hg_project(hg, method = "clique", what = "matrix")
-  expansion <- hg_clique_expansion(hg)
-  theirs <- expansion$weights
-  expect_equal(unname(as.matrix(ours)), unname(theirs))
+  ours <- pairwise_network(hg, type = "clique")$weights
+  oracle <- tcrossprod(as.matrix(hg$incidence))
+  diag(oracle) <- 0
+  expect_equal(unname(ours), unname(oracle))
 })
 
 test_that("weighted = FALSE drops the incidence weights", {
   weighted_hg <- fixture(weight = c(2, 1, 3, 1, 4, 2, 1, 1, 5, 1, 2))
-  binary <- hg_project(weighted_hg, method = "clique", weighted = FALSE)
-  unweighted <- hg_project(fixture(), method = "clique")
+  binary <- hg_get(pairwise_network(weighted_hg, type = "clique", weighted = FALSE))
+  unweighted <- hg_get(pairwise_network(fixture(), type = "clique"))
   expect_equal(binary, unweighted)
 })
 
@@ -118,7 +118,7 @@ test_that("INVARIANT: the s = 1 line graph is the dual's clique projection", {
   hg <- fixture()
   line <- hg_line_graph(hg, s = 1)
   dual <- dual_hypergraph(hg)
-  dual_projection <- hg_project(dual, weighted = FALSE)
+  dual_projection <- hg_get(pairwise_network(dual, weighted = FALSE))
   expect_equal(line, dual_projection)
 })
 
@@ -128,11 +128,11 @@ test_that("INVARIANT: sparse and dense incidences agree", {
   dense <- text_hypergraph(docs)
   sparse <- text_hypergraph(docs, sparse = TRUE)
   expect_true(methods::is(sparse$incidence, "sparseMatrix"))
-  association_dense <- hg_project(dense, method = "association")
-  association_sparse <- hg_project(sparse, method = "association")
+  association_dense <- hg_get(pairwise_network(dense, type = "association"))
+  association_sparse <- hg_get(pairwise_network(sparse, type = "association"))
   expect_equal(association_dense, association_sparse)
-  clique_dense <- hg_project(dense, method = "clique")
-  clique_sparse <- hg_project(sparse, method = "clique")
+  clique_dense <- hg_get(pairwise_network(dense, type = "clique"))
+  clique_sparse <- hg_get(pairwise_network(sparse, type = "clique"))
   expect_equal(clique_dense, clique_sparse)
   line_dense <- hg_line_graph(dense, s = 2)
   line_sparse <- hg_line_graph(sparse, s = 2)
@@ -142,9 +142,9 @@ test_that("INVARIANT: sparse and dense incidences agree", {
 test_that("singleton hyperedges contribute nothing instead of dividing by zero", {
   long <- data.frame(vertex = c("a", "b", "c", "z"),
                      edge = c("e1", "e1", "e1", "solo"), w = 1)
-  hg <- group_hypergraph(long, actor = "vertex", group = "edge",
+  hg <- group_hypergraph(long, node = "vertex", hyperedge = "edge",
                                     weight = "w")
-  got <- hg_project(hg, method = "association")
+  got <- hg_get(pairwise_network(hg, type = "association"))
   expect_true(all(is.finite(got$weight)))
   expect_false("z" %in% c(got$from, got$to))
   expect_equal(got$weight, c(0.5, 0.5, 0.5))
@@ -152,7 +152,7 @@ test_that("singleton hyperedges contribute nothing instead of dividing by zero",
 
 test_that("the matrix hand-off is symmetric, zero-diagonal and named", {
   hg <- fixture()
-  w <- hg_project(hg, method = "association", what = "matrix")
+  w <- pairwise_network(hg, type = "association")$weights
   expect_equal(unname(as.matrix(w)), unname(t(as.matrix(w))))
   expect_equal(as.numeric(diag(as.matrix(w))), rep(0, 4))
   expect_identical(rownames(w), c("a", "b", "c", "d"))
@@ -162,18 +162,56 @@ test_that("the matrix hand-off is symmetric, zero-diagonal and named", {
 })
 
 test_that("bad input raises classed conditions", {
-  expect_error(hg_project(42), class = "hypergraphs_bad_input")
+  expect_error(hg_get(pairwise_network(42)), class = "hypergraphs_bad_input")
   expect_error(hg_line_graph(list()), class = "hypergraphs_bad_input")
   expect_error(
-    hg_project(fixture(), method = "association", weighted = FALSE),
+    hg_get(pairwise_network(fixture(), type = "association", weighted = FALSE)),
     class = "hypergraphs_bad_input"
   )
   expect_error(
-    hg_project(fixture(), method = "association", weighted = TRUE),
+    hg_get(pairwise_network(fixture(), type = "association", weighted = TRUE)),
     class = "hypergraphs_bad_input"
   )
-  expect_error(hg_project(fixture(), weighted = NA), "TRUE or FALSE")
+  expect_error(hg_get(pairwise_network(fixture(), weighted = NA)), "TRUE or FALSE")
   expect_error(hg_line_graph(fixture(), s = 0), "at least 1")
   expect_error(hg_line_graph(fixture(), s = 1.5), "whole number")
   expect_error(hg_line_graph(fixture(), s = c(1, 2)), "single")
+})
+
+test_that("pairwise_network() returns a network object whose hg_get() edges are the projection", {
+  hg <- fixture()
+  net <- pairwise_network(hg)
+  expect_s3_class(net, "net_hg_pairwise")
+  expect_s3_class(net, "netobject")
+  expect_s3_class(net, "cograph_network")
+  edges <- hg_get(net)
+  expect_named(edges, c("from", "to", "weight"))
+  # every edge weight is the number of hyperedges holding both nodes
+  b <- (as.matrix(hg$incidence) != 0) * 1
+  co <- tcrossprod(b)
+  expect_equal(edges$weight, unname(co[cbind(edges$from, edges$to)]))
+  nodes <- hg_get(net, what = "nodes", sort_by = "strength")
+  expect_named(nodes, c("node", "degree", "strength"))
+  expect_true(!is.unsorted(rev(nodes$strength)))
+  expect_equal(sum(nodes$strength), 2 * sum(edges$weight))
+  top_edge <- hg_get(net, sort_by = "weight", top = 1)
+  expect_equal(top_edge$weight, max(edges$weight))
+})
+
+test_that("hypergraph() reads a pairwise_network() result as a network", {
+  hg <- fixture()
+  net <- pairwise_network(hg)
+  back <- hypergraph(net, p = 0)
+  members <- vapply(strsplit(hg_get(back)$members, ", ", fixed = TRUE),
+                    \(e) paste(sort(e), collapse = "+"), "")
+  expect_setequal(members, paste(hg_get(net)$from, hg_get(net)$to, sep = "+"))
+})
+
+test_that("plot() of a pairwise_network() result plots through cograph and returns it", {
+  net <- pairwise_network(fixture())
+  path <- tempfile(fileext = ".png")
+  grDevices::png(path)
+  on.exit({ grDevices::dev.off(); unlink(path) }, add = TRUE)
+  expect_identical(withVisible(plot(net))$visible, FALSE)
+  expect_identical(plot(net, layout = "circle", node_fill = "#E69F00"), net)
 })

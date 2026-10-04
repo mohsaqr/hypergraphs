@@ -11,7 +11,7 @@ testthat::skip_on_cran()
 }
 
 .interval_thg <- function() {
-  temporal_hypergraph(.tribunals(), actor = "arbitrator", group = "case",
+  temporal_hypergraph(.tribunals(), node = "arbitrator", hyperedge = "case",
                       start = "constituted", end = "concluded")
 }
 
@@ -22,7 +22,7 @@ testthat::skip_on_cran()
     event = rep(c("e1", "e2", "e3", "e4"), each = 2),
     time = rep(c(1, 2, 3, 3), each = 2)
   )
-  temporal_hypergraph(dat, actor = "member", group = "event", time = "time",
+  temporal_hypergraph(dat, node = "member", hyperedge = "event", time = "time",
                       nodes = nodes)
 }
 
@@ -66,10 +66,10 @@ test_that("a node universe with entry times drives node counts and snapshots", {
   dat <- data.frame(member = c("a", "b", "b", "c", "c", "d", "a", "b"),
                     event = rep(c("e1", "e2", "e3", "e4"), each = 2),
                     time = rep(c(1, 2, 3, 3), each = 2))
-  renamed <- temporal_hypergraph(dat, actor = "member", group = "event",
+  renamed <- temporal_hypergraph(dat, node = "member", hyperedge = "event",
                                  time = "time", nodes = named)
   expect_identical(renamed$node_data, thg$node_data)
-  expect_error(temporal_hypergraph(dat, actor = "member", group = "event",
+  expect_error(temporal_hypergraph(dat, node = "member", hyperedge = "event",
                                    time = "time", nodes = list(1)),
                class = "hypergraphs_bad_input")
   # a bare universe keeps every node in every snapshot
@@ -101,7 +101,7 @@ test_that("component statistics follow the shared-hyperedge connectivity", {
     data.frame(case = rep(c("A", "B"), each = 3),
                arbitrator = c("p1", "a1", "a2", "p2", "a3", "a4"),
                start = 1, end = 2),
-    actor = "arbitrator", group = "case", start = "start", end = "end"
+    node = "arbitrator", hyperedge = "case", start = "start", end = "end"
   )
   apart_snap <- hg_snapshot(apart, at = 1)
   two <- hg_measures(apart_snap, what = "components")

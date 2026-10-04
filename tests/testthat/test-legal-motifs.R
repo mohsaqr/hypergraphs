@@ -42,7 +42,7 @@ test_that("motif census applies to temporal snapshots", {
     member = c(1, 2, 3, 1, 2, 4),
     event = rep(c("e1", "e2"), each = 3), time = rep(1:2, each = 3)
   )
-  thg <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
+  thg <- temporal_hypergraph(dat, node = "member", hyperedge = "event", time = "time")
   out <- hg_motifs(thg, what = "counts", snapshot_mode = "cumulative")
   expect_equal(out$count[out$time == "1"], c(0L, 0L, 0L))
   expect_equal(out$count[out$time == "2"], c(1L, 0L, 0L))

@@ -24,7 +24,7 @@ test_that("no S3 method is registered on Nestimate's hypergraph classes", {
 test_that("hypergraph constructors return net_hg", {
   hg <- group_hypergraph(data.frame(p = c("a", "b", "c", "a"),
                                     g = c("x", "x", "y", "y")),
-                         actor = "p", group = "g")
+                         node = "p", hyperedge = "g")
   expect_s3_class(hg, "net_hg")
   expect_false(inherits(hg, "net_hypergraph"))
 })

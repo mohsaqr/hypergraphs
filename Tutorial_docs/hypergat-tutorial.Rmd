@@ -57,35 +57,13 @@ strsplit(first_doc$abstract, "[.!?;]+")
 Each element of that split is one future hyperedge; after tokenization
 and stop-word removal its remaining words are the vertices it joins.
 
-## A small worked example
+## Fit and reuse the classifier
 
-Six two-sentence documents, four labeled:
-
-```{r}
-docs <- c(
-  cooking_1 = "Simmer the soup slowly. Add onions and carrots to the pot.",
-  cooking_2 = "This soup recipe needs salt. Serve the dish on a cold night.",
-  cooking_3 = "Chop onions for the stew. Salt the broth and simmer.",
-  space_1 = "The telescope revealed a distant galaxy. Stars everywhere.",
-  space_2 = "Astronomers aimed the telescope. The stars were sharp.",
-  space_3 = "A comet passed the galaxy. Astronomers watched the stars."
-)
-toy_fit <- hg_hypergat(
-  docs,
-  labels = c(cooking_1 = "cooking", cooking_2 = "cooking",
-             space_1 = "space", space_2 = "space"),
-  embed_dim = 16, hidden = 8, epochs = 30, lr = 0.05,
-  validation = 0, seed = 1
-)
-toy_fit
-```
-
-The two unlabeled documents get the right classes from their sentence
-structure alone: `cooking_3` shares kitchen vocabulary with the cooking
-sentences, `space_3` shares astronomy vocabulary with the space ones.
-`score` is the softmax probability of the winning class and `margin`
-its lead over the runner-up -- the same tidy contract as `hg_classify()`
-and `hg_neural()`.
+The current interface is illustrated in
+[Classifying documents with existing subject labels](../tmp/hypergat-classification.html).
+It fits on existing labels, predicts independent documents with `predict()`,
+and reads evaluation and document text through `hg_get()`. Attention is an
+optional internal diagnostic with its normalization baseline.
 
 ## R8 at full scale
 

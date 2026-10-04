@@ -32,6 +32,7 @@
     # attention tensor [B, E, N] after a forward pass
     self$capture <- FALSE
     self$attention <- NULL
+    self$edge_attention <- NULL
     stdv <- 1 / sqrt(out_features)
     runif_par <- function(...) {
       torch::nn_parameter(torch::torch_empty(...)$uniform_(-stdv, stdv))
@@ -85,6 +86,9 @@
     att_node <- torch::nnf_softmax(
       torch::torch_where(adj > 0, s_pair, neg2)$transpose(2L, 3L), dim = 3L
     )                                                       # [B, N, E]
+    if (isTRUE(self$capture)) {
+      self$edge_attention <- att_node$detach()
+    }
     node <- torch::torch_matmul(att_node, edge)             # [B, N, out]
     if (isTRUE(self$concat)) {
       node <- torch::nnf_elu(node)
@@ -142,32 +146,39 @@
 # Tokenize documents into sentences of word ids. Returns a list per doc:
 # integer-id sentences (pad id is 1; word ids start at 2), plus the vocab.
 .thg_hypergat_corpus <- function(text, doc_id, stop_words, min_count,
-                                 lowercase) {
-  sentences <- lapply(strsplit(text, "[.!?;]+"), \(sents) {
+                                 lowercase, vocabulary = NULL, warn = TRUE) {
+  text[is.na(text)] <- ""
+  raw <- lapply(strsplit(text, "[.!?;]+"), trimws)
+  tokens <- lapply(raw, \(sents) {
     toks <- .thg_tokenize(sents, lowercase)
-    toks <- lapply(toks, \(s) setdiff(s, stop_words))
-    toks[lengths(toks) > 0L]
+    lapply(toks, \(s) setdiff(s, stop_words))
   })
-  counts <- table(unlist(sentences))
-  vocab <- sort(names(counts)[counts >= min_count])
-  sentences <- lapply(sentences, \(doc) {
-    kept <- lapply(doc, \(s) match(intersect(s, vocab), vocab) + 1L)
-    kept[lengths(kept) > 0L]
+  counts <- table(unlist(tokens))
+  vocab <- vocabulary %||% sort(names(counts)[counts >= min_count])
+  # a sentence is kept when a word of the vocabulary survives in it; its text
+  # is kept alongside so the hyperedges can be read back as sentences
+  kept_ids <- lapply(tokens, \(doc) {
+    lapply(doc, \(s) match(intersect(s, vocab), vocab) + 1L)
   })
+  sentences <- lapply(kept_ids, \(doc) doc[lengths(doc) > 0L])
+  texts <- Map(\(doc, words) doc[lengths(words) > 0L], raw, kept_ids)
   keep <- lengths(sentences) > 0L
-  if (!all(keep)) {
+  if (isTRUE(warn) && !all(keep)) {
     warning(warningCondition(
-      sprintf("%d document(s) had no usable tokens and were dropped",
+      sprintf("%d document(s) had no usable tokens and could not be scored",
               sum(!keep)),
       class = "hypergraphs_dropped_documents"
     ))
   }
-  list(sentences = sentences[keep], doc_id = doc_id[keep], vocab = vocab)
+  list(sentences = sentences[keep], doc_id = doc_id[keep], vocab = vocab,
+       texts = texts[keep])
 }
 
-# Online variational-Bayes LDA (Hoffman et al. 2010), matching the official
-# HyperGAT preprocessing choices: training documents only, online learning,
-# offset 50, random seed 0, topic count = class count, and top 10 words.
+# Online variational-Bayes LDA (Hoffman et al. 2010) as Ding et al. (2020,
+# Sec. 4.1, App. A.1) describe it: training documents only, online learning,
+# offset 50, random seed 0, topic count = class count, and top 10 words. The
+# official generate_lda.py fits on every document instead, and its shipped
+# R8 topics hold 30 words; pass those through `lda_keywords` to match it.
 # Returns topic-word components and the selected global keyword sets.
 .thg_hypergat_lda <- function(sentences, vocab, train_idx, n_topics,
                               top_n = 10L, max_iter = 10L,
@@ -309,11 +320,15 @@
 #' online variational-Bayes LDA is fitted to labeled documents only, with the
 #' topic count defaulting to the number of classes, and each document receives
 #' one edge per topic containing the topic's top words present in that document.
+#' The official repository's `generate_lda.py` fits its topics on every
+#' document, test documents included; passing its topic words as
+#' `lda_keywords` reproduces that choice.
 #'
 #' @param x A character vector of documents (names become ids) or a
 #'   data.frame with a text column.
-#' @param labels The known labels: a named character vector (names are
-#'   document ids, values class labels) or a tidy data.frame with a
+#' @param labels The known labels: the name of a column of `x` (a
+#'   data.frame) holding each document's label, a named character vector
+#'   (names are document ids, values class labels) or a tidy data.frame with a
 #'   `node` column and a `label`, `cluster` or `predicted` column. At
 #'   least two classes.
 #' @param column,id When `x` is a data.frame: the text column and the
@@ -356,45 +371,40 @@
 #' @param seed Integer seed (R and torch); results are deterministic
 #'   given a seed.
 #' @param verbose Message the loss each epoch.
-#' @param what `"predictions"` (default) returns the per-document
-#'   classification table; `"attention"` returns the trained network's
-#'   node-level attention per document and word, the input
-#'   `hg_keywords(type = "attention")` takes.
-#' @return With `what = "predictions"`, a base `data.frame`, one row per
-#'   (kept) document: `node`, `label` (the given label or `NA`),
-#'   `predicted`, `score` (softmax probability of the winning class),
-#'   `margin` (winner minus runner-up). The training history is attached
-#'   as attribute `"history"` (`epoch`, `loss`, `val_accuracy`).
-#'   Attribute `"semantic"` records the topic keywords and LDA settings.
+#' @param holdout `NULL` (default) trains on every given label. A share in
+#'   `(0, 1)` hides that share within each class with `seed`. The fitted
+#'   object prints its held-out accuracy and balanced accuracy.
+#' @param what Legacy extraction option. Fit once and use [hg_get()] with
+#'   `what = "attention"`, `"hyperedges"` or `"hyperedge_words"` instead.
+#' @return An `hg_hypergat` fitted classifier, also an
+#'   [hg_classification][hg_get.hg_classification] and a data frame.
+#'   `print()` reports held-out evaluation when available. `hg_get()` reads
+#'   predictions, per-class results, confusion, document text and training
+#'   history. `plot()` shows confusion or training loss. [predict.hg_hypergat()]
+#'   classifies new documents with the same network and frozen vocabulary.
 #'
-#'   With `what = "attention"`, a base `data.frame`, one row per
-#'   (document, word) pair: `node`, `word`, `attention` (the word's
-#'   node-level attention weights from the **first** attention layer, the
-#'   one that attends over the word embeddings, in evaluation mode, summed
-#'   over the hyperedges it belongs to -- each hyperedge's weights sum to
-#'   one, so a document's `attention` column sums to its hyperedge count),
-#'   `attention_2` (the same from the second layer) and `n_edges` (how many
-#'   of the document's hyperedges contain the word). Ordered by `node`,
-#'   then `word`. The second layer attends over first-layer outputs, which
-#'   are identical for every word of a document that has a single hyperedge
-#'   (one sentence), so `attention_2` is uniform within such documents by
-#'   construction; `hg_keywords(type = "attention")` uses `attention`.
+#'   Attention is computed on request, without training again. Word weights
+#'   sum to one within each hyperedge; edge weights sum to one over each
+#'   word's hyperedges. A word in just one edge gives it weight one
+#'   automatically. These are internal aggregation weights, not
+#'   class-specific contributions or explanations. The diagnostic tables
+#'   and their normalization baselines are described in
+#'   [hg_get.hg_hypergat()]. Softmax scores are not calibrated probabilities
+#'   of correctness. The vocabulary is estimated from known labels only;
+#'   held-out and unlabelled documents cannot change it.
 #' @references
 #' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with
 #' less: Hypergraph attention networks for inductive text classification.
 #' \emph{EMNLP 2020}.
 #' @examples
-#' \donttest{
-#' if (requireNamespace("torch", quietly = TRUE)) {
-#'   docs <- c(
-#'     cooking_1 = "Simmer the soup. Add onions and carrots.",
-#'     cooking_2 = "This soup recipe needs salt. Serve on a cold night.",
-#'     space_1 = "The telescope revealed a galaxy. Stars everywhere.",
-#'     space_2 = "Astronomers aimed the telescope. The stars were sharp."
-#'   )
-#'   hg_hypergat(docs, labels = c(cooking_1 = "cooking", space_1 = "space"),
-#'               embed_dim = 16, hidden = 8, epochs = 5, validation = 0)
-#' }
+#' \dontrun{
+#' # articles has text and an existing subject-label column called label.
+#' fit <- hg_hypergat(articles, column = "text", labels = "label",
+#'                    holdout = 0.2)
+#' fit
+#' plot(fit)
+#' hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
+#' predict(fit, newdata = new_articles)
 #' }
 #' @export
 hg_hypergat <- function(x, labels, column = NULL, id = NULL,
@@ -410,7 +420,8 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
                         lr_decay = 0.1, lr_step = 3L, validation = 0.1,
                         class_weights = c("balanced", "none"),
                         embeddings = NULL, seed = 1L, verbose = FALSE,
-                        what = c("predictions", "attention")) {
+                        what = c("predictions", "attention", "hyperedges",
+                                 "hyperedge_words"), holdout = NULL) {
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition(
       "hg_hypergat() needs the torch package: install.packages(\"torch\")",
@@ -419,13 +430,11 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   }
   class_weights <- match.arg(class_weights)
   semantic <- match.arg(semantic)
+  legacy_output <- !missing(what)
   what <- match.arg(what)
-  labels <- .thg_labels_input(labels)
   stopifnot(
     "`x` must be a character vector or a data.frame" =
       is.character(x) || is.data.frame(x),
-    "`labels` must be a named character vector" =
-      is.character(labels) && !is.null(names(labels)),
     "`embed_dim` must be a single positive integer" =
       length(embed_dim) == 1L && is.finite(embed_dim) && embed_dim >= 1,
     "`hidden` must be a single positive integer" =
@@ -483,17 +492,47 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
       !anyNA(doc_id) && anyDuplicated(doc_id) == 0L
   )
 
+  labels <- .thg_resolve_text_labels(x, labels, doc_id)
+  stopifnot(
+    "`labels` must be a named character vector" =
+      is.character(labels) && !is.null(names(labels))
+  )
   corpus <- .thg_hypergat_corpus(text, doc_id, stop_words, min_count,
-                                 lowercase)
+                                 lowercase, warn = FALSE)
+  # a label of a document the tokenizer dropped as empty is set aside; an id
+  # that is not a document at all is an error
   unknown <- setdiff(names(labels), corpus$doc_id)
-  if (length(unknown) > 0L) {
-    stop("Unknown or dropped document ids in `labels`: ",
-         paste(unknown, collapse = ", "), call. = FALSE)
-  }
-  classes <- sort(unique(as.character(labels)))
-  if (length(classes) < 2L) {
+  stray <- setdiff(unknown, doc_id)
+  if (length(stray) > 0L) {
     stop(errorCondition(
-      "`labels` must contain at least two distinct classes.",
+      paste0("Unknown or dropped document ids in `labels`: ",
+             paste(stray, collapse = ", ")),
+      class = "hypergraphs_bad_input", call = NULL
+    ))
+  }
+  # The final vocabulary pass reports unscorable documents once.
+  labels <- labels[!names(labels) %in% unknown]
+  eligible_ids <- corpus$doc_id
+  all_labels <- labels
+  split <- if (!is.null(holdout)) .thg_holdout_split(labels, holdout, seed)
+  if (!is.null(split)) labels <- split$known
+  if (length(unique(labels)) < 2L) {
+    .thg_bad_input("`labels` must contain at least two distinct classes.")
+  }
+  # Freeze the vocabulary on the known labels. Held-out and unlabelled
+  # documents cannot add terms or change the frequency filter.
+  expected_classes <- sort(unique(labels))
+  training <- match(names(labels), doc_id)
+  vocabulary <- .thg_hypergat_corpus(text[training], doc_id[training],
+    stop_words, min_count, lowercase, warn = FALSE)$vocab
+  corpus <- .thg_hypergat_corpus(text, doc_id, stop_words, min_count,
+    lowercase, vocabulary = vocabulary)
+  labels <- labels[names(labels) %in% corpus$doc_id]
+  classes <- sort(unique(as.character(labels)))
+  if (length(classes) < 2L || !setequal(classes, expected_classes)) {
+    stop(errorCondition(
+      paste("Every labelled class needs usable training text after vocabulary",
+            "filtering; reduce `min_count` or revise preprocessing."),
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
@@ -650,9 +689,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   }
 
   model$eval()
-  if (identical(what, "attention")) {
-    return(.thg_hypergat_attention(model, model_docs, corpus))
-  }
+
   probs <- score_docs(seq_along(corpus$doc_id))
   dimnames(probs) <- list(corpus$doc_id, classes)
   lab_full <- rep(NA_character_, length(corpus$doc_id))
@@ -664,6 +701,36 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
     val_accuracy = history[2L, ]
   )
   attr(out, "semantic") <- semantic_info
+  # Keep held-out rows whose words are absent from the training vocabulary,
+  # so an unscorable document is an error rather than a missing test case.
+  full <- data.frame(node = eligible_ids, label = NA_character_,
+    predicted = NA_character_, score = NA_real_, margin = NA_real_,
+    stringsAsFactors = FALSE)
+  full[match(out$node, full$node), names(out)] <- out
+  attr(full, "history") <- attr(out, "history")
+  attr(full, "semantic") <- attr(out, "semantic")
+  out <- .thg_classification(full, all_labels,
+    if (is.null(split)) character() else split$hidden,
+    method = "hg_hypergat", holdout = holdout %||% 0)
+  class(out) <- c("hg_hypergat", class(out))
+  attr(out, "classes") <- classes
+  attr(out, "hypergat") <- list(model = model, classes = classes,
+    corpus = corpus, documents = model_docs,
+    input = data.frame(node = doc_id, text = text, stringsAsFactors = FALSE),
+    preprocessing = list(stop_words = stop_words, lowercase = lowercase,
+                         column = column, id = id),
+    cache = new.env(parent = emptyenv()))
+  if (legacy_output && what != "predictions") {
+    warning(warningCondition(
+      paste0("Extract diagnostics after fitting: hg_get(fit, what = \"",
+             what, "\"). Attention weights are not prediction explanations."),
+      class = "hypergraphs_deprecated", call = NULL))
+    result <- hg_get(out, what = what)
+    if (what %in% c("hyperedges", "hyperedge_words")) {
+      result <- result[setdiff(names(result), c("label", "predicted"))]
+    }
+    return(result)
+  }
   out
 }
 
@@ -713,3 +780,88 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
 #' @rdname hg_hypergat
 #' @export
 text_hypergat <- hg_hypergat
+
+# Both attention levels of the first layer for every (document, hyperedge,
+# word): node-level `word_weight` (alpha, the word within the hyperedge) and
+# edge-level `edge_weight` (beta, the hyperedge for the word). Hyperedge s of
+# a document is its sentence s up to its sentence count, a topic after.
+.thg_hypergat_hyperedge_words <- function(model, model_docs, corpus,
+                                          keywords) {
+  model$gat1$capture <- TRUE
+  on.exit(model$gat1$capture <- FALSE, add = TRUE)
+  topic_names <- names(keywords) %||% character()
+  starts <- seq(1L, length(model_docs), by = 16L)
+  rows <- lapply(starts, \(s) {
+    chunk <- s:min(s + 15L, length(model_docs))
+    batch <- .thg_hypergat_batch(model_docs[chunk])
+    torch::with_no_grad(model(batch$items, batch$adj, batch$mask))
+    adj <- as.array(batch$adj)                              # [B, E, N]
+    alpha <- as.array(model$gat1$attention)                 # [B, E, N]
+    beta <- aperm(as.array(model$gat1$edge_attention),
+                  c(1L, 3L, 2L))                            # [B, E, N]
+    items <- as.matrix(batch$items)
+    present <- which(adj > 0, arr.ind = TRUE)
+    doc <- present[, 1L]
+    edge <- present[, 2L]
+    n_sentences <- lengths(corpus$sentences[chunk])[doc]
+    is_sentence <- edge <= n_sentences
+    topic_index <- edge - n_sentences
+    word <- corpus$vocab[items[cbind(doc, present[, 3L])] - 1L]
+    hyperedge <- ifelse(is_sentence, paste("sentence", edge),
+                        topic_names[pmax(topic_index, 1L)])
+    sentence_text <- vapply(seq_along(doc), \(r) {
+      if (is_sentence[[r]]) corpus$texts[[chunk[[doc[[r]]]]]][[edge[[r]]]]
+      else NA_character_
+    }, character(1L))
+    data.frame(node = corpus$doc_id[chunk][doc], hyperedge = hyperedge,
+               kind = ifelse(is_sentence, "sentence", "topic"),
+               text = sentence_text, word = word,
+               word_weight = alpha[present], edge_weight = beta[present],
+               n_edges = as.integer(apply(adj, c(1L, 3L), sum)[
+                 cbind(doc, present[, 3L])]),
+               word_uniform = 1 / apply(adj, c(1L, 2L), sum)[
+                 cbind(doc, edge)],
+               edge_uniform = 1 / apply(adj, c(1L, 3L), sum)[
+                 cbind(doc, present[, 3L])],
+               stringsAsFactors = FALSE)
+  })
+  out <- do.call(rbind, rows)
+  # a topic hyperedge reads as the topic's words present in the document
+  topic_rows <- out$kind == "topic"
+  if (any(topic_rows)) {
+    key <- paste(out$node, out$hyperedge, sep = "\r")
+    joined <- tapply(out$word[topic_rows], key[topic_rows], \(w) {
+      paste(sort(unique(w)), collapse = ", ")
+    })
+    out$text[topic_rows] <- unname(joined[key[topic_rows]])
+  }
+  out <- out[order(out$node, out$kind, out$hyperedge, -out$word_weight), ,
+             drop = FALSE]
+  rownames(out) <- NULL
+  out
+}
+
+# One row per (document, hyperedge): the mean edge-level weight of its words
+# and its most attended word.
+.thg_hypergat_hyperedge_summary <- function(words) {
+  key <- paste(words$node, words$hyperedge, sep = "\r")
+  first <- !duplicated(key)
+  weight <- tapply(words$edge_weight, key, mean)
+  top <- tapply(seq_len(nrow(words)), key, \(r) {
+    words$word[r][which.max(words$word_weight[r])]
+  })
+  n_words <- tapply(words$word, key, length)
+  out <- data.frame(node = words$node[first], hyperedge = words$hyperedge[first],
+                    kind = words$kind[first], text = words$text[first],
+                    weight = as.numeric(weight[key[first]]),
+                    top_word = as.character(top[key[first]]),
+                    n_words = as.integer(n_words[key[first]]),
+                    uniform_weight = as.numeric(tapply(words$edge_uniform,
+                      key, mean)[key[first]]),
+                    exclusive_fraction = as.numeric(tapply(words$n_edges == 1L,
+                      key, mean)[key[first]]),
+                    stringsAsFactors = FALSE)
+  out <- out[order(out$node, -out$weight), , drop = FALSE]
+  rownames(out) <- NULL
+  out
+}

@@ -204,20 +204,20 @@ test_that("hg_get(what = 'nodes') reports one row per node", {
     member = c("a", "b", "c", "b", "c", "d"),
     session = c("s1", "s1", "s1", "s2", "s2", "s2")
   )
-  hg <- group_hypergraph(df, actor = "member", group = "session")
+  hg <- group_hypergraph(df, node = "member", hyperedge = "session")
   nodes <- hg_get(hg, what = "nodes")
   expect_identical(names(nodes), c("node", "degree"))
   expect_identical(nodes$node, c("a", "b", "c", "d"))
   expect_identical(nodes$degree, c(1L, 2L, 2L, 1L))
   by_degree <- hg_get(hg, what = "nodes", sort_by = "degree", top = 2)
   expect_identical(by_degree$node, c("b", "c"))
-  sparse <- group_hypergraph(df, actor = "member", group = "session",
+  sparse <- group_hypergraph(df, node = "member", hyperedge = "session",
                              sparse = TRUE)
   sparse_nodes <- hg_get(sparse, what = "nodes")
   expect_identical(sparse_nodes, nodes)
   # planted blocks ride along
   P <- matrix(c(.5, .05, .05, .5), 2, 2)
-  sbm <- hg_sample_sbm(P = P, block_sizes = c(3, 3), d = 2, seed = 1)
+  sbm <- random_hypergraph("sbm", P = P, block_sizes = c(3, 3), d = 2, seed = 1)
   sbm_nodes <- hg_get(sbm, what = "nodes")
   expect_identical(names(sbm_nodes), c("node", "degree", "block"))
   expect_identical(sbm_nodes$block, rep(1:2, each = 3))
@@ -227,7 +227,7 @@ test_that("hg_get(what = 'memberships') lists every incidence cell", {
   dfw <- data.frame(person = c("A", "B", "A", "A", "B"),
                     grp = c("g1", "g1", "g1", "g2", "g2"),
                     n = c(2, 5, 3, 1, 4), stringsAsFactors = FALSE)
-  hw <- group_hypergraph(dfw, actor = "person", group = "grp", weight = "n")
+  hw <- group_hypergraph(dfw, node = "person", hyperedge = "grp", weight = "n")
   cells <- hg_get(hw, what = "memberships")
   expect_identical(names(cells), c("node", "hyperedge", "weight"))
   expect_identical(cells$node, c("A", "B", "A", "B"))
@@ -236,12 +236,12 @@ test_that("hg_get(what = 'memberships') lists every incidence cell", {
   heaviest <- hg_get(hw, what = "memberships", sort_by = "weight", top = 1)
   expect_identical(heaviest$hyperedge, "g1")
   # INVARIANT: the table is the incidence matrix in long form, dense or sparse
-  sparse <- group_hypergraph(dfw, actor = "person", group = "grp",
+  sparse <- group_hypergraph(dfw, node = "person", hyperedge = "grp",
                              weight = "n", sparse = TRUE)
   sparse_cells <- hg_get(sparse, what = "memberships")
   expect_equal(sparse_cells, cells)
   expect_equal(sum(cells$weight), sum(hw$incidence))
-  binary <- group_hypergraph(dfw, actor = "person", group = "grp")
+  binary <- group_hypergraph(dfw, node = "person", hyperedge = "grp")
   binary_cells <- hg_get(binary, what = "memberships")
   expect_equal(binary_cells$weight, rep(1, 4))
 })
@@ -262,8 +262,8 @@ test_that("separator reproduces a hand-rolled explode exactly", {
   long$members <- unlist(parts, use.names = FALSE)
   rownames(long) <- NULL
 
-  by_hand <- group_hypergraph(long, actor = "members", group = "group")
-  one_call <- group_hypergraph(wide, actor = "members", group = "group",
+  by_hand <- group_hypergraph(long, node = "members", hyperedge = "group")
+  one_call <- group_hypergraph(wide, node = "members", hyperedge = "group",
                                separator = ";")
   expect_identical(unname(as.matrix(one_call$incidence)),
                    unname(as.matrix(by_hand$incidence)))
@@ -273,20 +273,20 @@ test_that("separator reproduces a hand-rolled explode exactly", {
 test_that("separator drops empty members and trims whitespace", {
   hg <- group_hypergraph(
     data.frame(group = "g1", members = " a ;; b ;  "),
-    actor = "members", group = "group", separator = ";")
+    node = "members", hyperedge = "group", separator = ";")
   expect_identical(sort(hg$nodes), c("a", "b"))
 })
 
 test_that("separator rejects bad input by class", {
   wide <- data.frame(group = "g1", members = "a;b")
-  expect_error(group_hypergraph(wide, actor = "members", group = "group",
+  expect_error(group_hypergraph(wide, node = "members", hyperedge = "group",
                                 separator = c(";", ",")),
                class = "hypergraphs_bad_input")
-  expect_error(group_hypergraph(wide, actor = "nope", group = "group",
+  expect_error(group_hypergraph(wide, node = "nope", hyperedge = "group",
                                 separator = ";"),
                class = "hypergraphs_bad_input")
   expect_error(group_hypergraph(data.frame(group = "g1", members = ";;"),
-                                actor = "members", group = "group",
+                                node = "members", hyperedge = "group",
                                 separator = ";"),
                class = "hypergraphs_bad_input")
 })

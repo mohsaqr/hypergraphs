@@ -208,7 +208,7 @@ test_that("every hyperedge label lies inside its own pebble", {
     project = c("p1", "p1", "p1", "p2", "p2", "p3", "p3", "p4", "p4", "p5",
                 "p6", "p6")
   )
-  hg <- group_hypergraph(memberships, actor = "researcher", group = "project")
+  hg <- group_hypergraph(memberships, node = "researcher", hyperedge = "project")
   inside <- vapply(1:6, function(seed) {
     p <- plot(hg, edge_labels = TRUE, seed = seed)
     shapes <- p$layers[[1L]]$data
@@ -271,7 +271,7 @@ test_that("center pins the named nodes in the middle of every layout", {
               "out1", "out2", "c1", "c2", "out1", "out2", "d1", "d2", "d3"),
     step = rep(c("s1", "s2", "s3", "s4"), c(4, 4, 4, 5))
   )
-  hg <- group_hypergraph(memberships, actor = "event", group = "step")
+  hg <- group_hypergraph(memberships, node = "event", hyperedge = "step")
   # two leaves that would sit at the rim if left alone; the shared outcome
   # nodes land in the middle without help, so they would prove nothing
   middle <- c("a1", "d3")

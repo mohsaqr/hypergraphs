@@ -8,8 +8,8 @@ temporal_hypergraph(
   data,
   from = NULL,
   to = NULL,
-  actor = NULL,
-  group = NULL,
+  node = NULL,
+  hyperedge = NULL,
   time = NULL,
   start = NULL,
   end = NULL,
@@ -29,11 +29,11 @@ temporal_hypergraph(
 \code{netobject} model); see Details.}
 
 \item{from, to}{Column names of a pairwise edge list. Detected from the
-alias table when neither is given and \code{actor}/\code{group} are not named.}
+alias table when neither is given and \code{node}/\code{hyperedge} are not named.}
 
-\item{actor, group}{Column names of co-presence data: the node, and the
+\item{node, hyperedge}{Column names of membership data: the node, and the
 grouping whose shared values bind nodes into one hyperedge. Naming
-either selects the co-presence format; the other is then detected by
+either selects the membership format; the other is then detected by
 alias if not given.}
 
 \item{time}{Column with the instant of a contact hyperedge.}
@@ -63,7 +63,7 @@ the data is then used.}
 \item{sparse}{Store every snapshot's incidence as a sparse \code{Matrix}?
 Default \code{FALSE}.}
 
-\item{separator}{Split the \code{actor} column on this string, one row per
+\item{separator}{Split the \code{node} column on this string, one row per
 member, before building. Bibliographic exports ship a hyperedge's members
 as a single delimited cell -- EUR-Lex \code{citationcelex} and \code{eurovoc},
 Scopus and Web of Science reference and keyword fields -- so
@@ -88,8 +88,8 @@ data in this ecosystem (Dynet's \code{dynet()}): one row per relation, with the
 columns that name its ends and its clock. Two input shapes are accepted.
 An \strong{edge list} names \code{from} and \code{to}, and every row is a hyperedge of
 size two, so an ordinary temporal network is the same object.
-\strong{Co-presence data} name an \code{actor} and a \code{group}: every actor sharing one
-value of \code{group} (a case, a citation block, a seminar) belongs to one
+\strong{Membership data} name a \code{node} and a \code{hyperedge}: every node sharing
+one value of \code{hyperedge} (a case, a citation block, a seminar) belongs to one
 hyperedge. Two clocks are understood, and the one you name selects the
 format:
 }
@@ -147,7 +147,7 @@ the window is the span of the data.
 
 Every other column that is constant within a hyperedge is kept as a
 hyperedge attribute in the edge metadata, where \code{plot()} can colour by it
-and where \code{\link[=hg_project]{hg_project()}} finds the source a citation block belongs to.
+and where \code{\link[=pairwise_network]{pairwise_network()}} finds the source a citation block belongs to.
 Columns that vary within a hyperedge, such as the seat an arbitrator held,
 are not attributes of the hyperedge and are left out.
 }
@@ -158,7 +158,7 @@ seats <- data.frame(
   constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5),
   sector = c("oil", "oil", "oil", "gas", "gas", "gas")
 )
-thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                            start = "constituted", end = "concluded")
 thg
 hg_snapshot(thg, at = 3)

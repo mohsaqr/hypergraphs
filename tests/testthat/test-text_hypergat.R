@@ -131,7 +131,8 @@ test_that("hg_hypergat trains, predicts every document, deterministic", {
                      validation = 0, seed = 1)
   expect_s3_class(fit, "data.frame")
   expect_identical(nrow(fit), 6L)
-  expect_named(fit, c("node", "label", "predicted", "score", "margin"))
+  expect_named(fit, c("node", "label", "predicted", "score", "margin",
+                       "split", "correct"))
   # enough capacity and epochs to fit the four labeled documents
   labeled <- subset(fit, !is.na(label))
   expect_identical(labeled$predicted, unname(hypergat_labels[labeled$node]))
@@ -216,15 +217,15 @@ test_that("hg_hypergat argument contracts are enforced", {
 
 test_that("hg_hypergat(what = 'attention') returns per-edge-normalised word attention", {
   skip_if_not_installed("torch")
-  att <- hg_hypergat(hypergat_docs, labels = hypergat_labels,
+  att <- hg_get(hg_hypergat(hypergat_docs, labels = hypergat_labels,
                      embed_dim = 16, hidden = 8, epochs = 5, lr = 0.05,
-                     validation = 0, seed = 1, what = "attention")
+                     validation = 0, seed = 1), what = "attention")
   expect_named(att, c("node", "word", "attention", "attention_2", "n_edges"))
   expect_true(all(att$attention > 0 & att$attention <= att$n_edges))
   expect_true(all(att$attention_2 > 0 & att$attention_2 <= att$n_edges))
   expect_true(all(att$n_edges >= 1L))
   expect_false(anyDuplicated(att[, c("node", "word")]) > 0)
-  expect_identical(att, att[order(att$node, att$word), ])
+  expect_identical(att, att[order(att$node, -att$attention, att$word), ])
   # each hyperedge's node-level weights sum to one, so a document's total
   # attention equals its hyperedge (sentence) count
   sentences <- lengths(strsplit(hypergat_docs, "[.!?;]+"))
@@ -237,18 +238,17 @@ test_that("hg_hypergat(what = 'attention') returns per-edge-normalised word atte
   # structural: in a one-sentence document every word's layer-1 output is
   # the same edge vector, so layer-2 attention is exactly uniform there,
   # while layer-1 attention (over the word embeddings) is not
-  one <- hg_hypergat(c(a = "simmer the soup with onions and carrots",
+  one <- hg_get(hg_hypergat(c(a = "simmer the soup with onions and carrots",
                        b = "the telescope revealed a distant galaxy"),
                      labels = c(a = "x", b = "y"), embed_dim = 16, hidden = 8,
-                     epochs = 5, lr = 0.05, validation = 0, seed = 1,
-                     what = "attention")
+                     epochs = 5, lr = 0.05, validation = 0, seed = 1), what = "attention")
   uniform <- 1 / as.numeric(table(one$node)[one$node])
   expect_equal(one$attention_2, uniform, tolerance = 1e-6)
   expect_false(isTRUE(all.equal(one$attention, uniform, tolerance = 1e-3)))
   # deterministic under a seed
-  again <- hg_hypergat(hypergat_docs, labels = hypergat_labels,
+  again <- hg_get(hg_hypergat(hypergat_docs, labels = hypergat_labels,
                        embed_dim = 16, hidden = 8, epochs = 5, lr = 0.05,
-                       validation = 0, seed = 1, what = "attention")
+                       validation = 0, seed = 1), what = "attention")
   expect_equal(att, again)
   # feeds hg_keywords(type = "attention")
   hg <- text_hypergraph(hypergat_docs, stop_words = stop_words_en())
@@ -257,4 +257,55 @@ test_that("hg_hypergat(what = 'attention') returns per-edge-normalised word atte
                      "share", "n_docs"))
   expect_identical(unique(kw$type), "attention")
   expect_setequal(unique(kw$cluster), unique(hypergat_labels))
+})
+
+test_that("hg_hypergat() sets aside labels of documents dropped as empty", {
+  skip_if_not_installed("torch")
+  skip_if_not(torch::torch_is_installed())
+  docs <- c(a = "soup salt onion. broth soup.", b = "salt soup. onion broth.",
+            c = "stars sky moon. night sky.", d = "sky stars. moon night.",
+            e = "the and of.")
+  labels <- c(a = "food", b = "food", c = "sky", d = "sky", e = "sky")
+  expect_warning(
+    fit <- hg_hypergat(docs, labels = labels, epochs = 1L, embed_dim = 8L,
+                       hidden = 4L, validation = 0),
+    class = "hypergraphs_dropped_documents"
+  )
+  expect_false("e" %in% fit$node)
+  expect_error(suppressWarnings(
+    hg_hypergat(docs, labels = c(labels, zz = "sky"), epochs = 1L)
+  ), class = "hypergraphs_bad_input")
+})
+
+test_that("hg_hypergat(what = \"hyperedge_words\") gives both attention levels", {
+  skip_if_not_installed("torch")
+  skip_if_not(torch::torch_is_installed())
+  docs <- c(a = "Soup needs salt. Broth needs onion. Salt the soup.",
+            b = "Salt and onion. The broth is warm.",
+            c = "Stars fill the sky. The moon is bright.",
+            d = "Night sky with stars. Moon and stars.")
+  labels <- c(a = "food", b = "food", c = "sky", d = "sky")
+  words <- hg_get(hg_hypergat(docs, labels = labels, epochs = 2L, embed_dim = 8L,
+                       hidden = 4L, validation = 0), what = "hyperedge_words")
+  expect_named(words, c("node", "label", "predicted", "hyperedge", "kind", "text", "word",
+                        "word_weight", "edge_weight", "n_edges",
+                        "word_uniform", "edge_uniform"))
+  # node-level weights sum to one within each hyperedge of a document
+  alpha_sums <- aggregate(word_weight ~ node + hyperedge, data = words,
+                          FUN = sum)
+  expect_equal(alpha_sums$word_weight, rep(1, nrow(alpha_sums)),
+               tolerance = 1e-5)
+  # edge-level weights sum to one over each word's hyperedges
+  beta_sums <- aggregate(edge_weight ~ node + word, data = words, FUN = sum)
+  expect_equal(beta_sums$edge_weight, rep(1, nrow(beta_sums)),
+               tolerance = 1e-5)
+  # the sentence hyperedges read back as the sentences of the input
+  first <- subset(words, node == "a" & hyperedge == "sentence 2")
+  expect_identical(unique(first$text), "Broth needs onion")
+  expect_setequal(first$word, c("broth", "needs", "onion"))
+  summary_table <- hg_get(hg_hypergat(docs, labels = labels, epochs = 2L,
+                               embed_dim = 8L, hidden = 4L, validation = 0), what = "hyperedges")
+  expect_identical(nrow(summary_table),
+                   nrow(unique(words[c("node", "hyperedge")])))
+  expect_true(all(summary_table$weight > 0 & summary_table$weight <= 1))
 })

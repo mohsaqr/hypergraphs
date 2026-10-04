@@ -19,25 +19,35 @@ clock), identical to the result of the constructor called directly.
 \description{
 \code{hypergraph()} is the main constructor of the package. It reads the
 input and builds the hypergraph the input describes, through the
-constructor of that kind of data:
+constructor of that kind of data. A data frame is read in one of three
+formats, each with its own argument names, and the format is recognised
+from the arguments given:
 }
 \details{
 \itemize{
-\item A data frame in long format with \code{actor} and \code{group} (or \code{from} and
-\code{to}) describes observed groups, and every group becomes a hyperedge
-(\code{\link[=group_hypergraph]{group_hypergraph()}}). With \code{by} or \code{top} the groups are read as sets
-and the most frequent sets become hyperedges. With \code{time}, \code{start} or
-\code{end} the hyperedges carry a clock (\code{\link[=temporal_hypergraph]{temporal_hypergraph()}}). With
-\code{window}, \code{step} or \code{action} the data are sequences, and every window of
-consecutive actions becomes a hyperedge (\code{\link[=window_hypergraph]{window_hypergraph()}}).
-\item A list of sequences is read the same way (\code{\link[=window_hypergraph]{window_hypergraph()}}).
-\item A network, as a weight matrix, a sparse matrix, a \code{netobject} or a
-\code{cograph_network}, has its cliques promoted to hyperedges
-(\code{\link[=network_hypergraph]{network_hypergraph()}}); with \code{window}, a model object built from
-sequences is read as sequences instead.
-\item A topic model fitted by \code{\link[=hg_topics]{hg_topics()}}, or a clustering of sequences,
-becomes the hypergraph of its frequent sets (\code{\link[=group_hypergraph]{group_hypergraph()}}).
+\item \strong{Membership data} name a \code{node} and a \code{hyperedge} (or \code{from} and \code{to}
+for an edge list): every value of \code{hyperedge} becomes a hyperedge of the
+nodes it holds (\code{\link[=group_hypergraph]{group_hypergraph()}}). With \code{time}, \code{start} or \code{end} the
+hyperedges carry a clock (\code{\link[=temporal_hypergraph]{temporal_hypergraph()}}).
+\item \strong{Event data} name an \code{action}, the column of what happened, with the
+\code{session} and \code{actor} it belongs to, in the vocabulary of the memory
+family. Without \code{window}, the actions of each session become one
+hyperedge; a session is read within its actor when both are given, and
+with \code{actor} alone each actor's actions become one hyperedge. With
+\code{window}, every window of consecutive actions within an actor becomes a
+hyperedge (\code{\link[=window_hypergraph]{window_hypergraph()}}), ordered by \code{time}.
+\item With \code{group}, \code{top} or \code{min_share}, the sets of either format are
+counted and the most frequent become hyperedges; \code{group} names the
+comparison variable within whose values the sets are counted.
 }
+
+A list of sequences is read as event data with \code{window}. A network, as a
+weight matrix, a sparse matrix, a \code{netobject} or a \code{cograph_network}, has
+its cliques promoted to hyperedges (\code{\link[=network_hypergraph]{network_hypergraph()}}); with
+\code{window}, a model object built from sequences is read as sequences
+instead. A topic model fitted by \code{\link[=hg_topics]{hg_topics()}}, or a clustering of
+sequences, becomes the hypergraph of its frequent sets
+(\code{\link[=group_hypergraph]{group_hypergraph()}}).
 
 Every argument in \code{...} is passed to that constructor, whose
 documentation describes it, and the result is the constructor's own.
@@ -45,14 +55,22 @@ documentation describes it, and the result is the constructor's own.
 \section{Conditions}{
 
 \code{hypergraphs_bad_input} for an input of a class no constructor reads,
-naming the class, and the conditions of the constructor called.
+naming the class; for event data given a clock without \code{window}, since the
+set of a session has no order; and the conditions of the constructor
+called.
 }
 
 \examples{
 meetings <- data.frame(
   person = c("Alice", "Bob", "Carol", "Alice", "Bob", "Dave", "Eve"),
   meeting = c("m1", "m1", "m1", "m2", "m2", "m3", "m3"))
-hypergraph(meetings, actor = "person", group = "meeting")
+hypergraph(meetings, node = "person", hyperedge = "meeting")
+
+visits <- data.frame(
+  user = c("u1", "u1", "u1", "u1", "u2", "u2"),
+  visit = c(1, 1, 2, 2, 1, 1),
+  page = c("home", "cart", "home", "help", "home", "cart"))
+hypergraph(visits, action = "page", actor = "user", session = "visit")
 
 sessions <- list(c("a", "b", "c", "a"), c("b", "c", "d"))
 hypergraph(sessions, window = 2)

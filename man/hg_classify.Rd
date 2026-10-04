@@ -10,7 +10,9 @@ hg_classify(
   xi = 0.99,
   type = c("zhou", "random_walk"),
   normalization = c("none", "class_mass"),
-  edge_weights = NULL
+  edge_weights = NULL,
+  holdout = NULL,
+  seed = 1L
 )
 }
 \arguments{
@@ -18,8 +20,10 @@ hg_classify(
 
 \item{labels}{The known labels: a named character vector (names are
 node identifiers -- documents under \code{nodes = "doc"} -- values their
-class labels), or a tidy data.frame with a \code{node} column and a
-\code{label}, \code{cluster} or \code{predicted} column.}
+class labels), a tidy data.frame with a \code{node} column and a
+\code{label}, \code{cluster} or \code{predicted} column, or the name of a column of
+the hypergraph's document table, which a \code{\link[=text_hypergraph]{text_hypergraph()}} fills
+with the input's other columns (\code{labels = "period"}).}
 
 \item{xi}{Numeric in \verb{(0, 1)}. Spreading coefficient (default \code{0.99});
 larger values weight the hypergraph structure more relative to the
@@ -32,10 +36,23 @@ predictions: \code{"none"} (default, the raw Zhou 2006 argmax) or
 \code{"class_mass"} (class-mass normalization, Zhu et al. 2003). Use
 \code{"class_mass"} when the labeled seeds are class-imbalanced -- the raw
 rule can collapse every prediction onto the majority class.}
+
+\item{holdout}{\code{NULL} (default) uses every given label and returns the
+predictions. A share in \verb{(0, 1)} hides that share of the labels, drawn
+within each class, predicts them from the rest, and returns an
+\link[=hg_get.hg_classification]{hg_classification} that prints the held-out
+accuracy and balanced accuracy.}
+
+\item{seed}{Seed of the held-out draw (default \code{1}); the caller's
+random-number stream is restored.}
 }
 \value{
 A base \code{data.frame}, one row per node, with columns \code{node},
 \code{label} (the given label or \code{NA}), \code{predicted}, \code{score}, and \code{margin}.
+With \code{holdout}, an \code{hg_classification}: the same table with \code{label}
+holding the true label, \code{split} (\code{"train"} or \code{"test"}) and \code{correct}
+for the held-out documents; read its evaluation with \code{\link[=hg_get]{hg_get()}}
+(\code{what = "accuracy"}, \code{"classes"}, \code{"confusion"}).
 }
 \description{
 Semi-supervised classification of hypergraph nodes by the regularization

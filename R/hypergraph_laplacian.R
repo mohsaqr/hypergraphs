@@ -70,7 +70,7 @@
 #'               "m4", "m4"),
 #'   hours = c(2, 1, 1, 3, 2, 1, 2, 2, 4, 1, 1)
 #' )
-#' hg <- group_hypergraph(events, actor = "person", group = "meeting",
+#' hg <- group_hypergraph(events, node = "person", hyperedge = "meeting",
 #'                        weight = "hours")
 #' L <- hg_laplacian(hg, type = "random_walk")
 #' range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)
@@ -295,11 +295,7 @@ hg_laplacian <- function(hg,
 
   # Normalize `labels` to a full-length character vector with NAs
   lab <- if (!is.null(names(labels))) {
-    unknown <- setdiff(names(labels), nodes)
-    if (length(unknown) > 0L) {
-      stop("Unknown node names in `labels`: ",
-           paste(unknown, collapse = ", "), call. = FALSE)
-    }
+    labels <- .thg_known_assignment(labels, nodes, hg, arg = "labels")
     full <- rep(NA_character_, n)
     full[match(names(labels), nodes)] <- as.character(labels)
     full

@@ -84,8 +84,8 @@ test_that("direct null statistics equal the delegated measures path", {
   nz <- which(m > 0, arr.ind = TRUE)
   long <- data.frame(vertex = rownames(m)[nz[, "row"]],
                      edge = colnames(m)[nz[, "col"]], w = 1)
-  ref_hg <- group_hypergraph(long, actor = "vertex",
-                                        group = "edge", weight = "w")
+  ref_hg <- group_hypergraph(long, node = "vertex",
+                                        hyperedge = "edge", weight = "w")
   s_tab <- hg_measures(ref_hg, what = "summary")
   expect_equal(unname(fast["density"]),
                subset(s_tab, measure == "density")$value,

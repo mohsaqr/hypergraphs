@@ -58,33 +58,36 @@
 #' hg
 "covid_embeddings"
 
-#' Sessions with a coding assistant
+#' Problem steps of learners with a tutor
 #'
-#' The events of 4,000 sessions in which a user runs code with the help of
-#' an assistant, one row per event. A session is one task; it ends `Done`
-#' when a run passes, or `Abort` when the user exits after failed runs. A run
-#' is a stretch of a session between two verdicts: a new run starts at the
-#' event after each `Fail`, so the assistant's moves after a failed run belong
-#' to the rerun they lead to. The sessions are real event sequences of another
-#' domain with every event renamed and learner identifiers removed; the
-#' sessions are a random 4,000 of 13,309. Rebuilt by
-#' `data-raw/debug_events.R`.
+#' The events of 13,309 problem steps that learners worked through with an AI
+#' tutor, one row per event. A step begins with the task, the learner attempts
+#' an answer, and the answer is correct or incorrect. After an incorrect answer
+#' the tutor responds with guidance, a question, an order, a refutation, a
+#' prompt to reflect or comfort, and the learner reattempts or gives up. A
+#' step ends `Completed` when an answer is correct, or `Stopped` when it ends
+#' without a correct answer.
+#' A trial is the part of a step between two answers: a new trial starts at the
+#' event after each `Incorrect`, so the tutor's response to an incorrect answer
+#' belongs to the reattempt it leads to. The events are real; each is renamed
+#' to a word of the same meaning, similar events are merged, and learner and
+#' skill identifiers are removed. Rebuilt by `data-raw/tutoring_events.R`.
 #'
-#' @format A data frame with 25,008 rows and 5 columns:
+#' @format A data frame with 84,356 rows and 5 columns:
 #' \describe{
-#'   \item{session}{Session number (integer).}
-#'   \item{run}{Run identifier, unique over the data (`"<session>.<n>"`).}
-#'   \item{position}{Position of the event within its session (integer).}
-#'   \item{event}{The event: the user's `Open`, `Run`, `Rerun` and `Exit`,
-#'     the task's `Spec`, the verdicts `Pass` and `Fail`, the session's end
-#'     `Done` or `Abort`, and the assistant's `Tip`, `Query`, `Fix`, `Note`,
-#'     `Counter`, `Reflect`, `Confirm` and `Reassure`.}
-#'   \item{group}{`"quick"` for a session done on the first run or after one
-#'     rerun, `"slow"` for one that needs several reruns or is aborted.}
+#'   \item{step}{Problem step number (integer).}
+#'   \item{trial}{Trial identifier, unique over the data (`"<step>.<n>"`).}
+#'   \item{position}{Position of the event within its step (integer).}
+#'   \item{event}{The event: the step's `Begin` and `Task`, the learner's
+#'     `Attempt`, `Reattempt` and `GiveUp`, the answers `Correct` and
+#'     `Incorrect`, the step's end `Completed` or `Stopped`, and the tutor's
+#'     `Guidance`, `Question`, `Order`, `Refute`, `Reflect` and `Comfort`.}
+#'   \item{outcome}{`"completed"` for a step that ends with a correct
+#'     answer, `"stopped"` for one that ends without.}
 #' }
-#' @source Renamed and sampled by `data-raw/debug_events.R` (seed 20261001).
+#' @source Renamed by `data-raw/tutoring_events.R`.
 #' @examples
-#' session_sets <- group_hypergraph(debug_events, actor = "event",
-#'                                  group = "session", by = "group")
-#' session_sets
-"debug_events"
+#' step_sets <- group_hypergraph(tutoring_events, node = "event",
+#'                               hyperedge = "trial", group = "outcome", top = 4)
+#' step_sets
+"tutoring_events"

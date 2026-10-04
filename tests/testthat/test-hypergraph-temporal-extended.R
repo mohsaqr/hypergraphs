@@ -16,7 +16,7 @@ testthat::skip_on_cran()
 
 test_that("constant columns become hyperedge attributes and travel into subsets", {
   thg <- temporal_hypergraph(
-    .tribunal_seats(), actor = "arbitrator", group = "case",
+    .tribunal_seats(), node = "arbitrator", hyperedge = "case",
     start = "constituted", end = "concluded"
   )
   # `seat` varies within a case and is not a hyperedge attribute
@@ -36,7 +36,7 @@ test_that("sparse temporal hypergraphs give sparse snapshots identical to dense"
   dat <- .tribunal_seats()
   universe <- c("p1", "p2", "a1", "a2", "a3", "a4", "a5", "zz")
   build <- function(sparse) {
-    temporal_hypergraph(dat, actor = "arbitrator", group = "case",
+    temporal_hypergraph(dat, node = "arbitrator", hyperedge = "case",
                         start = "constituted", end = "concluded",
                         sparse = sparse, nodes = universe)
   }
@@ -61,7 +61,7 @@ test_that("duplicate collapse works on sparse incidence and keeps metadata", {
     event = rep(c("e1", "e2", "e3"), each = 3), time = 1,
     label = rep(c("x", "y", "z"), each = 3)
   )
-  thg <- temporal_hypergraph(dat, actor = "member", group = "event",
+  thg <- temporal_hypergraph(dat, node = "member", hyperedge = "event",
                              time = "time", sparse = TRUE)
   simple <- hg_snapshot(thg, 1, multiedges = FALSE)
   expect_identical(simple$n_hyperedges, 1L)
@@ -74,7 +74,7 @@ test_that("hg_subset(size = ) keeps hyperedges by member count", {
   hg <- group_hypergraph(data.frame(
     member = c("a", "b", "c", "a", "b", "c", "d", "e"),
     group = c("e1", "e1", "e1", "e2", "e2", "e3", "e3", "e3")
-  ), actor = "member", group = "group")
+  ), node = "member", hyperedge = "group")
   three <- hg_subset(hg, size = 3)
   expect_identical(three$n_hyperedges, 2L)
   expect_identical(sort(colnames(three$incidence)), c("e1", "e3"))

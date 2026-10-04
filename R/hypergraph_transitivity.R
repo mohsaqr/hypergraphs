@@ -218,14 +218,14 @@
 #' \emph{Journal of Complex Networks}, 8(3), cnaa018.
 #' \doi{10.1093/comnet/cnaa018}
 #'
-#' @seealso [hg_assortativity()], [hg_measures()], [hg_clique_expansion()].
+#' @seealso [hg_assortativity()], [hg_measures()], [pairwise_network()].
 #'
 #' @examples
 #' groups <- data.frame(
 #'   member = c("a", "b", "c", "a", "d", "b", "d", "c", "d", "e"),
 #'   group  = c("g1", "g1", "g1", "g2", "g2", "g3", "g3", "g4", "g4", "g4")
 #' )
-#' hg <- group_hypergraph(groups, actor = "member", group = "group")
+#' hg <- group_hypergraph(groups, node = "member", hyperedge = "group")
 #' hg_transitivity(hg, type = c("projection", "extra_overlap"))
 #' hg_transitivity(hg, type = "two_node_union", what = "summary")
 #' @export

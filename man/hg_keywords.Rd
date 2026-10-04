@@ -27,7 +27,9 @@ hg_keywords(
 sentence hypergraph of the same documents (see Sentence scope).}
 
 \item{clusters}{The tidy table returned by \code{\link[=hg_cluster]{hg_cluster()}} (columns
-\code{node}, \code{cluster}), or a named vector of cluster labels.}
+\code{node}, \code{cluster}), a named vector of cluster labels, or the name of a
+column of the hypergraph's document table, so a group variable of the
+corpus such as \code{"period"} gives its words directly.}
 
 \item{n}{Keywords per cluster (default \code{10}); \code{Inf} returns all.}
 

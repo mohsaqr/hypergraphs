@@ -36,7 +36,8 @@ hg_hypergat(
   embeddings = NULL,
   seed = 1L,
   verbose = FALSE,
-  what = c("predictions", "attention")
+  what = c("predictions", "attention", "hyperedges", "hyperedge_words"),
+  holdout = NULL
 )
 
 text_hypergat(
@@ -70,15 +71,17 @@ text_hypergat(
   embeddings = NULL,
   seed = 1L,
   verbose = FALSE,
-  what = c("predictions", "attention")
+  what = c("predictions", "attention", "hyperedges", "hyperedge_words"),
+  holdout = NULL
 )
 }
 \arguments{
 \item{x}{A character vector of documents (names become ids) or a
 data.frame with a text column.}
 
-\item{labels}{The known labels: a named character vector (names are
-document ids, values class labels) or a tidy data.frame with a
+\item{labels}{The known labels: the name of a column of \code{x} (a
+data.frame) holding each document's label, a named character vector
+(names are document ids, values class labels) or a tidy data.frame with a
 \code{node} column and a \code{label}, \code{cluster} or \code{predicted} column. At
 least two classes.}
 
@@ -141,31 +144,30 @@ given a seed.}
 
 \item{verbose}{Message the loss each epoch.}
 
-\item{what}{\code{"predictions"} (default) returns the per-document
-classification table; \code{"attention"} returns the trained network's
-node-level attention per document and word, the input
-\code{hg_keywords(type = "attention")} takes.}
+\item{what}{Legacy extraction option. Fit once and use \code{\link[=hg_get]{hg_get()}} with
+\code{what = "attention"}, \code{"hyperedges"} or \code{"hyperedge_words"} instead.}
+
+\item{holdout}{\code{NULL} (default) trains on every given label. A share in
+\verb{(0, 1)} hides that share within each class with \code{seed}. The fitted
+object prints its held-out accuracy and balanced accuracy.}
 }
 \value{
-With \code{what = "predictions"}, a base \code{data.frame}, one row per
-(kept) document: \code{node}, \code{label} (the given label or \code{NA}),
-\code{predicted}, \code{score} (softmax probability of the winning class),
-\code{margin} (winner minus runner-up). The training history is attached
-as attribute \code{"history"} (\code{epoch}, \code{loss}, \code{val_accuracy}).
-Attribute \code{"semantic"} records the topic keywords and LDA settings.
+An \code{hg_hypergat} fitted classifier, also an
+\link[=hg_get.hg_classification]{hg_classification} and a data frame.
+\code{print()} reports held-out evaluation when available. \code{hg_get()} reads
+predictions, per-class results, confusion, document text and training
+history. \code{plot()} shows confusion or training loss. \code{\link[=predict.hg_hypergat]{predict.hg_hypergat()}}
+classifies new documents with the same network and frozen vocabulary.
 
-With \code{what = "attention"}, a base \code{data.frame}, one row per
-(document, word) pair: \code{node}, \code{word}, \code{attention} (the word's
-node-level attention weights from the \strong{first} attention layer, the
-one that attends over the word embeddings, in evaluation mode, summed
-over the hyperedges it belongs to -- each hyperedge's weights sum to
-one, so a document's \code{attention} column sums to its hyperedge count),
-\code{attention_2} (the same from the second layer) and \code{n_edges} (how many
-of the document's hyperedges contain the word). Ordered by \code{node},
-then \code{word}. The second layer attends over first-layer outputs, which
-are identical for every word of a document that has a single hyperedge
-(one sentence), so \code{attention_2} is uniform within such documents by
-construction; \code{hg_keywords(type = "attention")} uses \code{attention}.
+Attention is computed on request, without training again. Word weights
+sum to one within each hyperedge; edge weights sum to one over each
+word's hyperedges. A word in just one edge gives it weight one
+automatically. These are internal aggregation weights, not
+class-specific contributions or explanations. The diagnostic tables
+and their normalization baselines are described in
+\code{\link[=hg_get.hg_hypergat]{hg_get.hg_hypergat()}}. Softmax scores are not calibrated probabilities
+of correctness. The vocabulary is estimated from known labels only;
+held-out and unlabelled documents cannot change it.
 }
 \description{
 Trains the dual-attention hypergraph network of Ding et al. (2020) --
@@ -181,19 +183,19 @@ implementation. \code{semantic = "none"} reproduces its sentence-only
 online variational-Bayes LDA is fitted to labeled documents only, with the
 topic count defaulting to the number of classes, and each document receives
 one edge per topic containing the topic's top words present in that document.
+The official repository's \code{generate_lda.py} fits its topics on every
+document, test documents included; passing its topic words as
+\code{lda_keywords} reproduces that choice.
 }
 \examples{
-\donttest{
-if (requireNamespace("torch", quietly = TRUE)) {
-  docs <- c(
-    cooking_1 = "Simmer the soup. Add onions and carrots.",
-    cooking_2 = "This soup recipe needs salt. Serve on a cold night.",
-    space_1 = "The telescope revealed a galaxy. Stars everywhere.",
-    space_2 = "Astronomers aimed the telescope. The stars were sharp."
-  )
-  hg_hypergat(docs, labels = c(cooking_1 = "cooking", space_1 = "space"),
-              embed_dim = 16, hidden = 8, epochs = 5, validation = 0)
-}
+\dontrun{
+# articles has text and an existing subject-label column called label.
+fit <- hg_hypergat(articles, column = "text", labels = "label",
+                   holdout = 0.2)
+fit
+plot(fit)
+hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
+predict(fit, newdata = new_articles)
 }
 }
 \references{

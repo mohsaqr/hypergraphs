@@ -17,9 +17,9 @@
 #' @param hg A static `net_hg`, typically a snapshot of a
 #'   [temporal_hypergraph()].
 #' @param graph `"clique"` (default) or `"citation"`, the graph projection
-#'   compared; see [hg_project()]. `"citation"` needs hyperedge sources.
+#'   compared; see [pairwise_network()]. `"citation"` needs hyperedge sources.
 #' @param edge_source Hyperedge sources for `graph = "citation"`, as in
-#'   [hg_project()]; omitted when the hypergraph carries them.
+#'   [pairwise_network()]; omitted when the hypergraph carries them.
 #' @return A base data.frame with one row per representation, in the order
 #'   `bg`, `mg`, `bh`, `mh`, and columns `representation`, `type` (`"graph"`
 #'   or `"hypergraph"`), `n_nodes`, `n_edges`, `mean_degree`, `median_degree`.
@@ -58,8 +58,8 @@ hg_representations <- function(hg, graph = c("clique", "citation"),
   )
 
   if (identical(graph, "clique")) {
-    weighted <- hg_project(hg, method = "clique", weighted = FALSE,
-                           what = "matrix")
+    weighted <- .hg_projection(hg, type = "clique", weighted = FALSE,
+                               what = "matrix")
     binary <- (weighted != 0) * 1
     graph_rows <- data.frame(
       representation = c("bg", "mg"), type = "graph", n_nodes = n,
@@ -71,9 +71,9 @@ hg_representations <- function(hg, graph = c("clique", "citation"),
     )
   } else {
     directed <- lapply(c("collapse", "count"), function(dup) {
-      hg_project(hg, method = "citation", what = "matrix",
-                 duplicate_edges = dup, edge_source = edge_source,
-                 directed = TRUE)
+      .hg_projection(hg, type = "citation", what = "matrix",
+                     duplicate_edges = dup, edge_source = edge_source,
+                     directed = TRUE)
     })
     out_degree <- lapply(directed, function(w) as.numeric(Matrix::rowSums(w)))
     in_degree <- lapply(directed, function(w) as.numeric(Matrix::colSums(w)))

@@ -235,3 +235,26 @@ test_that("plot() draws the maximal simplices in order", {
   expect_no_error(plot(sc, dismantled = TRUE, top = 3))
   expect_error(plot(sc, top = 0))
 })
+
+test_that("plot(type = \"summary\") draws the plot of the simplicial_complex", {
+  sc <- simplicial(ring_sequences, type = "window", window = 3L,
+                   min_count = 200L)
+  plain <- structure(sc, class = setdiff(class(sc), "hypergraphs_simplicial"))
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  summary_plot <- plot(sc, type = "summary")
+  plain_plot <- plot(plain)
+  # grob names differ between drawings, so compare the layout: the same
+  # four panels (face counts, Betti numbers, degree, degree by dimension)
+  expect_s3_class(summary_plot, "gtable")
+  expect_identical(class(summary_plot), class(plain_plot))
+  expect_length(summary_plot$grobs, 4L)
+  expect_identical(length(summary_plot$grobs), length(plain_plot$grobs))
+  # simplices stays the default
+  expect_s3_class(plot(sc), "ggplot")
+  expect_error(plot(sc, type = "summary", top = 3),
+               class = "hypergraphs_bad_input")
+  expect_error(plot(sc, type = "summary", dismantled = TRUE),
+               class = "hypergraphs_bad_input")
+  expect_error(plot(sc, type = "faces"))
+})

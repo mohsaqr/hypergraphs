@@ -11,7 +11,7 @@ edge_fixture <- function(weight = 1) {
              "e4", "e4", "e4", "e4"),
     w = weight
   )
-  group_hypergraph(long, actor = "vertex", group = "edge",
+  group_hypergraph(long, node = "vertex", hyperedge = "edge",
                               weight = "w")
 }
 
@@ -47,7 +47,7 @@ test_that("INVARIANT: size agrees with hg_measures, n_incident with the line gra
 test_that("INVARIANT: isolated and singleton hyperedges are handled", {
   long <- data.frame(vertex = c("a", "b", "c", "z"),
                      edge = c("e1", "e1", "e1", "solo"), w = 1)
-  hg <- group_hypergraph(long, actor = "vertex", group = "edge",
+  hg <- group_hypergraph(long, node = "vertex", hyperedge = "edge",
                                     weight = "w")
   got <- hg_edges(hg)
   # "solo" holds one vertex, shares it with nothing, and reaches nobody.
@@ -63,8 +63,8 @@ test_that("INVARIANT: measures are invariant to input row order", {
              "e4", "e4", "e3"),
     w = 1
   )
-  shuffled <- group_hypergraph(long, actor = "vertex",
-                                          group = "edge", weight = "w")
+  shuffled <- group_hypergraph(long, node = "vertex",
+                                          hyperedge = "edge", weight = "w")
   ordered_edges <- hg_edges(edge_fixture())
   shuffled_edges <- hg_edges(shuffled)
   expect_equal(ordered_edges, shuffled_edges)
@@ -112,7 +112,7 @@ test_that("n_neighbors is populated when requested and NA when not", {
   hg <- group_hypergraph(
     data.frame(actor = c("a","b","c", "b","c","d", "d","e"),
                group = c("g1","g1","g1", "g2","g2","g2", "g3","g3")),
-    actor = "actor", group = "group")
+    node = "actor", hyperedge = "group")
   full <- hg_edges(hg, what = "edges")
   expect_false(anyNA(full$n_neighbors))
   asked <- hg_edges(hg, what = "summary", measure = "n_neighbors")
@@ -126,7 +126,7 @@ test_that("an s sweep gives the same n_incident_edges as one call per s", {
   hg <- group_hypergraph(
     data.frame(actor = c("a","b","c","d", "b","c","d","e", "c","d","e","f"),
                group = rep(c("g1","g2","g3"), each = 4)),
-    actor = "actor", group = "group")
+    node = "actor", hyperedge = "group")
   sweep <- hg_edges(hg, what = "edges", s = c(1, 2, 3))
   one_by_one <- lapply(c(1, 2, 3), \(ss) hg_edges(hg, what = "edges", s = ss))
   for (i in seq_along(one_by_one)) {

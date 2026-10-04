@@ -45,16 +45,20 @@ test_that("default calls draw exactly what they drew before the overlays", {
   hg <- .nodes_fixture()
   hg$edge_data <- data.frame(edge = c("e1", "e2", "e3", "e4"),
                              sector = c("x", "y", "x", "z"))
+  # the baseline was recorded when pieces = "row" was the default; the
+  # bipartite calls pin it so the guard still compares like with like
   calls <- list(
-    default = function() plot(hg),
-    size = function() plot(hg, color_by = "size", edge_labels = TRUE),
+    default = function() plot(hg, pieces = "row"),
+    size = function() plot(hg, color_by = "size", edge_labels = TRUE,
+                           pieces = "row"),
     sector = function() plot(hg, color_by = "sector", linetype_by = "sector",
-                             outline = "fill", alpha = 0.15),
-    nolabel = function() plot(hg, labels = FALSE, detail = Inf),
+                             outline = "fill", alpha = 0.15, pieces = "row"),
+    nolabel = function() plot(hg, labels = FALSE, detail = Inf,
+                              pieces = "row"),
     circle = function() plot(hg, layout = "circle", center = c("b", "c"),
                              edge_labels = TRUE),
     spring = function() plot(hg, layout = "spring", labels = c(a = "A")),
-    dismantled = function() plot(hg, dismantled = TRUE)
+    dismantled = function() plot(hg, dismantled = TRUE, pieces = "row")
   )
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)

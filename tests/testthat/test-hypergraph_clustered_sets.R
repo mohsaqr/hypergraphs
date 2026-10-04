@@ -171,16 +171,23 @@ test_that("data.frame input is unchanged (frozen before the clustering branch)",
   # Frozen when the class was net_hypergraph; the rename to net_hg (0.6.0) is
   # names only, so relabel the class and compare everything else as is.
   frozen <- lapply(frozen, \(x) structure(x, class = "net_hg"))
+  # The params fields member and group were renamed node and hyperedge
+  # (2026-10-02) with the arguments; names only, every value is compared.
+  frozen <- lapply(frozen, \(x) {
+    names(x$params)[names(x$params) == "member"] <- "node"
+    names(x$params)[names(x$params) == "group"] <- "hyperedge"
+    x
+  })
   df <-data.frame(person = c("Alice", "Bob", "Carol", "Alice", "Bob", "Dave", "Carol", "Dave", "Eve"),
                    session = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3", "S3"),
                    w = c(1, 2, 3, 1, 1, 2, 2, 1, 5), day = c(1, 1, 1, 2, 2, 3, 3, 3, 3))
   now <- list(
-    a = group_hypergraph(df, actor = "person", group = "session"),
-    b = group_hypergraph(df, actor = "person", group = "session", weight = "w"),
-    c = group_hypergraph(df, actor = "person", group = "session", sparse = TRUE),
+    a = group_hypergraph(df, node = "person", hyperedge = "session"),
+    b = group_hypergraph(df, node = "person", hyperedge = "session", weight = "w"),
+    c = group_hypergraph(df, node = "person", hyperedge = "session", sparse = TRUE),
     d = group_hypergraph(data.frame(from = c("a", "b"), to = c("b", "c")), from = "from", to = "to"),
     e = group_hypergraph(data.frame(ref = c("a; b", "b;c", ""), blk = c("x", "y", "z")),
-                         actor = "ref", group = "blk", separator = ";"),
+                         node = "ref", hyperedge = "blk", separator = ";"),
     f = group_hypergraph(df, "person", "session",
                          nodes = c("Alice", "Bob", "Carol", "Dave", "Eve", "Zed")),
     g = group_hypergraph(data.frame(from = c("a", "b"), to = c("b", "c")))

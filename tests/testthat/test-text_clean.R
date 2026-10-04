@@ -124,3 +124,58 @@ test_that("clean_text rejects a bad min_chars", {
   expect_error(clean_text("text", min_chars = -1))
   expect_error(clean_text("text", min_chars = c(2, 3)))
 })
+
+test_that("clean_text() removes the word Copyright before the sign", {
+  sign <- "\u00a9"
+  expect_identical(
+    clean_text(paste0("Teachers adapted. Copyright ", sign,
+                      " 2020 Elsevier Ltd.")),
+    "Teachers adapted."
+  )
+  expect_identical(clean_text("Teachers adapted. Copyright (c) 2021 Wiley."),
+                   "Teachers adapted.")
+  # a sign without the word is removed as before
+  expect_identical(clean_text(paste0("Teachers adapted. ", sign, " 2022 IEEE.")),
+                   "Teachers adapted.")
+})
+
+test_that("clean_text(boilerplate = TRUE) removes publisher boilerplate anywhere", {
+  text <- c(
+    "Published by Elsevier Ltd. Teachers moved online during the lockdown.",
+    "Students valued feedback. Taylor & Francis Group, LLC, all rights reserved.",
+    "Taylor (2019) studied tutors under exclusive licence to Springer Nature.",
+    "The American Chemical Society and Division of Chemical Education, Inc."
+  )
+  out <- clean_text(text, boilerplate = TRUE)
+  expect_identical(out[[1]], "Teachers moved online during the lockdown.")
+  expect_false(any(grepl("(?i)elsevier|francis|llc|rights|springer|chemical",
+                         out, perl = TRUE)))
+  # a surname that also names a publisher survives outside the full name
+  expect_true(grepl("Taylor", out[[3]], fixed = TRUE))
+  expect_true(grepl("studied tutors", out[[3]], fixed = TRUE))
+  # off by default: the result equals cleaning without the switch
+  expect_identical(clean_text(text), clean_text(text, boilerplate = FALSE))
+  expect_true(grepl("Elsevier", clean_text(text)[[1]], fixed = TRUE))
+  expect_error(clean_text(text, boilerplate = "yes"),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("clean_text() repairs UTF-8 read as Windows-1252, emoji included", {
+  thumbs <- "\U0001F44D"
+  # build the garble from the bytes, as an export does
+  bytes <- charToRaw(enc2utf8(thumbs))
+  garble <- paste0(vapply(bytes, \(b) {
+    out <- iconv(rawToChar(b), from = "CP1252", to = "UTF-8")
+    if (is.na(out)) intToUtf8(as.integer(b)) else out
+  }, character(1L)), collapse = "")
+  expect_false(identical(garble, thumbs))
+  expect_identical(clean_text(paste("Nice work", garble, "(2)"),
+                              numbers = FALSE),
+                   paste("Nice work", thumbs, "(2)"))
+  # an accented word that is not mojibake is left as it is
+  expect_identical(clean_text("Gu\u00f0r\u00fan wrote the draft"),
+                   "Gu\u00f0r\u00fan wrote the draft")
+  # the garbled e-acute and curly apostrophe still repair
+  expect_identical(clean_text("caf\u00c3\u00a9 it\u00e2\u20ac\u2122s open"),
+                   "caf\u00e9 it's open")
+})

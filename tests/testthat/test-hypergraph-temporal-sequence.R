@@ -38,7 +38,7 @@ test_that("a list of vectors and a long log with per-row times give the same mem
     step = c(1:4, 1:2, 1:3),
     stringsAsFactors = FALSE
   )
-  as_long <- temporal_hypergraph(long, actor = "code", group = "session", time = "step")
+  as_long <- temporal_hypergraph(long, node = "code", hyperedge = "session", time = "step")
   expect_identical(hg_get(as_long), hg_get(th))
   expect_true(as_long$params$membership_times)
 })
@@ -96,7 +96,7 @@ test_that("constant-time data are untouched and snapshots do not move", {
     arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
     start = rep(c(1, 2), each = 3), end = rep(c(3, 2), each = 3)
   )
-  th <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+  th <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                             start = "start", end = "end")
   expect_false(th$params$membership_times)
   expect_identical(th$format, "interval")

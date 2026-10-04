@@ -109,6 +109,8 @@
 #'     `"edge_data"`, `"incidence_data"`; see [hg_get.net_hg()].}
 #'   \item{`text_hypergraph`}{`"weights"` (default), `"documents"`,
 #'     `"vocabulary"`, `"sentences"`; see [hg_get.text_hypergraph()].}
+#'   \item{`hg_hypergat`}{Predictions (default), evaluation, document text,
+#'     history and optional attention; see [hg_get.hg_hypergat()].}
 #'   \item{`net_temporal_hypergraph`}{`"memberships"` (default), `"edges"`,
 #'     `"nodes"`.}
 #'   \item{`net_hon` ([hon()])}{`"rules"` (default), `"nodes"`,
@@ -144,6 +146,9 @@
 #' @param x A hypergraphs object.
 #' @param what `NULL` (default) for the object's primary table, or the name
 #'   of one of its tables (see *Tables by class*).
+#' @param sort_by Ordering supported by the selected object's method.
+#' @param top Number of rows to return, applied after filters and ordering
+#'   as described by the selected object's method.
 #' @param ... Arguments of the method for `class(x)`: filters (`order_min`,
 #'   `min_count`, `dim`, `k`, `dimension`, `significant`, ...), `sort_by`,
 #'   and `top` (the first `top` rows, applied last).

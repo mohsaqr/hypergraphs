@@ -355,3 +355,19 @@ test_that("hg_agreement node and label selectors read any two tables", {
   expect_error(hg_agreement(predictions, corpus, node = c("a", "b", "c")),
                class = "hypergraphs_bad_input")
 })
+
+test_that("hg_agreement reads a community fit through its medoid partition", {
+  skip_if_not_installed("igraph")
+  dat <- data.frame(
+    member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z", "c", "x"),
+    edge = c(rep(paste0("e", 1:4), each = 3), "e5", "e5")
+  )
+  h <- group_hypergraph(dat, "member", "edge")
+  fit <- hg_communities(h, n_runs = 3, trials = 2, seeds = 1:3)
+  medoid <- hg_get(fit, what = "medoid")
+  clusters <- hg_cluster(h, k = 2, seed = 1)
+  expect_identical(hg_agreement(fit, clusters), hg_agreement(medoid, clusters))
+  expect_identical(hg_agreement(clusters, fit, what = "table"),
+                   hg_agreement(clusters, medoid, what = "table"))
+  expect_equal(hg_agreement(fit, fit)$ari, 1)
+})

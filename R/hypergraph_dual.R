@@ -35,7 +35,7 @@ dual_hypergraph <- function(hg) {
       edge = rownames(hg$incidence)[triplet@i + 1L],
       w = triplet@x
     )
-    return(.thg_sparse_bipartite(long, actor = "vertex", group = "edge",
+    return(.thg_sparse_bipartite(long, node = "vertex", hyperedge = "edge",
                                  weight = "w"))
   }
   nz <- which(hg$incidence != 0, arr.ind = TRUE)
@@ -44,8 +44,8 @@ dual_hypergraph <- function(hg) {
     edge = rownames(hg$incidence)[nz[, "row"]],
     w = as.numeric(hg$incidence[nz])
   )
-  dual <- group_hypergraph(long, actor = "vertex",
-                                      group = "edge", weight = "w")
+  dual <- group_hypergraph(long, node = "vertex",
+                                      hyperedge = "edge", weight = "w")
   if (inherits(hg, "text_hypergraph") &&
       identical(hg$text$construction, "bag")) {
     dual$text <- hg$text

@@ -70,7 +70,7 @@
 #' empty matrices.
 #'
 #' @seealso [network_hypergraph()], [group_hypergraph()],
-#'   [hg_clique_expansion()].
+#'   [pairwise_network()].
 #'
 #' @references
 #' Lee, G., Bu, F., Eliassi-Rad, T., & Shin, K. (2025). A survey on
@@ -81,7 +81,7 @@
 #' and generative models of real-world hypergraphs. arXiv:2006.07060.
 #'
 #' @noRd
-.hg_measures_fit <- function(hg) {
+.hg_measures_fit <- function(hg, pairs = TRUE) {
   stopifnot(inherits(hg, "net_hg"))
 
   B <- hg$incidence
@@ -135,21 +135,27 @@
   dimnames(co_degree) <- list(hg$nodes, hg$nodes)
 
   # ---- Edge-level pairwise overlap (m x m) ----
-  edge_pairwise_overlap <- crossprod(B_bin)
-  diag(edge_pairwise_overlap) <- 0
-  dimnames(edge_pairwise_overlap) <- list(edge_names, edge_names)
+  # Three dense m x m matrices: built only when the hyperedge pairs are asked
+  # for, since a hypergraph of 20,000 hyperedges needs over 10 GB for them.
+  if (pairs) {
+    edge_pairwise_overlap <- crossprod(B_bin)
+    diag(edge_pairwise_overlap) <- 0
+    dimnames(edge_pairwise_overlap) <- list(edge_names, edge_names)
 
-  # ---- Overlap coefficient & Jaccard (m x m) ----
-  size_min   <- outer(edge_sizes, edge_sizes, pmin)
-  size_union <- outer(edge_sizes, edge_sizes, `+`) - edge_pairwise_overlap
-  overlap_coefficient <- ifelse(size_min > 0,
-                                edge_pairwise_overlap / size_min, 0)
-  jaccard <- ifelse(size_union > 0,
-                    edge_pairwise_overlap / size_union, 0)
-  diag(overlap_coefficient) <- 0
-  diag(jaccard) <- 0
-  dimnames(overlap_coefficient) <- list(edge_names, edge_names)
-  dimnames(jaccard) <- list(edge_names, edge_names)
+    # ---- Overlap coefficient & Jaccard (m x m) ----
+    size_min   <- outer(edge_sizes, edge_sizes, pmin)
+    size_union <- outer(edge_sizes, edge_sizes, `+`) - edge_pairwise_overlap
+    overlap_coefficient <- ifelse(size_min > 0,
+                                  edge_pairwise_overlap / size_min, 0)
+    jaccard <- ifelse(size_union > 0,
+                      edge_pairwise_overlap / size_union, 0)
+    diag(overlap_coefficient) <- 0
+    diag(jaccard) <- 0
+    dimnames(overlap_coefficient) <- list(edge_names, edge_names)
+    dimnames(jaccard) <- list(edge_names, edge_names)
+  } else {
+    edge_pairwise_overlap <- overlap_coefficient <- jaccard <- NULL
+  }
 
   # ---- Global ----
   is_uniform <- length(unique(edge_sizes)) == 1L
@@ -161,13 +167,13 @@
   }
   avg_edge_size <- mean(edge_sizes)
 
-  intersection_profile <- if (m >= 2L) {
+  intersection_profile <- if (pairs && m >= 2L) {
     upper <- edge_pairwise_overlap[upper.tri(edge_pairwise_overlap)]
     tab <- table(upper)
     out <- as.integer(tab)
     names(out) <- paste0("overlap_", names(tab))
     out
-  } else {
+  } else if (pairs) {
     integer(0L)
   }
 

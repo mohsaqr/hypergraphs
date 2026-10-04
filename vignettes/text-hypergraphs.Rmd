@@ -224,13 +224,13 @@ the same engines directly:
 # document, term, count (verified against quanteda 4.x / tidytext 0.4.x)
 group_hypergraph(
   tidytext::tidy(my_dfm),
-  actor = "term", group = "document", weight = "count"
+  node = "term", hyperedge = "document", weight = "count"
 )
 
 # tidytext: word counts are already long (document, word, n)
 group_hypergraph(
   my_word_counts,
-  actor = "word", group = "document", weight = "n"
+  node = "word", hyperedge = "document", weight = "n"
 )
 ```
 

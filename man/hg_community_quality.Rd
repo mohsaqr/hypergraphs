@@ -23,7 +23,7 @@ named label vector.}
 \code{"association"} graph (default) or the undirected \code{"citation"} graph.}
 
 \item{duplicate_edges, self_association, edge_source}{Projection controls
-passed to \code{\link[=hg_project]{hg_project()}}. Together these reproduce the paper's
+passed to \code{\link[=pairwise_network]{pairwise_network()}}. Together these reproduce the paper's
 binary/multi and self-association representations.}
 }
 \value{

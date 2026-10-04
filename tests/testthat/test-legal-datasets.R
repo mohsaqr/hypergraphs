@@ -24,15 +24,15 @@ test_that("the Legal Hypergraphs datasets have the documented shape", {
 })
 
 test_that("the datasets build the paper hypergraphs directly", {
-  tribunals <- temporal_hypergraph(icsid_tribunals, actor = "arbitrator",
-                                   group = "case", start = "constituted",
+  tribunals <- temporal_hypergraph(icsid_tribunals, node = "arbitrator",
+                                   hyperedge = "case", start = "constituted",
                                    end = "concluded")
   expect_identical(length(tribunals$nodes), 441L)
   expect_identical(length(tribunals$edges), 742L)
   expect_identical(tribunals$format, "interval")
   expect_true("economic_sector" %in% names(tribunals$edge_data))
   expect_false("seat" %in% names(tribunals$edge_data))
-  blocks <- temporal_hypergraph(gfcc_citations, actor = "cited", group = "block",
+  blocks <- temporal_hypergraph(gfcc_citations, node = "cited", hyperedge = "block",
                                 time = "date_citing", nodes = gfcc_decisions,
                                 sparse = TRUE)
   expect_identical(length(blocks$nodes), 3618L)

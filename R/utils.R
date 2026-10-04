@@ -4,7 +4,7 @@
 # (`:::` is not allowed and Nestimate does not export them):
 # .coerce_sequence_input / .as_netobject / .extract_edges_from_matrix
 # (sequence input of hg_bootstrap(), hg_compare(), temporal_hypergraph())
-# and .validate_mcml_matrix / .wrap_netobject (hg_clique_expansion()).
+# and .validate_mcml_matrix / .wrap_netobject (pairwise_network()).
 # Each is a verbatim copy of Nestimate's same-named internal; identity is
 # asserted in local_testing_and_equivalence/test-identity-nestimate-memory.R.
 # .coerce_grouped_sequences() is hypergraphs' own (group_hypergraph()).

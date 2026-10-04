@@ -6,7 +6,7 @@ planted_hg <- function(seed = 1) {
                    group = paste0("g", sample(60, 400, TRUE)))
   planted <- data.frame(actor = rep(c("x", "y"), 25),
                         group = rep(paste0("p", 1:25), each = 2))
-  group_hypergraph(rbind(bg, planted), actor = "actor", group = "group")
+  group_hypergraph(rbind(bg, planted), node = "actor", hyperedge = "group")
 }
 
 test_that("hypa recovers a planted over-represented pair", {

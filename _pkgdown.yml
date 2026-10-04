@@ -61,10 +61,8 @@ reference:
   - hg_snapshot
   - hg_snapshots
   - hg_subset
-  - hg_sample_gnp
-  - hg_sample_sbm
-  - hg_sample_uniform
-  - hg_write_hif
+  - random_hypergraph
+  - write_hif
 - subtitle: Measures and centralities
   contents:
   - hg_measures
@@ -87,8 +85,8 @@ reference:
   - hg_classify
 - subtitle: Projections
   contents:
-  - hg_clique_expansion
-  - hg_project
+  - pairwise_network
+  - plot.net_hg_pairwise
   - hg_line_graph
 - subtitle: Communities
   contents:
@@ -118,7 +116,7 @@ reference:
   - hg_cluster
   - hg_keywords
   - hg_sequences
-  - hg_network
+  - topic_network
   - hg_topic_sizes
   - hg_topics
   - hg_topic_search
@@ -142,7 +140,7 @@ reference:
   - long-data
   - covid_abstracts
   - covid_sample
-  - debug_events
+  - tutoring_events
   - covid_embeddings
   - icsid_tribunals
   - gfcc_decisions
@@ -151,6 +149,10 @@ reference:
   - ring_communities
 
 articles:
+- title: Hypergraphs
+  navbar: ~
+  contents:
+  - hypergraphs
 - title: Text hypergraphs
   navbar: ~
   contents:
@@ -158,6 +160,7 @@ articles:
   - topic-mixtures
   - text-hypergraphs
   - text-constructions
+  - hypergat-classification
 - title: Benchmarks
   contents:
   - articles/benchmarks

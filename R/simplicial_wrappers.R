@@ -133,8 +133,11 @@
 #'   around their nodes (`cograph::plot_simplicial()`; its arguments pass
 #'   through `...`): the most significant first for a validated window
 #'   complex, the most frequent first for a window complex, the closest
-#'   first for a Vietoris-Rips complex. `plot()` returns the figure. For the
-#'   `plot()` method, `x` is the complex.
+#'   first for a Vietoris-Rips complex. With `type = "summary"`, `plot()`
+#'   draws the summary of the complex instead: the face counts by dimension,
+#'   the Betti numbers, the simplicial degree of each node and its degree by
+#'   dimension. `plot()` returns the figure. For the `plot()` method, `x` is
+#'   the complex.
 #' @references
 #' Hatcher, A. (2002). \emph{Algebraic Topology}. Cambridge University
 #' Press.
@@ -250,9 +253,23 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
 #'   own panel; `FALSE` (default) draws them together on one layout.
 #' @param top For `plot()`: the number of maximal simplices to draw, in the
 #'   order described under Value. `NULL` (default) draws all of them.
+#' @param type For `plot()`: `"simplices"` (default) draws the maximal
+#'   simplices; `"summary"` draws the face counts, the Betti numbers and the
+#'   simplicial degree. `dismantled` and `top` apply to `"simplices"` only.
 #' @export
 plot.hypergraphs_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
+                                      type = c("simplices", "summary"),
                                       ...) {
+  type <- match.arg(type)
+  if (identical(type, "summary")) {
+    if (!isFALSE(dismantled) || !is.null(top)) {
+      .thg_bad_input(
+        "`dismantled` and `top` apply to `type = \"simplices\"` only")
+    }
+    # the summary is the plot of the underlying simplicial_complex
+    plain <- structure(x, class = setdiff(class(x), "hypergraphs_simplicial"))
+    return(plot(plain, ...))
+  }
   stopifnot(
     "`dismantled` must be TRUE or FALSE" =
       is.logical(dismantled) && length(dismantled) == 1L && !is.na(dismantled),

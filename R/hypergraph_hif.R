@@ -7,7 +7,7 @@
 
 #' Read and write the Hypergraph Interchange Format (HIF)
 #'
-#' `hg_write_hif()` writes a `net_hg` as HIF JSON, and `hg_read_hif()` reads
+#' `write_hif()` writes a `net_hg` as HIF JSON, and `read_hif()` reads
 #' a HIF file (or a HIF JSON string) back into a `net_hg`. HIF is the
 #' interchange standard of the higher-order network libraries (XGI,
 #' HyperNetX, HypergraphX, HAT, SimpleHypergraphs.jl), so these two verbs move
@@ -23,8 +23,8 @@
 #'     so the storage mode round-trips.}
 #'   \item{nodes}{One record per node, so isolated nodes survive. Node
 #'     attributes are the columns of the hypergraph's node table (the
-#'     `node_data` a previous `hg_read_hif()` stored) plus the planted
-#'     `block` of [hg_sample_sbm()]. A column called `weight` is written as
+#'     `node_data` a previous `read_hif()` stored) plus the planted
+#'     `block` of [random_hypergraph()] with `type = "sbm"`. A column called `weight` is written as
 #'     the node's HIF `weight`.}
 #'   \item{edges}{One record per hyperedge, named by the incidence column
 #'     name. The hyperedge weight (the window counts of
@@ -35,7 +35,7 @@
 #'     read) and the multiplicities of [hg_snapshot()] are written as
 #'     `attrs`.}
 #'   \item{metadata}{The scalar construction parameters and the writing
-#'     package version; a hypergraph that came from `hg_read_hif()` writes its
+#'     package version; a hypergraph that came from `read_hif()` writes its
 #'     original metadata back unchanged.}
 #' }
 #'
@@ -63,15 +63,15 @@
 #' exactly.
 #'
 #' @param hg A `net_hg` (from [group_hypergraph()], [window_hypergraph()],
-#'   [text_hypergraph()], [network_hypergraph()], `hg_read_hif()`, ...).
-#' @param file For `hg_write_hif()`: the path to write, or `NULL` (default) to
-#'   return the JSON text. For `hg_read_hif()`: the path of a HIF file, or a
+#'   [text_hypergraph()], [network_hypergraph()], `read_hif()`, ...).
+#' @param file For `write_hif()`: the path to write, or `NULL` (default) to
+#'   return the JSON text. For `read_hif()`: the path of a HIF file, or a
 #'   HIF JSON string.
 #' @param pretty Logical. Indent the JSON? Default `FALSE`.
 #' @param sparse Logical. Store the incidence of the read hypergraph as a
 #'   sparse `dgCMatrix`? Default `FALSE`.
-#' @return `hg_write_hif()`: with `file = NULL`, the HIF JSON as a single
-#'   character string; otherwise `file`, invisibly. `hg_read_hif()`: a
+#' @return `write_hif()`: with `file = NULL`, the HIF JSON as a single
+#'   character string; otherwise `file`, invisibly. `read_hif()`: a
 #'   `net_hg` with the usual fields (`incidence` node x hyperedge with node
 #'   and hyperedge names as dimnames, `hyperedges`, `nodes`, `n_nodes`,
 #'   `n_hyperedges`, `size_distribution`, `params`) plus, when the file has
@@ -82,17 +82,17 @@
 #'   attribute) and `incidence_data` (one row per incidence with attributes:
 #'   `node`, `edge` and the attribute columns). Nodes and hyperedges are in
 #'   file order: the `nodes` / `edges` records first, then those first seen
-#'   in `incidences`. `params` holds `source = "hg_read_hif"`,
+#'   in `incidences`. `params` holds `source = "read_hif"`,
 #'   `network_type` and the file's `metadata`.
 #'
 #'   Both verbs raise `hypergraphs_missing_dependency` without jsonlite.
-#'   `hg_read_hif()` raises `hypergraphs_bad_input` for text that is not JSON,
+#'   `read_hif()` raises `hypergraphs_bad_input` for text that is not JSON,
 #'   a missing file, and a document that breaks the HIF schema (no
 #'   `incidences`, a record without its identifier, an unknown field, a
 #'   non-numeric weight, an unknown `network-type`), a duplicated node,
 #'   edge or (node, edge) pair, a zero incidence weight, a directed
 #'   hypergraph, or an attribute named like its record's identifier.
-#'   `hg_write_hif()` raises `hypergraphs_bad_input` for a non-`net_hg` input.
+#'   `write_hif()` raises `hypergraphs_bad_input` for a non-`net_hg` input.
 #'
 #' @examples
 #' if (requireNamespace("jsonlite", quietly = TRUE)) {
@@ -102,13 +102,13 @@
 #'     weight = c(1, 2, 3, 0.5, 1),
 #'     year = c(2001, 2001, 2001, 2002, 2002)
 #'   )
-#'   hg <- group_hypergraph(memberships, actor = "actor", group = "group",
+#'   hg <- group_hypergraph(memberships, node = "actor", hyperedge = "group",
 #'                          weight = "weight")
 #'   path <- tempfile(fileext = ".json")
-#'   hg_write_hif(hg, file = path)
-#'   back <- hg_read_hif(path)
+#'   write_hif(hg, file = path)
+#'   back <- read_hif(path)
 #'   hg_get(back, what = "memberships")
-#'   hg_write_hif(hg, pretty = TRUE)
+#'   write_hif(hg, pretty = TRUE)
 #' }
 #'
 #' @references
@@ -118,8 +118,8 @@
 #' e21. \doi{10.1017/nws.2025.10018}
 #'
 #' @export
-hg_write_hif <- function(hg, file = NULL, pretty = FALSE) {
-  .hif_need_jsonlite("hg_write_hif")
+write_hif <- function(hg, file = NULL, pretty = FALSE) {
+  .hif_need_jsonlite("write_hif")
   .thg_check_hg(hg)
   stopifnot(
     "`file` must be NULL or a single path" =
@@ -194,10 +194,10 @@ hg_write_hif <- function(hg, file = NULL, pretty = FALSE) {
   invisible(file)
 }
 
-#' @rdname hg_write_hif
+#' @rdname write_hif
 #' @export
-hg_read_hif <- function(file, sparse = FALSE) {
-  .hif_need_jsonlite("hg_read_hif")
+read_hif <- function(file, sparse = FALSE) {
+  .hif_need_jsonlite("read_hif")
   stopifnot(
     "`file` must be a single path or a HIF JSON string" =
       is.character(file) && length(file) == 1L && !is.na(file),
@@ -267,7 +267,7 @@ hg_read_hif <- function(file, sparse = FALSE) {
   hg <- .thg_rebuild(list(), incidence, keep_edges = seq_len(m))
   hg <- hg[c("hyperedges", "incidence", "nodes", "n_nodes", "n_hyperedges",
              "size_distribution")]
-  hg$params <- list(source = "hg_read_hif", network_type = network_type,
+  hg$params <- list(source = "read_hif", network_type = network_type,
                     sparse = sparse, metadata = document$metadata %||% list())
 
   if ("weight" %in% names(edge_records)) {
@@ -452,10 +452,10 @@ hg_read_hif <- function(file, sparse = FALSE) {
 }
 
 # Network-level metadata: the file's own metadata for a hypergraph that came
-# from hg_read_hif(), otherwise the scalar construction parameters.
+# from read_hif(), otherwise the scalar construction parameters.
 .hif_metadata <- function(hg) {
   params <- hg$params %||% list()
-  if (identical(params$source, "hg_read_hif")) {
+  if (identical(params$source, "read_hif")) {
     metadata <- params$metadata %||% list()
     if (!length(metadata)) metadata <- stats::setNames(list(), character(0L))
     return(metadata)

@@ -144,11 +144,7 @@ hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
       length(seed) == 1L && is.finite(seed)
   )
   nodes <- hg$nodes
-  unknown <- setdiff(names(labels), nodes)
-  if (length(unknown) > 0L) {
-    stop("Unknown node names in `labels`: ",
-         paste(unknown, collapse = ", "), call. = FALSE)
-  }
+  labels <- .thg_known_assignment(labels, nodes, hg, arg = "labels")
   classes <- sort(unique(as.character(labels)))
   if (length(classes) < 2L) {
     stop(errorCondition("`labels` must contain at least two distinct classes.",

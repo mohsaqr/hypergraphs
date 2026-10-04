@@ -16,7 +16,7 @@ testthat::skip_on_cran()
 }
 
 .blob_hg <- function(members = .blob_members()) {
-  group_hypergraph(members, actor = "state", group = "group")
+  group_hypergraph(members, node = "state", hyperedge = "group")
 }
 
 .layers_of <- function(p, geom) {
@@ -80,7 +80,7 @@ test_that("a box that would sit on an earlier one moves below it", {
     data.frame(state = c("a", "b", "c", "a", "b", "c", "c", "d"),
                group = c("g1", "g1", "g1", "g2", "g2", "g2", "g3", "g3"),
                trials = c(5, 5, 5, 4, 4, 4, 1, 1)),
-    actor = "state", group = "group")
+    node = "state", hyperedge = "group")
   p <- plot(hg, titles = "trials")
   box <- .layers_of(p, "GeomLabel")[[1L]]$data
   spread <- diff(range(p$layers[[1L]]$data$y))
@@ -99,7 +99,7 @@ test_that("a one-member hyperedge gets its box beside its node", {
     data.frame(state = c("a", "b", "c", "b", "c", "d", "d"),
                group = c("g1", "g1", "g1", "g2", "g2", "g2", "solo"),
                trials = c(3, 3, 3, 2, 2, 2, 1)),
-    actor = "state", group = "group")
+    node = "state", hyperedge = "group")
   p <- plot(hg, titles = "trials", layout = "circle")
   box <- .layers_of(p, "GeomLabel")[[1L]]$data
   expect_identical(nrow(box), 3L)
@@ -129,7 +129,7 @@ test_that("node sizes without direction are points with an area legend", {
   expect_equal(texts[[9L]]$data$vjust, -0.4 - 1.8 * sqrt(value / max(value)))
   # a generic legend title without a unit or size_title
   unitless <- group_hypergraph(.blob_members()[c("group", "state")],
-                               actor = "state", group = "group")
+                               node = "state", hyperedge = "group")
   expect_identical(plot(unitless, node_sizes = sizes)$scales$get_scales("size")$name,
                    "Event value")
   expect_identical(.thg_comma(c(1000, 2.5, 1e6)), c("1,000", "2.5", "1,000,000"))
@@ -162,6 +162,14 @@ test_that("the count attribute colours, titles and names the unit by itself", {
   undecided <- plot(.blob_hg(with_share))
   expect_length(.layers_of(undecided, "GeomLabel"), 0L)
   expect_length(unique(undecided$layers[[1L]]$data$colour), 1L)
+  # a constant numeric attribute alone (the session number of the runs of one
+  # session) is no count: no title boxes, one colour
+  one_session <- .blob_members()
+  one_session$trials <- NULL
+  one_session$session <- 1L
+  constant <- plot(.blob_hg(one_session))
+  expect_length(.layers_of(constant, "GeomLabel"), 0L)
+  expect_length(unique(constant$layers[[1L]]$data$colour), 1L)
   # no titles on panels that are titled already
   expect_s3_class(plot(hg, dismantled = TRUE), "ggplot")
 })
@@ -201,7 +209,7 @@ test_that("pieces = \"row\" sets disconnected pieces side by side", {
     group = c("g1", "g1", "g1", "g2", "g2", "g2", "small", "small", "lone"),
     trials = c(9, 9, 9, 8, 8, 8, 20, 20, 1)
   )
-  hg <- group_hypergraph(members, actor = "state", group = "group")
+  hg <- group_hypergraph(members, node = "state", hyperedge = "group")
   precedence <- order(-c(g1 = 9, g2 = 8, lone = 1, small = 20)[colnames(hg$incidence)],
                       colnames(hg$incidence))
   row <- .thg_row_layout(hg, seed = 1L, center = NULL, padding = 0.045,
@@ -216,17 +224,18 @@ test_that("pieces = \"row\" sets disconnected pieces side by side", {
   expect_equal(c(lone$x, lone$y), c(0.5 + 2.8, 0.5))
   # each piece is laid out exactly as it is when drawn alone
   alone <- group_hypergraph(members[members$group %in% c("g1", "g2"), ],
-                            actor = "state", group = "group")
+                            node = "state", hyperedge = "group")
   own <- .thg_positions(alone, "bipartite", 1L, NULL, 0.045)$nodes
   expect_equal(second$x[match(own$node, second$node)] - 1.4, own$x)
   expect_equal(second$y[match(own$node, second$node)], own$y)
-  # the row is the default; "packed" packs; a connected hypergraph is the same
+  # "packed" is the default; "row" sets the pieces side by side; a connected
+  # hypergraph is the same either way
   p_row <- plot(hg, pieces = "row")
   p_default <- plot(hg)
-  expect_equal(p_row$layers[[1L]]$data, p_default$layers[[1L]]$data)
   p_packed <- plot(hg, pieces = "packed")
+  expect_equal(p_packed$layers[[1L]]$data, p_default$layers[[1L]]$data)
   expect_false(isTRUE(all.equal(p_row$layers[[2L]]$data,
-                                p_packed$layers[[2L]]$data)))
+                                p_default$layers[[2L]]$data)))
   connected <- .blob_hg()
   expect_identical(plot(connected, pieces = "row")$layers[[2L]]$data,
                    plot(connected)$layers[[2L]]$data)
@@ -252,4 +261,44 @@ test_that("the blob arguments reject bad input with hypergraphs_bad_input", {
   expect_error(plot(hg, layout = "circle", pieces = "row"),
                class = "hypergraphs_bad_input")
   expect_error(plot(hg, pieces = "column"))
+})
+
+test_that("color_by = \"weight\" colours the hulls by the window counts", {
+  sessions <- list(c("a", "b", "c", "a", "b", "c"), c("a", "b", "d"))
+  hg <- window_hypergraph(sessions, window = 3)
+  by_weight <- plot(hg, color_by = "weight")
+  by_vector <- plot(hg, color_by = stats::setNames(as.numeric(hg$window_counts),
+                                                   colnames(hg$incidence)))
+  expect_identical(ggplot2::ggplot_build(by_weight)$data[[1L]]$fill,
+                   ggplot2::ggplot_build(by_vector)$data[[1L]]$fill)
+  expect_gt(length(unique(by_weight$layers[[1L]]$data$colour)), 1L)
+  # a hypergraph without hyperedge weights has no "weight" to colour by
+  groups <- group_hypergraph(.blob_members(), node = "state", hyperedge = "group")
+  expect_error(plot(groups, color_by = "weight", titles = FALSE),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("repeated hyperedges are drawn as their distinct sets", {
+  events <- data.frame(
+    item = c("a", "b", "a", "b", "a", "b", "c", "b", "c", "d", "e"),
+    basket = c(1, 1, 2, 2, 3, 3, 3, 4, 4, 5, 5)
+  )
+  repeated <- group_hypergraph(events, node = "item", hyperedge = "basket")
+  distinct <- group_hypergraph(events, node = "item", hyperedge = "basket",
+                               top = Inf)
+  drawn <- ggplot2::ggplot_build(plot(repeated))$data
+  expect_identical(drawn, ggplot2::ggplot_build(plot(distinct))$data)
+  # a set hypergraph with one group is drawn as that group by default
+  expect_identical(ggplot2::ggplot_build(plot(distinct))$data,
+                   ggplot2::ggplot_build(plot(distinct,
+                                              group = "All baskets"))$data)
+})
+
+test_that("a window hypergraph is coloured by its window counts by default", {
+  sessions <- list(c("a", "b", "c", "a", "b", "c"), c("a", "b", "d"))
+  hg <- window_hypergraph(sessions, window = 3)
+  expect_identical(ggplot2::ggplot_build(plot(hg))$data,
+                   ggplot2::ggplot_build(plot(hg, color_by = "weight",
+                                              unit = "windows"))$data)
+  expect_identical(plot(hg)$scales$get_scales("fill")$name, "Windows")
 })

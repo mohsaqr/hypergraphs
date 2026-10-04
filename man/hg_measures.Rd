@@ -85,5 +85,5 @@ and generative models of real-world hypergraphs. arXiv:2006.07060.
 }
 \seealso{
 \code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\link[=group_hypergraph]{group_hypergraph()}},
-\code{\link[=hg_clique_expansion]{hg_clique_expansion()}}.
+\code{\link[=pairwise_network]{pairwise_network()}}.
 }

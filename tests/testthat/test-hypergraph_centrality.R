@@ -57,7 +57,7 @@ test_that("clique centrality matches igraph::eigen_centrality on expansion", {
   cent <- .hg_centrality_fit(hg, type = "clique")
   ours <- .hc_vec(cent, "clique")
   # Recompute via clique expansion + igraph
-  net <- hg_clique_expansion(hg)
+  net <- pairwise_network(hg)
   W   <- net$weights
   g   <- igraph::graph_from_adjacency_matrix(W, mode = "undirected",
                                               weighted = TRUE, diag = FALSE)
@@ -231,7 +231,7 @@ test_that("pagerank collapse theorem: binary incidence equals igraph on
     s = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3", "S3"),
     stringsAsFactors = FALSE
   )
-  hg <- group_hypergraph(df, actor = "p", group = "s")
+  hg <- group_hypergraph(df, node = "p", hyperedge = "s")
   pr <- .hg_centrality_fit(hg, type = "pagerank")
   # Edge-independent case: W[u,v] = sum over shared edges of w(e)/delta(e),
   # self-loops included (the walk may stay in place)

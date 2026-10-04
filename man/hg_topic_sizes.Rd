@@ -13,7 +13,8 @@ hg_topic_sizes(hg, clusters, weights = NULL)
 \item{hg}{The document hypergraph the clustering was computed on.}
 
 \item{clusters}{The tidy table returned by \code{\link[=hg_cluster]{hg_cluster()}} (columns
-\code{node}, \code{cluster}), or a named vector of cluster labels.}
+\code{node}, \code{cluster}), a named vector of cluster labels, or the name of a
+column of the hypergraph's document table.}
 
 \item{weights}{\code{NULL} (default), or a numeric vector named by document
 giving each document's weight.}

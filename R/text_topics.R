@@ -9,19 +9,12 @@
 # document -> cluster assignment as a factor in natural order, over hg$nodes
 .thg_topic_groups <- function(hg, clusters) {
   .thg_check_hg(hg)
-  assignment <- .thg_labels_input(clusters)
+  assignment <- .thg_resolve_labels(hg, clusters)
   stopifnot(
     "`clusters` must be a data.frame or a named vector" =
       !is.null(names(assignment))
   )
-  unknown <- setdiff(names(assignment), hg$nodes)
-  if (length(unknown) > 0L) {
-    stop(errorCondition(
-      paste0("Unknown node names in `clusters`: ",
-             paste(unknown, collapse = ", ")),
-      class = "hypergraphs_bad_input", call = NULL
-    ))
-  }
+  assignment <- .thg_known_assignment(assignment, hg$nodes, hg)
   groups <- factor(as.character(assignment)[match(hg$nodes,
                                                   names(assignment))])
   factor(groups, levels = .thg_kw_natural(levels(groups)))
@@ -36,7 +29,8 @@
 #'
 #' @param hg The document hypergraph the clustering was computed on.
 #' @param clusters The tidy table returned by [hg_cluster()] (columns
-#'   `node`, `cluster`), or a named vector of cluster labels.
+#'   `node`, `cluster`), a named vector of cluster labels, or the name of a
+#'   column of the hypergraph's document table.
 #' @param weights `NULL` (default), or a numeric vector named by document
 #'   giving each document's weight.
 #' @return A base `data.frame` of class `hypergraphs_topic_sizes`, one row per

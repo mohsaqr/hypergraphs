@@ -1,3 +1,145 @@
+# hypergraphs 0.6.2
+
+* `text_hypergraph()` gains `separator`: a delimited field such as the
+  author keywords of a bibliographic export is read as whole-phrase terms,
+  each a hyperedge over the papers that carry it, the keyword incidence of
+  co-word analysis (Callon et al. 1983). Terms are lowercased and trimmed
+  of the punctuation exports leave at their edges.
+* New `hg_dictionary()` labels each node by the dictionary category whose
+  terms it carries most (Grimmer & Stewart 2013); the result is the
+  `labels` input of `hg_classify()` and `hg_hypergat()`.
+* Documents without a label are `split = "unlabelled"` in an
+  `hg_classification`, so `hg_get(fit, split = "unlabelled")` reads the
+  classifier's proposals.
+* `hg_get()` on a text hypergraph gains `node` (documents by id or by a
+  table with a `node` column), `sort_by` and `top` (vocabulary).
+
+* `hg_classify()` and `hg_hypergat()` gain `holdout`: a share of the labels,
+  drawn within each class with `seed`, is hidden, predicted and scored. The
+  result is an `hg_classification` that prints the held-out accuracy and
+  balanced accuracy (Brodersen et al. 2010). `hg_get()` reads its
+  `"predictions"`, `"accuracy"`, `"classes"` and `"confusion"` tables, and
+  filters the predictions with `split`, `correct`, `node`, `sort_by` and
+  `top` (per class). `plot()` draws the confusion table. A `hg_hypergat()`
+  result retains its trained network. `hg_get()` computes attention on
+  request, and `plot(type = "attention")` shows its diagnostic weights.
+  `plot(type = "hyperedges")` plots a document's word hypergraph.
+* `labels` of `hg_classify()` and `hg_hypergat()`, `clusters` of
+  `hg_keywords()`, `topic_network()` and `hg_topic_sizes()`, and `group` of
+  `hg_get(what = "prevalence")` accept the name of a document column
+  (`labels = "subject"`).
+* `plot()` on an `hg_topics()` model gains `type = "prevalence"` with
+  `group`, the prevalence of every topic in each group.
+
+* `hg_hypergat()` now returns a reusable fitted classifier in every run.
+  `predict()` classifies new documents using its trained network, frozen
+  vocabulary and topic keywords; optional observed labels evaluate these
+  predictions without updating the model. `hg_get()` reads predictions,
+  evaluation, document text, training history and optional attention
+  diagnostics. `plot()` shows confusion or training loss. The vocabulary
+  is estimated from known labels only. Unscorable held-out and new labelled
+  documents count as errors, and prediction preserves all new input rows.
+* HyperGAT attention diagnostics include uniform normalization baselines
+  and the fraction of words exclusive to each edge. Attention plots show
+  the baseline alongside the learned weights. Attention is computed only
+  when requested and is described as an internal weight, not a prediction
+  explanation. Legacy `what` extraction remains available with a warning.
+
+* `hg_subset()` gains `component = "largest"`, which keeps the largest
+  connected component, the input that label spreading and spectral
+  clustering need. A subset text hypergraph now carries a matching text
+  layer, so `hg_keywords()` and the other text verbs work on it.
+
+* `stop_words_en()` gains `type = "snowball"`, the 174-word Snowball English
+  stop list with pronouns and contractions, for chat and other informal text.
+* `clean_text()` repairs emoji and other characters garbled by a
+  UTF-8-as-Windows-1252 export.
+* Labels or groups that name documents `text_hypergraph()` or
+  `hg_hypergat()` dropped as empty are set aside with a warning in
+  `hg_keywords()`, `hg_topic_sizes()`, `topic_network()`, `hg_classify()`,
+  `hg_neural()` and `hg_hypergat()`, so the corpus table can be passed back
+  whole; an id that never was a document is still an error.
+
+* `hg_get()` on an `hg_topics()` model gains `what = "prevalence"` with
+  `group =`: the mean share of each topic within each group of documents,
+  the topic prevalence by covariate of Roberts et al. (2014).
+
+* `clean_text()` gains `boilerplate = TRUE`, which removes publisher names,
+  company suffixes and the phrases of licence and rights notices wherever
+  they occur in a text, so a classifier of bibliographic abstracts does not
+  learn the publisher and the year from the notice.
+
+* `clean_text()` removes the word "Copyright" together with the notice that
+  follows it ("Copyright © 2020 Elsevier Ltd." left "Copyright" behind).
+
+* `plot()` on a `simplicial()` result gains `type =`. `"simplices"` (the
+  default) draws the maximal simplices as before; `"summary"` draws the
+  face counts, the Betti numbers and the simplicial degree, the summary
+  figure of the complex.
+
+* **Input formats with their own vocabulary.** Membership data name a
+  `node` and a `hyperedge` (or `from` and `to`); event data name an
+  `action` with its `session` and `actor`, as in the memory family;
+  `group` is always the comparison variable, as in Nestimate. In
+  `group_hypergraph()` and `temporal_hypergraph()`, `group =` (the
+  hyperedge column) is now `hyperedge =` and `by =` is now `group =`.
+  `hypergraph()` recognises the format from the arguments: `action` with
+  `session` (or `actor`) gives one hyperedge per session, `window` gives
+  windows, `node` with `hyperedge` gives membership hyperedges.
+* **`pairwise_network()` builds the pairwise network of a hypergraph.** It
+  returns a network object (`net_hg_pairwise`, also `netobject` and
+  `cograph_network`) for every projection, chosen with `type = "clique"`
+  (default), `"association"` or `"citation"`; `plot()` plots it through
+  cograph, `hg_get()` returns its edges (`what = "nodes"` its nodes), and
+  `hypergraph()` reads it as a network. It replaces `hg_project()` and
+  `hg_clique_expansion()`, which are removed.
+* **The topic network is `topic_network()`**, a constructor like
+  `pairwise_network()`.
+  It replaces `hg_network()`, its name in 0.6.1, and `hg_relations()`,
+  which are removed: `hg_relations(hg, clusters)` is
+  `hg_topic_network(hg, clusters = clusters)`.
+* **Constructors are bare nouns.** `random_hypergraph(type = "uniform" |
+  "regular" | "gnp" | "sbm")` replaces `hg_sample_uniform()`,
+  `hg_sample_regular()`, `hg_sample_gnp()` and `hg_sample_sbm()`, with the
+  same models and the same seeded draws; its arguments are given by name.
+  `read_hif()` and `write_hif()` replace `hg_read_hif()` and
+  `hg_write_hif()`.
+* **`group_hypergraph(min_share =)`** keeps the frequent sets that reach a
+  minimum support, the share of a group's sets that contain them (Agrawal &
+  Srikant 1994); without `top`, every such set is kept. It applies to data
+  frames, clustered sequences and topic models, and `print()` states the
+  rule.
+* `plot()` of a hypergraph packs disconnected pieces into one frame by
+  default (`pieces = "packed"`), so each piece takes room in proportion to its
+  size; `pieces = "row"` gives the former side-by-side frames.
+* `plot()` of a hypergraph whose hyperedges repeat (the trials of an event
+  log) draws its distinct sets, each coloured by its number of copies; a
+  hypergraph of counted sets with one group is drawn as that group; a window
+  hypergraph is coloured by its window counts. `plot()` of a
+  `pairwise_network()` uses a circle layout. None of these needs an argument.
+* `plot()` of a hypergraph takes a numeric hyperedge attribute as its count
+  only when the attribute varies between hyperedges; a constant one, such as
+  the session number of the runs of one session, no longer colours and titles
+  the hyperedges. `color_by = "weight"` colours the hyperedges of a
+  `window_hypergraph()` by their window counts.
+* **`tutoring_events` replaces `debug_events`.** It holds every step of the
+  tutoring data, 84,356 events from 13,309 problem steps (20,626 trials),
+  with each event renamed to a word of the same meaning and similar events
+  merged (19 events become 15). `debug_events` held a random 4,000 steps
+  under a coding-assistant vocabulary. Its `outcome` column marks a step
+  `completed` (with a correct answer) or `stopped` (without one).
+* `hg_measures()` builds the hyperedge-by-hyperedge overlap matrices only for
+  `what = "overlap"`. The node table and the summary of a hypergraph with
+  20,000 hyperedges took minutes or exhausted memory; they take under a
+  second.
+* `hg_subset()` keeps the window counts of a `window_hypergraph()` aligned
+  with the hyperedges it keeps; printing or plotting such a subset failed.
+* `hg_agreement()` accepts a fit of `hg_communities()` and compares its
+  medoid partition.
+* New vignette, *Hypergraphs*: observed groups, frequent sets, windows,
+  projection, node measures, centrality, communities and null models on
+  `debug_events`.
+
 # hypergraphs 0.6.1
 
 * **The package is renamed from hypernets to hypergraphs.** Every verb keeps

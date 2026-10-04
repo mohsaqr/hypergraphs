@@ -33,7 +33,14 @@ simplicial(
   ...
 )
 
-\method{plot}{hypergraphs_simplicial}(x, y, dismantled = FALSE, top = NULL, ...)
+\method{plot}{hypergraphs_simplicial}(
+  x,
+  y,
+  dismantled = FALSE,
+  top = NULL,
+  type = c("simplices", "summary"),
+  ...
+)
 
 \method{hg_get}{hypergraphs_simplicial}(x, ...)
 
@@ -51,8 +58,9 @@ coordinate (not square), or a data frame of numeric coordinates, whose
 one character column, if present, names the points. Points are turned
 into Euclidean distances. A square numeric matrix is read as distances.}
 
-\item{type}{\code{"clique"} (default), \code{"window"}, \code{"pathway"}, or \code{"vr"}
-(alias \code{"rips"}).}
+\item{type}{For \code{plot()}: \code{"simplices"} (default) draws the maximal
+simplices; \code{"summary"} draws the face counts, the Betti numbers and the
+simplicial degree. \code{dismantled} and \code{top} apply to \code{"simplices"} only.}
 
 \item{threshold}{For \code{type = "clique"}: the smallest absolute edge
 weight kept (default \code{0}, every non-zero edge).}
@@ -132,8 +140,11 @@ the maximal simplices, those no larger simplex contains, as regions
 around their nodes (\code{cograph::plot_simplicial()}; its arguments pass
 through \code{...}): the most significant first for a validated window
 complex, the most frequent first for a window complex, the closest
-first for a Vietoris-Rips complex. \code{plot()} returns the figure. For the
-\code{plot()} method, \code{x} is the complex.
+first for a Vietoris-Rips complex. With \code{type = "summary"}, \code{plot()}
+draws the summary of the complex instead: the face counts by dimension,
+the Betti numbers, the simplicial degree of each node and its degree by
+dimension. \code{plot()} returns the figure. For the \code{plot()} method, \code{x} is
+the complex.
 }
 \description{
 Builds a simplicial complex: the sets of actions that occur together in

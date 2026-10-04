@@ -17,7 +17,8 @@ hg_agreement(
 \item{x, y}{Tidy labelings: data.frames with a \code{node} column and a
 \code{predicted}, \code{cluster} or \code{label} column (first match in that
 order wins). Nodes are matched by name; nodes present in only one
-labeling are dropped.}
+labeling are dropped. A fit of \code{\link[=hg_communities]{hg_communities()}} on a hypergraph is
+read through its medoid partition (\code{hg_get(fit, what = "medoid")}).}
 
 \item{what}{\code{"summary"} (default) for the one-row comparison,
 \code{"table"} for the tidy contingency table of the joined labels, or

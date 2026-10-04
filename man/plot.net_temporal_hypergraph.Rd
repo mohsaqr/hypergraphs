@@ -19,7 +19,7 @@
 
 \item{mode}{Snapshot mode passed to \code{\link[=hg_snapshot]{hg_snapshot()}}.}
 
-\item{method}{Projection weighting passed to \code{\link[=hg_project]{hg_project()}}.}
+\item{method}{Projection weighting passed to \code{\link[=pairwise_network]{pairwise_network()}}.}
 
 \item{...}{Additional arguments passed to \code{\link[cograph:splot]{cograph::splot()}}.}
 }

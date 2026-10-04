@@ -234,7 +234,7 @@ close to it.
 
 ## Relations between topics
 
-`hg_relations()` builds the topic-by-topic co-occurrence network through
+`topic_network()` builds the topic-by-topic co-occurrence network through
 shared vocabulary. For each pair of topics it sums, over all words, the
 product of the number of documents in each topic that contain the word,
 the full-counting aggregation of bibliometric keyword networks. The
@@ -245,7 +245,7 @@ topics' totals and lies in [0, 1]. The function returns an edge list with
 `what = "network"` a `cograph_network`.
 
 ```{r relations}
-relations <- hg_relations(hg, topics, similarity = "cosine")
+relations <- topic_network(hg, clusters = topics, similarity = "cosine")
 head(relations)
 ```
 
@@ -255,7 +255,8 @@ the edges (`minimum = 0.82`), places the topics with a spring layout and
 scales line width by weight.
 
 ```{r relations-plot, fig.width = 7, fig.height = 7}
-network <- hg_relations(hg, topics, similarity = "cosine", what = "network")
+network <- topic_network(hg, clusters = topics, similarity = "cosine",
+                            what = "network")
 cograph::splot(network, layout = "spring", minimum = 0.82,
                edge_width_range = c(0.5, 8))
 ```

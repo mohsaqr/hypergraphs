@@ -4,7 +4,14 @@
 \alias{hg_get.text_hypergraph}
 \title{Tidy tables of a text hypergraph}
 \usage{
-\method{hg_get}{text_hypergraph}(x, what = c("weights", "documents", "vocabulary", "sentences"), ...)
+\method{hg_get}{text_hypergraph}(
+  x,
+  what = c("weights", "documents", "vocabulary", "sentences"),
+  node = NULL,
+  sort_by = NULL,
+  top = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{\link[=text_hypergraph]{text_hypergraph()}} object.}
@@ -24,6 +31,16 @@ columns carried from the input). \code{"vocabulary"} gives one row per word
 (\code{word}, \code{count}, \code{doc_freq}, and \code{idf} under tf-idf weighting; empty for
 the knn construction, which has no token layer).}
 
+\item{node}{For \code{"documents"}: keep only these documents, given as ids
+or as a table with a \code{node} column, such as the predictions of
+\code{\link[=hg_classify]{hg_classify()}}, in the order given.}
+
+\item{sort_by}{For \code{"vocabulary"}: \code{"count"} (total occurrences) or
+\code{"doc_freq"} (documents that contain the word), from the largest, ties
+by word.}
+
+\item{top}{Keep only the first \code{top} rows of the returned table.}
+
 \item{...}{Unused.}
 }
 \value{
@@ -36,4 +53,5 @@ Tidy tables of a text hypergraph
 hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
 hg_get(hg)
 hg_get(hg, what = "documents")
+hg_get(hg, what = "documents", node = "b")
 }

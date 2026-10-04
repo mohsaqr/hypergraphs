@@ -42,11 +42,11 @@
 #'     a unit, with no requirement that its subsets also be relations.
 #'     Constructors [network_hypergraph()], [window_hypergraph()],
 #'     [group_hypergraph()], [temporal_hypergraph()]; random models
-#'     [hg_sample_gnp()], [hg_sample_sbm()], [hg_sample_uniform()]; measures [hg_measures()],
+#'     [random_hypergraph()]; measures [hg_measures()],
 #'     [hg_centrality()]; spectral methods [hg_laplacian()],
 #'     [hg_cluster()], [hg_classify()]; PageRank
-#'     [hg_pagerank()]; embeddings [hg_embed()]; projections [hg_clique_expansion()],
-#'     [hg_project()], [hg_line_graph()],
+#'     [hg_pagerank()]; embeddings [hg_embed()]; projections [pairwise_network()],
+#'     [hg_line_graph()],
 #'     [dual_hypergraph()]; temporal views [hg_snapshot()],
 #'     [hg_snapshots()]; hyperedge tables [hg_edges()] and
 #'     s-centrality [hg_edge_centrality()]; communities
@@ -98,7 +98,7 @@
 #' it, and every `hg_*()` verb takes any `net_hg` in return.
 #' [simplicial()] with `type = "pathway"` turns a memory network into a
 #' simplicial complex; [window_hypergraph()] turns the same sequences into a
-#' hypergraph; [hg_clique_expansion()] projects a hypergraph back to a pairwise
+#' hypergraph; [pairwise_network()] projects a hypergraph back to a pairwise
 #' network that any of the first-order tools accept.
 #' `hg_get(x, what = "pathways")` on a memory network hands its
 #' sequence-derived path strings to the other two.

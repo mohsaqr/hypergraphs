@@ -40,8 +40,8 @@ conclusion; see \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.
 }
 \examples{
 head(icsid_tribunals)
-tribunals <- temporal_hypergraph(icsid_tribunals, actor = "arbitrator",
-                                 group = "case", start = "constituted",
+tribunals <- temporal_hypergraph(icsid_tribunals, node = "arbitrator",
+                                 hyperedge = "case", start = "constituted",
                                  end = "concluded")
 summary(tribunals)
 }

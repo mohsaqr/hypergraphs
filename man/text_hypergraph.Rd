@@ -22,7 +22,8 @@ text_hypergraph(
   k = 10L,
   embeddings = NULL,
   model = NULL,
-  sparse = NULL
+  sparse = NULL,
+  separator = NULL
 )
 }
 \arguments{
@@ -101,6 +102,16 @@ of thousands of documents; \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[
 \code{\link[=hg_pagerank]{hg_pagerank()}}, and \code{\link[=hg_measures]{hg_measures()}} use sparse operator paths that
 agree with the dense engines (tested), while tensor centralities and
 the null test currently require the dense representation.}
+
+\item{separator}{\code{NULL} (default) splits the text into words. A string
+such as \code{";"} reads the column as a delimited field of terms instead,
+such as the author keywords of a bibliographic export: each term is the
+whole phrase between separators ("higher education"), trimmed, and
+becomes one hyperedge, so a paper is bound to the keywords its authors
+gave it. This is the keyword incidence of co-word analysis (Callon et
+al. 1983) read as a hypergraph. \code{stop_words} then names whole terms to
+drop and \code{min_count} the fewest occurrences a term needs. Bag
+construction only.}
 }
 \value{
 An object of class \code{c("text_hypergraph", "net_hg")} -- a
@@ -195,6 +206,11 @@ emb <- matrix(c(1, 0,  0.9, 0.1,  0, 1,  0.1, 0.9),
 text_hypergraph(corpus, construction = "knn", k = 1, embeddings = emb)
 }
 \references{
+Callon, M., Courtial, J.-P., Turner, W. A., & Bauin, S. (1983). From
+translations to problematic networks: An introduction to co-word
+analysis. \emph{Social Science Information}, 22(2), 191-235.
+\doi{10.1177/053901883022002003}
+
 Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with less:
 Hypergraph attention networks for inductive text classification.
 \emph{EMNLP 2020}. \doi{10.18653/v1/2020.emnlp-main.399}

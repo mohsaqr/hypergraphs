@@ -39,74 +39,70 @@
   out
 }
 
-#' Project a hypergraph onto a weighted graph
+#' The pairwise network of a hypergraph
 #'
-#' Collapses every hyperedge into pairwise vertex relations, giving the
-#' weighted graph that a graph engine (paths, betweenness, communities) can
-#' consume. Two weightings are available. `"clique"` is plain co-occurrence,
-#' the clique expansion: a hyperedge of size \eqn{|e|} contributes the same
-#' amount to each of its \eqn{|e|(|e|-1)/2} pairs, so a single large hyperedge
-#' can dominate every downstream measure. `"association"` divides each
-#' hyperedge's contribution by \eqn{|e|-1}, following Coupette et al. (2024):
+#' Projects a hypergraph onto a network of pairs of its nodes. Two nodes are
+#' joined when they belong to a common hyperedge, and the weight of the
+#' edge depends on `type`. `"clique"` is the clique expansion: a hyperedge
+#' of size \eqn{|e|} contributes the same amount to each of its
+#' \eqn{|e|(|e|-1)/2} pairs, so the weight of a pair is the number of
+#' hyperedges that contain both nodes (Zhou et al. 2006). `"association"`
+#' divides the contribution of each hyperedge by \eqn{|e|-1}, following
+#' Coupette et al. (2024):
 #'
 #' \deqn{w(\{u,v\}) = \sum_{e \supseteq \{u,v\}} \frac{1}{|e| - 1}}
 #'
-#' so the total weight a hyperedge adds around any one of its members is
-#' exactly 1, and each vertex's weighted degree in the projection equals the
-#' number of hyperedges of size at least two that contain it. That
-#' normalisation is what makes the projection a legitimate random-walk
-#' operator rather than an arbitrary co-occurrence count.
+#' so the weight a hyperedge adds around each of its members is 1, and the
+#' weighted degree of a node equals the number of hyperedges of size at
+#' least two that contain it. A hyperedge of size one has no pairs and
+#' contributes nothing.
 #'
-#' A hyperedge of size one has no pairs, so it contributes nothing and is
-#' skipped rather than dividing by zero. Such hyperedges are common in text:
-#' a word used in exactly one document is a singleton hyperedge in the
-#' document orientation, which is why the degree identity above counts only
-#' hyperedges of size at least two.
+#' `"citation"` is the graph of a hypergraph whose hyperedges have sources:
+#' one edge from the source of every hyperedge to each of its members, so a
+#' hypergraph of citation blocks becomes the ordinary citation graph.
+#' `duplicate_edges = "count"` weights an edge by the number of blocks that
+#' repeat it (the multi-graph); `"collapse"` keeps the binary graph.
+#' `directed = TRUE` keeps the source-to-member orientation; the default
+#' symmetrises.
 #'
-#' A third projection, `"citation"`, is the classic graph a hypergraph with
-#' sources reduces to: one edge from the source of every hyperedge to each of
-#' its members, so a citation-block hypergraph becomes the ordinary citation
-#' graph of the paper's Table 2. `duplicate_edges = "count"` weights an edge
-#' by how many blocks repeat it (the multi-graph, `mg`); `"collapse"` keeps
-#' the binary graph (`bg`). `directed = TRUE` keeps the source-to-member
-#' orientation; the default symmetrises.
+#' The result is a network object that cograph plots and that
+#' [hypergraph()] reads as a network, so the cliques of the projection can be
+#' promoted back to hyperedges. Its edges are read with `hg_get()`.
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypergraphs
-#'   `net_hg`.
-#' @param method Weighting. `"clique"` (default) sums incidence products;
-#'   `"association"` applies the \eqn{1/(|e|-1)} normalisation above;
-#'   `"citation"` joins each hyperedge's source to its members.
-#' @param directed For `method = "citation"`: return the directed
-#'   source-to-member matrix (rows cite columns)? Default `FALSE`.
-#' @param weighted `method = "clique"` only. `TRUE` (default) uses the
-#'   incidence weights, `FALSE` their membership pattern. Setting it together
-#'   with `method = "association"` is an error, because the association
-#'   weighting is defined on hyperedge cardinality and never on the incidence
-#'   weights.
-#' @param duplicate_edges For `method = "association"`, `"count"` (default)
-#'   lets repeated hyperedges contribute repeatedly (the paper's
-#'   multi-hypergraph representation); `"collapse"` lets each distinct member
-#'   set contribute once (its binary-hypergraph representation).
-#' @param self_association Add the paper's source-to-member association term?
-#'   Requires one source vertex per hyperedge through `edge_source` or
-#'   `hg$edge_data$source`. For source `u`, every membership occurrence of
-#'   target `v` contributes `1 / sum_e |e|` over hyperedges sourced by `u`, so
-#'   the added incident weight from all of `u`'s citations sums to one.
-#' @param edge_source Which node each hyperedge comes from: the name of a
-#'   column of the hyperedge attributes (`hg$edge_data`, e.g. `"citing"`), a
-#'   vector of length `n_hyperedges`, a named vector keyed by hyperedge, or
-#'   a two-column data frame named `edge` and `source`. `NULL` uses an
-#'   attribute column named `source`. Used with `self_association = TRUE`
-#'   and `method = "citation"`.
-#' @param what `"edges"` (default) for the tidy edge list, or `"matrix"` for
-#'   the symmetric weight matrix to hand to a graph engine.
-#' @return With `what = "edges"`, a base data.frame with one row per
-#'   unordered vertex pair of non-zero weight, sorted by `from` then `to`,
-#'   with columns `from`, `to` (vertex names) and `weight` (numeric). Vertices
-#'   sharing no hyperedge do not appear, so an edgeless hypergraph yields a
-#'   zero-row data.frame with those columns. With `what = "matrix"`, the
-#'   symmetric `n_nodes` x `n_nodes` weight matrix with zero diagonal and
-#'   vertex names as dimnames, sparse if `hg`'s incidence is sparse.
+#' @param hg A hypergraph (`net_hg`), such as one built by [hypergraph()] or
+#'   [text_hypergraph()].
+#' @param type The projection: `"clique"` (default), `"association"` or
+#'   `"citation"`.
+#' @param weighted `type = "clique"` only. `TRUE` (default) uses the
+#'   incidence weights, `FALSE` their membership pattern. Setting it with
+#'   another `type` is an error, because those projections are defined on
+#'   membership.
+#' @param duplicate_edges For `type = "association"` or `"citation"`:
+#'   `"count"` (default) lets repeated hyperedges contribute repeatedly (the
+#'   multi-hypergraph); `"collapse"` lets each distinct member set
+#'   contribute once (the binary hypergraph).
+#' @param self_association For `type = "association"`: add the
+#'   source-to-member association term of Coupette et al. (2024). Requires one
+#'   source node per hyperedge through `edge_source` or
+#'   `hg$edge_data$source`. For source `u`, every membership of target `v`
+#'   contributes `1 / sum_e |e|` over the hyperedges sourced by `u`.
+#' @param edge_source The node each hyperedge comes from: the name of a
+#'   column of the hyperedge attributes, a vector of length `n_hyperedges`, a
+#'   named vector keyed by hyperedge, or a data frame with columns `edge` and
+#'   `source`. `NULL` uses an attribute column named `source`. Used with
+#'   `self_association = TRUE` and `type = "citation"`.
+#' @param directed For `type = "citation"`: keep the source-to-member
+#'   direction. Default `FALSE`.
+#' @return A `net_hg_pairwise`, which is also a `netobject` and a
+#'   `cograph_network`: the weighted adjacency matrix of the projection
+#'   (`weights`, zero diagonal, symmetric unless `directed = TRUE`), its
+#'   nodes and edges. `hg_get(x)` returns the edges as a data frame with one
+#'   row per pair of non-zero weight and columns `from`, `to` and `weight`,
+#'   sorted by `from` then `to`.
+#' @section Conditions:
+#' `hypergraphs_bad_input` for an argument that does not apply to `type`, and
+#' for `self_association` or `type = "citation"` without a source per
+#' hyperedge.
 #' @references
 #' Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 #' *Philosophical Transactions of the Royal Society A*, 382(2270), 20230141.
@@ -114,22 +110,133 @@
 #'
 #' Zhou, D., Huang, J., & Schoelkopf, B. (2006). Learning with hypergraphs:
 #' clustering, classification, and embedding. *NeurIPS 19*, 1601-1608.
-#' @seealso [hg_line_graph()] for the dual projection, onto hyperedges.
+#' @seealso [hg_line_graph()] for the projection onto hyperedges.
 #' @examples
-#' hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars",
-#'                         c = "stars and salt"))
-#' hg_project(hg)
-#' hg_project(hg, method = "association")
+#' meetings <- data.frame(
+#'   person = c("Alice", "Bob", "Carol", "Alice", "Bob", "Dave", "Eve"),
+#'   meeting = c("m1", "m1", "m1", "m2", "m2", "m3", "m3"))
+#' meeting_hg <- hypergraph(meetings, node = "person", hyperedge = "meeting")
+#' meeting_network <- pairwise_network(meeting_hg)
+#' hg_get(meeting_network)
+#' association_network <- pairwise_network(meeting_hg, type = "association")
+#' hg_get(association_network)
 #' @export
-hg_project <- function(hg, method = c("clique", "association", "citation"),
-                       weighted = TRUE, what = c("edges", "matrix"),
-                       duplicate_edges = c("count", "collapse"),
-                       self_association = FALSE, edge_source = NULL,
-                       directed = FALSE) {
+pairwise_network <- function(hg, type = c("clique", "association", "citation"),
+                             weighted = NULL,
+                             duplicate_edges = c("count", "collapse"),
+                             self_association = FALSE, edge_source = NULL,
+                             directed = FALSE) {
   .thg_check_hg(hg)
-  method <- match.arg(method)
+  type <- match.arg(type)
+  duplicate_edges <- match.arg(duplicate_edges)
+  weights <- .hg_projection(hg, type = type, weighted = weighted,
+                            what = "matrix", duplicate_edges = duplicate_edges,
+                            self_association = self_association,
+                            edge_source = edge_source, directed = directed)
+  weights <- as.matrix(weights)
+  storage.mode(weights) <- "double"
+  net <- .wrap_netobject(weights, method = "pairwise_network",
+                         directed = isTRUE(directed))
+  net$params <- list(
+    source = "pairwise_network",
+    type = type,
+    weighted = weighted %||% TRUE,
+    duplicate_edges = duplicate_edges,
+    self_association = self_association,
+    n_hyperedges = hg$n_hyperedges,
+    hypergraph_size_distribution = hg$size_distribution
+  )
+  class(net) <- unique(c("net_hg_pairwise", class(net)))
+  net
+}
+
+#' @rdname hg_get
+#' @export
+hg_get.net_hg_pairwise <- function(x, what = c("edges", "nodes"), ...,
+                                  sort_by = NULL, top = NULL) {
+  what <- match.arg(what)
+  labels <- rownames(x$weights)
+  if (identical(what, "nodes")) {
+    out <- data.frame(node = labels,
+                      degree = as.integer(rowSums(x$weights != 0)),
+                      strength = as.numeric(rowSums(x$weights)),
+                      stringsAsFactors = FALSE)
+    if (!is.null(sort_by)) {
+      sort_by <- match.arg(sort_by, c("degree", "strength"))
+      out <- out[order(-out[[sort_by]], out$node), , drop = FALSE]
+    }
+    rownames(out) <- NULL
+    return(.ho_top(out, top))
+  }
+  out <- if (isTRUE(x$directed)) {
+    nz <- which(x$weights != 0, arr.ind = TRUE)
+    edges <- data.frame(from = labels[nz[, "row"]], to = labels[nz[, "col"]],
+                        weight = as.numeric(x$weights[nz]),
+                        stringsAsFactors = FALSE)
+    edges[order(edges$from, edges$to), , drop = FALSE]
+  } else {
+    .thg_tidy_pairs(x$weights, labels)
+  }
+  if (!is.null(sort_by)) {
+    sort_by <- match.arg(sort_by, "weight")
+    out <- out[order(-out$weight, out$from, out$to), , drop = FALSE]
+  }
+  rownames(out) <- NULL
+  .ho_top(out, top)
+}
+
+#' Plot the pairwise network of a hypergraph
+#'
+#' Plots the network returned by [pairwise_network()] with [cograph::splot()]:
+#' a circle layout, which keeps every label apart however strongly the
+#' events are tied, edges whose width grows with the square root of their
+#' weight, and nodes whose area grows with their strength, the sum of the
+#' weights of their edges.
+#'
+#' @param x A `net_hg_pairwise` from [pairwise_network()].
+#' @param ... Arguments passed to [cograph::splot()] (e.g. `layout`, `seed`,
+#'   `minimum`, `node_fill`); they override the defaults set here.
+#' @return `x`, invisibly. cograph plots with base graphics.
+#' @examples
+#' meetings <- data.frame(
+#'   person = c("Alice", "Bob", "Carol", "Alice", "Bob", "Dave", "Eve"),
+#'   meeting = c("m1", "m1", "m1", "m2", "m2", "m3", "m3"))
+#' meeting_network <- pairwise_network(hypergraph(meetings, node = "person",
+#'                                          hyperedge = "meeting"))
+#' plot(meeting_network)
+#' @export
+plot.net_hg_pairwise <- function(x, ...) {
+  strength <- rowSums(abs(x$weights))
+  top <- max(strength)
+  size <- 2 + 3 * sqrt(if (top > 0) strength / top else strength)
+  defaults <- list(layout = "circle", seed = 1, tna_styling = TRUE,
+                   directed = isTRUE(x$directed), edge_label_style = "none",
+                   node_size = size, node_fill = "#56B4E9",
+                   edge_scale_mode = "sqrt", label_size = 0.8)
+  given <- list(...)
+  args <- c(list(x), utils::modifyList(defaults, given))
+  do.call(cograph::splot, args)
+  invisible(x)
+}
+
+# The projection itself, shared by pairwise_network() and the internal callers (communities, temporal layers, representations,
+# plots). `weighted = NULL` is the clique default (TRUE); a non-NULL value
+# with another type is refused.
+.hg_projection <- function(hg, type = c("clique", "association", "citation"),
+                           weighted = NULL, what = c("matrix", "edges"),
+                           duplicate_edges = c("count", "collapse"),
+                           self_association = FALSE, edge_source = NULL,
+                           directed = FALSE) {
+  method <- match.arg(type)
   what <- match.arg(what)
   duplicate_edges <- match.arg(duplicate_edges)
+  if (!is.null(weighted) && !identical(method, "clique")) {
+    stop(errorCondition(
+      "`weighted` applies to `type = \"clique\"` only; the association and citation weightings are defined on membership, not on incidence weights",
+      class = "hypergraphs_bad_input", call = NULL
+    ))
+  }
+  weighted <- weighted %||% TRUE
   stopifnot("`weighted` must be TRUE or FALSE" =
               length(weighted) == 1L && is.logical(weighted) &&
               !is.na(weighted),
@@ -138,20 +245,14 @@ hg_project <- function(hg, method = c("clique", "association", "citation"),
               !is.na(self_association),
             "`directed` must be TRUE or FALSE" =
               length(directed) == 1L && is.logical(directed) && !is.na(directed))
-  if (!identical(method, "clique") && !missing(weighted)) {
-    stop(errorCondition(
-      "`weighted` applies to `method = \"clique\"` only; the association and citation weightings are defined on membership, not on incidence weights",
-      class = "hypergraphs_bad_input", call = NULL
-    ))
-  }
   if (identical(method, "clique") && !identical(duplicate_edges, "count")) {
-    .thg_bad_input("`duplicate_edges` applies to `method = \"association\"` or `\"citation\"` only")
+    .thg_bad_input("`duplicate_edges` applies to `type = \"association\"` or `\"citation\"` only")
   }
   if (!identical(method, "association") && self_association) {
-    .thg_bad_input("`self_association` requires `method = \"association\"`")
+    .thg_bad_input("`self_association` requires `type = \"association\"`")
   }
   if (!identical(method, "citation") && directed) {
-    .thg_bad_input("`directed` applies to `method = \"citation\"` only")
+    .thg_bad_input("`directed` applies to `type = \"citation\"` only")
   }
   if (identical(method, "citation")) {
     return(.thg_citation_projection(hg, edge_source, duplicate_edges,
@@ -318,7 +419,7 @@ hg_project <- function(hg, method = c("clique", "association", "citation"),
 #' hyperedges are parametrised (Aksoy et al. 2020).
 #'
 #' This is the projection of the dual: `hg_line_graph(hg, s = 1)` returns the
-#' same graph as `hg_project(dual_hypergraph(hg), weighted = FALSE)`, which
+#' same pairs as `pairwise_network(dual_hypergraph(hg), weighted = FALSE)`, which
 #' the tests assert.
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypergraphs
@@ -339,7 +440,7 @@ hg_project <- function(hg, method = c("clique", "association", "citation"),
 #' Aksoy, S. G., Joslyn, C., Ortiz Marrero, C., Praggastis, B., & Purvine, E.
 #' (2020). Hypernetwork science via high-order hypergraph walks.
 #' *EPJ Data Science*, 9(1), 16. \doi{10.1140/epjds/s13688-020-00231-0}
-#' @seealso [hg_project()] for the projection onto vertices,
+#' @seealso [pairwise_network()] for the projection onto vertices,
 #'   [dual_hypergraph()] for the role swap itself.
 #' @examples
 #' hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars",

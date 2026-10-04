@@ -79,6 +79,8 @@
 # (classification results) first, else `cluster` / `community`
 # (clustering results: hg_cluster(); hg_communities(), hg_mmsbm()).
 .thg_labeling <- function(x, arg, node = "node", label = NULL) {
+  # a community fit is compared through its medoid partition
+  if (inherits(x, "hg_communities")) x <- hg_get(x, what = "medoid")
   stopifnot(
     "labelings must be data.frames" = is.data.frame(x),
     "`node` must be a single column name" =
@@ -160,7 +162,8 @@
 #' @param x,y Tidy labelings: data.frames with a `node` column and a
 #'   `predicted`, `cluster` or `label` column (first match in that
 #'   order wins). Nodes are matched by name; nodes present in only one
-#'   labeling are dropped.
+#'   labeling are dropped. A fit of [hg_communities()] on a hypergraph is
+#'   read through its medoid partition (`hg_get(fit, what = "medoid")`).
 #' @param node,label Column names, one name for both labelings or two
 #'   names for `x` and `y` in turn, that override the defaults above --
 #'   `hg_agreement(predictions, corpus, node = c("node", "doc"), label =

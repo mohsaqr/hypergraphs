@@ -12,7 +12,7 @@ petal_hg <- function() {
               "gamma","gamma","gamma", "delta","delta","delta",
               "alpha","beta","gamma","delta")
   )
-  group_hypergraph(memberships, actor = "actor", group = "group")
+  group_hypergraph(memberships, node = "actor", hyperedge = "group")
 }
 
 edge_label_data <- function(p) {

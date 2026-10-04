@@ -148,7 +148,7 @@
 #'   group  = c("g1", "g1", "g1", "g2", "g2", "g3", "g3", "g3",
 #'              "g4", "g4", "g4", "g4")
 #' )
-#' hg <- group_hypergraph(groups, actor = "member", group = "group")
+#' hg <- group_hypergraph(groups, node = "member", hyperedge = "group")
 #' hg_assortativity(hg, type = c("uniform", "top_2", "top_bottom"))
 #' @export
 hg_assortativity <- function(hg, type = "uniform",
@@ -229,7 +229,7 @@ hg_assortativity <- function(hg, type = "uniform",
 #'   group  = c("p1", "p1", "p2", "p2", "p3", "p3", "p4", "p4",
 #'              "t1", "t1", "t1", "t2", "t2", "t2", "t3", "t3", "t3")
 #' )
-#' hg <- group_hypergraph(groups, actor = "member", group = "group")
+#' hg <- group_hypergraph(groups, node = "member", hyperedge = "group")
 #' hg_degree_correlation(hg)
 #' @export
 hg_degree_correlation <- function(hg) {

@@ -205,8 +205,8 @@
 #' columns that name its ends and its clock. Two input shapes are accepted.
 #' An **edge list** names `from` and `to`, and every row is a hyperedge of
 #' size two, so an ordinary temporal network is the same object.
-#' **Co-presence data** name an `actor` and a `group`: every actor sharing one
-#' value of `group` (a case, a citation block, a seminar) belongs to one
+#' **Membership data** name a `node` and a `hyperedge`: every node sharing
+#' one value of `hyperedge` (a case, a citation block, a seminar) belongs to one
 #' hyperedge. Two clocks are understood, and the one you name selects the
 #' format:
 #'
@@ -263,7 +263,7 @@
 #'
 #' Every other column that is constant within a hyperedge is kept as a
 #' hyperedge attribute in the edge metadata, where `plot()` can colour by it
-#' and where [hg_project()] finds the source a citation block belongs to.
+#' and where [pairwise_network()] finds the source a citation block belongs to.
 #' Columns that vary within a hyperedge, such as the seat an arbitrator held,
 #' are not attributes of the hyperedge and are left out.
 #'
@@ -271,10 +271,10 @@
 #'   (a wide data frame of states, a list of character vectors, or a `tna` /
 #'   `netobject` model); see Details.
 #' @param from,to Column names of a pairwise edge list. Detected from the
-#'   alias table when neither is given and `actor`/`group` are not named.
-#' @param actor,group Column names of co-presence data: the node, and the
+#'   alias table when neither is given and `node`/`hyperedge` are not named.
+#' @param node,hyperedge Column names of membership data: the node, and the
 #'   grouping whose shared values bind nodes into one hyperedge. Naming
-#'   either selects the co-presence format; the other is then detected by
+#'   either selects the membership format; the other is then detected by
 #'   alias if not given.
 #' @param time Column with the instant of a contact hyperedge.
 #' @param start,end Columns with the interval on which a hyperedge is active.
@@ -294,7 +294,7 @@
 #'   observation window, as numbers on the stored clock or as dates for a
 #'   calendar hypergraph. Either may be omitted; the corresponding limit of
 #'   the data is then used.
-#' @param separator Split the `actor` column on this string, one row per
+#' @param separator Split the `node` column on this string, one row per
 #'   member, before building. Bibliographic exports ship a hyperedge's members
 #'   as a single delimited cell -- EUR-Lex `citationcelex` and `eurovoc`,
 #'   Scopus and Web of Science reference and keyword fields -- so
@@ -322,7 +322,7 @@
 #'   constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5),
 #'   sector = c("oil", "oil", "oil", "gas", "gas", "gas")
 #' )
-#' thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+#' thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
 #'                            start = "constituted", end = "concluded")
 #' thg
 #' hg_snapshot(thg, at = 3)
@@ -335,42 +335,42 @@
 #' hg_snapshot(calls, at = as.Date("2024-01-05"))
 #' hg_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
 #' @export
-temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
-                                group = NULL, time = NULL, start = NULL,
+temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
+                                hyperedge = NULL, time = NULL, start = NULL,
                                 end = NULL, weight = NULL, nodes = NULL,
                                 time_unit = "auto",
                                 observation_start = NULL, observation_end = NULL,
                                 sparse = FALSE, separator = NULL,
                                 cooccur_by = NULL) {
-  if (.thg_is_sequence_input(data, from, to, actor, group, time, start, end)) {
+  if (.thg_is_sequence_input(data, from, to, node, hyperedge, time, start, end)) {
     data <- .thg_sequence_memberships(data)
-    actor <- "state"
-    group <- "sequence"
+    node <- "state"
+    hyperedge <- "sequence"
     time <- "position"
   }
   if (!is.data.frame(data) || nrow(data) == 0L) {
     .thg_bad_input("`data` must be a non-empty data.frame")
   }
   if (!is.null(separator)) {
-    data <- .thg_expand_delimited(data, actor %||% to, separator)
+    data <- .thg_expand_delimited(data, node %||% to, separator)
   }
   if (!is.logical(sparse) || length(sparse) != 1L || is.na(sparse)) {
     .thg_bad_input("`sparse` must be TRUE or FALSE")
   }
   if (!is.null(cooccur_by)) {
-    .thg_deprecated("cooccur_by", "group", "temporal_hypergraph")
-    if (is.null(group)) group <- cooccur_by
+    .thg_deprecated("cooccur_by", "hyperedge", "temporal_hypergraph")
+    if (is.null(hyperedge)) hyperedge <- cooccur_by
   }
-  roles <- .thg_resolve_roles(data, from, to, actor, group, time, start, end,
+  roles <- .thg_resolve_roles(data, from, to, node, hyperedge, time, start, end,
                               weight)
-  from <- roles$from; to <- roles$to; actor <- roles$actor; group <- roles$group
+  from <- roles$from; to <- roles$to; node <- roles$actor; hyperedge <- roles$group
   clock <- roles$clock; end <- roles$end; weight <- roles$weight
   edge_list <- !is.null(from)
   format <- roles$format
 
   # One row per membership. An edge list is unpivoted to its two ends; the
   # remaining columns ride along as candidate hyperedge attributes.
-  used <- c(from, to, actor, group, clock, end, weight)
+  used <- c(from, to, node, hyperedge, clock, end, weight)
   candidates <- setdiff(names(data), used)
   if (edge_list) {
     edge_id <- paste0("e", seq_len(nrow(data)))
@@ -382,8 +382,8 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
     rows <- c(seq_len(nrow(data)), seq_len(nrow(data)))
   } else {
     memberships <- data.frame(
-      node = as.character(data[[actor]]),
-      edge = as.character(data[[group]]),
+      node = as.character(data[[node]]),
+      edge = as.character(data[[hyperedge]]),
       stringsAsFactors = FALSE
     )
     rows <- seq_len(nrow(data))
@@ -477,7 +477,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
       time_unit = parsed$unit,
       origin = parsed$origin,
       observation = c(start = span[[1L]], end = span[[2L]]),
-      params = list(from = from, to = to, actor = actor, group = group,
+      params = list(from = from, to = to, node = node, hyperedge = hyperedge,
                     time = clock, end = end, weight = weight,
                     attributes = attributes, sparse = sparse,
                     membership_times = membership_times,
@@ -544,21 +544,21 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
                                weight) {
   copresence <- !is.null(actor) || !is.null(group)
   if (copresence && (!is.null(from) || !is.null(to))) {
-    .thg_bad_input("name either `from` and `to` or `actor` and `group`, not both")
+    .thg_bad_input("name either `from` and `to` or `node` and `hyperedge`, not both")
   }
   claimed <- character()
   if (copresence) {
-    actor <- .thg_resolve_column(data, actor, "actor", arg = "actor")
-    group <- .thg_resolve_column(data, group, "group", exclude = actor, arg = "group")
+    actor <- .thg_resolve_column(data, actor, "actor", arg = "node")
+    group <- .thg_resolve_column(data, group, "group", exclude = actor, arg = "hyperedge")
     if (is.null(actor) || is.null(group)) {
-      .thg_bad_input("co-presence data need both `actor` and `group`; name the one that could not be detected")
+      .thg_bad_input("membership data need both `node` and `hyperedge`; name the one that could not be detected")
     }
     claimed <- c(actor, group)
   } else {
     from <- .thg_resolve_column(data, from, "from", arg = "from")
     to <- .thg_resolve_column(data, to, "to", exclude = from, arg = "to")
     if (is.null(from) || is.null(to)) {
-      .thg_bad_input("name `from` and `to` for an edge list, or `actor` and `group` for co-presence data")
+      .thg_bad_input("name `from` and `to` for an edge list, or `node` and `hyperedge` for membership data")
     }
     claimed <- c(from, to)
   }
@@ -796,7 +796,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
   if (nrow(d) == 0L) {
     hg <- .thg_empty_hypergraph(universe, sparse)
   } else {
-    hg <- group_hypergraph(d, actor = "node", group = "edge", weight = "weight",
+    hg <- group_hypergraph(d, node = "node", hyperedge = "edge", weight = "weight",
                            nodes = universe, sparse = sparse)
     hg$edge_data <- ed[match(colnames(hg$incidence), ed$edge), , drop = FALSE]
     rownames(hg$edge_data) <- NULL
@@ -897,7 +897,7 @@ hg_snapshot <- function(x, at = NULL, window = 0,
 #'   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
 #'   constituted = rep(c(1, 2, 4), each = 3), concluded = rep(c(4, 3, 6), each = 3)
 #' )
-#' thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+#' thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
 #'                            start = "constituted", end = "concluded")
 #' yearly <- hg_snapshots(thg, step = 2)
 #' names(yearly)
@@ -982,7 +982,7 @@ hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
 #' @param x A [temporal_hypergraph()].
 #' @param at Snapshot time; defaults to the end of observation.
 #' @param mode Snapshot mode passed to [hg_snapshot()].
-#' @param method Projection weighting passed to [hg_project()].
+#' @param method Projection weighting passed to [pairwise_network()].
 #' @param ... Additional arguments passed to [cograph::splot()].
 #' @return The cograph plot object, invisibly when rendered interactively.
 #' @export
@@ -994,9 +994,9 @@ plot.net_temporal_hypergraph <- function(x, at = NULL,
   hg <- hg_snapshot(x, at = at, mode = mode)
   if (hg$n_nodes == 0L) .thg_bad_input("the selected snapshot has no active nodes")
   projection <- if (identical(method, "association")) {
-    hg_project(hg, method = "association", what = "matrix")
+    .hg_projection(hg, type = "association", what = "matrix")
   } else {
-    hg_project(hg, method = "clique", what = "matrix")
+    .hg_projection(hg, type = "clique", what = "matrix")
   }
   cograph::splot(as.matrix(projection), directed = FALSE, ...)
 }

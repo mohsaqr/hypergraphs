@@ -57,7 +57,7 @@ seats <- data.frame(
   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
   constituted = rep(c(1, 2, 4), each = 3), concluded = rep(c(4, 3, 6), each = 3)
 )
-thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                            start = "constituted", end = "concluded")
 yearly <- hg_snapshots(thg, step = 2)
 names(yearly)

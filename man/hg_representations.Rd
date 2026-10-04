@@ -11,10 +11,10 @@ hg_representations(hg, graph = c("clique", "citation"), edge_source = NULL)
 \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
 \item{graph}{\code{"clique"} (default) or \code{"citation"}, the graph projection
-compared; see \code{\link[=hg_project]{hg_project()}}. \code{"citation"} needs hyperedge sources.}
+compared; see \code{\link[=pairwise_network]{pairwise_network()}}. \code{"citation"} needs hyperedge sources.}
 
 \item{edge_source}{Hyperedge sources for \code{graph = "citation"}, as in
-\code{\link[=hg_project]{hg_project()}}; omitted when the hypergraph carries them.}
+\code{\link[=pairwise_network]{pairwise_network()}}; omitted when the hypergraph carries them.}
 }
 \value{
 A base data.frame with one row per representation, in the order

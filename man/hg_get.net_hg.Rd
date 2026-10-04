@@ -20,7 +20,7 @@
 for one row per node, or \code{"memberships"} for one row per node-in-
 hyperedge cell of the incidence matrix. A hypergraph of clustered
 sequences (\code{\link[=group_hypergraph]{group_hypergraph()}} on a clustering of sequences) also has
-\code{"sets"} and \code{"state_counts"}. A hypergraph read with \code{\link[=hg_read_hif]{hg_read_hif()}}
+\code{"sets"} and \code{"state_counts"}. A hypergraph read with \code{\link[=read_hif]{read_hif()}}
 also has \code{"node_data"} and \code{"incidence_data"}; \code{"edge_data"} returns the
 per-hyperedge attribute table any constructor or HIF file attached.}
 
@@ -40,7 +40,7 @@ columns \code{hyperedge} (character id), \code{size} (integer), \code{members}
 (the member nodes, comma separated), and \code{weight} (numeric window count,
 or \code{NA}). For \code{what = "nodes"}, one row per node with columns \code{node}
 and \code{degree} (the number of hyperedges it belongs to), plus \code{block}
-for a hypergraph with planted blocks (\code{\link[=hg_sample_sbm]{hg_sample_sbm()}}); \code{sort_by = "degree"} orders it. For \code{what = "memberships"}, one row per non-zero
+for a hypergraph with planted blocks (\code{\link[=random_hypergraph]{random_hypergraph()}} with \code{type = "sbm"}); \code{sort_by = "degree"} orders it. For \code{what = "memberships"}, one row per non-zero
 incidence cell with columns \code{node}, \code{hyperedge} and \code{weight} (the
 incidence value: 1 for a binary hypergraph, the summed weight for a
 weighted one), in hyperedge order; \code{sort_by = "weight"} orders it.

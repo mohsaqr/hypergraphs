@@ -199,3 +199,21 @@ test_that("print works on empty hypergraph", {
     class = "net_hg")
   expect_invisible(print(.hg_measures_fit(hg)))
 })
+
+test_that("the hyperedge-pair matrices are built only when asked for", {
+  hg <- .hm_two_overlapping()
+  with_pairs <- .hg_measures_fit(hg)
+  without <- .hg_measures_fit(hg, pairs = FALSE)
+  expect_null(without$edge_pairwise_overlap)
+  expect_null(without$jaccard)
+  expect_null(without$intersection_profile)
+  shared <- c("hyperdegree", "node_strength", "max_edge_size", "co_degree",
+              "edge_sizes", "density", "avg_edge_size",
+              "pairwise_participation")
+  expect_identical(without[shared], with_pairs[shared])
+  # hg_measures() asks for the pairs only for what = "overlap"
+  expect_identical(hg_measures(hg, what = "nodes")$hyperdegree,
+                   as.integer(with_pairs$hyperdegree))
+  expect_equal(nrow(hg_measures(hg, what = "overlap")),
+               choose(hg$n_hyperedges, 2))
+})

@@ -58,40 +58,40 @@ test_that("INVARIANT: sparse and dense representations agree", {
 
 test_that("citation projection is the source-to-member graph", {
   hg <- .rep_citations()
-  directed <- hg_project(hg, method = "citation", what = "matrix", directed = TRUE)
+  directed <- pairwise_network(hg, type = "citation", directed = TRUE)$weights
   expect_identical(rownames(directed), c("a", "b", "c"))
   expect_equal(directed["a", "b"], 2)
   expect_equal(directed["a", "c"], 1)
   expect_equal(directed["b", "c"], 1)
   expect_equal(sum(directed), 4)
-  binary <- hg_project(hg, method = "citation", what = "matrix",
-                       directed = TRUE, duplicate_edges = "collapse")
+  binary <- pairwise_network(hg, type = "citation",
+                       directed = TRUE, duplicate_edges = "collapse")$weights
   expect_equal(sum(binary), 3)
-  undirected <- hg_project(hg, method = "citation", what = "matrix")
+  undirected <- pairwise_network(hg, type = "citation")$weights
   expect_true(isSymmetric(unname(as.matrix(undirected))))
-  edges <- hg_project(hg, method = "citation")
+  edges <- hg_get(pairwise_network(hg, type = "citation"))
   expect_identical(names(edges), c("from", "to", "weight"))
   expect_identical(edges$from, c("a", "a", "b"))
   expect_equal(edges$weight, c(2, 1, 1))
-  directed_edges <- hg_project(hg, method = "citation", directed = TRUE)
+  directed_edges <- hg_get(pairwise_network(hg, type = "citation", directed = TRUE))
   expect_identical(directed_edges$to, c("b", "c", "c"))
   # explicit sources override, and missing sources are an error
   bare <- .rep_citations()
   bare$edge_data <- NULL
-  expect_error(hg_project(bare, method = "citation"), class = "hypergraphs_bad_input")
-  explicit <- hg_project(bare, method = "citation", what = "matrix",
-                         edge_source = c(e1 = "a", e2 = "a", e3 = "b"))
+  expect_error(hg_get(pairwise_network(bare, type = "citation")), class = "hypergraphs_bad_input")
+  explicit <- pairwise_network(bare, type = "citation",
+                         edge_source = c(e1 = "a", e2 = "a", e3 = "b"))$weights
   expect_equal(as.matrix(explicit), as.matrix(undirected))
   # the source may be named as an attribute column of the hyperedges
   named <- .rep_citations()
   names(named$edge_data)[2L] <- "citing"
-  named_projection <- hg_project(named, method = "citation", what = "matrix",
-                                 edge_source = "citing")
+  named_projection <- pairwise_network(named, type = "citation",
+                                 edge_source = "citing")$weights
   expect_equal(as.matrix(named_projection), as.matrix(undirected))
-  expect_error(hg_project(named, method = "citation"), class = "hypergraphs_bad_input")
-  expect_error(hg_project(hg, method = "clique", directed = TRUE),
+  expect_error(hg_get(pairwise_network(named, type = "citation")), class = "hypergraphs_bad_input")
+  expect_error(hg_get(pairwise_network(hg, type = "clique", directed = TRUE)),
                class = "hypergraphs_bad_input")
-  expect_error(hg_project(hg, method = "citation", weighted = FALSE),
+  expect_error(hg_get(pairwise_network(hg, type = "citation", weighted = FALSE)),
                class = "hypergraphs_bad_input")
 })
 

@@ -20,6 +20,10 @@
   if (!is.null(hg$edge_multiplicity)) {
     hg$edge_multiplicity <- hg$edge_multiplicity[keep_edges]
   }
+  # the window counts of a window hypergraph are its hyperedge weights
+  if (!is.null(hg$window_counts)) {
+    hg$window_counts <- hg$window_counts[keep_edges]
+  }
   if (!is.null(hg$edge_data)) {
     hg$edge_data <- hg$edge_data[
       match(edge_names, as.character(hg$edge_data$edge)), , drop = FALSE
@@ -74,37 +78,63 @@
 #' @param size Hyperedge sizes to keep, as a vector of member counts (distinct
 #'   members): `size = 3` keeps the hyperedges with exactly three members, the
 #'   3-uniform hypergraph that [hg_motifs()] needs.
+#' @param component `"all"` (default) keeps every connected component;
+#'   `"largest"` keeps only the largest connected component, in which two
+#'   nodes are connected when a chain of shared hyperedges joins them.
+#'   Spectral clustering and label spreading need a connected hypergraph
+#'   (Hayashi et al. 2020), and a corpus of short texts often holds a few
+#'   texts that share no word with the rest. Applied after the other
+#'   filters.
 #' @param drop_isolated Drop nodes that belong to no retained hyperedge?
 #'   Default `TRUE`. Ignored when `nodes` is given.
 #' @return A `net_hg` whose incidence matrix is the selected
 #'   sub-matrix of the input, sparse if the input is sparse. Edge metadata
-#'   (`edge_data`) and duplicate multiplicities (`edge_multiplicity`) are
-#'   subset alongside.
+#'   (`edge_data`), duplicate multiplicities (`edge_multiplicity`) and the
+#'   window counts of a [window_hypergraph()] are subset alongside. The
+#'   nodes the subset removes are recorded in `params$subset$removed`, and
+#'   the labels of removed nodes are set aside with a
+#'   `hypergraphs_dropped_documents` warning by [hg_classify()],
+#'   [hg_keywords()] and the other verbs that take labels, so the table that
+#'   built the hypergraph can be passed back whole.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #'   hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
+#'
+#'   Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+#'   random walks, Laplacians, and clustering. *Proceedings of CIKM 2020*,
+#'   495-504. \doi{10.1145/3340531.3412034}
 #' @examples
 #' dat <- data.frame(
 #'   member = c("a", "b", "c", "b", "c", "d", "d", "e"),
 #'   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3"),
 #'   kind = c("x", "x", "x", "x", "x", "x", "y", "y")
 #' )
-#' hg <- group_hypergraph(dat, actor = "member", group = "event")
+#' hg <- group_hypergraph(dat, node = "member", hyperedge = "event")
 #' hg_subset(hg, edges = c("e1", "e2"))
 #' hg_subset(hg, nodes = c("b", "c", "d", "e"))
 #' hg_subset(hg, where = c(kind = "y"))
+#' hg_subset(hg, edges = c("e1", "e3"), component = "largest")
 #' @export
 hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
-                      size = NULL, drop_isolated = TRUE) {
+                      size = NULL, component = c("all", "largest"),
+                      drop_isolated = TRUE) {
   .thg_check_hg(hg)
   stopifnot(
     "`drop_isolated` must be TRUE or FALSE" =
       is.logical(drop_isolated) && length(drop_isolated) == 1L &&
       !is.na(drop_isolated)
   )
-  if (is.null(edges) && is.null(nodes) && is.null(where) && is.null(size)) {
-    .thg_bad_input("supply at least one of `edges`, `nodes`, `where` or `size`")
+  if (!is.character(component) || !all(component %in% c("all", "largest"))) {
+    .thg_bad_input("`component` must be \"all\" or \"largest\"")
   }
+  component <- match.arg(component)
+  no_filter <- is.null(edges) && is.null(nodes) && is.null(where) &&
+    is.null(size)
+  if (no_filter && identical(component, "all")) {
+    .thg_bad_input(paste0("supply at least one of `edges`, `nodes`, `where`, ",
+                          "`size` or `component = \"largest\"`"))
+  }
+  if (no_filter) return(.thg_largest_component(hg))
   if (!is.null(size) && (!is.numeric(size) || anyNA(size) || any(size < 1))) {
     .thg_bad_input("`size` must be a vector of positive member counts")
   }
@@ -170,6 +200,71 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
   incidence <- incidence[keep_node, , drop = FALSE]
   out <- .thg_rebuild(hg, incidence, keep_edge)
   out$params$subset <- list(edges = edges, nodes = nodes, where = where,
-                            size = size, drop_isolated = drop_isolated)
+                            size = size, drop_isolated = drop_isolated,
+                            removed = c(hg$params$subset$removed,
+                                        setdiff(hg$nodes, out$nodes)))
+  if (is.list(hg$text)) out$text <- .thg_subset_text(hg$text, out)
+  if (identical(component, "largest")) out <- .thg_largest_component(out)
   out
+}
+
+# The text layer of a subset text hypergraph: the weight table keeps the rows
+# whose node and hyperedge survive, the document, sentence and vocabulary
+# tables follow, and the vocabulary counts are recounted over the kept rows,
+# so the layer matches the incidence matrix again.
+.thg_subset_text <- function(text, out) {
+  columns <- switch(
+    text$construction,
+    bag = if (identical(text$nodes, "word")) c(node = "word", edge = "doc")
+          else c(node = "doc", edge = "word"),
+    knn = c(node = "doc", edge = "edge"),
+    c(node = "word", edge = "edge")
+  )
+  weights <- text$weights
+  keep <- weights[[columns[["node"]]]] %in% out$nodes &
+    weights[[columns[["edge"]]]] %in% colnames(out$incidence)
+  text$weights <- weights[keep, , drop = FALSE]
+  rownames(text$weights) <- NULL
+  if (is.data.frame(text$sentences)) {
+    text$sentences <- text$sentences[text$sentences$edge %in%
+                                       colnames(out$incidence), , drop = FALSE]
+  }
+  kept_docs <- if ("doc" %in% names(text$weights)) {
+    unique(text$weights$doc)
+  } else if (is.data.frame(text$sentences)) {
+    unique(text$sentences$doc)
+  }
+  if (!is.null(kept_docs) && is.data.frame(text$documents)) {
+    text$documents <- text$documents[text$documents$doc %in% kept_docs, ,
+                                     drop = FALSE]
+    rownames(text$documents) <- NULL
+  }
+  if (is.data.frame(text$vocabulary) && nrow(text$vocabulary) > 0L &&
+      "word" %in% names(text$weights)) {
+    vocabulary <- text$vocabulary[text$vocabulary$word %in%
+                                    text$weights$word, , drop = FALSE]
+    if (all(c("count", "doc") %in% names(text$weights))) {
+      vocabulary$count <- as.integer(tapply(text$weights$count,
+                                            text$weights$word,
+                                            sum)[vocabulary$word])
+      vocabulary$doc_freq <- as.integer(tapply(text$weights$doc,
+                                               text$weights$word,
+                                               \(d) length(unique(d)))[
+                                                 vocabulary$word])
+    }
+    rownames(vocabulary) <- NULL
+    text$vocabulary <- vocabulary
+  }
+  text
+}
+
+# The largest connected component: nodes joined by a chain of shared
+# hyperedges. A connected hypergraph is returned unchanged.
+.thg_largest_component <- function(hg) {
+  membership <- .thg_binary(hg$incidence)
+  adjacency <- Matrix::tcrossprod(membership) > 0
+  labels <- .thg_components(adjacency)
+  largest <- which.max(tabulate(labels))
+  if (all(labels == largest)) return(hg)
+  hg_subset(hg, nodes = hg$nodes[labels == largest])
 }

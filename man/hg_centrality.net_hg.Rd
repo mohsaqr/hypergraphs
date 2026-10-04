@@ -84,7 +84,7 @@ the result is one row per node.
 clique-expanded pairwise graph \eqn{W} where
 \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 eigenvector of \eqn{W}. Equivalent to running
-\code{igraph::eigen_centrality()} on \code{\link[=hg_clique_expansion]{hg_clique_expansion()}} output.
+\code{igraph::eigen_centrality()} on \code{\link[=pairwise_network]{pairwise_network()}} output.
 
 \strong{Z-eigenvector centrality (ZEC)}: solves the linear
 eigen-equation on the hyperedge tensor,
@@ -181,6 +181,6 @@ interactions: Structure and dynamics. \emph{Physics Reports}, 874,
 1-92. \doi{10.1016/j.physrep.2020.05.004}
 }
 \seealso{
-\code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\link[=hg_clique_expansion]{hg_clique_expansion()}},
+\code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\link[=pairwise_network]{pairwise_network()}},
 \code{\link[=hg_measures]{hg_measures()}}.
 }

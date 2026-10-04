@@ -248,19 +248,18 @@ print.net_hg <- function(x, n = 10L, ...) {
       x$params$window, x$params$step,
       x$params$n_windows, x$params$n_sequences))
   } else if (identical(x$params$source, "group_hypergraph")) {
-    cat(sprintf("Source: group membership (actor = %s, group = %s)\n",
-                x$params$member, x$params$group))
+    cat(sprintf("Source: group membership (node = %s, hyperedge = %s)\n",
+                x$params$node, x$params$hyperedge))
   } else if (identical(x$params$source, "clustered_sequences")) {
-    cat(sprintf("Source: state sets of clustered sequences (top %d per group)\n",
-                x$params$top))
+    cat(sprintf("Source: state sets of clustered sequences (%s per group)\n",
+                .thg_set_rule(x$params)))
   } else if (identical(x$params$source, "frame_sets")) {
     cat(sprintf(paste0("Source: sets of %s per %s, counted %s ",
                        "(%s per group)\n"),
-                x$params$member, x$params$group,
-                if (is.null(x$params$by)) "over all of them" else
-                  paste("within", x$params$by),
-                if (is.finite(x$params$top))
-                  sprintf("top %d", as.integer(x$params$top)) else "all sets"))
+                x$params$node, x$params$hyperedge,
+                if (is.null(x$params$group)) "over all of them" else
+                  paste("within each", x$params$group),
+                .thg_set_rule(x$params)))
   } else if (identical(x$params$source, "topic_sets")) {
     cat(sprintf(paste0("Source: topic combinations of %d documents ",
                        "(share >= %g; at least %d topic%s; %s per ",
@@ -268,13 +267,12 @@ print.net_hg <- function(x, n = 10L, ...) {
                 sum(x$group_sizes$sequences), x$params$threshold,
                 x$params$min_size,
                 if (x$params$min_size == 1L) "" else "s",
-                if (is.finite(x$params$top))
-                  sprintf("top %d", as.integer(x$params$top)) else "all sets",
-                if (is.null(x$params$by)) "" else
-                  sprintf(", grouped by %s", x$params$by)))
-  } else if (identical(x$params$source, "hg_read_hif")) {
-    cat("Source: Hypergraph Interchange Format (hg_read_hif())\n")
-  } else if (startsWith(x$params$source %||% "", "hg_sample_")) {
+                .thg_set_rule(x$params),
+                if (is.null(x$params$group)) "" else
+                  sprintf(", within each %s", x$params$group)))
+  } else if (identical(x$params$source, "read_hif")) {
+    cat("Source: Hypergraph Interchange Format (read_hif())\n")
+  } else if (identical(x$params$source, "random_hypergraph")) {
     cat(sprintf("Source: random %s model\n", x$params$model))
   } else {
     cat(sprintf(
@@ -303,7 +301,7 @@ print.net_hg <- function(x, n = 10L, ...) {
 #'   for one row per node, or `"memberships"` for one row per node-in-
 #'   hyperedge cell of the incidence matrix. A hypergraph of clustered
 #'   sequences ([group_hypergraph()] on a clustering of sequences) also has
-#'   `"sets"` and `"state_counts"`. A hypergraph read with [hg_read_hif()]
+#'   `"sets"` and `"state_counts"`. A hypergraph read with [read_hif()]
 #'   also has `"node_data"` and `"incidence_data"`; `"edge_data"` returns the
 #'   per-hyperedge attribute table any constructor or HIF file attached.
 #' @return A data.frame. For `what = "edges"`, one row per hyperedge with
@@ -311,7 +309,7 @@ print.net_hg <- function(x, n = 10L, ...) {
 #'   (the member nodes, comma separated), and `weight` (numeric window count,
 #'   or `NA`). For `what = "nodes"`, one row per node with columns `node`
 #'   and `degree` (the number of hyperedges it belongs to), plus `block`
-#'   for a hypergraph with planted blocks ([hg_sample_sbm()]); `sort_by =
+#'   for a hypergraph with planted blocks ([random_hypergraph()] with `type = "sbm"`); `sort_by =
 #'   "degree"` orders it. For `what = "memberships"`, one row per non-zero
 #'   incidence cell with columns `node`, `hyperedge` and `weight` (the
 #'   incidence value: 1 for a binary hypergraph, the summed weight for a
@@ -463,4 +461,20 @@ summary.net_hg <- function(object, ...) {
   }
   invisible(data.frame(node = as.character(nodes), degree = deg,
                        stringsAsFactors = FALSE, row.names = NULL))
+}
+
+# The rule that kept the counted sets, for print(): the `top` count, the
+# minimum support `min_share`, both, or every set.
+.thg_set_rule <- function(params) {
+  top <- params$top %||% Inf
+  share <- params$min_share
+  support <- if (is.null(share)) NULL else
+    sprintf("sets of at least %s%%", format(100 * share, trim = TRUE))
+  if (is.finite(top) && !is.null(support)) {
+    sprintf("top %d %s", as.integer(top), support)
+  } else if (is.finite(top)) {
+    sprintf("top %d", as.integer(top))
+  } else {
+    support %||% "all sets"
+  }
 }

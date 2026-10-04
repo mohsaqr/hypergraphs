@@ -21,16 +21,17 @@ hg_topics(
 
 \method{hg_get}{net_hg_topics}(
   x,
-  what = c("topics", "shares", "words", "documents", "restarts"),
+  what = c("topics", "shares", "words", "documents", "restarts", "prevalence"),
   ...,
   n = 10L,
   topic = NULL,
+  group = NULL,
   top = NULL
 )
 
 \method{print}{net_hg_topics}(x, n = 10L, ...)
 
-\method{plot}{net_hg_topics}(x, y, n = 8L, ...)
+\method{plot}{net_hg_topics}(x, y, n = 8L, type = c("words", "prevalence"), group = NULL, ...)
 }
 \arguments{
 \item{hg}{A \code{net_hg} or \code{text_hypergraph}.}
@@ -61,7 +62,8 @@ one. Default \code{FALSE}.}
 \item{x}{A \code{net_hg_topics} object.}
 
 \item{what}{Which table: \code{"topics"} (default), \code{"shares"}, \code{"words"},
-\code{"documents"} or \code{"restarts"}.}
+\code{"documents"}, \code{"restarts"} or \code{"prevalence"} (the topics' mean share
+within each group of documents given by \code{group}).}
 
 \item{...}{Unused.}
 
@@ -71,9 +73,20 @@ one. Default \code{FALSE}.}
 \item{topic}{For \code{what = "shares"} and \code{"words"}: keep only these topics
 (labels such as \code{"Topic 3"}).}
 
+\item{group}{For \code{what = "prevalence"}: the group of each document, as
+the name of a column of the modelled text hypergraph's document table
+(\code{group = "period"}), a named character vector (names are document ids)
+or a data.frame with a \code{node} column and a \code{label}, \code{cluster},
+\code{community} or \code{predicted} column. Documents without a group are left
+out.}
+
 \item{top}{Keep only the first \code{top} rows of the returned table.}
 
 \item{y}{Unused.}
+
+\item{type}{For \code{plot()}: \code{"words"} (default), the \code{n} most probable
+words of every topic, or \code{"prevalence"}, the mean share of every topic
+in each group of documents given by \code{group}.}
 }
 \value{
 A \code{net_hg_topics} object. Read it with \code{\link[=hg_get]{hg_get()}}: one row per
@@ -86,13 +99,19 @@ document's topics); one row per topic and word (\code{"words"}: \code{topic},
 \code{rank}, \code{word}, \code{probability}, \code{n} words per topic); one row per
 document with its largest share (\code{"documents"}: \code{node}, \code{topic},
 \code{share}); or one row per start (\code{"restarts"}: \code{run}, \code{divergence},
-\code{iterations}, \code{converged}, \code{best}, \code{agreement}). \code{print()} shows the
+\code{iterations}, \code{converged}, \code{best}, \code{agreement}); or, with \code{group},
+one row per topic and group (\code{"prevalence"}: \code{topic}, \code{group},
+\code{prevalence} (the mean share over the group's documents), \code{documents}
+(the summed shares), \code{n} (the group's documents) and \code{top_words}), the
+topic prevalence by covariate of Roberts et al. (2014). \code{print()} shows the
 topics, \code{summary()} every table, and \code{plot()} the top words of every
 topic. A start that reaches \code{max_iter} without converging raises the
 warning \code{hypergraphs_no_converge}.
 
 \code{plot()} returns a ggplot of the \code{n} most probable words of every
-topic, one panel per topic.
+topic, one panel per topic, or with \code{type = "prevalence"} of the
+prevalence of every topic in each group, one bar per topic and group,
+the topics labelled by their top words.
 }
 \description{
 Factorizes the document-word counts of a hypergraph into topics, so that
@@ -163,6 +182,11 @@ Discovery in Databases (ECML PKDD 2014)}, 498-513.
 Kuhn, H. W. (1955). The Hungarian method for the assignment problem.
 \emph{Naval Research Logistics Quarterly}, 2, 83-97.
 \doi{10.1002/nav.3800020109}
+
+Roberts, M. E., Stewart, B. M., Tingley, D., Lucas, C., Leder-Luis, J.,
+Gadarian, S. K., Albertson, B., & Rand, D. G. (2014). Structural topic
+models for open-ended survey responses. \emph{American Journal of
+Political Science}, 58(4), 1064-1082. \doi{10.1111/ajps.12103}
 }
 \seealso{
 \code{\link[=hg_topic_quality]{hg_topic_quality()}} scores the topics' words,

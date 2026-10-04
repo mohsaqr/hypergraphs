@@ -4,9 +4,9 @@ test_that("association projection can count or collapse repeated hyperedges", {
                event = rep(c("e1", "e2"), each = 3)),
     "member", "event"
   )
-  counted <- hg_project(h, method = "association", what = "matrix")
-  collapsed <- hg_project(h, method = "association", what = "matrix",
-                          duplicate_edges = "collapse")
+  counted <- pairwise_network(h, type = "association")$weights
+  collapsed <- pairwise_network(h, type = "association",
+                          duplicate_edges = "collapse")$weights
   expect_equal(counted["a", "b"], 1)
   expect_equal(collapsed["a", "b"], 0.5)
 })
@@ -17,9 +17,9 @@ test_that("self-association contributes one unit per source", {
                event = rep(c("e1", "e2"), each = 2)),
     "member", "event"
   )
-  w <- hg_project(h, method = "association", what = "matrix",
+  w <- pairwise_network(h, type = "association",
                   self_association = TRUE,
-                  edge_source = c(e1 = "s", e2 = "s"))
+                  edge_source = c(e1 = "s", e2 = "s"))$weights
   expect_equal(w["a", "b"], 1)
   expect_equal(w["b", "c"], 1)
   expect_equal(unname(w["s", c("a", "b", "c")]), c(0.25, 0.5, 0.25))
@@ -32,10 +32,9 @@ test_that("self-association supports sparse incidence", {
                event = rep(c("e1", "e2"), each = 2)),
     "member", "event", sparse = TRUE
   )
-  w <- hg_project(h, method = "association", what = "matrix",
+  w <- pairwise_network(h, type = "association",
                   self_association = TRUE,
-                  edge_source = c(e1 = "s", e2 = "s"))
-  expect_s4_class(w, "sparseMatrix")
+                  edge_source = c(e1 = "s", e2 = "s"))$weights
   expect_equal(unname(as.matrix(w)["s", c("a", "b", "c")]),
                c(0.25, 0.5, 0.25))
 })

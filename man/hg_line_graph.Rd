@@ -35,7 +35,7 @@ hyperedges are parametrised (Aksoy et al. 2020).
 }
 \details{
 This is the projection of the dual: \code{hg_line_graph(hg, s = 1)} returns the
-same graph as \code{hg_project(dual_hypergraph(hg), weighted = FALSE)}, which
+same pairs as \code{pairwise_network(dual_hypergraph(hg), weighted = FALSE)}, which
 the tests assert.
 }
 \examples{
@@ -50,6 +50,6 @@ Aksoy, S. G., Joslyn, C., Ortiz Marrero, C., Praggastis, B., & Purvine, E.
 \emph{EPJ Data Science}, 9(1), 16. \doi{10.1140/epjds/s13688-020-00231-0}
 }
 \seealso{
-\code{\link[=hg_project]{hg_project()}} for the projection onto vertices,
+\code{\link[=pairwise_network]{pairwise_network()}} for the projection onto vertices,
 \code{\link[=dual_hypergraph]{dual_hypergraph()}} for the role swap itself.
 }

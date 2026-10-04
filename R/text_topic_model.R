@@ -249,7 +249,11 @@
 #'   `rank`, `word`, `probability`, `n` words per topic); one row per
 #'   document with its largest share (`"documents"`: `node`, `topic`,
 #'   `share`); or one row per start (`"restarts"`: `run`, `divergence`,
-#'   `iterations`, `converged`, `best`, `agreement`). `print()` shows the
+#'   `iterations`, `converged`, `best`, `agreement`); or, with `group`,
+#'   one row per topic and group (`"prevalence"`: `topic`, `group`,
+#'   `prevalence` (the mean share over the group's documents), `documents`
+#'   (the summed shares), `n` (the group's documents) and `top_words`), the
+#'   topic prevalence by covariate of Roberts et al. (2014). `print()` shows the
 #'   topics, `summary()` every table, and `plot()` the top words of every
 #'   topic. A start that reaches `max_iter` without converging raises the
 #'   warning `hypergraphs_no_converge`.
@@ -280,6 +284,11 @@
 #' Kuhn, H. W. (1955). The Hungarian method for the assignment problem.
 #' \emph{Naval Research Logistics Quarterly}, 2, 83-97.
 #' \doi{10.1002/nav.3800020109}
+#'
+#' Roberts, M. E., Stewart, B. M., Tingley, D., Lucas, C., Leder-Luis, J.,
+#' Gadarian, S. K., Albertson, B., & Rand, D. G. (2014). Structural topic
+#' models for open-ended survey responses. \emph{American Journal of
+#' Political Science}, 58(4), 1064-1082. \doi{10.1111/ajps.12103}
 #' @seealso [hg_topic_quality()] scores the topics' words,
 #'   [hg_cluster()] for a partition of the documents.
 #' @examples
@@ -433,18 +442,33 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
 #' @rdname hg_topics
 #' @param x A `net_hg_topics` object.
 #' @param what Which table: `"topics"` (default), `"shares"`, `"words"`,
-#'   `"documents"` or `"restarts"`.
+#'   `"documents"`, `"restarts"` or `"prevalence"` (the topics' mean share
+#'   within each group of documents given by `group`).
 #' @param n For `what = "words"`: the number of words per topic (default
 #'   `10`). For `print()`: rows of the topic table shown.
 #' @param topic For `what = "shares"` and `"words"`: keep only these topics
 #'   (labels such as `"Topic 3"`).
+#' @param group For `what = "prevalence"`: the group of each document, as
+#'   the name of a column of the modelled text hypergraph's document table
+#'   (`group = "period"`), a named character vector (names are document ids)
+#'   or a data.frame with a `node` column and a `label`, `cluster`,
+#'   `community` or `predicted` column. Documents without a group are left
+#'   out.
 #' @param top Keep only the first `top` rows of the returned table.
 #' @param ... Unused.
 #' @export
 hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
-                                             "documents", "restarts"), ...,
-                                 n = 10L, topic = NULL, top = NULL) {
+                                             "documents", "restarts",
+                                             "prevalence"), ...,
+                                 n = 10L, topic = NULL, group = NULL,
+                                 top = NULL) {
   what <- match.arg(what)
+  if (identical(what, "prevalence")) {
+    return(.ho_top(.tm_prevalence(x, group, topic), top))
+  }
+  if (!is.null(group)) {
+    .thg_bad_input("`group` applies only to `what = \"prevalence\"`")
+  }
   out <- x[[what]]
   if (!is.null(topic) && what %in% c("shares", "words")) {
     if (!all(topic %in% x$topics$topic)) {
@@ -461,6 +485,57 @@ hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
   }
   rownames(out) <- NULL
   .ho_top(out, top)
+}
+
+# Topic prevalence by group (Roberts et al. 2014): the mean share of each
+# topic over the documents of each group, with the summed shares (the
+# expected number of documents) and the group size. One row per topic and
+# group, topics in the model's order.
+.tm_prevalence <- function(x, group, topic) {
+  if (is.null(group)) {
+    .thg_bad_input("`what = \"prevalence\"` needs `group`, the group of each document")
+  }
+  groups <- if (is.character(group) && length(group) == 1L &&
+                is.null(names(group))) {
+    documents <- x$documents_table
+    if (!is.data.frame(documents) || !group %in% names(documents)) {
+      .thg_bad_input(sprintf(paste0("`group` = \"%s\" must name a column of ",
+                                    "the modelled hypergraph's document table"),
+                             group))
+    }
+    stats::setNames(as.character(documents[[group]]), documents$doc)
+  } else {
+    .thg_labels_input(group)
+  }
+  if (!is.character(groups) || is.null(names(groups)) ||
+      anyNA(names(groups))) {
+    .thg_bad_input("`group` must be a named character vector or a data.frame with a `node` column")
+  }
+  shares <- x$shares
+  shares$group <- unname(groups[as.character(shares$node)])
+  shares <- shares[!is.na(shares$group), , drop = FALSE]
+  if (nrow(shares) == 0L) {
+    .thg_bad_input("no document of the model has a group in `group`")
+  }
+  if (!is.null(topic)) {
+    if (!all(topic %in% x$topics$topic)) {
+      .thg_bad_input(sprintf("`topic` must be among %s",
+                             paste(x$topics$topic, collapse = ", ")))
+    }
+    shares <- shares[shares$topic %in% topic, , drop = FALSE]
+  }
+  means <- stats::aggregate(share ~ topic + group, data = shares, FUN = mean)
+  sums <- stats::aggregate(share ~ topic + group, data = shares, FUN = sum)
+  sizes <- tapply(shares$node, shares$group, \(v) length(unique(v)))
+  out <- data.frame(topic = means$topic, group = means$group,
+                    prevalence = means$share, documents = sums$share,
+                    n = as.integer(sizes[means$group]))
+  out <- merge(out, x$topics[c("topic", "top_words")], by = "topic",
+               sort = FALSE)
+  out <- out[order(match(out$topic, x$topics$topic), out$group), ,
+             drop = FALSE]
+  rownames(out) <- NULL
+  out
 }
 
 #' @rdname hg_topics
@@ -483,10 +558,23 @@ summary.net_hg_topics <- function(object, ...) .ho_summary(object)
 
 #' @rdname hg_topics
 #' @param y Unused.
+#' @param type For `plot()`: `"words"` (default), the `n` most probable
+#'   words of every topic, or `"prevalence"`, the mean share of every topic
+#'   in each group of documents given by `group`.
 #' @return `plot()` returns a ggplot of the `n` most probable words of every
-#'   topic, one panel per topic.
+#'   topic, one panel per topic, or with `type = "prevalence"` of the
+#'   prevalence of every topic in each group, one bar per topic and group,
+#'   the topics labelled by their top words.
 #' @export
-plot.net_hg_topics <- function(x, y, n = 8L, ...) {
+plot.net_hg_topics <- function(x, y, n = 8L, type = c("words", "prevalence"),
+                               group = NULL, ...) {
+  type <- match.arg(type)
+  if (identical(type, "prevalence")) {
+    return(.tm_plot_prevalence(x, group))
+  }
+  if (!is.null(group)) {
+    .thg_bad_input("`group` applies only to `type = \"prevalence\"`")
+  }
   words <- hg_get(x, what = "words", n = n)
   words$label <- factor(paste(words$topic, words$word, sep = "\r"),
                         levels = rev(paste(words$topic, words$word,
@@ -500,6 +588,41 @@ plot.net_hg_topics <- function(x, y, n = 8L, ...) {
     ggplot2::scale_y_discrete(labels = \(l) sub(".*\r", "", l)) +
     ggplot2::labs(x = "word probability", y = NULL) +
     ggplot2::theme_minimal(base_size = 11)
+}
+
+# Topic prevalence by group as dodged bars, one row per topic labelled by
+# its top three words, groups told apart by fill and by a point shape.
+.tm_plot_prevalence <- function(x, group) {
+  prevalence <- hg_get(x, what = "prevalence", group = group)
+  words <- vapply(strsplit(prevalence$top_words, ", ", fixed = TRUE),
+                  \(w) paste(utils::head(w, 3L), collapse = ", "),
+                  character(1L))
+  prevalence$name <- sprintf("%s: %s", prevalence$topic, words)
+  order_names <- unique(prevalence$name[order(
+    stats::ave(prevalence$prevalence, prevalence$name, FUN = mean)
+  )])
+  prevalence$name <- factor(prevalence$name, levels = order_names)
+  groups <- sort(unique(prevalence$group))
+  palette <- c("#E69F00", "#0072B2", "#009E73", "#D55E00", "#CC79A7",
+               "#56B4E9", "#F0E442", "#999999", "#000000")
+  colours <- stats::setNames(rep_len(palette, length(groups)), groups)
+  shapes <- stats::setNames(rep_len(c(16, 17, 15, 18, 3, 4, 8, 1, 2),
+                                    length(groups)), groups)
+  # a column name titles the legend; a vector or table of groups does not
+  legend <- if (is.character(group) && length(group) == 1L &&
+                is.null(names(group))) group else "group"
+  dodge <- ggplot2::position_dodge(width = 0.8)
+  ggplot2::ggplot(prevalence, ggplot2::aes(x = .data$prevalence,
+                                           y = .data$name,
+                                           fill = .data$group,
+                                           shape = .data$group)) +
+    ggplot2::geom_col(position = dodge, width = 0.8) +
+    ggplot2::geom_point(position = dodge, size = 1.8, colour = "black") +
+    ggplot2::scale_fill_manual(values = colours) +
+    ggplot2::scale_shape_manual(values = shapes) +
+    ggplot2::labs(x = "mean share of the topic in the documents", y = NULL,
+                  fill = legend, shape = legend) +
+    ggplot2::theme_minimal(base_size = 12)
 }
 
 #' Choose the number of topics by coherence and exclusivity

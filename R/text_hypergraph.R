@@ -43,6 +43,27 @@
   })
 }
 
+# Split a delimited term field (author keywords, descriptors, tags) into
+# one term per piece: the term is the whole phrase between separators, its
+# internal whitespace (including no-break spaces) collapsed, and the
+# punctuation and spaces at its edges trimmed -- exports leave dashes,
+# quotes and stray periods there ("- covid-19", "'becoming'") -- while
+# internal hyphens and apostrophes stay ("k-12", "teachers' work").
+# Lowercased when asked. Repeats within a document count once each time
+# they occur, as words do.
+.thg_split_terms <- function(text, separator, lowercase) {
+  if (isTRUE(lowercase)) {
+    text <- tolower(text)
+  }
+  text <- gsub("\u2019", "'", text)
+  edge <- "^[[:punct:][:space:]\u00a0\u2013\u2014\u2018\u201c\u201d\u00ab\u00bb]+|[[:punct:][:space:]\u00a0\u2013\u2014\u2018\u201c\u201d\u00ab\u00bb]+$"
+  lapply(strsplit(text, separator, fixed = TRUE), \(x) {
+    x <- gsub("[[:space:]\u00a0]+", " ", x, perl = TRUE)
+    x <- gsub(edge, "", x, perl = TRUE)
+    x[nzchar(x)]
+  })
+}
+
 # Drop tokens shorter than `min_chars`. `min_chars = 1` is a no-op, so the
 # default costs nothing.
 .thg_drop_short <- function(tokens, min_chars) {
@@ -186,6 +207,15 @@
 #'   and short fragments that initials, enumerations and hyphenated
 #'   line breaks leave behind. Not applicable to `"knn"`.
 #' @param lowercase Lowercase the text before tokenization (default `TRUE`).
+#' @param separator `NULL` (default) splits the text into words. A string
+#'   such as `";"` reads the column as a delimited field of terms instead,
+#'   such as the author keywords of a bibliographic export: each term is the
+#'   whole phrase between separators ("higher education"), trimmed, and
+#'   becomes one hyperedge, so a paper is bound to the keywords its authors
+#'   gave it. This is the keyword incidence of co-word analysis (Callon et
+#'   al. 1983) read as a hypergraph. `stop_words` then names whole terms to
+#'   drop and `min_count` the fewest occurrences a term needs. Bag
+#'   construction only.
 #' @param window Window size in tokens for `construction = "window"`
 #'   (default `3L`).
 #' @param window_mode `"sliding"` (default) or `"tumbling"`, for
@@ -223,6 +253,11 @@
 #'   `hypergraphs_dropped_documents` when some documents end up empty.
 #'
 #' @references
+#' Callon, M., Courtial, J.-P., Turner, W. A., & Bauin, S. (1983). From
+#' translations to problematic networks: An introduction to co-word
+#' analysis. *Social Science Information*, 22(2), 191-235.
+#' \doi{10.1177/053901883022002003}
+#'
 #' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with less:
 #' Hypergraph attention networks for inductive text classification.
 #' *EMNLP 2020*. \doi{10.18653/v1/2020.emnlp-main.399}
@@ -270,7 +305,8 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
                             k = 10L,
                             embeddings = NULL,
                             model = NULL,
-                            sparse = NULL) {
+                            sparse = NULL,
+                            separator = NULL) {
   construction <- match.arg(construction)
   nodes <- match.arg(nodes)
   stopifnot("`sparse` must be NULL, TRUE or FALSE" =
@@ -303,6 +339,15 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     "`window` must be a single count >= 2" =
       length(window) == 1L && is.finite(window) && window >= 2
   )
+  if (!is.null(separator)) {
+    if (!is.character(separator) || length(separator) != 1L ||
+        is.na(separator) || !nzchar(separator)) {
+      .thg_bad_input("`separator` must be a single non-empty string")
+    }
+    if (!identical(construction, "bag")) {
+      .thg_bad_input("`separator` applies only to `construction = \"bag\"`")
+    }
+  }
 
   if (is.data.frame(x)) {
     if (is.null(column) || !is.character(column) || length(column) != 1L ||
@@ -368,7 +413,11 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     tokens <- lapply(sentence_tokens,
                      \(s) unlist(s, use.names = FALSE) %||% character(0))
   } else {
-    tokens <- .thg_tokenize(text, lowercase = lowercase)
+    tokens <- if (is.null(separator)) {
+      .thg_tokenize(text, lowercase = lowercase)
+    } else {
+      .thg_split_terms(text, separator, lowercase = lowercase)
+    }
     if (!is.null(stop_words)) {
       tokens <- lapply(tokens, \(x) x[!x %in% stop_words])
     }
@@ -474,7 +523,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     sent_counts$w <- as.numeric(sent_counts$n)
     builder <- if (isTRUE(sparse)) .thg_sparse_bipartite else
       group_hypergraph
-    hg <- builder(sent_counts, actor = "word", group = "edge", weight = "w")
+    hg <- builder(sent_counts, node = "word", hyperedge = "edge", weight = "w")
     weights <- data.frame(edge = sent_counts$edge, word = sent_counts$word,
                           weight = sent_counts$w)
     weights <- weights[order(weights$edge, weights$word), , drop = FALSE]
@@ -505,8 +554,8 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     win_counts <- stats::aggregate(n ~ edge + word, data = win_long,
                                    FUN = sum)
     win_counts$w <- as.numeric(win_counts$n)
-    hg <- group_hypergraph(win_counts, actor = "word",
-                                      group = "edge", weight = "w")
+    hg <- group_hypergraph(win_counts, node = "word",
+                                      hyperedge = "edge", weight = "w")
     weights <- data.frame(edge = win_counts$edge, word = win_counts$word,
                           weight = win_counts$w)
     weights <- weights[order(weights$edge, weights$word), , drop = FALSE]
@@ -524,9 +573,9 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     builder <- if (isTRUE(sparse)) .thg_sparse_bipartite else
       group_hypergraph
     hg <- if (identical(nodes, "doc")) {
-      builder(counts, actor = "doc", group = "word", weight = "w")
+      builder(counts, node = "doc", hyperedge = "word", weight = "w")
     } else {
-      builder(counts, actor = "word", group = "doc", weight = "w")
+      builder(counts, node = "word", hyperedge = "doc", weight = "w")
     }
     weights <- data.frame(doc = counts$doc, word = counts$word,
                           count = counts$n, weight = counts$w)
@@ -561,6 +610,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     window_mode = if (identical(construction, "window")) window_mode else NULL,
     n_windows = n_windows,
     n_dropped = length(dropped),
+    dropped = dropped,
     min_count = as.integer(min_count),
     max_words = max_words,
     coverage = coverage,
@@ -718,22 +768,53 @@ print.text_hypergraph <- function(x, n = 10L, ...) {
 #'   columns carried from the input). `"vocabulary"` gives one row per word
 #'   (`word`, `count`, `doc_freq`, and `idf` under tf-idf weighting; empty for
 #'   the knn construction, which has no token layer).
+#' @param node For `"documents"`: keep only these documents, given as ids
+#'   or as a table with a `node` column, such as the predictions of
+#'   [hg_classify()], in the order given.
+#' @param sort_by For `"vocabulary"`: `"count"` (total occurrences) or
+#'   `"doc_freq"` (documents that contain the word), from the largest, ties
+#'   by word.
+#' @param top Keep only the first `top` rows of the returned table.
 #' @param ... Unused.
 #' @return A base `data.frame` as described under `what`.
 #' @examples
 #' hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
 #' hg_get(hg)
 #' hg_get(hg, what = "documents")
+#' hg_get(hg, what = "documents", node = "b")
 #' @export
 hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
                                                "vocabulary", "sentences"),
+                                   node = NULL, sort_by = NULL, top = NULL,
                                    ...) {
   what <- match.arg(what)
+  if (!is.null(sort_by)) {
+    if (!identical(what, "vocabulary")) {
+      .thg_bad_input("`sort_by` applies only to `what = \"vocabulary\"`")
+    }
+    sort_by <- match.arg(sort_by, c("count", "doc_freq"))
+    vocabulary <- x$text$vocabulary
+    vocabulary <- vocabulary[order(-vocabulary[[sort_by]], vocabulary$word), ,
+                             drop = FALSE]
+    rownames(vocabulary) <- NULL
+    return(.ho_top(vocabulary, top))
+  }
+  if (!is.null(node)) {
+    if (!identical(what, "documents")) {
+      .thg_bad_input("`node` applies only to `what = \"documents\"`")
+    }
+    documents <- x$text$documents
+    out <- documents[match(.thg_node_filter(node), documents$doc), ,
+                     drop = FALSE]
+    out <- out[!is.na(out$doc), , drop = FALSE]
+    rownames(out) <- NULL
+    return(out)
+  }
   if (identical(what, "sentences") && is.null(x$text$sentences)) {
     stop(errorCondition(
       "`what = \"sentences\"` needs construction = \"sentence\"",
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  x$text[[what]]
+  .ho_top(x$text[[what]], top)
 }

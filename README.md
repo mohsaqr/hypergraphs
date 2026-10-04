@@ -59,8 +59,8 @@ embeddings `sbert`, both optional.
 | `hg_laplacian()`, `hg_cluster()`, `hg_joint_cluster()`, `hg_classify()` | Weighted normalised Laplacian; RDC-Spec, RDC-SymNMF, J-NMF and JS-NMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
 | `hg_pagerank()` | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
 | `knn_hypergraph()`, `dual_hypergraph()` | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
-| `hg_clique_expansion()`, `hg_project()`, `hg_line_graph()` | Projections: weighted pairwise network, association-weighted graph, s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
-| `temporal_hypergraph()`, `hg_snapshot()`, `hg_snapshots()` | Interval and contact hypergraphs in Dynet's vocabulary (`actor`/`group`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
+| `pairwise_network()`, `hg_line_graph()` | Projections: the pairwise network (clique, association or citation weighting) as a network object, and the s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
+| `temporal_hypergraph()`, `hg_snapshot()`, `hg_snapshots()` | Interval and contact hypergraphs in a standard vocabulary (`node`/`group` or `from`/`to`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
 | `hg_edges()`, `hg_edge_centrality()` | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
 | `hg_motifs()` | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
 | `hg_communities()`, `hg_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance (on a memory network: the map equation for memory networks) | Coupette, Hartung & Katz (2024); Rosvall et al. (2014) |
@@ -144,7 +144,7 @@ sc <- simplicial(net, type = "pathway")
 hg_betti(sc)
 
 # hypergraph: each session as one multi-way interaction over its codes
-hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
+hg <- group_hypergraph(human_long, node = "code", hyperedge = "session_id")
 hg_centrality(hg, type = "pagerank")
 
 # text: a corpus as a document-word hypergraph, clustered into topics
@@ -157,7 +157,7 @@ hg_keywords(thg, topics, n = 5, type = "ctfidf", collapse = TRUE)  # BERTopic's 
 hg_keywords(thg, topics, n = 5, type = "centrality", collapse = TRUE)
 ```
 
-`hg_clique_expansion()` projects a hypergraph back to a pairwise network that any
+`pairwise_network()` projects a hypergraph back to a pairwise network that any
 first-order tool accepts; `hg_get(net, what = "pathways")` hands
 sequence-derived path strings from the memory family to the other two.
 

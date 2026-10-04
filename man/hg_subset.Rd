@@ -10,6 +10,7 @@ hg_subset(
   nodes = NULL,
   where = NULL,
   size = NULL,
+  component = c("all", "largest"),
   drop_isolated = TRUE
 )
 }
@@ -33,14 +34,27 @@ hyperedge), each holding the value or values to keep.}
 members): \code{size = 3} keeps the hyperedges with exactly three members, the
 3-uniform hypergraph that \code{\link[=hg_motifs]{hg_motifs()}} needs.}
 
+\item{component}{\code{"all"} (default) keeps every connected component;
+\code{"largest"} keeps only the largest connected component, in which two
+nodes are connected when a chain of shared hyperedges joins them.
+Spectral clustering and label spreading need a connected hypergraph
+(Hayashi et al. 2020), and a corpus of short texts often holds a few
+texts that share no word with the rest. Applied after the other
+filters.}
+
 \item{drop_isolated}{Drop nodes that belong to no retained hyperedge?
 Default \code{TRUE}. Ignored when \code{nodes} is given.}
 }
 \value{
 A \code{net_hg} whose incidence matrix is the selected
 sub-matrix of the input, sparse if the input is sparse. Edge metadata
-(\code{edge_data}) and duplicate multiplicities (\code{edge_multiplicity}) are
-subset alongside.
+(\code{edge_data}), duplicate multiplicities (\code{edge_multiplicity}) and the
+window counts of a \code{\link[=window_hypergraph]{window_hypergraph()}} are subset alongside. The
+nodes the subset removes are recorded in \code{params$subset$removed}, and
+the labels of removed nodes are set aside with a
+\code{hypergraphs_dropped_documents} warning by \code{\link[=hg_classify]{hg_classify()}},
+\code{\link[=hg_keywords]{hg_keywords()}} and the other verbs that take labels, so the table that
+built the hypergraph can be passed back whole.
 }
 \description{
 Keeps part of a hypergraph and returns it as a \code{net_hg} with the
@@ -58,13 +72,18 @@ dat <- data.frame(
   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3"),
   kind = c("x", "x", "x", "x", "x", "x", "y", "y")
 )
-hg <- group_hypergraph(dat, actor = "member", group = "event")
+hg <- group_hypergraph(dat, node = "member", hyperedge = "event")
 hg_subset(hg, edges = c("e1", "e2"))
 hg_subset(hg, nodes = c("b", "c", "d", "e"))
 hg_subset(hg, where = c(kind = "y"))
+hg_subset(hg, edges = c("e1", "e3"), component = "largest")
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 hypergraphs. \emph{Philosophical Transactions of the Royal Society A},
 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. \emph{Proceedings of CIKM 2020},
+495-504. \doi{10.1145/3340531.3412034}
 }

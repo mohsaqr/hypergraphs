@@ -49,7 +49,7 @@ gfcc_edges <- gfcc_edges[!is.na(backward) & backward, , drop = FALSE]
 # store more than 160 million cells.  Explicit `nodes` retains the decisions
 # that are isolated in a particular projection, exactly as the paper does.
 gfcc <- group_hypergraph(
-  gfcc_edges, actor = "target", group = "chunk_id",
+  gfcc_edges, node = "target", hyperedge = "chunk_id",
   nodes = gfcc_nodes$key, sparse = TRUE
 )
 edge_source <- vapply(split(gfcc_edges$source, gfcc_edges$chunk_id),
@@ -211,7 +211,7 @@ seats <- reshape(
   times = c("president", "arbitrator_1", "arbitrator_2"), idvar = "caseno"
 )
 icsid_temporal <- temporal_hypergraph(
-  seats, actor = "arbitrator", group = "caseno",
+  seats, node = "arbitrator", hyperedge = "caseno",
   start = "date_of_constitution_of_tribunal", end = "date_concluded"
 )
 

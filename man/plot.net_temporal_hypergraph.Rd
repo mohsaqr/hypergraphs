@@ -2,15 +2,9 @@
 % Please edit documentation in R/hypergraph_temporal.R
 \name{plot.net_temporal_hypergraph}
 \alias{plot.net_temporal_hypergraph}
-\title{Plot a temporal-hypergraph snapshot through cograph}
+\title{Plot a temporal-hypergraph snapshot}
 \usage{
-\method{plot}{net_temporal_hypergraph}(
-  x,
-  at = NULL,
-  mode = c("active", "cumulative"),
-  method = c("association", "clique"),
-  ...
-)
+\method{plot}{net_temporal_hypergraph}(x, at = NULL, mode = c("active", "cumulative"), method = NULL, ...)
 }
 \arguments{
 \item{x}{A \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
@@ -19,13 +13,39 @@
 
 \item{mode}{Snapshot mode passed to \code{\link[=hg_snapshot]{hg_snapshot()}}.}
 
-\item{method}{Projection weighting passed to \code{\link[=pairwise_network]{pairwise_network()}}.}
+\item{method}{Deprecated. The snapshot used to be projected to a pairwise
+network; \code{plot(pairwise_network(hg_snapshot(x, at), type = method))}
+plots that network.}
 
-\item{...}{Additional arguments passed to \code{\link[cograph:splot]{cograph::splot()}}.}
+\item{...}{Arguments passed to \code{\link[=plot.net_hg]{plot.net_hg()}}, such as \code{type},
+\code{color_by} or \code{labels}.}
 }
 \value{
-The cograph plot object, invisibly when rendered interactively.
+A ggplot object, as \code{\link[=plot.net_hg]{plot.net_hg()}} returns.
 }
 \description{
-Plot a temporal-hypergraph snapshot through cograph
+Plots the snapshot that \code{\link[=hg_snapshot]{hg_snapshot()}} takes at \code{at} as a hypergraph,
+with \code{\link[=plot.net_hg]{plot.net_hg()}}: the hyperedges active then, as hulls by default or
+as the incidence matrix with \code{type = "incidence"}. The snapshot keeps the
+hyperedge attributes and the data's names for nodes and hyperedges, so
+\code{color_by} can name an attribute and the legends use the data's words.
+}
+\section{Conditions}{
+
+\code{hypergraphs_bad_input} when the snapshot has no active nodes, and as
+\code{\link[=plot.net_hg]{plot.net_hg()}} raises it; \code{hypergraphs_deprecated} (a warning) for
+\code{method}.
+}
+
+\examples{
+seats <- data.frame(
+  case = rep(c("A", "B", "C"), each = 3),
+  arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
+  constituted = rep(c(1, 2, 4), each = 3),
+  concluded = rep(c(4, 3, 6), each = 3)
+)
+thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
+                           start = "constituted", end = "concluded")
+plot(thg, at = 2.5)
+plot(thg, at = 2.5, type = "incidence", edge_labels = TRUE)
 }

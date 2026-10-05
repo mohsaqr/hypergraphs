@@ -42,7 +42,8 @@ the Wasserman--Faust correction for disconnected line graphs.}
 }
 \value{
 A tidy data frame with \code{edge}, \code{s}, \code{measure}, and \code{value}; temporal
-input adds a leading \code{time} column.
+input adds a leading \code{time} column, the snapshot time: a date for a
+calendar hypergraph, the number on its clock otherwise.
 }
 \description{
 Hyperedges become vertices in the unweighted s-line graph: two are

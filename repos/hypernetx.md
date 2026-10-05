@@ -34,3 +34,28 @@
   paper equations and objective invariants.
 - **Links**: https://github.com/pnnl/HyperNetX ·
   https://hypernetx.readthedocs.io · `pip install hypernetx`
+- **Full read 2026-10-05 (2.4.3, installed in `~/.virtualenvs/r-reticulate`)**:
+  15.4k lines; `classes/hypergraph.py` (2.8k) is the core. Modules not in
+  the notes above: `matching` (greedy, iterated-sampling and HEDCS
+  approximate matching on d-uniform hypergraphs), `concepts` (formal
+  concept lattices, `HypergraphLattice`), `temporal/temporal_paths.py`
+  (temporal incidence graph, `temporal_shortest_path()`, temporal line
+  graph on edge-ordered hypergraphs), `homology/oat_accelerator.py`
+  (rational-coefficient homology through OAT), `reports/descriptive_stats.py`
+  (`degree_dist`, `edge_size_dist`, `comp_dist`, `toplex_dist`,
+  `s_node_diameter_dist`, `info_dict`), `drawing` (rubber-band, two-column,
+  UpSet incidence, storyline). `embeddings/` is an empty package. Class
+  methods include `s_connected_components`, `node/edge_diameters`,
+  `distance`/`edge_distance` (s-walks), `toplexes`, `collapse_edges/nodes`,
+  `equivalence_classes`, set algebra (`sum`, `union`, `intersection`,
+  `difference`).
+- **Overlap with hypergraphs**: already used as oracle for `hg_laplacian()`,
+  `hg_cluster()` spectral, `hg_pagerank()`, `hg_modularity()` and
+  `hg_communities(type = "irmm")`. `s_betweenness_centrality()` equals
+  `hg_edge_centrality()`; `s_closeness_centrality()` is per-component (see
+  LEARNINGS 2026-10-05). Generators cite Aksoy et al. 2017
+  (doi:10.1093/comnet/cnx001; Erdos-Renyi, Chung-Lu) and Larremore et al.
+  2014 (DCSBM); `random_hypergraph()` has no Chung-Lu or DCSBM type. No
+  hypergraphs counterpart for: s-walk distances/diameters, s-components as
+  a table, toplexes, edge/node collapsing, contagion (SIR/SIS), temporal
+  shortest paths, matching, concept lattices.

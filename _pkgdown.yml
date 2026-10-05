@@ -167,6 +167,10 @@ articles:
   navbar: ~
   contents:
   - articles/legal-hypergraphs
+- title: Examples
+  navbar: Examples
+  contents:
+  - articles/argentina-tribunals
 - title: Benchmarks
   contents:
   - articles/benchmarks

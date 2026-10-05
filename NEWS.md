@@ -1,3 +1,43 @@
+# hypergraphs 0.6.4
+
+* `plot()` on a hypergraph gains `type = "incidence"`, the incidence matrix
+  after UpSet (Lex et al. 2014): one row per node ordered by hyperdegree, one
+  column per hyperedge, a bar joining each hyperedge's members, hyperdegree
+  bars beside the rows and size bars above the columns when sizes differ.
+  It stays legible where hulls overlap. The new `sort_by` orders the columns
+  (`"size"`, an edge-metadata column such as a date, or one value per
+  hyperedge; numbers largest first). `color_by`, `labels`, `edge_labels`,
+  `label_size`, `edge_label_size` and `legend_title` apply; a hull-only
+  argument raises `hypergraphs_bad_input`. Counts sort largest first;
+  dates, text and clock columns (`start`, `end`, ...) in time order.
+* `plot()` on a hypergraph sizes the node labels to the number of labelled
+  nodes when `label_size` is not given: 4.2 mm up to 12 labels, then
+  shrinking with the square root of the count to 2.2 mm from 44 labels on
+  (was a fixed 4.2 mm). An explicit `label_size` is used as given; an
+  invalid one raises `hypergraphs_bad_input`.
+* `plot()` of a temporal hypergraph plots its snapshot as a hypergraph with
+  `plot.net_hg()` (hulls, or `type = "incidence"`), so the hyperedges are
+  kept; it used to plot a pairwise projection through `cograph::splot()`.
+  `method` is deprecated (`hypergraphs_deprecated`);
+  `plot(pairwise_network(hg_snapshot(x, at)))` plots the projection.
+* `hg_snapshot()` keeps the data's names for nodes and hyperedges, so a
+  printed or plotted snapshot says "cases" and "arbitrator" instead of
+  "edge" and "node".
+* `hg_edge_centrality()` and `hg_motifs()` on a temporal hypergraph report
+  the snapshot `time` as a date for a calendar hypergraph and as the number
+  on the clock otherwise; it used to be a character label of the day
+  offset (`"3104"`), also when `at` was given as dates.
+* `plot()` on a hypergraph with repeated member sets accepts `node_groups`:
+  grouping the nodes now draws every hyperedge, as `color_by` does, instead
+  of failing on the node sizes of the distinct-set view.
+* `icsid_tribunals`: `respondent` and `subject` are trimmed of the spaces
+  the source archive pads some values with. "Argentine Republic " held 12
+  of Argentina's 47 cases, so a filter on the clean name missed them; there
+  are now 145 distinct respondents instead of 201. No other column changes.
+* `hg_subset(where =)` raises `hypergraphs_bad_input` for a value that no
+  hyperedge takes, naming the closest values, instead of returning an empty
+  hypergraph.
+
 # hypergraphs 0.6.3
 
 * `plot()` on a hypergraph gains `node_groups`: each node is coloured and

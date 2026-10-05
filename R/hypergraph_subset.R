@@ -169,7 +169,12 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
     row <- match(edge_names, as.character(hg$edge_data$edge))
     for (attribute in names(where)) {
       values <- hg$edge_data[[attribute]][row]
-      keep_edge <- keep_edge & !is.na(values) & values %in% where[[attribute]]
+      wanted <- where[[attribute]]
+      # a value no hyperedge takes would return an empty hypergraph that
+      # reads like a real result; a misspelt value is an error
+      absent <- wanted[!wanted %in% values]
+      if (length(absent)) .thg_bad_input(.thg_where_absent(attribute, absent, values))
+      keep_edge <- keep_edge & !is.na(values) & values %in% wanted
     }
   }
   if (!is.null(size)) {
@@ -267,4 +272,20 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
   largest <- which.max(tabulate(labels))
   if (all(labels == largest)) return(hg)
   hg_subset(hg, nodes = hg$nodes[labels == largest])
+}
+
+# Message for `where` values that no hyperedge takes: the closest values of
+# the attribute (approximate matching, as for a misspelt name), else the
+# first few in sorted order.
+.thg_where_absent <- function(attribute, absent, values) {
+  pool <- sort(unique(as.character(values[!is.na(values)])))
+  close <- unique(unlist(lapply(as.character(absent), \(a) {
+    agrep(a, pool, value = TRUE, ignore.case = TRUE, max.distance = 0.2)
+  })))
+  hint <- utils::head(if (length(close)) close else pool, 5L)
+  sprintf("no hyperedge has %s = %s; %s %s",
+          attribute,
+          paste0("\"", absent, "\"", collapse = ", "),
+          if (length(close)) "did you mean" else "values include",
+          paste0("\"", hint, "\"", collapse = ", "))
 }

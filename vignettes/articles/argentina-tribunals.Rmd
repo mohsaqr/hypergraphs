@@ -1,0 +1,570 @@
+---
+title: "Analysis of ICSID tribunals in claims against Argentina"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Analysis of ICSID tribunals in claims against Argentina}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
+                      fig.width = 8, fig.height = 5, out.width = "100%",
+                      dpi = 150)
+library(hypergraphs)
+comma <- function(x) format(x, big.mark = ",", trim = TRUE)
+pct <- function(x) sprintf("%.0f%%", 100 * x)
+num <- function(x, d = 2) sprintf(paste0("%.", d, "f"), x)
+day <- function(x) trimws(format(x, "%e %B %Y"))
+```
+
+```{r ranking, include = FALSE}
+case_states <- unique(subset(icsid_tribunals, select = c(case, respondent)))
+claims <- aggregate(case ~ respondent, data = case_states, FUN = length)
+argentina_claims <- subset(claims, respondent == "Argentine Republic")$case
+argentina_rank <- sum(claims$case > argentina_claims) + 1L
+rank_word <- switch(argentina_rank, "largest", "second-largest",
+                    "third-largest")
+```
+
+Of the `r comma(nrow(case_states))` cases of the International Centre for
+Settlement of Investment Disputes (ICSID) in the `icsid_tribunals` data,
+`r argentina_claims` were brought against the Argentine
+Republic, the `r rank_word` number against any state. Each case is heard by
+a tribunal of three arbitrators, and the tribunals of the claims against one
+state form a temporal hypergraph. Its nodes are the arbitrators, its
+hyperedges the tribunals, and each hyperedge is active from the
+constitution of the tribunal to the conclusion of its case. A hypergraph
+keeps the tribunal as a unit, where a network of pairs of arbitrators
+dissolves it into three ties, and its temporal form keeps apart tribunals
+that never sat at the same time. This document asks three questions of the
+tribunals in the claims against Argentina. The first is who decided the
+claims, and how concentrated the seats were. The second is whether the same
+panels sat again more often than the numbers of tribunals of the
+arbitrators imply. The third is how the structure of the docket changed
+over two decades, and which tribunals connected it at each time. The
+tribunals are analysed over time and compared with the other ICSID cases.
+
+## Data
+
+The cases against Argentina are the rows of `icsid_tribunals` with
+Argentina as the respondent, one row per seat on a tribunal.
+
+```{r data}
+argentina <- subset(icsid_tribunals, respondent == "Argentine Republic")
+```
+
+```{r data-values, include = FALSE}
+n_cases <- length(unique(argentina$case))
+n_arbitrators <- length(unique(argentina$arbitrator))
+n_pending <- length(unique(subset(argentina, !is_concluded)$case))
+case_dates <- unique(subset(argentina, select = c(case, constituted)))
+origin_date <- min(case_dates$constituted)
+end_offset <- as.numeric(as.Date("2023-06-15") - origin_date)
+first_tribunal <- format(origin_date, "%Y")
+last_tribunal <- format(max(case_dates$constituted), "%Y")
+early <- nrow(subset(case_dates, constituted < as.Date("2006-01-01")))
+wave <- nrow(subset(case_dates, constituted >= as.Date("2003-01-01") &
+                      constituted < as.Date("2005-01-01")))
+dated_pending <- unique(subset(argentina, !is_concluded & !is.na(concluded),
+                               select = c(case, concluded)))
+year_of <- function(t) format(origin_date + t, "%Y")
+```
+
+The `r n_cases` cases were heard by `r n_arbitrators` arbitrators. Their
+tribunals were constituted between `r first_tribunal` and
+`r last_tribunal`, `r early` of them before 2006 and `r wave` in 2003 and
+2004 alone. `r n_pending` cases are marked as pending on 15 June 2023, the
+end of observation. One of these, `r dated_pending$case`, also carries a
+conclusion date, `r day(dated_pending$concluded)`, and its tribunal is
+treated as concluded on that date.
+
+## The temporal hypergraph
+
+The tribunals are built in the interval format. A case without a
+conclusion date is active until `observation_end`, and the columns that are
+constant within a case, such as the economic sector, are kept as attributes
+of the hyperedge. The same construction on all ICSID tribunals, and on the
+tribunals of the cases against other states, gives the systems the claims
+against Argentina are compared with.
+
+```{r build}
+tribunals <- temporal_hypergraph(argentina, node = "arbitrator",
+                                 hyperedge = "case", start = "constituted",
+                                 end = "concluded",
+                                 observation_end = as.Date("2023-06-15"))
+summary(tribunals)
+all_tribunals <- temporal_hypergraph(icsid_tribunals, node = "arbitrator",
+                                     hyperedge = "case", start = "constituted",
+                                     end = "concluded",
+                                     observation_end = as.Date("2023-06-15"))
+others <- subset(icsid_tribunals, respondent != "Argentine Republic")
+other_tribunals <- temporal_hypergraph(others, node = "arbitrator",
+                                       hyperedge = "case", start = "constituted",
+                                       end = "concluded",
+                                       observation_end = as.Date("2023-06-15"))
+```
+
+```{r build-values, include = FALSE}
+mean_years <- summary(tribunals)$mean_duration / 365.25
+```
+
+A tribunal in the claims against Argentina sits for
+`r num(mean_years, 1)` years on average. The cumulative snapshot at the end
+of observation is the static aggregate of all tribunals. Four
+representations of the aggregate differ in what they keep. The
+multi-hypergraph (`mh`) keeps every tribunal, the binary hypergraph (`bh`)
+keeps each distinct set of arbitrators once, and the clique expansions keep
+(`mg`) or merge (`bg`) the repeated pairs of arbitrators.
+
+```{r representations}
+argentina_all <- hg_snapshot(tribunals, mode = "cumulative")
+icsid_all <- hg_snapshot(all_tribunals, mode = "cumulative")
+others_all <- hg_snapshot(other_tribunals, mode = "cumulative")
+hg_representations(argentina_all)
+```
+
+```{r representations-values, include = FALSE}
+reps <- hg_representations(argentina_all)
+other_reps <- hg_representations(others_all)
+rep_value <- function(r, col, x = reps) unlist(subset(x, representation == r, select = col), use.names = FALSE)
+repeat_share <- (rep_value("mh", "n_edges") - rep_value("bh", "n_edges")) /
+  rep_value("mh", "n_edges")
+other_repeat_share <- (rep_value("mh", "n_edges", other_reps) -
+                         rep_value("bh", "n_edges", other_reps)) /
+  rep_value("mh", "n_edges", other_reps)
+```
+
+The clique expansion turns the `r rep_value("mh", "n_edges")` tribunals
+into `r rep_value("mg", "n_edges")` ties between pairs of arbitrators, of
+which `r rep_value("bg", "n_edges")` are distinct. Nothing in the graph
+records that three ties came from one tribunal, so the repeated panels
+examined below are invisible in it. The `r rep_value("mh", "n_edges")`
+tribunals hold `r rep_value("bh", "n_edges")` distinct sets of arbitrators,
+so `r pct(repeat_share)` of them repeat a panel that sat before, against
+`r pct(other_repeat_share)` of the tribunals in the cases against other
+states.
+
+## Who decided the claims
+
+The incidence view plots one row per arbitrator and one column per
+tribunal, with a bar joining the three members of each tribunal. Rows are ordered by the number of tribunals, and columns by the date
+of constitution. Colour and shape mark the economic sector.
+
+```{r incidence, fig.width = 11, fig.height = 13}
+plot(argentina_all, type = "incidence", color_by = "economic_sector",
+     sort_by = "start", edge_labels = TRUE,
+     legend_title = "economic sector")
+```
+
+```{r incidence-values, include = FALSE}
+panels <- aggregate(arbitrator ~ case + constituted, data = argentina,
+                    FUN = \(a) paste(sort(a), collapse = " | "))
+repeated <- subset(panels, duplicated(arbitrator) |
+                     duplicated(arbitrator, fromLast = TRUE))
+pairs <- aggregate(case ~ arbitrator, data = repeated,
+                   FUN = \(x) paste(sort(x), collapse = " and "))
+same_day <- aggregate(constituted ~ arbitrator, data = repeated,
+                      FUN = \(d) length(unique(d)) == 1L)
+repeat_years <- sort(unique(format(repeated$constituted, "%Y")))
+busiest <- subset(hg_get(argentina_all, what = "nodes"), degree >= 4)
+busiest_seats <- subset(argentina, arbitrator %in% busiest$node)
+busiest_early <- mean(busiest_seats$constituted < as.Date("2006-01-01"))
+```
+
+A tribunal that repeats a panel appears as a second column with dots in the
+same three rows. The `r nrow(pairs)` repeated panels are the pairs
+`r paste(pairs$case, collapse = ", ")`. All were constituted in
+`r paste(repeat_years, collapse = " and ")`, and the two tribunals of
+`r sum(same_day$constituted)` of the pairs on the same day. The
+`r nrow(busiest)` arbitrators with four or more tribunals hold the top
+rows, and `r pct(busiest_early)` of their seats are on tribunals constituted
+before 2006.
+
+The hyperdegree of an arbitrator is the number of tribunals on which the
+arbitrator sat, and the degree in the clique expansion is the number of
+distinct colleagues.
+
+```{r degrees}
+hg_get(argentina_all, what = "nodes", sort_by = "degree", top = 5)
+tribunal_counts <- hg_measures(argentina_all, what = "distribution",
+                               measure = "hyperdegree")
+colleague_counts <- hg_measures(argentina_all, what = "distribution",
+                                measure = "n_neighbors")
+```
+
+```{r degrees-values, include = FALSE}
+one_tribunal <- 1 - subset(tribunal_counts, value == 2)$ccdf
+top_arbitrator <- hg_get(argentina_all, what = "nodes", sort_by = "degree",
+                         top = 1)
+top_share <- function(h) {
+  degrees <- hg_get(h, what = "nodes", sort_by = "degree")$degree
+  sum(head(degrees, 10L)) / sum(degrees)
+}
+argentina_top <- top_share(argentina_all)
+other_top <- top_share(others_all)
+max_colleagues <- max(colleague_counts$value)
+```
+
+The figures plot the complementary cumulative distributions of the number
+of tribunals and of the number of colleagues of an arbitrator.
+
+```{r degrees-plot, fig.height = 4}
+plot(tribunal_counts)
+plot(colleague_counts)
+```
+
+Of the arbitrators, `r pct(one_tribunal)` sat on a single tribunal in these
+cases, and `r top_arbitrator$node` sat on `r top_arbitrator$degree`. The
+largest number of colleagues is `r max_colleagues`. The ten arbitrators with
+the most tribunals, `r pct(10 / n_arbitrators)` of the arbitrators, hold
+`r pct(argentina_top)` of the seats in the claims against Argentina; in the
+cases against other states the ten busiest arbitrators hold
+`r pct(other_top)`.
+
+Degree assortativity asks whether arbitrators with many tribunals sit with
+other arbitrators with many tribunals. From each tribunal a pair of
+arbitrators is chosen at random, and the coefficient is the rank
+correlation of their numbers of tribunals over all tribunals, a
+generalised Spearman coefficient.
+
+```{r assortativity}
+hg_assortativity(argentina_all)
+hg_assortativity(others_all)
+```
+
+```{r assortativity-values, include = FALSE}
+assort_argentina <- hg_assortativity(argentina_all)$assortativity
+assort_other <- hg_assortativity(others_all)$assortativity
+```
+
+The coefficient is `r num(assort_argentina)` for the claims against
+Argentina and `r num(assort_other)` for the cases against other states. In both, the
+busier arbitrators tend to share tribunals with each other, and the
+tendency is stronger in the claims against Argentina.
+
+## Repeated panels
+
+A repeated collaboration is a pair or a set of three arbitrators who sit
+together on more than one tribunal. The statistic `repeated_pairs` is the
+number of pairs counted with their multiplicity minus the number of
+distinct pairs, and `repeated_edges` is the number of tribunals whose set of
+arbitrators sat before. Whether these counts exceed what the numbers of
+tribunals of the arbitrators imply is tested against a null model. The swap
+null keeps the number of tribunals of every arbitrator and the size of
+every tribunal exactly and randomises the memberships by checkerboard
+swaps. The assignment null is a looser alternative, in which the arbitrators are taken in decreasing order of hyperdegree and
+assigned at random to tribunals with a free seat. Both are reported, each
+with 999 draws.
+
+```{r repeats}
+repeats_swap <- hg_null_test(argentina_all,
+                             statistic = c("repeated_pairs", "repeated_edges"),
+                             method = "swap", n = 999, seed = 1)
+repeats_swap
+repeats_assignment <- hg_null_test(argentina_all,
+                                   statistic = c("repeated_pairs", "repeated_edges"),
+                                   method = "assignment", n = 999, seed = 1)
+repeats_assignment
+```
+
+The same test on all ICSID tribunals, and on the tribunals of the cases
+against other states, tells whether the claims against Argentina differ
+from the system.
+
+```{r repeats-icsid}
+repeats_icsid <- hg_null_test(icsid_all,
+                              statistic = c("repeated_pairs", "repeated_edges"),
+                              method = "swap", n = 999, seed = 1)
+repeats_icsid
+repeats_other <- hg_null_test(others_all,
+                              statistic = c("repeated_pairs", "repeated_edges"),
+                              method = "swap", n = 999, seed = 1)
+repeats_other
+```
+
+```{r repeats-values, include = FALSE}
+test_value <- function(x, s, col) unlist(subset(x, statistic == s, select = col), use.names = FALSE)
+```
+
+Against the swap null, the claims against Argentina contain
+`r test_value(repeats_swap, "repeated_pairs", "observed")` repeated pairs
+(null range `r test_value(repeats_swap, "repeated_pairs", "null_lo")` to
+`r test_value(repeats_swap, "repeated_pairs", "null_hi")`, z =
+`r num(test_value(repeats_swap, "repeated_pairs", "z"), 1)`) and
+`r test_value(repeats_swap, "repeated_edges", "observed")` repeated panels
+(null range `r test_value(repeats_swap, "repeated_edges", "null_lo")` to
+`r test_value(repeats_swap, "repeated_edges", "null_hi")`, z =
+`r num(test_value(repeats_swap, "repeated_edges", "z"), 1)`, p =
+`r num(test_value(repeats_swap, "repeated_edges", "p_value"), 3)`). The
+assignment null gives z =
+`r num(test_value(repeats_assignment, "repeated_pairs", "z"), 1)` for the
+pairs and z =
+`r num(test_value(repeats_assignment, "repeated_edges", "z"), 1)` for the
+panels. Across all `r rep_value("mh", "n_edges", hg_representations(icsid_all))`
+ICSID tribunals, the excess is modest: z =
+`r num(test_value(repeats_icsid, "repeated_pairs", "z"), 1)` for the
+`r test_value(repeats_icsid, "repeated_pairs", "observed")` repeated pairs
+and z = `r num(test_value(repeats_icsid, "repeated_edges", "z"), 1)` for the
+`r test_value(repeats_icsid, "repeated_edges", "observed")` repeated panels
+(p = `r num(test_value(repeats_icsid, "repeated_edges", "p_value"), 2)`).
+Without the claims against Argentina it disappears. In the cases against
+other states, neither the
+`r test_value(repeats_other, "repeated_pairs", "observed")` repeated pairs
+(p = `r num(test_value(repeats_other, "repeated_pairs", "p_value"), 2)`) nor
+the `r test_value(repeats_other, "repeated_edges", "observed")` repeated
+panels (p = `r num(test_value(repeats_other, "repeated_edges", "p_value"), 2)`)
+differ from the swap null. Under the null that keeps every margin exactly,
+the repetition of arbitrators and panels found in ICSID as a whole is the
+repetition in the claims against Argentina.
+
+## Motifs
+
+In a hypergraph whose hyperedges all have three nodes, four nodes can hold
+up to four hyperedges. The motif Y has two of them, two tribunals that share
+two arbitrators; T has three and O has all four. A motif count is compared
+with its distribution under a configuration model that keeps the hyperdegree
+of every node and the size of every hyperedge. The census of the aggregate
+uses 1,000 draws.
+
+```{r motifs}
+motifs <- hg_motifs(argentina_all, n = 1000, seed = 1)
+motifs
+```
+
+```{r motifs-values, include = FALSE}
+motif_row <- function(x, m, col) unlist(subset(x, motif == m, select = col), use.names = FALSE)
+```
+
+```{r motifs-plot, fig.height = 4}
+plot(motifs)
+```
+
+The aggregate contains `r motif_row(motifs, "Y", "count")` motifs Y against
+a null mean of `r num(motif_row(motifs, "Y", "expected"), 1)` (z =
+`r num(motif_row(motifs, "Y", "z"), 1)`, p =
+`r num(motif_row(motifs, "Y", "p_value"), 3)`), and the motifs T and O do
+not occur. The aggregate joins tribunals that never sat at the same time,
+so the census is repeated on the snapshot of the first of January of each
+year, which holds only the tribunals active together on that day.
+
+```{r motifs-time}
+years <- seq(as.Date("2003-01-01"), as.Date("2015-01-01"), by = "year")
+yearly_motifs <- hg_motifs(tribunals, n = 300, seed = 1, at = years)
+subset(yearly_motifs, motif == "Y",
+       select = c(time, count, expected, z, p_value))
+```
+
+```{r motifs-time-values, include = FALSE}
+yearly_y <- subset(yearly_motifs, motif == "Y")
+max_y <- max(yearly_y$count)
+min_p <- min(yearly_y$p_value)
+```
+
+No snapshot holds more than `r max_y` motifs Y, and the smallest p-value
+of a snapshot is `r num(min_p, 2)`. The counts on a single day are too small
+for the test to separate them from the null, and the excess is established
+only for the aggregate.
+
+## How the docket changed
+
+Growth counts the active tribunals and arbitrators at each time, and the
+columns ending in `_cumulative` count every tribunal begun by that time.
+With `components = TRUE`, the number of connected components of the active
+hypergraph, the share of its arbitrators in the largest component and the
+diameter of that component are added. The grid is the first of January of
+each year from 2002 to 2022.
+
+```{r growth}
+grid <- seq(as.Date("2002-01-01"), as.Date("2022-01-01"), by = "year")
+docket <- hg_growth(tribunals, components = TRUE, at = grid)
+```
+
+```{r growth-plot, fig.height = 4}
+plot(docket,
+     columns = c("n_nodes", "n_edges", "n_nodes_cumulative",
+                 "n_edges_cumulative"),
+     facets = FALSE)
+plot(docket, columns = c("n_components", "diameter"), facets = TRUE)
+```
+
+```{r growth-values, include = FALSE}
+docket_year <- transform(docket, year = year_of(time),
+                         per_tribunal = n_nodes / n_edges)
+connected <- subset(docket_year, n_components == 1 & n_edges > 5)
+widest <- head(subset(docket_year, diameter == max(diameter)), 1)
+tightest <- head(subset(docket_year, per_tribunal == min(per_tribunal)), 1)
+last_year <- tail(docket_year, 1)
+```
+
+On the first of January of `r paste(connected$year, collapse = " and ")`,
+every active tribunal belonged to one connected component, with up to
+`r max(connected$n_nodes)` arbitrators linked through shared seats. The two
+most distant arbitrators of that component were `r widest$diameter` steps
+apart in `r widest$year`, each step a tribunal on which two arbitrators sat
+together. The component broke apart afterwards, and in `r last_year$year`
+the `r last_year$n_edges` active tribunals formed
+`r last_year$n_components` separate components. The number of active
+arbitrators per active tribunal fell to `r num(tightest$per_tribunal)` in
+`r tightest$year`, when the active tribunals shared many of their
+arbitrators, and rose to `r num(last_year$per_tribunal)` in
+`r last_year$year`, when no two active tribunals shared one.
+
+The neighbourhood of a tribunal is the set of arbitrators who share a
+tribunal with one of its members.
+
+```{r neighbourhood}
+neighbourhood <- hg_edges(tribunals, what = "summary", measure = "n_neighbors",
+                          at = grid)
+```
+
+```{r neighbourhood-plot, fig.height = 4}
+plot(neighbourhood, columns = c("mean", "q25", "median", "q75"),
+     facets = FALSE)
+```
+
+```{r neighbourhood-values, include = FALSE}
+largest_neighbourhood <- head(subset(neighbourhood, mean == max(mean)), 1)
+```
+
+The mean neighbourhood of an active tribunal peaks at
+`r num(largest_neighbourhood$mean, 1)` arbitrators in
+`r year_of(largest_neighbourhood$time)`.
+
+## Which tribunals held the docket together
+
+The s-betweenness of a tribunal is its betweenness centrality in the s-line
+graph, in which two tribunals are adjacent when they share at least *s*
+arbitrators. With *s* = 1, a tribunal of high betweenness lies on many of
+the shortest chains of shared arbitrators between other tribunals.
+Computed on the snapshot of each year, it shows which tribunal bridged the docket at
+each time.
+
+```{r bridges}
+bridges <- hg_edge_centrality(tribunals, s = 1, measure = "betweenness",
+                              at = grid, top = 1)
+bridges
+```
+
+```{r bridges-values, include = FALSE}
+bridging <- subset(bridges, value > 0)
+first_quiet <- min(subset(bridges, value == 0 & time > as.Date("2010-01-01"))$time)
+```
+
+The bridge changes over time: `r length(unique(bridging$edge))` tribunals
+hold the highest betweenness in at least one year. From
+`r format(first_quiet, "%Y")` on, no active tribunal lies between two
+others, because the active tribunals no longer share arbitrators.
+
+On 1 June 2006, near the peak of the docket, the backbone is the ten
+tribunals of highest betweenness in the snapshot of that day.
+
+```{r backbone}
+peak <- hg_snapshot(tribunals, at = as.Date("2006-06-01"))
+backbone_cases <- hg_edge_centrality(peak, s = 1, measure = "betweenness",
+                                     top = 10)
+backbone <- hg_subset(peak, edges = backbone_cases)
+```
+
+```{r backbone-plot, fig.width = 10, fig.height = 7}
+plot(backbone, color_by = "economic_sector", legend_title = "economic sector")
+```
+
+```{r backbone-values, include = FALSE}
+hub <- hg_get(backbone, what = "nodes", sort_by = "degree", top = 1)
+backbone_sectors <- length(unique(hg_get(backbone, what = "edge_data")$economic_sector))
+```
+
+On that day `r peak$n_hyperedges` tribunals were active. The ten tribunals
+of the backbone span `r backbone_sectors` economic sectors and are joined
+through a few arbitrators; `r hub$node` sits on `r hub$degree` of them.
+
+The aggregate hypergraph gives a different backbone. Closeness computed on
+all tribunals at once ranks tribunals as close to each other whether or
+not they were ever active together.
+
+```{r anachronism}
+aggregate_cases <- hg_edge_centrality(argentina_all, s = 1,
+                                      measure = "closeness", top = 10)
+aggregate_cases
+```
+
+```{r anachronism-values, include = FALSE}
+spans <- subset(hg_get(argentina_all, what = "edge_data"),
+                edge %in% aggregate_cases$edge, select = c(edge, start, end))
+spans <- transform(spans, end = ifelse(is.na(end), end_offset, end))
+together <- outer(spans$start, spans$end, "<=") &
+  outer(spans$end, spans$start, ">=")
+apart_pairs <- sum(!together) / 2
+all_pairs <- choose(nrow(spans), 2)
+```
+
+Of the `r all_pairs` pairs among these ten tribunals, `r apart_pairs` were
+never active at the same time. A static centrality on the aggregate treats
+the docket as if all of it had sat at once, which is the reason centrality
+is computed here on snapshots.
+
+## Communities of arbitrators
+
+Hypergraph modularity measures the quality of a partition of the nodes into
+communities, counting a hyperedge for a community when a majority of its
+nodes belong to it. Iteratively reweighted modularity maximisation (IRMM)
+finds a partition of high modularity, and Infomap partitions the
+association graph by minimising the description length of a random walk on
+it. Both are run from 20 seeds, and the partition reported is the
+medoid, the run with the largest summed adjusted mutual information with
+the other runs.
+
+```{r communities}
+irmm <- hg_communities(argentina_all, type = "irmm", seeds = 1:20,
+                       n_runs = 20, max_iter = 300)
+hg_modularity(argentina_all, irmm)
+infomap <- hg_communities(argentina_all, seeds = 1:20, n_runs = 20)
+hg_modularity(argentina_all, infomap)
+hg_agreement(irmm, infomap, method = c("ari", "ami"))
+```
+
+```{r communities-values, include = FALSE}
+irmm_sizes <- hg_get(irmm, what = "sizes")
+irmm_ami <- hg_get(irmm, what = "ami")
+irmm_modularity <- hg_modularity(argentina_all, irmm)
+infomap_sizes <- hg_get(infomap, what = "sizes")
+infomap_modularity <- hg_modularity(argentina_all, infomap)
+infomap_ami <- hg_get(infomap, what = "ami")
+partition_agreement <- hg_agreement(irmm, infomap, method = c("ari", "ami"))
+```
+
+The IRMM medoid has `r nrow(irmm_sizes)` communities of between
+`r min(irmm_sizes$n_nodes)` and `r max(irmm_sizes$n_nodes)` arbitrators and
+a modularity of `r num(irmm_modularity$modularity, 3)`, and its runs agree
+with a median adjusted mutual information of `r num(median(irmm_ami$ami))`.
+The Infomap medoid has `r nrow(infomap_sizes)` communities and a modularity
+of `r num(infomap_modularity$modularity, 3)`, and its runs agree with a
+median of `r num(median(infomap_ami$ami))`. The two medoids agree with an
+adjusted Rand index of `r num(partition_agreement$ari)` and an adjusted
+mutual information of `r num(partition_agreement$ami)`. The figure plots
+the backbone of 1 June 2006 with each arbitrator coloured and shaped by its
+IRMM community.
+
+```{r communities-plot, fig.width = 10, fig.height = 7}
+plot(backbone, node_groups = irmm)
+```
+
+## Argentina and the other cases
+
+```{r comparison, echo = FALSE}
+knitr::kable(data.frame(
+  measure = c("tribunals", "arbitrators",
+              "share of seats held by the ten busiest arbitrators",
+              "share of tribunals that repeat a panel",
+              "degree assortativity",
+              "repeated panels, z against the swap null"),
+  argentina = c(rep_value("mh", "n_edges"), rep_value("mh", "n_nodes"),
+                pct(argentina_top), pct(repeat_share), num(assort_argentina),
+                num(test_value(repeats_swap, "repeated_edges", "z"), 1)),
+  other = c(rep_value("mh", "n_edges", other_reps),
+            rep_value("mh", "n_nodes", other_reps),
+            pct(other_top), pct(other_repeat_share), num(assort_other),
+            num(test_value(repeats_other, "repeated_edges", "z"), 1))
+), col.names = c("", "claims against Argentina", "cases against other states"))
+```

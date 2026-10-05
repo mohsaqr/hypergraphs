@@ -22,7 +22,8 @@
 #'   `"cumulative"`) and multi-edge handling passed to
 #'   [hg_snapshots()] when `hg` is temporal.
 #' @return A tidy data frame with `edge`, `s`, `measure`, and `value`; temporal
-#'   input adds a leading `time` column.
+#'   input adds a leading `time` column, the snapshot time: a date for a
+#'   calendar hypergraph, the number on its clock otherwise.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #' hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #' 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
@@ -61,7 +62,7 @@ hg_edge_centrality <- function(hg, s = 1L,
     rows <- lapply(seq_along(snaps), function(i) {
       ans <- hg_edge_centrality(snaps[[i]], s = s, measure = measure,
                                 normalized = normalized, top = top)
-      data.frame(time = names(snaps)[i], ans, row.names = NULL,
+      data.frame(time = .thg_snapshot_time(snaps, i), ans, row.names = NULL,
                  stringsAsFactors = FALSE)
     })
     out <- do.call(rbind, rows)

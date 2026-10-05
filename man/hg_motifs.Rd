@@ -57,7 +57,9 @@ A tidy data frame. The test table has one row per motif:
 \code{motif}, \code{count} (observed), \code{expected} and \code{null_sd} (mean and
 standard deviation of the null counts), \code{z}, \code{p_value} (empirical),
 \code{delta} (relative abundance), \code{normalized_delta} (the motif profile used
-by HypergraphX), \code{n_null} (null draws) and \code{method}.
+by HypergraphX), \code{n_null} (null draws) and \code{method}. Temporal input adds
+a leading \code{time} column, the snapshot time: a date for a calendar
+hypergraph, the number on its clock otherwise.
 
 For \code{hg_get()}, the test table (\code{what = "test"}) or every null
 count (\code{what = "draws"}, columns \code{run}, \code{motif}, \code{count}) as a plain

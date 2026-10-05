@@ -391,6 +391,20 @@
   list(colours = unname(palette[as.character(values)]), palette = palette)
 }
 
+# Default node-label size for a hull plot that names `n` nodes: 4.2 mm up
+# to a dozen labels, then shrinking with sqrt(12 / n), the side of the area
+# each label can claim on a fixed canvas, to a floor of 2.2 mm (about 6 pt).
+.thg_label_size <- function(n) {
+  min(4.2, max(2.2, 4.2 * sqrt(12 / max(n, 1))))
+}
+
+# Normalised names of the columns that hold a position in time (start, end,
+# duration, time, session: the alias table of temporal_hypergraph()).
+.thg_clock_names <- function() {
+  .thg_norm_name(unlist(.thg_aliases[c("start", "end", "duration", "time",
+                                       "session")]))
+}
+
 .thg_linetypes <- c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
 
 #' Plot a hypergraph with hyperedges as pebbles
@@ -427,8 +441,8 @@
 #' of an event log, is drawn as its distinct sets: each set once, coloured by
 #' its number of copies, with each node sized by the hyperedges that contain
 #' it. A call that styles or labels the hyperedges one by one (`titles`,
-#' `color_by`, `linetype_by`, `edge_labels`, `notes`, `dismantled`) draws
-#' every hyperedge.
+#' `color_by`, `linetype_by`, `edge_labels`, `notes`, `dismantled`), or
+#' groups the nodes (`node_groups`), draws every hyperedge.
 #'
 #' A hypergraph that falls into several disconnected pieces is laid out one
 #' piece at a time and the pieces are then packed into a roughly square frame.
@@ -438,6 +452,20 @@
 #' picture and set the scale for everything else, leaving the connected
 #' structure a speck in the middle. Packing keeps every component at its own
 #' size and the frame spent on structure.
+#'
+#' `type = "incidence"` plots the incidence matrix instead, after UpSet (Lex
+#' et al. 2014). Each node is a row and each hyperedge a column; a vertical
+#' bar joins the members of a hyperedge. Rows are ordered by decreasing
+#' hyperdegree, which a bar at the right of each row also shows, and columns
+#' by `sort_by`, then by their highest member row, so hyperedges that share
+#' the busiest nodes stand together. A bar above each column shows the
+#' hyperedge's size when sizes differ. Empty cells are grey points up to
+#' 20,000 cells. Every hyperedge is a column, repeated sets included. The
+#' figure grows linearly with the number of hyperedges, so it stays legible
+#' where hulls overlap into one shape. It takes `color_by` (discrete values
+#' also get a point shape each), `legend_title`, `labels`, `edge_labels`
+#' (the column names), `label_size` and `edge_label_size` (row and column
+#' text in mm; defaults 8 and 7 pt).
 #'
 #' @param x A `net_hg` with at least one hyperedge of two or more
 #'   members. Draw a part of a large hypergraph by passing [hg_subset()]
@@ -488,8 +516,12 @@
 #'   so lower this, or `ncol`, if long names collide.
 #' @param labels `TRUE` (default) writes the node names, `FALSE` writes
 #'   none, and a character vector named by node replaces the names shown.
-#' @param label_size,node_size Text and point sizes (defaults `4.2` and
-#'   `2.5`).
+#' @param label_size Text size of the node labels, in mm. `NULL` (default)
+#'   scales it to the number of labelled nodes `n`: `4.2` up to 12 labels,
+#'   then `4.2 * sqrt(12 / n)`, the side of the area each label can claim,
+#'   down to a floor of `2.2` (reached at 44 labels). A number is used as
+#'   given. With `type = "incidence"` it sizes the row names instead.
+#' @param node_size Point size of the nodes (default `2.5`).
 #' @param detail How much of the hull's shape the smoothing keeps: the width,
 #'   in harmonics, of the Gaussian low-pass applied to the outline. The
 #'   default `5` gives rounded, tapering petals; `3` is rounder still, `8`
@@ -611,6 +643,15 @@
 #'   legends are stacked. A
 #'   name that is not a group, or a hypergraph without a `group` attribute,
 #'   raises `hypergraphs_bad_input`. `NULL` (default) draws every hyperedge.
+#' @param type `"hulls"` (default) plots each hyperedge as a pebble around
+#'   its members; `"incidence"` plots the incidence matrix (see Details).
+#' @param sort_by Column order of `type = "incidence"`: `NULL` (default;
+#'   by highest member row, then name), `"size"`, the name of a column in the
+#'   edge metadata such as a date, a vector named by hyperedge, or a vector
+#'   with one value per hyperedge. Numbers sort largest first, as in
+#'   [hg_get()]; dates, text and a clock column (`start`, `end`, `time`,
+#'   ... as [temporal_hypergraph()] names them, numeric in a snapshot) sort
+#'   ascending. Ties fall back to the default order.
 #' @param ... Unused; for S3 consistency.
 #' @return A ggplot object (with `dismantled = TRUE`, one facet per
 #'   hyperedge). With `node_sizes` and `direction` the nodes are polygon
@@ -625,7 +666,9 @@
 #' numeric, `notes` without titles, an invalid `unit`, `title_prefix` or
 #' `title_gap`, `pieces = "row"` with a layout other than
 #' `"bipartite"`, or node overlays or titles combined with
-#' `dismantled = TRUE`.
+#' `dismantled = TRUE`; with `type = "incidence"`, any argument of the hull
+#' plot other than those listed in Details, and `sort_by` with
+#' `type = "hulls"`.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #'   hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
@@ -633,6 +676,11 @@
 #'   Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph drawing by
 #'   force-directed placement. *Software: Practice and Experience*, 21(11),
 #'   1129-1164. \doi{10.1002/spe.4380211102}
+#'
+#'   Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H.
+#'   (2014). UpSet: Visualization of intersecting sets. *IEEE Transactions on
+#'   Visualization and Computer Graphics*, 20(12), 1983-1992.
+#'   \doi{10.1109/TVCG.2014.2346248}
 #' @examples
 #' dat <- data.frame(
 #'   member = c("a", "b", "c", "b", "c", "d", "d", "e", "f"),
@@ -643,6 +691,16 @@
 #' plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 #' plot(hg, center = c("b", "c"))
 #' plot(hg, dismantled = TRUE)
+#' plot(hg, type = "incidence", edge_labels = TRUE)
+#'
+#' # tribunals in claims against Argentina, one column per tribunal by date
+#' tribunals <- group_hypergraph(icsid_tribunals, node = "arbitrator",
+#'                               hyperedge = "case")
+#' argentina <- hg_subset(tribunals,
+#'                        where = list(respondent = "Argentine Republic"),
+#'                        component = "largest")
+#' plot(argentina, type = "incidence", color_by = "economic_sector",
+#'      sort_by = "constituted")
 #'
 #' # disconnected pieces are laid out separately and packed
 #' apart <- group_hypergraph(
@@ -678,7 +736,7 @@
 plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                 center = NULL, seed = 1L, color_by = NULL,
                                 linetype_by = NULL,
-                                labels = TRUE, label_size = 4.2,
+                                labels = TRUE, label_size = NULL,
                                 edge_labels = FALSE, edge_label_size = 3,
                                 dismantled = FALSE, ncol = NULL,
                                 node_size = 2.5, detail = 5,
@@ -692,14 +750,42 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                 titles = NULL, title_prefix = "",
                                 notes = NULL, unit = NULL, pieces = NULL,
                                 title_gap = 0.06, group = NULL,
-                                node_groups = NULL, ...) {
+                                node_groups = NULL,
+                                type = c("hulls", "incidence"),
+                                sort_by = NULL, ...) {
   .thg_check_hg(x)
+  type <- match.arg(type)
+  if (identical(type, "incidence")) {
+    hull_only <- c("layout", "center", "seed", "linetype_by", "dismantled",
+                   "ncol", "node_size", "detail", "outline", "alpha",
+                   "linewidth", "padding", "node_sizes", "direction",
+                   "arrow_style", "node_fill", "arrow_fill", "transitions",
+                   "size_title", "titles", "title_prefix", "notes", "unit",
+                   "pieces", "title_gap", "group", "node_groups")
+    given <- intersect(names(match.call())[-1L], hull_only)
+    if (length(given)) {
+      .thg_bad_input(sprintf("%s applies only to `type = \"hulls\"`",
+                             paste0("`", given, "`", collapse = ", ")))
+    }
+    return(.thg_plot_incidence(
+      x, color_by = color_by, sort_by = sort_by, labels = labels,
+      edge_labels = edge_labels,
+      label_size = label_size,
+      edge_label_size = if (missing(edge_label_size)) NULL else edge_label_size,
+      legend_title = legend_title
+    ))
+  }
+  if (!is.null(sort_by)) {
+    .thg_bad_input("`sort_by` applies only to `type = \"incidence\"`")
+  }
   # repeated member sets are drawn once each, as the distinct sets of all the
   # hyperedges coloured by their number of copies, unless the call styles or
   # labels the hyperedges one by one
+  # node_groups counts too: the distinct-set view sizes the nodes by their
+  # copies, and sized nodes cannot carry the group shapes
   per_hyperedge <- !is.null(titles) || !is.null(color_by) ||
     !is.null(linetype_by) || !isFALSE(edge_labels) || !is.null(notes) ||
-    isTRUE(dismantled)
+    isTRUE(dismantled) || !is.null(node_groups)
   if (!per_hyperedge && is.null(x$group_sizes) && x$n_hyperedges > 1L &&
       anyDuplicated(lapply(x$hyperedges, sort))) {
     x <- .thg_distinct_sets(x)
@@ -784,8 +870,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   # column named as a clock (start, end, duration, time, session: the
   # alias table of temporal_hypergraph()) is a position in time, not a count,
   # and is chosen only by name.
-  clock <- .thg_norm_name(unlist(.thg_aliases[c("start", "end", "duration",
-                                                "time", "session")]))
+  clock <- .thg_clock_names()
   numeric_attributes <- Filter(function(column) {
     is.numeric(x$edge_data[[column]]) && all(is.finite(x$edge_data[[column]])) &&
       !.thg_norm_name(column) %in% clock
@@ -866,6 +951,11 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     replacement <- unname(labels[x$nodes])
     ifelse(is.na(replacement), x$nodes, as.character(replacement))
   }
+  if (!is.null(label_size) && (!is.numeric(label_size) ||
+      length(label_size) != 1L || !is.finite(label_size) || label_size <= 0)) {
+    .thg_bad_input("`label_size` must be NULL or one positive number")
+  }
+  label_size <- label_size %||% .thg_label_size(sum(nzchar(shown)))
 
   # the order in which hyperedges claim room: title boxes, and the pieces of
   # a row layout, go by decreasing title value (else numeric colour value),

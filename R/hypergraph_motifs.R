@@ -110,7 +110,9 @@
 #'   `motif`, `count` (observed), `expected` and `null_sd` (mean and
 #'   standard deviation of the null counts), `z`, `p_value` (empirical),
 #'   `delta` (relative abundance), `normalized_delta` (the motif profile used
-#'   by HypergraphX), `n_null` (null draws) and `method`.
+#'   by HypergraphX), `n_null` (null draws) and `method`. Temporal input adds
+#'   a leading `time` column, the snapshot time: a date for a calendar
+#'   hypergraph, the number on its clock otherwise.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #' hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #' 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
@@ -140,7 +142,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
         seed = if (is.null(seed)) NULL else as.integer(seed) + i - 1L,
         what = what, alternative = alternative
       )
-      data.frame(time = names(snaps)[i], ans, row.names = NULL,
+      data.frame(time = .thg_snapshot_time(snaps, i), ans, row.names = NULL,
                  stringsAsFactors = FALSE)
     })
     out <- do.call(rbind, rows)

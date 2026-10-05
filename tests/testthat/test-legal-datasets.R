@@ -42,3 +42,13 @@ test_that("the datasets build the paper hypergraphs directly", {
   citing_block <- hg_subset(aggregate, where = c(citing = "153-001"))
   expect_identical(nrow(citing_block$edge_data), 68L)
 })
+
+test_that("no ICSID text value is padded with spaces", {
+  # the archive pads some respondents ("Argentine Republic "), which split
+  # one state into two values; data-raw trims them
+  text <- Filter(is.character, icsid_tribunals)
+  padded <- vapply(text, \(v) sum(!is.na(v) & v != trimws(v)), integer(1))
+  expect_identical(unname(padded), rep(0L, length(text)))
+  argentina <- subset(icsid_tribunals, respondent == "Argentine Republic")
+  expect_identical(length(unique(argentina$case)), 47L)
+})

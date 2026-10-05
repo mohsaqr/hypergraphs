@@ -191,6 +191,14 @@
   if (identical(time_unit, "days") || identical(time_unit, "weeks")) as.Date(out) else out
 }
 
+# The time of snapshot `i` of a hg_snapshots() list as a reader gives it: a
+# date (or date-time) for a calendar hypergraph, the number on the clock
+# otherwise.
+.thg_snapshot_time <- function(snaps, i) {
+  .thg_calendar(snaps[[i]]$params$at, attr(snaps, "origin"),
+                attr(snaps, "time_unit"))
+}
+
 .thg_clock_label <- function(origin, time_unit) {
   if (!inherits(origin, "POSIXt")) return("time (numeric steps)")
   sprintf("%s since %s", time_unit, format(origin, if (identical(time_unit, "days") ||
@@ -801,6 +809,10 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
     hg$edge_data <- ed[match(colnames(hg$incidence), ed$edge), , drop = FALSE]
     rownames(hg$edge_data) <- NULL
   }
+  # the data's names for nodes and hyperedges (arbitrator, case), not the
+  # internal membership columns, so printed and plotted snapshots use them
+  hg$params$node <- x$params$node %||% hg$params$node
+  hg$params$hyperedge <- x$params$hyperedge %||% hg$params$hyperedge
   hg$params$temporal_mode <- mode
   hg$params$at <- t
   hg$params$window <- window
@@ -977,26 +989,48 @@ hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
   switch(what, memberships = x$memberships, edges = x$edge_data, nodes = x$node_data)
 }
 
-#' Plot a temporal-hypergraph snapshot through cograph
+#' Plot a temporal-hypergraph snapshot
+#'
+#' Plots the snapshot that [hg_snapshot()] takes at `at` as a hypergraph,
+#' with [plot.net_hg()]: the hyperedges active then, as hulls by default or
+#' as the incidence matrix with `type = "incidence"`. The snapshot keeps the
+#' hyperedge attributes and the data's names for nodes and hyperedges, so
+#' `color_by` can name an attribute and the legends use the data's words.
 #'
 #' @param x A [temporal_hypergraph()].
 #' @param at Snapshot time; defaults to the end of observation.
 #' @param mode Snapshot mode passed to [hg_snapshot()].
-#' @param method Projection weighting passed to [pairwise_network()].
-#' @param ... Additional arguments passed to [cograph::splot()].
-#' @return The cograph plot object, invisibly when rendered interactively.
+#' @param method Deprecated. The snapshot used to be projected to a pairwise
+#'   network; `plot(pairwise_network(hg_snapshot(x, at), type = method))`
+#'   plots that network.
+#' @param ... Arguments passed to [plot.net_hg()], such as `type`,
+#'   `color_by` or `labels`.
+#' @return A ggplot object, as [plot.net_hg()] returns.
+#' @section Conditions:
+#' `hypergraphs_bad_input` when the snapshot has no active nodes, and as
+#' [plot.net_hg()] raises it; `hypergraphs_deprecated` (a warning) for
+#' `method`.
+#' @examples
+#' seats <- data.frame(
+#'   case = rep(c("A", "B", "C"), each = 3),
+#'   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
+#'   constituted = rep(c(1, 2, 4), each = 3),
+#'   concluded = rep(c(4, 3, 6), each = 3)
+#' )
+#' thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
+#'                            start = "constituted", end = "concluded")
+#' plot(thg, at = 2.5)
+#' plot(thg, at = 2.5, type = "incidence", edge_labels = TRUE)
 #' @export
 plot.net_temporal_hypergraph <- function(x, at = NULL,
                                          mode = c("active", "cumulative"),
-                                         method = c("association", "clique"), ...) {
+                                         method = NULL, ...) {
   mode <- .thg_check_mode(mode, "plot")
-  method <- match.arg(method)
+  if (!is.null(method)) {
+    .thg_deprecated("method", "plot(pairwise_network(hg_snapshot(x, at), type = method))",
+                    "plot")
+  }
   hg <- hg_snapshot(x, at = at, mode = mode)
   if (hg$n_nodes == 0L) .thg_bad_input("the selected snapshot has no active nodes")
-  projection <- if (identical(method, "association")) {
-    .hg_projection(hg, type = "association", what = "matrix")
-  } else {
-    .hg_projection(hg, type = "clique", what = "matrix")
-  }
-  cograph::splot(as.matrix(projection), directed = FALSE, ...)
+  plot(hg, ...)
 }

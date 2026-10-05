@@ -351,6 +351,22 @@ test_that("node_groups colours and shapes the nodes by a partition", {
                class = "hypergraphs_bad_input")
 })
 
+test_that("node_groups works on a hypergraph with repeated member sets", {
+  # h1 and h2 hold the same members; without node_groups the plot draws the
+  # distinct sets with nodes sized by copies, which node_groups cannot share
+  hg <- group_hypergraph(
+    data.frame(member = c("a", "b", "c", "a", "b", "c", "c", "d", "e"),
+               case = rep(c("h1", "h2", "h3"), each = 3)),
+    node = "member", hyperedge = "case")
+  partition <- data.frame(node = c("a", "b", "c", "d", "e"),
+                          community = c("1", "1", "1", "2", "2"))
+  p <- plot(hg, node_groups = partition)
+  expect_s3_class(p, "ggplot")
+  points <- Filter(function(l) inherits(l$geom, "GeomPoint") &&
+                     "colour" %in% names(l$mapping), p$layers)
+  expect_identical(nrow(points[[1L]]$data), 5L)
+})
+
 test_that("color_by = \"size\" lists only the sizes of drawn hyperedges", {
   hg <- group_hypergraph(
     data.frame(member = c("a", "b", "c", "b", "c", "d"),

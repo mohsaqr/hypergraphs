@@ -12,7 +12,7 @@
   color_by = NULL,
   linetype_by = NULL,
   labels = TRUE,
-  label_size = 4.2,
+  label_size = NULL,
   edge_labels = FALSE,
   edge_label_size = 3,
   dismantled = FALSE,
@@ -39,6 +39,8 @@
   title_gap = 0.06,
   group = NULL,
   node_groups = NULL,
+  type = c("hulls", "incidence"),
+  sort_by = NULL,
   ...
 )
 }
@@ -83,8 +85,11 @@ Okabe-Ito palette; numeric values a sequential scale built from it.}
 \item{labels}{\code{TRUE} (default) writes the node names, \code{FALSE} writes
 none, and a character vector named by node replaces the names shown.}
 
-\item{label_size, node_size}{Text and point sizes (defaults \code{4.2} and
-\code{2.5}).}
+\item{label_size}{Text size of the node labels, in mm. \code{NULL} (default)
+scales it to the number of labelled nodes \code{n}: \code{4.2} up to 12 labels,
+then \code{4.2 * sqrt(12 / n)}, the side of the area each label can claim,
+down to a floor of \code{2.2} (reached at 44 labels). A number is used as
+given. With \code{type = "incidence"} it sizes the row names instead.}
 
 \item{edge_labels}{Name the hyperedges on the figure. \code{FALSE} (default)
 writes nothing, \code{TRUE} writes the hyperedge names, or pass a vector named
@@ -105,6 +110,8 @@ titled with its hyperedge name. \code{edge_labels} does not apply.}
 
 \item{ncol}{Columns in the panel grid when \code{dismantled = TRUE}
 (default: roughly square).}
+
+\item{node_size}{Point size of the nodes (default \code{2.5}).}
 
 \item{detail}{How much of the hull's shape the smoothing keeps: the width,
 in harmonics, of the Gaussian low-pass applied to the outline. The
@@ -247,6 +254,17 @@ hulls are then grey, so the node colours carry the grouping. \code{NULL}
 \code{node_sizes}, \code{direction}, \code{transitions}, \code{dismantled = TRUE} or
 \code{outline = "fill"}.}
 
+\item{type}{\code{"hulls"} (default) plots each hyperedge as a pebble around
+its members; \code{"incidence"} plots the incidence matrix (see Details).}
+
+\item{sort_by}{Column order of \code{type = "incidence"}: \code{NULL} (default;
+by highest member row, then name), \code{"size"}, the name of a column in the
+edge metadata such as a date, a vector named by hyperedge, or a vector
+with one value per hyperedge. Numbers sort largest first, as in
+\code{\link[=hg_get]{hg_get()}}; dates, text and a clock column (\code{start}, \code{end}, \code{time},
+... as \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} names them, numeric in a snapshot) sort
+ascending. Ties fall back to the default order.}
+
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
@@ -290,8 +308,8 @@ A hypergraph whose hyperedges repeat the same members, such as the trials
 of an event log, is drawn as its distinct sets: each set once, coloured by
 its number of copies, with each node sized by the hyperedges that contain
 it. A call that styles or labels the hyperedges one by one (\code{titles},
-\code{color_by}, \code{linetype_by}, \code{edge_labels}, \code{notes}, \code{dismantled}) draws
-every hyperedge.
+\code{color_by}, \code{linetype_by}, \code{edge_labels}, \code{notes}, \code{dismantled}), or
+groups the nodes (\code{node_groups}), draws every hyperedge.
 
 A hypergraph that falls into several disconnected pieces is laid out one
 piece at a time and the pieces are then packed into a roughly square frame.
@@ -301,6 +319,20 @@ hypergraph out at once lets a stray hyperedge drift to the edge of the
 picture and set the scale for everything else, leaving the connected
 structure a speck in the middle. Packing keeps every component at its own
 size and the frame spent on structure.
+
+\code{type = "incidence"} plots the incidence matrix instead, after UpSet (Lex
+et al. 2014). Each node is a row and each hyperedge a column; a vertical
+bar joins the members of a hyperedge. Rows are ordered by decreasing
+hyperdegree, which a bar at the right of each row also shows, and columns
+by \code{sort_by}, then by their highest member row, so hyperedges that share
+the busiest nodes stand together. A bar above each column shows the
+hyperedge's size when sizes differ. Empty cells are grey points up to
+20,000 cells. Every hyperedge is a column, repeated sets included. The
+figure grows linearly with the number of hyperedges, so it stays legible
+where hulls overlap into one shape. It takes \code{color_by} (discrete values
+also get a point shape each), \code{legend_title}, \code{labels}, \code{edge_labels}
+(the column names), \code{label_size} and \code{edge_label_size} (row and column
+text in mm; defaults 8 and 7 pt).
 }
 \section{Conditions}{
 
@@ -311,7 +343,9 @@ weight, a \code{direction} without \code{node_sizes}, \code{titles} that are not
 numeric, \code{notes} without titles, an invalid \code{unit}, \code{title_prefix} or
 \code{title_gap}, \code{pieces = "row"} with a layout other than
 \code{"bipartite"}, or node overlays or titles combined with
-\code{dismantled = TRUE}.
+\code{dismantled = TRUE}; with \code{type = "incidence"}, any argument of the hull
+plot other than those listed in Details, and \code{sort_by} with
+\code{type = "hulls"}.
 }
 
 \examples{
@@ -324,6 +358,16 @@ plot(hg, color_by = "size", edge_labels = TRUE)
 plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 plot(hg, center = c("b", "c"))
 plot(hg, dismantled = TRUE)
+plot(hg, type = "incidence", edge_labels = TRUE)
+
+# tribunals in claims against Argentina, one column per tribunal by date
+tribunals <- group_hypergraph(icsid_tribunals, node = "arbitrator",
+                              hyperedge = "case")
+argentina <- hg_subset(tribunals,
+                       where = list(respondent = "Argentine Republic"),
+                       component = "largest")
+plot(argentina, type = "incidence", color_by = "economic_sector",
+     sort_by = "constituted")
 
 # disconnected pieces are laid out separately and packed
 apart <- group_hypergraph(
@@ -364,4 +408,9 @@ hypergraphs. \emph{Philosophical Transactions of the Royal Society A},
 Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph drawing by
 force-directed placement. \emph{Software: Practice and Experience}, 21(11),
 1129-1164. \doi{10.1002/spe.4380211102}
+
+Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H.
+(2014). UpSet: Visualization of intersecting sets. \emph{IEEE Transactions on
+Visualization and Computer Graphics}, 20(12), 1983-1992.
+\doi{10.1109/TVCG.2014.2346248}
 }

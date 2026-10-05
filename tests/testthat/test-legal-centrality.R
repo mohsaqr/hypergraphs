@@ -21,8 +21,27 @@ test_that("edge centrality applies over temporal snapshots", {
   )
   thg <- temporal_hypergraph(dat, node = "member", hyperedge = "event", time = "time")
   out <- hg_edge_centrality(thg, measure = "closeness", snapshot_mode = "cumulative")
-  expect_equal(unique(out$time), as.character(1:3))
+  # a numeric clock reports the number on the clock
+  expect_identical(unique(out$time), c(1, 2, 3))
   expect_equal(nrow(out), 1 + 2 + 3)
+})
+
+test_that("a calendar temporal hypergraph reports snapshot times as dates", {
+  seats <- data.frame(
+    case = rep(c("A", "B"), each = 3),
+    arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
+    constituted = rep(as.Date(c("2003-01-15", "2004-06-01")), each = 3),
+    concluded = rep(as.Date(c("2008-01-01", "2009-01-01")), each = 3)
+  )
+  thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
+                             start = "constituted", end = "concluded")
+  at <- as.Date(c("2005-01-01", "2007-01-01"))
+  centrality <- hg_edge_centrality(thg, measure = "closeness", at = at)
+  expect_s3_class(centrality$time, "Date")
+  expect_identical(unique(centrality$time), at)
+  motifs <- hg_motifs(thg, n = 5, seed = 1, at = at)
+  expect_s3_class(motifs$time, "Date")
+  expect_identical(unique(motifs$time), at)
 })
 
 test_that("edge centrality uses the paper's disconnected-graph normalization", {

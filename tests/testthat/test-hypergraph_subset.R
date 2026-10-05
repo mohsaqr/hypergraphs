@@ -53,6 +53,24 @@ test_that("hg_subset by hyperedge attribute uses the edge metadata", {
   expect_error(hg_subset(.subset_fixture(), where = "s1"), class = "hypergraphs_bad_input")
 })
 
+test_that("a where value that no hyperedge takes is an error, not an empty result", {
+  expect_error(hg_subset(.subset_fixture(), where = c(source = "s3")),
+               class = "hypergraphs_bad_input")
+  # one absent value among present ones is still an error
+  expect_error(hg_subset(.subset_fixture(), where = list(source = c("s1", "s9"))),
+               class = "hypergraphs_bad_input")
+  # the message offers the close values of the attribute
+  tribunals <- group_hypergraph(icsid_tribunals, node = "arbitrator",
+                                hyperedge = "case")
+  err <- tryCatch(hg_subset(tribunals, where = list(respondent = "Argentina")),
+                  hypergraphs_bad_input = identity)
+  expect_match(conditionMessage(err), "Argentine Republic", fixed = TRUE)
+  # filters that are each satisfiable may still leave nothing: that is a
+  # result, not an error
+  none <- hg_subset(.subset_fixture(), edges = "e1", where = c(source = "s2"))
+  expect_identical(none$n_hyperedges, 0L)
+})
+
 test_that("INVARIANT: sparse and dense subsets agree", {
   dense <- hg_subset(.subset_fixture(), edges = c("e2", "e3"))
   sparse <- hg_subset(.subset_fixture(sparse = TRUE), edges = c("e2", "e3"))

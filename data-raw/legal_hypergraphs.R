@@ -28,8 +28,10 @@ icsid_tribunals <- data.frame(
   concluded = seats$date_concluded,
   is_concluded = seats$concluded == "True",
   economic_sector = seats$economic_sector,
-  subject = seats$subject_of_dispute,
-  respondent = seats$respondents,
+  # the archive pads some values with spaces ("Argentine Republic " holds 12
+  # of Argentina's 47 cases), which splits one respondent into two values
+  subject = trimws(seats$subject_of_dispute),
+  respondent = trimws(seats$respondents),
   stringsAsFactors = FALSE
 )
 icsid_tribunals <- icsid_tribunals[order(icsid_tribunals$constituted, icsid_tribunals$case,

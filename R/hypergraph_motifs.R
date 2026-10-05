@@ -127,7 +127,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
                       start = NULL, end = NULL, step = NULL, window = NULL,
                       at = NULL, snapshot_mode = c("active", "cumulative"),
                       multiedges = TRUE) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   alternative <- match.arg(alternative)
   snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_motifs", "snapshot_mode")
   if (inherits(hg, "net_temporal_hypergraph")) {
@@ -219,7 +219,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
 #'   data.frame.
 #' @export
 hg_get.hypergraphs_motifs <- function(x, what = c("test", "draws"), ...) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (identical(what, "draws")) return(attr(x, "draws"))
   attr(x, "draws") <- NULL
   class(x) <- "data.frame"

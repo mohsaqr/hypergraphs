@@ -303,8 +303,9 @@ print.net_hg <- function(x, n = 10L, ...) {
 #'   attribute table a constructor attached.
 #' @return A data.frame. For `what = "edges"`, one row per hyperedge with
 #'   columns `hyperedge` (character id), `size` (integer), `members`
-#'   (the member nodes, comma separated), and `weight` (numeric window count,
-#'   or `NA`). For `what = "nodes"`, one row per node with columns `node`
+#'   (the member nodes, comma separated), and, for a hypergraph of windows
+#'   ([window_hypergraph()]), `weight` (the number of windows with that
+#'   member set). `sort_by` is `"size"`, or `"weight"` where it exists. For `what = "nodes"`, one row per node with columns `node`
 #'   and `degree` (the number of hyperedges it belongs to), plus `block`
 #'   for a hypergraph with planted blocks ([random_hypergraph()] with `type = "sbm"`); `sort_by =
 #'   "degree"` orders it. For `what = "memberships"`, one row per non-zero
@@ -335,7 +336,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
                                       "sets", "state_counts", "edge_data"),
                           ...,
                           sort_by = NULL, top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (identical(what, "edge_data")) {
     if (is.null(x[[what]])) {
       .thg_bad_input(sprintf(
@@ -419,11 +420,18 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
     members = vapply(x$hyperedges,
                      function(idx) paste(x$nodes[idx], collapse = ", "),
                      character(1L)),
-    weight = as.numeric(x$window_counts %||% rep(NA_real_, x$n_hyperedges)),
     stringsAsFactors = FALSE
   )
+  # a hyperedge weight exists only where windows were counted; a hypergraph
+  # of observed groups has none, and a column of NA would say nothing
+  if (!is.null(x$window_counts)) out$weight <- as.numeric(x$window_counts)
   if (!is.null(sort_by)) {
-    sort_by <- match.arg(sort_by, c("weight", "size"))
+    sortable <- intersect(c("weight", "size"), names(out))
+    if (!is.character(sort_by) || length(sort_by) != 1L ||
+        !sort_by %in% sortable) {
+      .thg_bad_input(sprintf("`sort_by` must be one of %s for this hypergraph",
+                             paste(sprintf("\"%s\"", sortable), collapse = ", ")))
+    }
     out <- out[order(-out[[sort_by]], out$hyperedge), , drop = FALSE]
     rownames(out) <- NULL
   }

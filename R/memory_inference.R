@@ -509,7 +509,7 @@ hg_get.net_hon_boot <- function(x, what = "edges", ...,
                                 min_support = NULL,
                                 order_min = NULL,
                                 sort_by = NULL, top = NULL) {
-  match.arg(what, "edges")
+  .ho_match_what(what, "edges")
   out <- x$edges
   if (!is.null(min_support)) {
     stopifnot("`min_support` must be a single number in [0, 1]" =
@@ -633,7 +633,7 @@ plot.net_hon_boot <- function(x, top = 20L, ...) {
 hg_get.net_hon_compare <- function(x, what = "edges", ...,
                                    significant = FALSE,
                                    sort_by = NULL, top = NULL) {
-  match.arg(what, "edges")
+  .ho_match_what(what, "edges")
   out <- x$edges
   if (isTRUE(significant)) {
     out <- out[out$significant, , drop = FALSE]

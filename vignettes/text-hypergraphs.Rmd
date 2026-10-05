@@ -147,8 +147,7 @@ aggregate(year ~ predicted, data = predicted_years, FUN = mean)
 ```
 
 ```{r classify-check}
-hg_agreement(predictions, covid_abstracts,
-             node = c("node", "doc"), label = c("predicted", "year"),
+hg_agreement(predictions, covid_abstracts, label = c("predicted", "year"),
              what = "table")
 ```
 

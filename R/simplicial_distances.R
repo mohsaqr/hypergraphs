@@ -249,7 +249,7 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
 #' @export
 hg_get.persistence_landscape <- function(x, what = "landscape", ...,
                                          k = NULL, top = NULL) {
-  match.arg(what, "landscape")
+  .ho_match_what(what, "landscape")
   out <- x$landscape
   if (!is.null(k)) {
     stopifnot("`k` must be a single integer >= 1" =

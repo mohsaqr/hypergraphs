@@ -973,7 +973,7 @@ summary.net_temporal_hypergraph <- function(object, ...) {
 hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
                                                        "edges", "nodes"),
                                            ...) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   switch(what, memberships = x$memberships, edges = x$edge_data, nodes = x$node_data)
 }
 

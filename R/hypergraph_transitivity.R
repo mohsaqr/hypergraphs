@@ -237,7 +237,7 @@ hg_transitivity <- function(hg,
   type <- match.arg(type, choices = c("projection", "extra_overlap",
                                       "two_node_union", "two_node_min",
                                       "two_node_max"), several.ok = TRUE)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (!(length(n) == 1L && is.numeric(n) &&
         (is.infinite(n) || (is.finite(n) && n >= 1)))) {
     stop(errorCondition("`n` must be a single count >= 1",

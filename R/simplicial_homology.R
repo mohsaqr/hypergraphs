@@ -31,7 +31,7 @@
 hg_get.persistent_homology <- function(
     x, what = c("persistence", "betti"), ..., dimension = NULL,
     sort_by = NULL, top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   out <- if (what == "betti") x$betti_curve else x$persistence
   if (!is.null(dimension)) {
     stopifnot("`dimension` must be a single integer >= 0" =

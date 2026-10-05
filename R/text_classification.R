@@ -164,7 +164,7 @@ hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
                                      split = NULL, correct = NULL,
                                      node = NULL, sort_by = NULL, top = NULL,
                                      ...) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   plain <- .ho_plain(x)
   attributes(plain) <- attributes(plain)[c("names", "row.names", "class")]
   filters <- list(split = split, correct = correct, sort_by = sort_by)

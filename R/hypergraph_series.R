@@ -316,23 +316,31 @@ plot.hypergraphs_series <- function(x, columns = NULL, facets = TRUE, ...) {
 plot.hypergraphs_distribution <- function(x, log = TRUE, ...) {
   d <- .ho_plain(x)
   group <- intersect(c("time", "s", "series"), names(d))
+  # times on a calendar clock are named by their date, in the curves' order
+  series_values <- if (identical(group[1L], "time")) {
+    as.character(.thg_calendar(d$time, attr(x, "origin"), attr(x, "time_unit")))
+  } else if (length(group)) {
+    as.character(d[[group[[1L]]]])
+  }
   d$series <- if (length(group)) {
-    factor(as.character(d[[group[[1L]]]]), levels = unique(as.character(d[[group[[1L]]]])))
+    factor(series_values, levels = unique(series_values))
   } else {
     factor("all")
   }
   n_series <- nlevels(d$series)
+  calendar <- identical(group[1L], "time") && inherits(attr(x, "origin"), "POSIXt")
+  series_name <- if (calendar) "date" else if (length(group)) group[[1L]]
   p <- ggplot2::ggplot(d, ggplot2::aes(x = .data$value, y = .data$ccdf,
                                        colour = .data$series,
                                        linetype = .data$series)) +
     ggplot2::geom_step(direction = "vh", linewidth = 0.7) +
     ggplot2::geom_point(size = 1.2) +
     ggplot2::scale_colour_manual(values = rep_len(.thg_okabe_ito, n_series),
-                                 name = if (length(group)) group[[1L]] else NULL) +
+                                 name = series_name) +
     ggplot2::scale_linetype_manual(values = rep_len(c("solid", "dashed", "dotted",
                                                       "dotdash", "longdash",
                                                       "twodash"), n_series),
-                                   name = if (length(group)) group[[1L]] else NULL) +
+                                   name = series_name) +
     ggplot2::labs(x = attr(x, "measure") %||% "value", y = "P(X >= value)") +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(legend.position = if (n_series > 1L) "right" else "none")

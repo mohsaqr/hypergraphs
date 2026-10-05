@@ -371,3 +371,45 @@ test_that("hg_agreement reads a community fit through its medoid partition", {
                    hg_agreement(clusters, medoid, what = "table"))
   expect_equal(hg_agreement(fit, fit)$ari, 1)
 })
+
+test_that("hg_agreement reads fitted models and a text hypergraph directly", {
+  skip_on_cran()
+  hg <- text_hypergraph(c(
+    cooking_1 = "simmer the soup with onions and carrots",
+    cooking_2 = "this soup recipe needs salt on a cold night",
+    space_1 = "the telescope revealed a distant galaxy and stars",
+    space_2 = "astronomers aimed the telescope at the stars all night"
+  ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
+  clusters <- hg_cluster(hg, k = 2, seed = 1)
+  mmsbm <- hg_mmsbm(hg, k = 2, seed = 1)
+  topics <- hg_topics(hg, k = 2, seed = 1)
+  # each model is read through its one-label-per-node table
+  expect_identical(hg_agreement(mmsbm, clusters),
+                   hg_agreement(hg_get(mmsbm, what = "nodes"), clusters))
+  expect_identical(hg_agreement(topics, clusters),
+                   hg_agreement(hg_get(topics, what = "documents"), clusters))
+  expect_identical(hg_agreement(clusters, mmsbm)$n, 4L)
+  # a text hypergraph is read through its document table, keyed by `doc`
+  documents <- hg_get(hg, what = "documents")
+  documents$theme <- c("food", "food", "sky", "sky")
+  expect_identical(
+    hg_agreement(clusters, documents, label = c("cluster", "theme")),
+    hg_agreement(clusters, documents, node = c("node", "doc"),
+                 label = c("cluster", "theme")))
+  expect_identical(
+    hg_agreement(clusters, hg, label = c("cluster", "n_tokens"), what = "table"),
+    hg_agreement(clusters, hg_get(hg, what = "documents"),
+                 label = c("cluster", "n_tokens"), what = "table"))
+  # INVARIANT: a partition agrees perfectly with itself through either route
+  expect_identical(hg_agreement(topics, topics)$ari, 1)
+})
+
+test_that("hg_agreement refuses objects without labels and repeated nodes", {
+  expect_error(hg_agreement(list(node = "a"), data.frame(node = "a", cluster = "1")),
+               class = "hypergraphs_bad_input")
+  repeated <- data.frame(node = c("a", "a", "b"), cluster = c("1", "2", "1"))
+  expect_error(hg_agreement(repeated, data.frame(node = c("a", "b"), cluster = c("1", "2"))),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_agreement(repeated, repeated, node = 1),
+               class = "hypergraphs_bad_input")
+})

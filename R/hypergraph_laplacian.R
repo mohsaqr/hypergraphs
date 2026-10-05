@@ -573,7 +573,7 @@ summary.net_hg_cluster <- function(object, ...) {
 #'   `dim1..dimk`.
 #' @export
 hg_get.net_hg_cluster <- function(x, what = "assignments", ..., top = NULL) {
-  match.arg(what, "assignments")
+  .ho_match_what(what, "assignments")
   out <- x$clusters
   out$pi <- as.numeric(x$pi)
   .ho_top(cbind(out, as.data.frame(x$embedding), row.names = NULL), top)
@@ -604,7 +604,7 @@ plot.net_hg_cluster <- function(x,
                                         what = c("both", "spectrum",
                                                  "embedding"),
                                         n_values = NULL, ...) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   has_spectrum <- any(is.finite(x$eigenvalues))
   if (!has_spectrum && what == "spectrum") {
     stop("This clustering objective has no Laplacian spectrum; use `what = \"embedding\"`.",
@@ -748,7 +748,7 @@ summary.net_hg_transduction <- function(object, ...) {
 #' @export
 hg_get.net_hg_transduction <- function(
     x, what = c("predictions", "scores"), ..., top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (what == "predictions") return(.ho_top(x$predictions, top))
   .ho_top(data.frame(
     node  = rep(rownames(x$scores), times = ncol(x$scores)),

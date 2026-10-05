@@ -431,7 +431,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   class_weights <- match.arg(class_weights)
   semantic <- match.arg(semantic)
   legacy_output <- !missing(what)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   stopifnot(
     "`x` must be a character vector or a data.frame" =
       is.character(x) || is.data.frame(x),

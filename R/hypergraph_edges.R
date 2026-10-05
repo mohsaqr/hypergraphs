@@ -66,7 +66,7 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
                      end = NULL, step = NULL, window = NULL, at = NULL,
                      snapshot_mode = c("active", "cumulative"),
                      multiedges = TRUE) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   measure <- match.arg(measure)
   snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_edges", "snapshot_mode")
   if (!is.numeric(s) || length(s) < 1L || any(!is.finite(s)) || any(s < 1) ||

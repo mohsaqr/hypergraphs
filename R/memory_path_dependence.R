@@ -37,7 +37,7 @@
 hg_get.net_path_dependence <- function(x, what = "contexts", ...,
                                        min_count = NULL, flips = NULL,
                                        sort_by = "kl", top = NULL) {
-  match.arg(what, "contexts")
+  .ho_match_what(what, "contexts")
   out <- .ho_rename(x$contexts,
                     c(n = "count", H_order1 = "entropy_first_order",
                       H_orderk = "entropy_order_k", H_drop = "entropy_drop",

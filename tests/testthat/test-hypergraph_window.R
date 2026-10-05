@@ -263,7 +263,19 @@ test_that("as.data.frame sort_by orders deterministically, largest first", {
   expect_true(all(diff(df$weight) <= 0))
   expect_identical(df$members[1], "a, b")
   expect_identical(nrow(df), hg$n_hyperedges)
-  expect_error(hg_get(hg, sort_by = "nope"), "arg")
+  expect_error(hg_get(hg, sort_by = "nope"), class = "hypergraphs_bad_input")
+})
+
+test_that("only a hypergraph of windows has a hyperedge weight column", {
+  groups <- group_hypergraph(
+    data.frame(member = c("a", "b", "c", "b", "c", "d"),
+               case = rep(c("h1", "h2"), each = 3)),
+    node = "member", hyperedge = "case")
+  expect_named(hg_get(groups), c("hyperedge", "size", "members"))
+  expect_identical(hg_get(groups, sort_by = "size")$hyperedge, c("h1", "h2"))
+  expect_error(hg_get(groups, sort_by = "weight"), class = "hypergraphs_bad_input")
+  windows <- window_hypergraph(list(c("a", "b", "a", "c")), window = 2L)
+  expect_named(hg_get(windows), c("hyperedge", "size", "members", "weight"))
 })
 
 test_that("min_weight keeps only recurrent hyperedges", {

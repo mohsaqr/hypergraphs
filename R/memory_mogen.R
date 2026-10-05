@@ -48,7 +48,7 @@ hg_get.net_mogen <- function(x, what = c("orders", "transitions", "paths",
                                          "pathways"), ...,
                              order = NULL, k = 2L, min_count = 1L,
                              top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (what == "transitions") {
     return(.ho_top(Nestimate::mogen_transitions(
       x, order = order %||% x$optimal_order, min_count = min_count), top))

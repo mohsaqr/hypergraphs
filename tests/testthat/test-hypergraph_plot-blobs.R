@@ -170,6 +170,15 @@ test_that("the count attribute colours, titles and names the unit by itself", {
   constant <- plot(.blob_hg(one_session))
   expect_length(.layers_of(constant, "GeomLabel"), 0L)
   expect_length(unique(constant$layers[[1L]]$data$colour), 1L)
+  # a clock column (a temporal snapshot's start time) is no count either,
+  # even when it varies: no title boxes unless the call names it
+  timed <- .blob_members()
+  timed$trials <- NULL
+  timed$start <- rep(c(24964, 15417, 16632), each = 3L)
+  clocked <- plot(.blob_hg(timed))
+  expect_length(.layers_of(clocked, "GeomLabel"), 0L)
+  expect_length(unique(clocked$layers[[1L]]$data$colour), 1L)
+  expect_length(.layers_of(plot(.blob_hg(timed), titles = "start"), "GeomLabel"), 1L)
   # no titles on panels that are titled already
   expect_s3_class(plot(hg, dismantled = TRUE), "ggplot")
 })
@@ -301,4 +310,52 @@ test_that("a window hypergraph is coloured by its window counts by default", {
                    ggplot2::ggplot_build(plot(hg, color_by = "weight",
                                               unit = "windows"))$data)
   expect_identical(plot(hg)$scales$get_scales("fill")$name, "Windows")
+})
+
+test_that("node_groups colours and shapes the nodes by a partition", {
+  hg <- group_hypergraph(
+    data.frame(member = c("a", "b", "c", "c", "d", "e", "e", "f", "a"),
+               case = rep(c("h1", "h2", "h3"), each = 3)),
+    node = "member", hyperedge = "case")
+  partition <- data.frame(node = c("a", "b", "c", "d", "e"),
+                          community = c("2", "2", "1", "1", "10"))
+  p <- plot(hg, node_groups = partition, labels = FALSE)
+  points <- Filter(function(l) inherits(l$geom, "GeomPoint") &&
+                     "colour" %in% names(l$mapping), p$layers)
+  expect_length(points, 1L)
+  # groups in natural order, one Okabe-Ito colour and one shape each
+  expect_identical(levels(points[[1L]]$data$group), c("1", "2", "10"))
+  built <- ggplot2::ggplot_build(p)$data[[match(TRUE, vapply(
+    p$layers, identical, logical(1), points[[1L]]))]]
+  drawn <- unique(data.frame(group = as.character(points[[1L]]$data$group),
+                             colour = built$colour, shape = built$shape))
+  drawn <- drawn[order(match(drawn$group, c("1", "2", "10"))), ]
+  expect_identical(drawn$colour, c("#E69F00", "#56B4E9", "#009E73"))
+  expect_identical(anyDuplicated(drawn$shape), 0L)
+  expect_identical(p$scales$get_scales("shape")$name, "community")
+  # INVARIANT: every grouped node is drawn once; the node without a group is grey
+  expect_identical(nrow(points[[1L]]$data), 5L)
+  grey <- Filter(function(l) inherits(l$geom, "GeomPoint") &&
+                   identical(l$aes_params$colour, "#999999"), p$layers)
+  expect_identical(nrow(grey[[1L]]$data), 1L)
+  # hulls turn grey so the nodes carry the grouping
+  expect_true(all(p$layers[[1L]]$data$colour == "#BBBBBB"))
+  # a named-column table, a fit and a cluster table are read alike
+  expect_s3_class(plot(hg, node_groups = data.frame(node = "a", block = 1L)), "ggplot")
+  expect_error(plot(hg, node_groups = data.frame(node = "zz", cluster = "1")),
+               class = "hypergraphs_bad_input")
+  expect_error(plot(hg, node_groups = partition, node_sizes = c(a = 1, b = 1, c = 1,
+                                                                 d = 1, e = 1, f = 1)),
+               class = "hypergraphs_bad_input")
+  expect_error(plot(hg, node_groups = partition, outline = "fill"),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("color_by = \"size\" lists only the sizes of drawn hyperedges", {
+  hg <- group_hypergraph(
+    data.frame(member = c("a", "b", "c", "b", "c", "d"),
+               case = c("h1", "h1", "h1", "h2", "h2", "h3")),
+    node = "member", hyperedge = "case")
+  p <- plot(hg, color_by = "size")
+  expect_identical(levels(p$layers[[1L]]$data$value), c("2", "3"))
 })

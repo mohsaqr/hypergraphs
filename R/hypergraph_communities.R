@@ -377,7 +377,7 @@ hg_get.hypergraphs_community_comparison <- function(x,
                                                            "sizes",
                                                            "quality"),
                                                   ...) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   out <- x[[what]]
   if (is.null(out)) {
     .thg_bad_input("quality scores need the hypergraph: hg_compare_communities(..., hg = )")
@@ -402,7 +402,7 @@ summary.hg_communities <- function(object, ...) .ho_summary(object)
 #' @export
 plot.hypergraphs_community_comparison <- function(x, what = c("sizes", "similarity"),
                                              ...) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (identical(what, "sizes")) {
     sizes <- hg_get(x, what = "sizes")
     curve <- do.call(rbind, lapply(split(sizes, sizes$model), function(d) {
@@ -474,9 +474,20 @@ print.hg_communities <- function(x, n = 10L, ...) {
 #'   `"sizes"`, `"ami"`, `"ari"`, `"nmi"`, or (IRMM fits only) `"weights"`.
 #'   The three similarity tables have one row per distinct pair of runs
 #'   (`run_a`, `run_b`, and the similarity), without the diagonal.
+#' @param converged For `what = "runs"` of an IRMM fit: `TRUE` keeps the
+#'   runs whose weights settled, `FALSE` the runs that reached `max_iter`.
+#'   `NULL` (default) keeps every run.
+#' @param sort_by For `what = "runs"`: a numeric column of the runs table
+#'   (`"modularity"`, `"n_communities"` or `"iterations"`) to order the runs
+#'   by, largest first, ties broken by run number. `NULL` (default) keeps run
+#'   order.
+#' @param top `NULL` (default, every row) or the number of first rows of
+#'   any table to return, applied after `converged` and `sort_by`.
 #' @param ... For `plot()`, additional arguments passed to
 #'   [cograph::splot()]; otherwise unused.
-#' @return `hg_get()`: a base data.frame. `print()`: `x`, invisibly.
+#' @return `hg_get()`: a base data.frame. Raises `hypergraphs_bad_input`
+#'   for `converged` or `sort_by` with a table other than `"runs"`, or
+#'   `converged` with an Infomap fit. `print()`: `x`, invisibly.
 #'   `plot()`: the cograph plot of the projection, coloured by the medoid
 #'   communities.
 #' @examples
@@ -488,13 +499,42 @@ print.hg_communities <- function(x, n = 10L, ...) {
 #' if (requireNamespace("igraph", quietly = TRUE)) {
 #'   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
 #'   hg_get(fit, what = "runs")
+#'   hg_get(fit, what = "runs", sort_by = "n_communities", top = 1)
 #' }
 #' @export
 hg_get.hg_communities <- function(x, what = c("medoid", "partitions", "runs",
                                               "sizes", "ami", "ari", "nmi",
                                               "weights"),
-                                  ...) {
-  what <- match.arg(what)
+                                  ..., converged = NULL, sort_by = NULL,
+                                  top = NULL) {
+  what <- .ho_match_what(what)
+  if ((!is.null(converged) || !is.null(sort_by)) && !identical(what, "runs")) {
+    .thg_bad_input("`converged` and `sort_by` apply only to `what = \"runs\"`")
+  }
+  if (identical(what, "runs")) {
+    out <- x$runs
+    if (!is.null(converged)) {
+      if (!isTRUE(converged) && !isFALSE(converged)) {
+        .thg_bad_input("`converged` must be TRUE, FALSE or NULL")
+      }
+      if (!"converged" %in% names(out)) {
+        .thg_bad_input("`converged` needs an `hg_communities(type = \"irmm\")` fit")
+      }
+      out <- out[out$converged == converged, , drop = FALSE]
+    }
+    if (!is.null(sort_by)) {
+      sortable <- intersect(c("modularity", "n_communities", "iterations"),
+                            names(out))
+      if (!is.character(sort_by) || length(sort_by) != 1L ||
+          !sort_by %in% sortable) {
+        .thg_bad_input(sprintf("`sort_by` must be one of %s",
+                               paste(sprintf("\"%s\"", sortable), collapse = ", ")))
+      }
+      out <- out[order(-out[[sort_by]], out$run), , drop = FALSE]
+    }
+    rownames(out) <- NULL
+    return(.ho_top(out, top))
+  }
   if (identical(what, "weights") && is.null(x$weights)) {
     .thg_bad_input("`what = \"weights\"` needs an `hg_communities(type = \"irmm\")` fit")
   }
@@ -509,9 +549,9 @@ hg_get.hg_communities <- function(x, what = c("medoid", "partitions", "runs",
     out[[what]] <- m[pairs]
     out <- out[order(pairs[, "row"], pairs[, "col"]), , drop = FALSE]
     rownames(out) <- NULL
-    return(out)
+    return(.ho_top(out, top))
   }
-  x[[what]]
+  .ho_top(x[[what]], top)
 }
 
 #' @rdname hg_get.hg_communities

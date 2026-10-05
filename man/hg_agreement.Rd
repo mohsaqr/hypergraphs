@@ -9,16 +9,23 @@ hg_agreement(
   y,
   what = c("summary", "table", "mapping"),
   method = "ari",
-  node = "node",
+  node = NULL,
   label = NULL
 )
 }
 \arguments{
-\item{x, y}{Tidy labelings: data.frames with a \code{node} column and a
-\code{predicted}, \code{cluster} or \code{label} column (first match in that
-order wins). Nodes are matched by name; nodes present in only one
-labeling are dropped. A fit of \code{\link[=hg_communities]{hg_communities()}} on a hypergraph is
-read through its medoid partition (\code{hg_get(fit, what = "medoid")}).}
+\item{x, y}{Tidy labelings: data.frames with a \code{node} (or, in the text
+family's document tables, \code{doc}) column and a \code{predicted}, \code{cluster},
+\code{community}, \code{topic}, \code{block} or \code{label} column (first match in that
+order wins), one row per node. Nodes are matched by name; nodes present in
+only one labeling are dropped. A fitted model is read through its
+one-label-per-node table: a fit of \code{\link[=hg_communities]{hg_communities()}} on a hypergraph
+through its medoid partition (\code{hg_get(fit, what = "medoid")}), a
+\code{\link[=hg_mmsbm]{hg_mmsbm()}} fit through each node's strongest community
+(\code{what = "nodes"}), a \code{\link[=hg_topics]{hg_topics()}} model through each document's
+dominant topic (\code{what = "documents"}), and a \code{\link[=text_hypergraph]{text_hypergraph()}}
+through its document table, so a corpus column is scored by naming it
+in \code{label}.}
 
 \item{what}{\code{"summary"} (default) for the one-row comparison,
 \code{"table"} for the tidy contingency table of the joined labels, or
@@ -31,9 +38,11 @@ change of method, topic by topic.}
 
 \item{node, label}{Column names, one name for both labelings or two
 names for \code{x} and \code{y} in turn, that override the defaults above --
-\code{hg_agreement(predictions, corpus, node = c("node", "doc"), label = c("predicted", "year"))} scores a classifier against a column of the
-corpus table without reshaping it. \code{label = NULL} (default) keeps the
-\code{predicted} / \code{cluster} / \code{label} lookup.}
+\code{hg_agreement(predictions, corpus, label = c("predicted", "year"))}
+scores a classifier against a column of the corpus. \code{node = NULL}
+(default) uses \code{node}, else \code{doc}; \code{label = NULL} (default) keeps the
+\code{predicted} / \code{cluster} / \code{community} / \code{topic} / \code{block} / \code{label}
+lookup.}
 }
 \value{
 A base \code{data.frame}. For \code{what = "summary"}: one row with
@@ -74,10 +83,9 @@ fit <- hg_classify(hg, labels = c(cooking_1 = "Cluster 1",
 hg_agreement(fit, topics)
 hg_agreement(fit, topics, what = "table")
 hg_agreement(fit, topics, what = "mapping")
-# a labeling read from any table: name its node and label columns
+# a labeling read from any table: name its label column
 known <- data.frame(doc = c("cooking_1", "space_2"), theme = c("cooking", "space"))
-hg_agreement(topics, known, node = c("node", "doc"), label = c("cluster", "theme"),
-             what = "table")
+hg_agreement(topics, known, label = c("cluster", "theme"), what = "table")
 }
 \references{
 Hubert, L., & Arabie, P. (1985). Comparing partitions.

@@ -11,7 +11,10 @@
 \method{hg_get}{hg_communities}(
   x,
   what = c("medoid", "partitions", "runs", "sizes", "ami", "ari", "nmi", "weights"),
-  ...
+  ...,
+  converged = NULL,
+  sort_by = NULL,
+  top = NULL
 )
 
 \method{plot}{hg_communities}(x, ...)
@@ -29,9 +32,23 @@ its community in the AMI-medoid run), \code{"partitions"}, \code{"runs"},
 \code{"sizes"}, \code{"ami"}, \code{"ari"}, \code{"nmi"}, or (IRMM fits only) \code{"weights"}.
 The three similarity tables have one row per distinct pair of runs
 (\code{run_a}, \code{run_b}, and the similarity), without the diagonal.}
+
+\item{converged}{For \code{what = "runs"} of an IRMM fit: \code{TRUE} keeps the
+runs whose weights settled, \code{FALSE} the runs that reached \code{max_iter}.
+\code{NULL} (default) keeps every run.}
+
+\item{sort_by}{For \code{what = "runs"}: a numeric column of the runs table
+(\code{"modularity"}, \code{"n_communities"} or \code{"iterations"}) to order the runs
+by, largest first, ties broken by run number. \code{NULL} (default) keeps run
+order.}
+
+\item{top}{\code{NULL} (default, every row) or the number of first rows of
+any table to return, applied after \code{converged} and \code{sort_by}.}
 }
 \value{
-\code{hg_get()}: a base data.frame. \code{print()}: \code{x}, invisibly.
+\code{hg_get()}: a base data.frame. Raises \code{hypergraphs_bad_input}
+for \code{converged} or \code{sort_by} with a table other than \code{"runs"}, or
+\code{converged} with an Infomap fit. \code{print()}: \code{x}, invisibly.
 \code{plot()}: the cograph plot of the projection, coloured by the medoid
 communities.
 }
@@ -47,5 +64,6 @@ h <- group_hypergraph(dat, "member", "edge")
 if (requireNamespace("igraph", quietly = TRUE)) {
   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
   hg_get(fit, what = "runs")
+  hg_get(fit, what = "runs", sort_by = "n_communities", top = 1)
 }
 }

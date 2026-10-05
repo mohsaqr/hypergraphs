@@ -32,7 +32,7 @@
 #' @export
 hg_get.net_markov_order_group <- function(x, what = c("orders", "null"),
                                           ..., top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   groups <- names(x) %||% as.character(seq_along(x))
   parts <- Map(function(fit, label) {
     tab <- hg_get(fit, what = what)
@@ -77,7 +77,7 @@ hg_get.net_markov_order_group <- function(x, what = c("orders", "null"),
 #' @export
 hg_get.net_markov_order <- function(x, what = c("orders", "null"), ...,
                                     top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (what == "orders") {
     out <- .ho_rename(x$test_table,
                       c(loglik = "log_likelihood", AIC = "aic", BIC = "bic",

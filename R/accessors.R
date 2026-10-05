@@ -65,6 +65,38 @@
   invisible(NULL)
 }
 
+#' Match a `what` argument, refusing an unknown value with a classed error
+#'
+#' `match.arg()` for the `what` argument of every accessor and verb: the same
+#' defaults (`NULL` or the untouched choice vector give the first choice) and
+#' partial matching, but an unknown value raises `hypergraphs_bad_input`
+#' naming the tables the object holds. Without `choices` they are read from
+#' the caller's `what` formal, as `match.arg()` does.
+#'
+#' @param what The value passed by the user.
+#' @param choices Character vector of allowed values.
+#' @return One element of `choices`.
+#' @noRd
+.ho_match_what <- function(what, choices) {
+  if (missing(choices)) {
+    caller <- sys.parent()
+    choices <- eval(formals(sys.function(caller))[["what"]],
+                    envir = sys.frame(caller))
+  }
+  if (is.null(what) || identical(what, choices)) return(choices[[1L]])
+  hit <- if (is.character(what) && length(what) == 1L && !is.na(what)) {
+    pmatch(what, choices)
+  } else {
+    NA_integer_
+  }
+  if (is.na(hit)) {
+    .thg_bad_input(sprintf("`what` must be one of %s; got %s",
+                           paste(sprintf("\"%s\"", choices), collapse = ", "),
+                           deparse1(what)))
+  }
+  choices[[hit]]
+}
+
 #' Truncate a tidy accessor result to its first `top` rows
 #'
 #' @param x A data.frame, already filtered and ordered.
@@ -349,7 +381,7 @@ print.hypergraphs_result <- function(x, n = 10L, ...) {
 #'   Default: the first.
 #' @export
 hg_get.hypergraphs_summary <- function(x, what = names(x)[1L], ...) {
-  what <- match.arg(what, names(x))
+  what <- .ho_match_what(what, names(x))
   x[[what]]
 }
 
@@ -433,7 +465,7 @@ summary.hypergraphs_result <- function(object, ...) {
 plot.hypergraphs_result <- function(x, y, what = c("states", "passage_time"),
                                   ...) {
   if (inherits(x, "net_markov_stability")) {
-    return(.hms_plot(x, match.arg(what), ...))
+    return(.hms_plot(x, .ho_match_what(what), ...))
   }
   if (!inherits(x, "persistence_landscape")) return(NextMethod())
   curves <- hg_get(x)

@@ -231,8 +231,10 @@ test_that("hyperedge size is coloured discretely, one colour per size", {
   built <- ggplot2::ggplot_build(p)
   fill_scale <- built$plot$scales$get_scales("fill")
   expect_true(fill_scale$is_discrete())
-  expect_setequal(fill_scale$get_limits(),
-                  as.character(sort(unique(hg_get(hg)$size))))
+  # a single-member hyperedge is drawn as its node, without a hull, so its
+  # size has no legend key
+  drawn_sizes <- subset(hg_get(hg), size >= 2L)$size
+  expect_setequal(fill_scale$get_limits(), as.character(sort(unique(drawn_sizes))))
 })
 
 test_that("a whole-number colour scale gets whole-number legend breaks", {

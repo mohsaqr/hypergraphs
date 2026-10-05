@@ -168,7 +168,7 @@ hg_modularity <- function(hg, partition,
                           what = c("score", "communities")) {
   .thg_check_hg(hg)
   type <- match.arg(type)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   parts <- .hg_mod_parts(hg, edge_weights)
   if (!length(parts$sizes)) {
     .thg_bad_input("hypergraph modularity needs at least one non-empty hyperedge")

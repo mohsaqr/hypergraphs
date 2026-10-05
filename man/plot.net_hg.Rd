@@ -38,6 +38,7 @@
   pieces = NULL,
   title_gap = 0.06,
   group = NULL,
+  node_groups = NULL,
   ...
 )
 }
@@ -233,6 +234,18 @@ and its number of sequences, \code{titles} defaults to \code{FALSE} and the
 legends are stacked. A
 name that is not a group, or a hypergraph without a \code{group} attribute,
 raises \code{hypergraphs_bad_input}. \code{NULL} (default) draws every hyperedge.}
+
+\item{node_groups}{Colour and shape every node by its group, such as its
+community: an \code{\link[=hg_communities]{hg_communities()}}, \code{\link[=hg_mmsbm]{hg_mmsbm()}} or \code{\link[=hg_topics]{hg_topics()}} fit, a
+\code{\link[=hg_cluster]{hg_cluster()}} or \code{\link[=hg_classify]{hg_classify()}} result, or a data.frame with a \code{node}
+column and a \code{community}, \code{cluster}, \code{predicted}, \code{topic}, \code{block} or
+\code{label} column (read as \code{\link[=hg_agreement]{hg_agreement()}} reads a labeling). Groups take
+the Okabe-Ito colours in their natural order and a shape each; a node
+without a group is plotted as a small grey point. Without \code{color_by} the
+hulls are then grey, so the node colours carry the grouping. \code{NULL}
+(default) plots every node alike. Raises \code{hypergraphs_bad_input} with
+\code{node_sizes}, \code{direction}, \code{transitions}, \code{dismantled = TRUE} or
+\code{outline = "fill"}.}
 
 \item{...}{Unused; for S3 consistency.}
 }

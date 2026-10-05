@@ -787,7 +787,7 @@ hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
                                                "vocabulary", "sentences"),
                                    node = NULL, sort_by = NULL, top = NULL,
                                    ...) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (!is.null(sort_by)) {
     if (!identical(what, "vocabulary")) {
       .thg_bad_input("`sort_by` applies only to `what = \"vocabulary\"`")

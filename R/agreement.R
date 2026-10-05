@@ -78,16 +78,38 @@
 # Extract the label column from a tidy labeling: `predicted`
 # (classification results) first, else `cluster` / `community`
 # (clustering results: hg_cluster(); hg_communities(), hg_mmsbm()).
-.thg_labeling <- function(x, arg, node = "node", label = NULL) {
-  # a community fit is compared through its medoid partition
-  if (inherits(x, "hg_communities")) x <- hg_get(x, what = "medoid")
-  stopifnot(
-    "labelings must be data.frames" = is.data.frame(x),
-    "`node` must be a single column name" =
-      is.character(node) && length(node) == 1L && !is.na(node),
-    "`label` must be NULL or a single column name" =
-      is.null(label) || (is.character(label) && length(label) == 1L && !is.na(label))
-  )
+.thg_labeling <- function(x, arg, node = NULL, label = NULL) {
+  # a fitted model is compared through its one-label-per-node table: a
+  # community fit through its medoid partition, a mixed-membership fit
+  # through each node's strongest community, a topic model through each
+  # document's dominant topic, a text hypergraph through its document table
+  x <- if (inherits(x, "hg_communities")) {
+    hg_get(x, what = "medoid")
+  } else if (inherits(x, "net_hg_mmsbm")) {
+    hg_get(x, what = "nodes")
+  } else if (inherits(x, "net_hg_topics")) {
+    hg_get(x, what = "documents")
+  } else if (inherits(x, "text_hypergraph")) {
+    hg_get(x, what = "documents")
+  } else {
+    x
+  }
+  if (!is.data.frame(x)) {
+    .thg_bad_input(sprintf(paste0(
+      "`%s` must be a data.frame or a result of hg_cluster(), hg_classify(), ",
+      "hg_communities(), hg_mmsbm(), hg_topics() or text_hypergraph(); ",
+      "got an object of class %s"), arg, paste(class(x), collapse = "/")))
+  }
+  if (!is.null(node) &&
+      !(is.character(node) && length(node) == 1L && !is.na(node))) {
+    .thg_bad_input("`node` must be NULL or a single column name")
+  }
+  if (!is.null(label) &&
+      !(is.character(label) && length(label) == 1L && !is.na(label))) {
+    .thg_bad_input("`label` must be NULL or a single column name")
+  }
+  # a node is named `node`, or `doc` in the text family's document tables
+  node <- node %||% c(intersect(c("node", "doc"), names(x)), "node")[[1L]]
   if (!node %in% names(x)) {
     stop(errorCondition(
       sprintf("`%s` has no `%s` column", arg, node),
@@ -95,14 +117,15 @@
     ))
   }
   column <- if (is.null(label)) {
-    intersect(c("predicted", "cluster", "community", "label"), names(x))
+    intersect(c("predicted", "cluster", "community", "topic", "block", "label"),
+              names(x))
   } else {
     intersect(label, names(x))
   }
   if (length(column) == 0L) {
     stop(errorCondition(
       if (is.null(label)) {
-        sprintf(paste0("`%s` has no `predicted`, `cluster`, `community` or `label` ",
+        sprintf(paste0("`%s` has no `predicted`, `cluster`, `community`, `topic`, `block` or `label` ",
                        "column; pass a result from hg_cluster(), ",
                        "hg_classify(), hg_neural() or hg_hypergat(), a ",
                        "table of known labels, or name the column with `label`"), arg)
@@ -112,9 +135,16 @@
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  data.frame(node = as.character(x[[node]]),
-             label = as.character(x[[column[[1]]]]),
-             stringsAsFactors = FALSE)
+  if (anyDuplicated(x[[node]])) {
+    .thg_bad_input(sprintf(
+      "`%s` names a node more than once in column `%s`; a labeling has one row per node",
+      arg, node))
+  }
+  out <- data.frame(node = as.character(x[[node]]),
+                    label = as.character(x[[column[[1]]]]),
+                    stringsAsFactors = FALSE)
+  attr(out, "column") <- column[[1L]]
+  out
 }
 
 # A column selector for `hg_agreement()`: one name applies to both
@@ -159,17 +189,25 @@
 #' information (`nmi`) are also available; the legal-hypergraphs workflow uses
 #' AMI to select the medoid of repeated Infomap partitions.
 #'
-#' @param x,y Tidy labelings: data.frames with a `node` column and a
-#'   `predicted`, `cluster` or `label` column (first match in that
-#'   order wins). Nodes are matched by name; nodes present in only one
-#'   labeling are dropped. A fit of [hg_communities()] on a hypergraph is
-#'   read through its medoid partition (`hg_get(fit, what = "medoid")`).
+#' @param x,y Tidy labelings: data.frames with a `node` (or, in the text
+#'   family's document tables, `doc`) column and a `predicted`, `cluster`,
+#'   `community`, `topic`, `block` or `label` column (first match in that
+#'   order wins), one row per node. Nodes are matched by name; nodes present in
+#'   only one labeling are dropped. A fitted model is read through its
+#'   one-label-per-node table: a fit of [hg_communities()] on a hypergraph
+#'   through its medoid partition (`hg_get(fit, what = "medoid")`), a
+#'   [hg_mmsbm()] fit through each node's strongest community
+#'   (`what = "nodes"`), a [hg_topics()] model through each document's
+#'   dominant topic (`what = "documents"`), and a [text_hypergraph()]
+#'   through its document table, so a corpus column is scored by naming it
+#'   in `label`.
 #' @param node,label Column names, one name for both labelings or two
 #'   names for `x` and `y` in turn, that override the defaults above --
-#'   `hg_agreement(predictions, corpus, node = c("node", "doc"), label =
-#'   c("predicted", "year"))` scores a classifier against a column of the
-#'   corpus table without reshaping it. `label = NULL` (default) keeps the
-#'   `predicted` / `cluster` / `label` lookup.
+#'   `hg_agreement(predictions, corpus, label = c("predicted", "year"))`
+#'   scores a classifier against a column of the corpus. `node = NULL`
+#'   (default) uses `node`, else `doc`; `label = NULL` (default) keeps the
+#'   `predicted` / `cluster` / `community` / `topic` / `block` / `label`
+#'   lookup.
 #' @param what `"summary"` (default) for the one-row comparison,
 #'   `"table"` for the tidy contingency table of the joined labels, or
 #'   `"mapping"` for one row per label of `x` naming the label of `y` that
@@ -207,14 +245,13 @@
 #' hg_agreement(fit, topics)
 #' hg_agreement(fit, topics, what = "table")
 #' hg_agreement(fit, topics, what = "mapping")
-#' # a labeling read from any table: name its node and label columns
+#' # a labeling read from any table: name its label column
 #' known <- data.frame(doc = c("cooking_1", "space_2"), theme = c("cooking", "space"))
-#' hg_agreement(topics, known, node = c("node", "doc"), label = c("cluster", "theme"),
-#'              what = "table")
+#' hg_agreement(topics, known, label = c("cluster", "theme"), what = "table")
 #' @export
 hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
-                         method = "ari", node = "node", label = NULL) {
-  what <- match.arg(what)
+                         method = "ari", node = NULL, label = NULL) {
+  what <- .ho_match_what(what)
   method <- match.arg(method, c("ari", "ami", "nmi"), several.ok = TRUE)
   node <- .thg_pair_selector(node, "node")
   label <- .thg_pair_selector(label, "label")
@@ -381,7 +418,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
   .thg_check_hg(hg)
   type <- match.arg(type)
   resample <- match.arg(resample)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   stopifnot(
     "`k` must be a vector of cluster counts, each at least 2" =
       is.numeric(k) && length(k) >= 1L && all(is.finite(k)) && all(k >= 2)

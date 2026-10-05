@@ -35,8 +35,9 @@ applied after any filter and after \code{sort_by}, so \code{sort_by} and
 \value{
 A data.frame. For \code{what = "edges"}, one row per hyperedge with
 columns \code{hyperedge} (character id), \code{size} (integer), \code{members}
-(the member nodes, comma separated), and \code{weight} (numeric window count,
-or \code{NA}). For \code{what = "nodes"}, one row per node with columns \code{node}
+(the member nodes, comma separated), and, for a hypergraph of windows
+(\code{\link[=window_hypergraph]{window_hypergraph()}}), \code{weight} (the number of windows with that
+member set). \code{sort_by} is \code{"size"}, or \code{"weight"} where it exists. For \code{what = "nodes"}, one row per node with columns \code{node}
 and \code{degree} (the number of hyperedges it belongs to), plus \code{block}
 for a hypergraph with planted blocks (\code{\link[=random_hypergraph]{random_hypergraph()}} with \code{type = "sbm"}); \code{sort_by = "degree"} orders it. For \code{what = "memberships"}, one row per non-zero
 incidence cell with columns \code{node}, \code{hyperedge} and \code{weight} (the

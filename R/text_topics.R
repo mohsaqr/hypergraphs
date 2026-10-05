@@ -732,7 +732,7 @@ hg_cocluster <- function(hg, k, seed = NULL, nstart = 25L,
                          what = c("clusters", "embedding"),
                          role = c("all", "node", "hyperedge")) {
   .thg_check_hg(hg)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   role <- match.arg(role)
   incidence <- hg$incidence
   n_rows <- nrow(incidence) + ncol(incidence)

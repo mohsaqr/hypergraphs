@@ -475,7 +475,7 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
 hg_get.net_hg_mmsbm <- function(x, what = c("membership", "nodes",
                                             "affinity", "restarts"), ...,
                                 top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   out <- switch(what,
     membership = data.frame(
       node = rep(rownames(x$u), times = x$k),

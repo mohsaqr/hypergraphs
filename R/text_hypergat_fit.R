@@ -31,7 +31,7 @@
 #' @export
 hg_get.hg_hypergat <- function(x, what = NULL, split = NULL, correct = NULL,
                               node = NULL, sort_by = NULL, top = NULL, ...) {
-  what <- match.arg(what %||% "predictions", c("predictions", "accuracy",
+  what <- .ho_match_what(what, c("predictions", "accuracy",
     "classes", "confusion", "history", "documents", "attention",
     "hyperedges", "hyperedge_words"))
   state <- attr(x, "hypergat")

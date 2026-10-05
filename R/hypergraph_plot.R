@@ -534,6 +534,17 @@
 #'   circle, its apex on the rim facing the next node) or `"outside"` (the
 #'   circle drawn out into a tip beyond its rim). An outside tip that points
 #'   upward moves that node's label below the circle.
+#' @param node_groups Colour and shape every node by its group, such as its
+#'   community: an [hg_communities()], [hg_mmsbm()] or [hg_topics()] fit, a
+#'   [hg_cluster()] or [hg_classify()] result, or a data.frame with a `node`
+#'   column and a `community`, `cluster`, `predicted`, `topic`, `block` or
+#'   `label` column (read as [hg_agreement()] reads a labeling). Groups take
+#'   the Okabe-Ito colours in their natural order and a shape each; a node
+#'   without a group is plotted as a small grey point. Without `color_by` the
+#'   hulls are then grey, so the node colours carry the grouping. `NULL`
+#'   (default) plots every node alike. Raises `hypergraphs_bad_input` with
+#'   `node_sizes`, `direction`, `transitions`, `dismantled = TRUE` or
+#'   `outline = "fill"`.
 #' @param node_fill Colour of the circles drawn by `node_sizes` with
 #'   `direction` (default black).
 #' @param arrow_fill Colour of the `direction` triangles. `NULL` (default) is
@@ -680,7 +691,8 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                 transitions = NULL, size_title = NULL,
                                 titles = NULL, title_prefix = "",
                                 notes = NULL, unit = NULL, pieces = NULL,
-                                title_gap = 0.06, group = NULL, ...) {
+                                title_gap = 0.06, group = NULL,
+                                node_groups = NULL, ...) {
   .thg_check_hg(x)
   # repeated member sets are drawn once each, as the distinct sets of all the
   # hyperedges coloured by their number of copies, unless the call styles or
@@ -743,6 +755,13 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   if (!is.null(direction) && is.null(node_sizes)) {
     .thg_bad_input("`direction` needs `node_sizes`: the triangles sit inside the circles")
   }
+  if (!is.null(node_groups) && (overlaid || isTRUE(dismantled) ||
+                                identical(outline, "fill"))) {
+    .thg_bad_input(paste0(
+      "`node_groups` colours the node points and does not combine with ",
+      "`node_sizes`, `direction`, `transitions`, `dismantled = TRUE` or ",
+      "`outline = \"fill\"`"))
+  }
   .thg_check_string(node_fill, "node_fill", colour = TRUE)
   .thg_check_string(arrow_fill, "arrow_fill", null_ok = TRUE, colour = TRUE)
   .thg_check_string(size_title, "size_title", null_ok = TRUE)
@@ -761,9 +780,15 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   # writes the title boxes and names the unit. An attribute with one value on
   # every hyperedge (a membership share of 1 throughout, or the session
   # number of the runs of one session) tells them apart no better than none
-  # and is never chosen; of several that vary, the call has to choose.
+  # and is never chosen; of several that vary, the call has to choose. A
+  # column named as a clock (start, end, duration, time, session: the
+  # alias table of temporal_hypergraph()) is a position in time, not a count,
+  # and is chosen only by name.
+  clock <- .thg_norm_name(unlist(.thg_aliases[c("start", "end", "duration",
+                                                "time", "session")]))
   numeric_attributes <- Filter(function(column) {
-    is.numeric(x$edge_data[[column]]) && all(is.finite(x$edge_data[[column]]))
+    is.numeric(x$edge_data[[column]]) && all(is.finite(x$edge_data[[column]])) &&
+      !.thg_norm_name(column) %in% clock
   }, setdiff(names(x$edge_data), "edge"))
   varying <- Filter(function(column) length(unique(x$edge_data[[column]])) > 1L,
                     numeric_attributes)
@@ -824,7 +849,11 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   }
   fill <- .thg_edge_aesthetic(x, color_by, "color_by")
   # a size is a whole number of members: one colour per size, discrete
-  if (identical(color_by, "size")) fill <- factor(fill, levels = sort(unique(fill)))
+  # the sizes of the drawn hyperedges only: a single member is drawn as its
+  # node, so its size would be a legend key without a hull
+  if (identical(color_by, "size")) {
+    fill <- factor(fill, levels = sort(unique(fill[lengths(x$hyperedges) >= 2L])))
+  }
   ltype <- .thg_edge_aesthetic(x, linetype_by, "linetype_by")
   if (!is.null(ltype) && is.numeric(ltype)) ltype <- as.character(ltype)
 
@@ -865,7 +894,8 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
 
   fill_map <- if (is.null(fill)) NULL else .thg_fill_colours(fill)
   edge_colours <- if (is.null(fill_map)) {
-    rep(.thg_okabe_ito[[4L]], x$n_hyperedges)
+    rep(if (is.null(node_groups)) .thg_okabe_ito[[4L]] else "#BBBBBB",
+        x$n_hyperedges)
   } else {
     fill_map$colours
   }
@@ -966,6 +996,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     transitions = transitions, style = arrow_style, node_fill = node_fill,
     arrow_fill = arrow_fill, labels = labels, label_size = label_size,
     node_size = node_size,
+    groups = if (!is.null(node_groups)) .thg_node_groups(x, node_groups),
     area_what = size_title %||%
       (if (!is.null(unit)) paste(unit, "with the", item)),
     unit = unit
@@ -1384,7 +1415,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                              transitions = NULL, style = "inside",
                              node_fill = "#000000", arrow_fill = NULL,
                              labels = TRUE, label_size = 4.2, node_size = 2.5,
-                             area_what = NULL, unit = NULL) {
+                             groups = NULL, area_what = NULL, unit = NULL) {
   ink <- "#2B2B2B"
   arrows <- list()
   if (!is.null(transitions)) {
@@ -1481,6 +1512,27 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
         }
       )
     )
+  } else if (!is.null(groups)) {
+    grouped <- data.frame(x = node_data$x, y = node_data$y, group = groups$group)
+    ungrouped <- grouped[is.na(grouped$group), , drop = FALSE]
+    grouped <- grouped[!is.na(grouped$group), , drop = FALSE]
+    marks <- list(
+      if (nrow(ungrouped)) ggplot2::geom_point(
+        data = ungrouped, mapping = ggplot2::aes(x = .data$x, y = .data$y),
+        colour = "#999999", size = node_size * 0.6
+      ),
+      ggplot2::geom_point(
+        data = grouped,
+        mapping = ggplot2::aes(x = .data$x, y = .data$y, colour = .data$group,
+                               shape = .data$group),
+        size = node_size * 1.5
+      ),
+      # one legend for colour and shape, keys at their natural width
+      ggplot2::scale_colour_manual(values = groups$palette, name = groups$title,
+                                   drop = FALSE, guide = groups$guide),
+      ggplot2::scale_shape_manual(values = groups$shapes, name = groups$title,
+                                  drop = FALSE, guide = groups$guide)
+    )
   } else {
     marks <- list(ggplot2::geom_point(
       data = node_data, mapping = ggplot2::aes(x = .data$x, y = .data$y),
@@ -1506,6 +1558,28 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                       size = label_size, inherit.aes = FALSE)))
   }
   c(arrows, marks, text, caption)
+}
+
+# The group of every node of `x` for `node_groups`: a factor over the groups
+# present in natural order (NA for a node without one), with one Okabe-Ito
+# colour and one solid shape per group, so colour is never the only cue.
+.thg_node_groups <- function(x, node_groups) {
+  labeling <- .thg_labeling(node_groups, "node_groups", label = NULL)
+  group <- labeling$label[match(x$nodes, labeling$node)]
+  if (all(is.na(group))) {
+    .thg_bad_input("`node_groups` names none of the hypergraph's nodes")
+  }
+  levels <- .thg_kw_natural(unique(group[!is.na(group)]))
+  palette <- .thg_fill_colours(factor(levels, levels = levels))$palette
+  list(group = factor(group, levels = levels),
+       palette = palette,
+       shapes = stats::setNames(rep_len(c(16, 15, 17, 18, 8, 4, 3, 1, 0, 2),
+                                        length(levels)), levels),
+       title = attr(labeling, "column"),
+       guide = ggplot2::guide_legend(
+         nrow = ceiling(length(levels) / 6), byrow = TRUE,
+         theme = ggplot2::theme(legend.key.width = grid::unit(1.2, "lines"))
+       ))
 }
 
 # ---- title boxes and side-by-side pieces -------------------------------------

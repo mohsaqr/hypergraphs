@@ -53,7 +53,7 @@ hg_get.net_markov_stability <- function(x, what = c("states",
                                                decreasing = TRUE,
                                                from = NULL, to = NULL,
                                                top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   stopifnot(
     "`decreasing` must be a single TRUE or FALSE" =
       is.logical(decreasing) && length(decreasing) == 1L && !is.na(decreasing)

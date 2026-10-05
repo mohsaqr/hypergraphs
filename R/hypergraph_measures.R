@@ -263,7 +263,7 @@ print.net_hg_measures <- function(x, ...) {
 hg_get.net_hg_measures <- function(
     x, what = c("nodes", "edges", "global"), ..., sort_by = NULL,
     top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   out <- switch(
     what,
     nodes = data.frame(

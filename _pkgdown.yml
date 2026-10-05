@@ -163,6 +163,10 @@ articles:
   - text-hypergraphs
   - text-constructions
   - hypergat-classification
+- title: Legal hypergraphs
+  navbar: ~
+  contents:
+  - articles/legal-hypergraphs
 - title: Benchmarks
   contents:
   - articles/benchmarks

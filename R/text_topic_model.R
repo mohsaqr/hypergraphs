@@ -462,7 +462,7 @@ hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
                                              "prevalence"), ...,
                                  n = 10L, topic = NULL, group = NULL,
                                  top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (identical(what, "prevalence")) {
     return(.ho_top(.tm_prevalence(x, group, topic), top))
   }

@@ -154,7 +154,7 @@ pairwise_network <- function(hg, type = c("clique", "association", "citation"),
 #' @export
 hg_get.net_hg_pairwise <- function(x, what = c("edges", "nodes"), ...,
                                   sort_by = NULL, top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   labels <- rownames(x$weights)
   if (identical(what, "nodes")) {
     out <- data.frame(node = labels,
@@ -228,7 +228,7 @@ plot.net_hg_pairwise <- function(x, ...) {
                            self_association = FALSE, edge_source = NULL,
                            directed = FALSE) {
   method <- match.arg(type)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   duplicate_edges <- match.arg(duplicate_edges)
   if (!is.null(weighted) && !identical(method, "clique")) {
     stop(errorCondition(
@@ -450,7 +450,7 @@ plot.net_hg_pairwise <- function(x, ...) {
 #' @export
 hg_line_graph <- function(hg, s = 1, what = c("edges", "matrix")) {
   .thg_check_hg(hg)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   stopifnot(
     "`s` must be a single whole number of at least 1" =
       length(s) == 1L && is.numeric(s) && is.finite(s) && s >= 1 &&

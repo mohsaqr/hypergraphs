@@ -682,7 +682,7 @@ hg_get.net_hon_communities <- function(
     x, what = c("states", "physical", "modules", "trials", "first_order",
                 "codelength"), ...,
     community = NULL, overlapping = FALSE) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   stopifnot(
     "`overlapping` must be TRUE or FALSE" =
       is.logical(overlapping) && length(overlapping) == 1L && !is.na(overlapping),

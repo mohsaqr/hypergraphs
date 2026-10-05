@@ -80,7 +80,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
                         measure = c("hyperdegree", "strength", "n_neighbors",
                                     "size")) {
   .thg_check_hg(hg)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   measure <- match.arg(measure)
   if (identical(what, "distribution")) {
     values <- if (identical(measure, "size")) {
@@ -442,7 +442,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
   )
   type <- match.arg(type)
   algorithm <- match.arg(algorithm)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   edge_weights <- .thg_edge_weights(hg, edge_weights)
   if (identical(what, "membership") && !identical(algorithm, "symnmf")) {
     .thg_bad_input(paste0("`what = \"membership\"` needs ",
@@ -1113,7 +1113,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
                        what = c("edges", "network")) {
   .thg_check_hg(hg)
   similarity <- match.arg(similarity)
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (is.null(clusters) == is.null(topics)) {
     .thg_bad_input("give `clusters` (a partition) or `topics` (a topic model)")
   }

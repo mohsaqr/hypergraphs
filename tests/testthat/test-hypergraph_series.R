@@ -156,3 +156,26 @@ test_that("hg_growth rejects non-temporal input", {
   expect_error(hg_growth(42), class = "hypergraphs_bad_input")
   expect_error(hg_growth(.interval_thg(), at = NA), class = "hypergraphs_bad_input")
 })
+
+test_that("a distribution over calendar times names its curves by date", {
+  citations <- data.frame(
+    block = c("b1", "b1", "b2", "b3", "b3", "b3"),
+    cited = c("d1", "d2", "d1", "d2", "d3", "d4"),
+    date = as.Date(c("2000-01-01", "2000-01-01", "2001-06-01", "2003-03-01",
+                     "2003-03-01", "2003-03-01")))
+  blocks <- temporal_hypergraph(citations, node = "cited", hyperedge = "block",
+                                time = "date")
+  sizes <- hg_edges(blocks, what = "distribution", measure = "size",
+                    at = as.Date(c("2001-12-31", "2003-12-31")),
+                    snapshot_mode = "cumulative")
+  p <- plot(sizes)
+  expect_identical(levels(p$data$series), c("2001-12-31", "2003-12-31"))
+  expect_identical(p$scales$get_scales("colour")$name, "date")
+  # a numeric clock keeps its own values and the column name
+  numeric_blocks <- temporal_hypergraph(transform(citations, date = as.numeric(date)),
+                                        node = "cited", hyperedge = "block",
+                                        time = "date")
+  numeric_sizes <- hg_edges(numeric_blocks, what = "distribution", measure = "size",
+                            at = c(11500, 12500), snapshot_mode = "cumulative")
+  expect_identical(plot(numeric_sizes)$scales$get_scales("colour")$name, "time")
+})

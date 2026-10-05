@@ -487,7 +487,7 @@
 hg_get.net_hon <- function(x, what = c("rules", "nodes", "pathways"), ...,
                            order_min = NULL, sort_by = NULL,
                            top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (what == "pathways") {
     return(.ho_top(.ho_pathway_table(Nestimate::pathways(x, ...)), top))
   }

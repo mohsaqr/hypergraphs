@@ -26,7 +26,7 @@
 #' @export
 hg_get.net_honem <- function(x, what = c("embeddings", "variance"), ...,
                              top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   if (what == "variance") {
     return(.ho_top(data.frame(
       dimension      = seq_along(x$singular_values),

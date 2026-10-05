@@ -254,11 +254,11 @@ test_that("hg_get.net_hg_measures returns all three tables", {
 
 test_that("accessors reject unknown what = and bad filters", {
   sc <- simplicial(.ac_mat(), type = "clique", threshold = 0.5)
-  expect_error(hg_get(sc, what = "nope"), "should be one of")
+  expect_error(hg_get(sc, what = "nope"), class = "hypergraphs_bad_input")
   expect_error(hg_get(sc, dimension = -1L), "`dimension` must be")
 
   h <- hon(.ac_seqs(), max_order = 2L, min_freq = 20L)
-  expect_error(hg_get(h, what = "nope"), "should be one of")
+  expect_error(hg_get(h, what = "nope"), class = "hypergraphs_bad_input")
   expect_error(hg_get(h, order_min = 0L), "`order_min` must be")
   expect_error(hg_get(h, sort_by = "nope"), "should be one of")
 
@@ -478,4 +478,15 @@ test_that("sort_by and top compose rather than fighting", {
   expect_identical(nrow(ho), 4L)
   ho_full <- hg_get(h, order_min = 2L, sort_by = "count")
   expect_identical(ho, `rownames<-`(utils::head(ho_full, 4L), NULL))
+})
+
+test_that("an unknown `what` is refused with hypergraphs_bad_input", {
+  hg <- window_hypergraph(list(s1 = c("a", "b", "a", "c")), window = 2L)
+  expect_error(hg_get(hg, what = "vocabulary"), class = "hypergraphs_bad_input")
+  expect_error(hg_get(hg, what = c("edges", "nodes")), class = "hypergraphs_bad_input")
+  expect_error(hg_get(hg, what = 1), class = "hypergraphs_bad_input")
+  # the match.arg() defaults are kept: NULL is the first table, prefixes match
+  expect_identical(hg_get(hg, what = NULL), hg_get(hg))
+  expect_identical(hg_get(hg, what = "mem"), hg_get(hg, what = "memberships"))
+  expect_error(hg_measures(hg, what = "nope"), class = "hypergraphs_bad_input")
 })

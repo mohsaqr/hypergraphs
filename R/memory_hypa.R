@@ -43,7 +43,7 @@
 hg_get.net_hypa <- function(x, what = c("anomalies", "scores", "over",
                                         "under", "pathways"), ...,
                             type = NULL, order_by = NULL, top = NULL) {
-  what <- match.arg(what)
+  what <- .ho_match_what(what)
   view <- attr(x, "hypa_view")
   type <- match.arg(type %||% view$type %||% "all",
                     c("all", "over", "under"))

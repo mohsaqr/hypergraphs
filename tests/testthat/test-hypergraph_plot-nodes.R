@@ -68,11 +68,14 @@ test_that("default calls draw exactly what they drew before the overlays", {
   # colour by size became discrete (one Okabe-Ito colour per size); its
   # geometry, labels and every other call are unchanged
   unchanged <- setdiff(names(calls), "size")
-  expect_identical(now[unchanged], baseline$data[unchanged])
+  # coordinates are doubles: equal to a tolerance, since the last bits differ
+  # between platforms
+  expect_equal(now[unchanged], baseline$data[unchanged], tolerance = 1e-10)
   drop_fill <- function(layers) {
     lapply(layers, function(d) d[setdiff(names(d), c("fill", "colour"))])
   }
-  expect_identical(drop_fill(now$size), drop_fill(baseline$data$size))
+  expect_equal(drop_fill(now$size), drop_fill(baseline$data$size),
+               tolerance = 1e-10)
 })
 
 # a direction table that draws circles; a -> b so every node has a heading

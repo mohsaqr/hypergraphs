@@ -317,7 +317,9 @@
 #' Relabel modules 1..M by decreasing flow (ties: first state)
 #' @noRd
 .hcm_relabel <- function(module, node_flow) {
-  mf <- tapply(node_flow, module, sum)
+  # flows equal up to rounding are ties, so the first-node rule decides them
+  # the same way on every platform instead of the last bits of a sum
+  mf <- signif(tapply(node_flow, module, sum), 12)
   first <- tapply(seq_along(module), module, min)
   ids <- names(mf)[order(-mf, first)]
   match(as.character(module), ids)

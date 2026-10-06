@@ -1,3 +1,9 @@
+# hypergraphs 0.6.7
+
+* `hg_communities()` on a memory network numbers communities of equal flow
+  the same way on every platform: flows equal to 12 significant digits are
+  ties, broken by the first node.
+
 # hypergraphs 0.6.6
 
 * `window_hypergraph()` gains `collapse`: `FALSE` keeps every window as its

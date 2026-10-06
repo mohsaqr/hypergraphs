@@ -11,11 +11,11 @@
         Codelength first-order: 2.2525 bits (one module 2.2525; communities: 1)
         Runs: 2 (teleportation 0.15, seed 1)
          node state community      flow
-            a     a         2 0.1664584
-       a -> h     h         2 0.1629182
-            b     b         2 0.1706234
-            c     c         1 0.1664584
-       c -> h     h         1 0.1629182
-            d     d         1 0.1706234
+            a     a         1 0.1664584
+       a -> h     h         1 0.1629182
+            b     b         1 0.1706234
+            c     c         2 0.1664584
+       c -> h     h         2 0.1629182
+            d     d         2 0.1706234
             h     h         3 0.0000000
 

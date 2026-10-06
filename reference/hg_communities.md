@@ -39,8 +39,9 @@ hg_communities(x, ...)
 
 ## Value
 
-An `hg_communities` object (hypergraph) or a `net_hon_communities`
-object (memory network); read either with
+An `hg_communities` object (hypergraph) or a
+`hypergraphs_memory_communities` object (memory network); read either
+with
 [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md).
 Any other input raises `hypergraphs_bad_input`.
 

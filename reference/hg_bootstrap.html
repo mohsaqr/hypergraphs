@@ -23,7 +23,7 @@ contexts have support 1 by construction."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,7 +106,7 @@ contexts have support 1 by construction.</p>
 event table (with <code>action</code>), a wide data.frame (one sequence per row),
 a list of vectors, or a model object carrying its sequences. A group
 model from <code><a href="hon.html">hon()</a></code> with <code>group</code> is resampled group by group with its
-own settings, and the result is a <code>net_hon_boot_group</code> (one bootstrap
+own settings, and the result is a <code>hypergraphs_bootstrap_group</code> (one bootstrap
 per group; <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code><a href="hg_get.html">hg_get()</a></code> stack them with a <code>group</code>
 column).</p></dd>
 
@@ -145,7 +145,7 @@ wide or list input.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An object of class <code>net_hon_boot</code>: a list with <code>edges</code> (the
+    <p>An object of class <code>hypergraphs_bootstrap</code>: a list with <code>edges</code> (the
 tidy inference table, one row per rule edge of the observed network:
 <code>from</code>, <code>to</code>, <code>order</code>, <code>count</code>, <code>probability</code>, <code>ci_lower</code>,
 <code>ci_upper</code>, <code>support</code>, <code>n_boot_used</code>), <code>n_boot</code>, <code>level</code>,
@@ -185,7 +185,7 @@ Bootstrap</em>. Chapman &amp; Hall.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">bs</span> <span class="op">&lt;-</span> <span class="fu">hg_bootstrap</span><span class="op">(</span><span class="va">hg_seqs</span>, n_boot <span class="op">=</span> <span class="fl">50</span>, max_order <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">bs</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> HON bootstrap: 8 rule edges (2 higher-order) from 4 sequences</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Memory-network bootstrap: 8 rule edges (2 higher-order) from 4 sequences</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   50 replicates, 95% percentile CIs</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Higher-order rule support: min 0.54, median 0.58, max 0.62</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    from to order count probability ci_lower ci_upper support n_boot_used</span>

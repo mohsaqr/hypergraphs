@@ -1,5 +1,23 @@
 # Changelog
 
+## hypergraphs 0.6.10
+
+- The result classes of the memory family drop the `hon` prefix left
+  over from the package’s former name: `net_hon_boot` is now
+  `hypergraphs_bootstrap`, `net_hon_boot_group`
+  `hypergraphs_bootstrap_group`, `net_hon_compare`
+  `hypergraphs_comparison`, `net_hon_communities`
+  `hypergraphs_memory_communities` and `net_hon_group`
+  `hypergraphs_memory_group`. Code that tests these classes with
+  [`inherits()`](https://rdrr.io/r/base/class.html) needs the new names.
+  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) and
+  [`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md)
+  keep their names (the published BuildHON and HONEM methods), and
+  `net_hon` remains the Nestimate class that
+  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)
+  returns. Printed headers read “Memory-network bootstrap” and
+  “Memory-network comparison”.
+
 ## hypergraphs 0.6.9
 
 - The Argentina example article gains a storyline of the busiest

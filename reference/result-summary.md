@@ -36,19 +36,19 @@ summary(object, ...)
 # S3 method for class 'hypergraphs_motifs'
 summary(object, ...)
 
-# S3 method for class 'net_hon_communities'
+# S3 method for class 'hypergraphs_memory_communities'
 summary(object, ...)
 
-# S3 method for class 'net_hon_boot_group'
+# S3 method for class 'hypergraphs_bootstrap_group'
 summary(object, ...)
 
-# S3 method for class 'net_hon_group'
+# S3 method for class 'hypergraphs_memory_group'
 summary(object, ...)
 
-# S3 method for class 'net_hon_boot'
+# S3 method for class 'hypergraphs_bootstrap'
 summary(object, ...)
 
-# S3 method for class 'net_hon_compare'
+# S3 method for class 'hypergraphs_comparison'
 summary(object, ...)
 
 # S3 method for class 'hypergraphs_simplicial'

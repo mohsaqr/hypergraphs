@@ -52,14 +52,14 @@ hg_compare(
 
 ## Value
 
-An object of class `net_hon_compare`: a list with `edges` (one row per
-pooled rule: `from`, `to`, `order`, `count`, the two groups' counts and
-probabilities (columns named after the groups), `diff` (probability
-difference, first minus second), `p_value`, `p_adj` (BH), `significant`,
-`n_perm_used`), `global` (`statistic`, the pooled-count-weighted mean
-absolute difference, and `p_value`), `names`, `n_perm`, `alpha`,
-`max_order`, `min_freq`, `n_trajectories` (per group) and `seed`. Has
-`print`, `summary` and `plot` methods;
+An object of class `hypergraphs_comparison`: a list with `edges` (one
+row per pooled rule: `from`, `to`, `order`, `count`, the two groups'
+counts and probabilities (columns named after the groups), `diff`
+(probability difference, first minus second), `p_value`, `p_adj` (BH),
+`significant`, `n_perm_used`), `global` (`statistic`, the
+pooled-count-weighted mean absolute difference, and `p_value`), `names`,
+`n_perm`, `alpha`, `max_order`, `min_freq`, `n_trajectories` (per group)
+and `seed`. Has `print`, `summary` and `plot` methods;
 [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
 returns the rule table (`significant = TRUE` restricts it).
 
@@ -103,7 +103,7 @@ by_group <- hon(c(first_order, second_order),
                 group = rep(c("first", "second"), each = 6), max_order = 2)
 comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
 comparison
-#> HON comparison: first (6 sequences) vs second (6 sequences)
+#> Memory-network comparison: first (6 sequences) vs second (6 sequences)
 #>   12 pooled rule edges, 99 permutations
 #>   Global weighted |diff|: 0.4814, p = 0.01
 #>   Significant edges (BH, alpha = 0.05): 11

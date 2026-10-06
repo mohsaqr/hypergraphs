@@ -112,17 +112,17 @@ naming the class.
 
   `"states"` (default), `"passage_time"`, `"stationary"`.
 
-- `net_hon_boot`
+- `hypergraphs_bootstrap`
   ([`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md)):
 
   `"edges"`.
 
-- `net_hon_compare`
+- `hypergraphs_comparison`
   ([`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md)):
 
   `"edges"`.
 
-- `net_hon_communities`
+- `hypergraphs_memory_communities`
   ([`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
   on a memory network):
 

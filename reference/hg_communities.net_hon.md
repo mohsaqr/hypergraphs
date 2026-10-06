@@ -65,12 +65,12 @@ hg_communities(
 
 ## Value
 
-A `net_hon_communities` object. Read it with
+A `hypergraphs_memory_communities` object. Read it with
 [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
 `what = "states"` (one row per state node), `"physical"` (one row per
 physical node x module), `"modules"`, `"trials"`, `"first_order"` and
 `"codelength"`; see
-[`hg_get.net_hon_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_communities.md).
+[`hg_get.hypergraphs_memory_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_communities.md).
 
 ## Details
 

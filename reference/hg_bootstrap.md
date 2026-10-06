@@ -44,7 +44,7 @@ hg_bootstrap(
   A group model from
   [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) with
   `group` is resampled group by group with its own settings, and the
-  result is a `net_hon_boot_group` (one bootstrap per group;
+  result is a `hypergraphs_bootstrap_group` (one bootstrap per group;
   [`summary()`](https://rdrr.io/r/base/summary.html) and
   [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
   stack them with a `group` column).
@@ -85,9 +85,9 @@ hg_bootstrap(
 
 ## Value
 
-An object of class `net_hon_boot`: a list with `edges` (the tidy
-inference table, one row per rule edge of the observed network: `from`,
-`to`, `order`, `count`, `probability`, `ci_lower`, `ci_upper`,
+An object of class `hypergraphs_bootstrap`: a list with `edges` (the
+tidy inference table, one row per rule edge of the observed network:
+`from`, `to`, `order`, `count`, `probability`, `ci_lower`, `ci_upper`,
 `support`, `n_boot_used`), `n_boot`, `level`, `max_order`, `min_freq`,
 `n_trajectories`, and `seed`. Has `print`, `summary` and `plot` methods;
 [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
@@ -129,7 +129,7 @@ hg_seqs <- list(
 )
 bs <- hg_bootstrap(hg_seqs, n_boot = 50, max_order = 2, seed = 1)
 bs
-#> HON bootstrap: 8 rule edges (2 higher-order) from 4 sequences
+#> Memory-network bootstrap: 8 rule edges (2 higher-order) from 4 sequences
 #>   50 replicates, 95% percentile CIs
 #>   Higher-order rule support: min 0.54, median 0.58, max 0.62
 #>    from to order count probability ci_lower ci_upper support n_boot_used

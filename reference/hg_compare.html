@@ -19,7 +19,7 @@ differences weighted by pooled counts."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,7 +113,7 @@ adjusted p-values. Default <code>0.05</code>.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An object of class <code>net_hon_compare</code>: a list with <code>edges</code> (one
+    <p>An object of class <code>hypergraphs_comparison</code>: a list with <code>edges</code> (one
 row per pooled rule: <code>from</code>, <code>to</code>, <code>order</code>, <code>count</code>, the two groups'
 counts and probabilities (columns named after the groups), <code>diff</code>
 (probability difference, first minus second), <code>p_value</code>, <code>p_adj</code> (BH),
@@ -158,7 +158,7 @@ rate. <em>Journal of the Royal Statistical Society B</em>, 57(1), 289-300.
 <span class="r-in"><span>                group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>, max_order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu">hg_compare</span><span class="op">(</span><span class="va">by_group</span>, n_perm <span class="op">=</span> <span class="fl">99</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">comparison</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> HON comparison: first (6 sequences) vs second (6 sequences)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Memory-network comparison: first (6 sequences) vs second (6 sequences)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   12 pooled rule edges, 99 permutations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Global weighted |diff|: 0.4814, p = 0.01</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Significant edges (BH, alpha = 0.05): 11</span>

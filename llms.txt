@@ -277,6 +277,17 @@ One reader for every object.
   [`summary(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
   [`plot(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
   : Read a fitted HyperGAT classifier
+- [`hg_get(`*`<hypergraphs_bootstrap>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_bootstrap.md)
+  : Inference table of a memory-network bootstrap
+- [`hg_get(`*`<hypergraphs_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_comparison.md)
+  : Edge table of a memory-network comparison
+- [`hg_get(`*`<hypergraphs_memory_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_communities.md)
+  : Tidy tables of a memory-network community result
+- [`print(`*`<hypergraphs_memory_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
+  [`hg_get(`*`<hypergraphs_memory_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
+  [`print(`*`<hypergraphs_bootstrap_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
+  [`hg_get(`*`<hypergraphs_bootstrap_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
+  : Tables of a group model of memory networks
 - [`hg_get(`*`<net_hg>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg.md)
   : Tables of a hypergraph
 - [`hg_get(`*`<net_hg_cluster>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg_cluster.md)
@@ -287,17 +298,6 @@ One reader for every object.
   : Tables of a hypergraph transduction fit
 - [`hg_get(`*`<net_hon>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon.md)
   : Tables of a higher-order network
-- [`hg_get(`*`<net_hon_boot>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_boot.md)
-  : Inference table of a HON bootstrap
-- [`hg_get(`*`<net_hon_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_communities.md)
-  : Tidy tables of a memory-network community result
-- [`hg_get(`*`<net_hon_compare>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_compare.md)
-  : Edge table of a HON comparison
-- [`print(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
-  [`hg_get(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
-  [`print(`*`<net_hon_boot_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
-  [`hg_get(`*`<net_hon_boot_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
-  : Tables of a group model of memory networks
 - [`hg_get(`*`<net_honem>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_honem.md)
   : Tables of a higher-order network embedding
 - [`hg_get(`*`<hypergraphs_hypa>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hypa.md)
@@ -351,11 +351,11 @@ One reader for every object.
   [`summary(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<net_hg_mmsbm>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<hypergraphs_motifs>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_boot_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_boot>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_compare>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_memory_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_bootstrap_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_memory_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_bootstrap>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<hypergraphs_simplicial>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<net_hg_topics>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   : Summaries of results
@@ -627,10 +627,10 @@ verbs.
   [`summary(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
   [`plot(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
   : Read a fitted HyperGAT classifier
-- [`print(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
-  [`hg_get(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
-  [`print(`*`<net_hon_boot_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
-  [`hg_get(`*`<net_hon_boot_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
+- [`print(`*`<hypergraphs_memory_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
+  [`hg_get(`*`<hypergraphs_memory_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
+  [`print(`*`<hypergraphs_bootstrap_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
+  [`hg_get(`*`<hypergraphs_bootstrap_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
   : Tables of a group model of memory networks
 - [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
   [`print(`*`<hypergraphs_keywords>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
@@ -656,6 +656,12 @@ verbs.
   [`print(`*`<net_hg>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
   [`summary(`*`<net_hg>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
   : Higher-order hypergraph from a network's clique structure
+- [`print(`*`<hypergraphs_bootstrap>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.hypergraphs_bootstrap.md)
+  : Print method for hypergraphs_bootstrap
+- [`print(`*`<hypergraphs_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.hypergraphs_comparison.md)
+  : Print method for hypergraphs_comparison
+- [`print(`*`<hypergraphs_memory_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.hypergraphs_memory_communities.md)
+  : Print a memory-network community result
 - [`hg_get(`*`<hypergraphs_result>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.hypergraphs_result.md)
   [`print(`*`<hypergraphs_result>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.hypergraphs_result.md)
   [`plot(`*`<hypergraphs_result>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.hypergraphs_result.md)
@@ -664,12 +670,6 @@ verbs.
   : Print method for net_hg_cluster
 - [`print(`*`<net_hg_transduction>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.net_hg_transduction.md)
   : Print method for net_hg_transduction
-- [`print(`*`<net_hon_boot>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.net_hon_boot.md)
-  : Print method for net_hon_boot
-- [`print(`*`<net_hon_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.net_hon_communities.md)
-  : Print a memory-network community result
-- [`print(`*`<net_hon_compare>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.net_hon_compare.md)
-  : Print method for net_hon_compare
 - [`print(`*`<text_hypergraph>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/print.text_hypergraph.md)
   : Print a text hypergraph
 - [`hg_get(`*`<hypergraphs_summary>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
@@ -680,11 +680,11 @@ verbs.
   [`summary(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<net_hg_mmsbm>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<hypergraphs_motifs>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_boot_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_boot>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
-  [`summary(`*`<net_hon_compare>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_memory_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_bootstrap_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_memory_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_bootstrap>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
+  [`summary(`*`<hypergraphs_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<hypergraphs_simplicial>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   [`summary(`*`<net_hg_topics>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/result-summary.md)
   : Summaries of results
@@ -716,6 +716,12 @@ verbs.
 - [`hg_topic_sizes()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md)
   [`plot(`*`<hypergraphs_topic_sizes>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md)
   : Topic sizes
+- [`plot(`*`<hypergraphs_bootstrap>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.hypergraphs_bootstrap.md)
+  : Plot a memory-network bootstrap
+- [`plot(`*`<hypergraphs_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.hypergraphs_comparison.md)
+  : Plot a memory-network comparison
+- [`plot(`*`<hypergraphs_memory_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.hypergraphs_memory_communities.md)
+  : Plot memory-network communities
 - [`plot(`*`<net_hg>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md)
   : Plot a hypergraph with hyperedges as pebbles
 - [`plot(`*`<net_hg_cluster>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_cluster.md)
@@ -724,12 +730,6 @@ verbs.
   : Plot the pairwise network of a hypergraph
 - [`plot(`*`<net_hg_transduction>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_transduction.md)
   : Plot method for net_hg_transduction
-- [`plot(`*`<net_hon_boot>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_boot.md)
-  : Plot method for net_hon_boot
-- [`plot(`*`<net_hon_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_communities.md)
-  : Plot memory-network communities
-- [`plot(`*`<net_hon_compare>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_compare.md)
-  : Plot method for net_hon_compare
 - [`plot(`*`<net_temporal_hypergraph>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md)
   : Plot a temporal hypergraph
 

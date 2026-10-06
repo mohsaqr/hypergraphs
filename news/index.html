@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,10 @@
       <small>Source: <a href="https://github.com/mohsaqr/hypergraphs/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.6.10" id="hypergraphs-0610">hypergraphs 0.6.10<a class="anchor" aria-label="anchor" href="#hypergraphs-0610"></a></h2>
+<ul><li>The result classes of the memory family drop the <code>hon</code> prefix left over from the package’s former name: <code>net_hon_boot</code> is now <code>hypergraphs_bootstrap</code>, <code>net_hon_boot_group</code> <code>hypergraphs_bootstrap_group</code>, <code>net_hon_compare</code> <code>hypergraphs_comparison</code>, <code>net_hon_communities</code> <code>hypergraphs_memory_communities</code> and <code>net_hon_group</code> <code>hypergraphs_memory_group</code>. Code that tests these classes with <code><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits()</a></code> needs the new names. <code><a href="../reference/hon.html">hon()</a></code> and <code><a href="../reference/honem.html">honem()</a></code> keep their names (the published BuildHON and HONEM methods), and <code>net_hon</code> remains the Nestimate class that <code><a href="../reference/hon.html">hon()</a></code> returns. Printed headers read “Memory-network bootstrap” and “Memory-network comparison”.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.9" id="hypergraphs-069">hypergraphs 0.6.9<a class="anchor" aria-label="anchor" href="#hypergraphs-069"></a></h2>
 <ul><li>The Argentina example article gains a storyline of the busiest arbitrators and restores the centrality, per-community modularity and growth tables of its first version.</li>

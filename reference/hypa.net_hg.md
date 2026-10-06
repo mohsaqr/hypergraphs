@@ -111,7 +111,7 @@ memberships <- data.frame(
   actor = c("a","b","c", "a","b","d", "a","b","e", "c","d","e", "a","b","f"),
   group = rep(c("g1","g2","g3","g4","g5"), each = 3)
 )
-hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+hg <- group_hypergraph(memberships, node = "actor", hyperedge = "group")
 hypa(hg, min_count = 2L)
 #>   from to observed expected ratio   p_under    p_over p_adjusted_under
 #> 1    a  b        4 2.857143   1.4 0.8809635 0.3074243        0.8809635

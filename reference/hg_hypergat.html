@@ -11,7 +11,10 @@ implementation. semantic = &quot;none&quot; reproduces its sentence-only
 (&quot;w/o semantic&quot;) ablation. semantic = &quot;lda&quot; adds the full paper path:
 online variational-Bayes LDA is fitted to labeled documents only, with the
 topic count defaulting to the number of classes, and each document receives
-one edge per topic containing the topic's top words present in that document."><meta property="og:description" content="Trains the dual-attention hypergraph network of Ding et al. (2020) –
+one edge per topic containing the topic's top words present in that document.
+The official repository's generate_lda.py fits its topics on every
+document, test documents included; passing its topic words as
+lda_keywords reproduces that choice."><meta property="og:description" content="Trains the dual-attention hypergraph network of Ding et al. (2020) –
 every document becomes its own hypergraph (its unique words as
 vertices, its sentences as hyperedges), two attention layers aggregate
 words into sentence and optional LDA-topic hyperedges and those hyperedges
@@ -23,7 +26,10 @@ implementation. semantic = &quot;none&quot; reproduces its sentence-only
 (&quot;w/o semantic&quot;) ablation. semantic = &quot;lda&quot; adds the full paper path:
 online variational-Bayes LDA is fitted to labeled documents only, with the
 topic count defaulting to the number of classes, and each document receives
-one edge per topic containing the topic's top words present in that document."></head><body>
+one edge per topic containing the topic's top words present in that document.
+The official repository's generate_lda.py fits its topics on every
+document, test documents included; passing its topic words as
+lda_keywords reproduces that choice."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -31,7 +37,7 @@ one edge per topic containing the topic's top words present in that document."><
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,13 +45,19 @@ one edge per topic containing the topic's top words present in that document."><
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -79,7 +91,10 @@ implementation. <code>semantic = "none"</code> reproduces its sentence-only
 ("w/o semantic") ablation. <code>semantic = "lda"</code> adds the full paper path:
 online variational-Bayes LDA is fitted to labeled documents only, with the
 topic count defaulting to the number of classes, and each document receives
-one edge per topic containing the topic's top words present in that document.</p>
+one edge per topic containing the topic's top words present in that document.
+The official repository's <code>generate_lda.py</code> fits its topics on every
+document, test documents included; passing its topic words as
+<code>lda_keywords</code> reproduces that choice.</p>
     </div>
 
     <div class="section level2">
@@ -115,7 +130,8 @@ one edge per topic containing the topic's top words present in that document.</p
 <span>  embeddings <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"predictions"</span>, <span class="st">"attention"</span><span class="op">)</span></span>
+<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"predictions"</span>, <span class="st">"attention"</span>, <span class="st">"hyperedges"</span>, <span class="st">"hyperedge_words"</span><span class="op">)</span>,</span>
+<span>  holdout <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">text_hypergat</span><span class="op">(</span></span>
@@ -149,7 +165,8 @@ one edge per topic containing the topic's top words present in that document.</p
 <span>  embeddings <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"predictions"</span>, <span class="st">"attention"</span><span class="op">)</span></span>
+<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"predictions"</span>, <span class="st">"attention"</span>, <span class="st">"hyperedges"</span>, <span class="st">"hyperedge_words"</span><span class="op">)</span>,</span>
+<span>  holdout <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -163,8 +180,9 @@ data.frame with a text column.</p></dd>
 
 
 <dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
-<dd><p>The known labels: a named character vector (names are
-document ids, values class labels) or a tidy data.frame with a
+<dd><p>The known labels: the name of a column of <code>x</code> (a
+data.frame) holding each document's label, a named character vector
+(names are document ids, values class labels) or a tidy data.frame with a
 <code>node</code> column and a <code>label</code>, <code>cluster</code> or <code>predicted</code> column. At
 least two classes.</p></dd>
 
@@ -267,32 +285,33 @@ given a seed.</p></dd>
 
 
 <dt id="arg-what">what<a class="anchor" aria-label="anchor" href="#arg-what"></a></dt>
-<dd><p><code>"predictions"</code> (default) returns the per-document
-classification table; <code>"attention"</code> returns the trained network's
-node-level attention per document and word, the input
-<code>hg_keywords(type = "attention")</code> takes.</p></dd>
+<dd><p>Legacy extraction option. Fit once and use <code><a href="hg_get.html">hg_get()</a></code> with
+<code>what = "attention"</code>, <code>"hyperedges"</code> or <code>"hyperedge_words"</code> instead.</p></dd>
+
+
+<dt id="arg-holdout">holdout<a class="anchor" aria-label="anchor" href="#arg-holdout"></a></dt>
+<dd><p><code>NULL</code> (default) trains on every given label. A share in
+<code>(0, 1)</code> hides that share within each class with <code>seed</code>. The fitted
+object prints its held-out accuracy and balanced accuracy.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>With <code>what = "predictions"</code>, a base <code>data.frame</code>, one row per
-(kept) document: <code>node</code>, <code>label</code> (the given label or <code>NA</code>),
-<code>predicted</code>, <code>score</code> (softmax probability of the winning class),
-<code>margin</code> (winner minus runner-up). The training history is attached
-as attribute <code>"history"</code> (<code>epoch</code>, <code>loss</code>, <code>val_accuracy</code>).
-Attribute <code>"semantic"</code> records the topic keywords and LDA settings.</p>
-<p>With <code>what = "attention"</code>, a base <code>data.frame</code>, one row per
-(document, word) pair: <code>node</code>, <code>word</code>, <code>attention</code> (the word's
-node-level attention weights from the <strong>first</strong> attention layer, the
-one that attends over the word embeddings, in evaluation mode, summed
-over the hyperedges it belongs to – each hyperedge's weights sum to
-one, so a document's <code>attention</code> column sums to its hyperedge count),
-<code>attention_2</code> (the same from the second layer) and <code>n_edges</code> (how many
-of the document's hyperedges contain the word). Ordered by <code>node</code>,
-then <code>word</code>. The second layer attends over first-layer outputs, which
-are identical for every word of a document that has a single hyperedge
-(one sentence), so <code>attention_2</code> is uniform within such documents by
-construction; <code>hg_keywords(type = "attention")</code> uses <code>attention</code>.</p>
+    <p>An <code>hg_hypergat</code> fitted classifier, also an
+<a href="hg_get.hg_classification.html">hg_classification</a> and a data frame.
+<code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> reports held-out evaluation when available. <code><a href="hg_get.html">hg_get()</a></code> reads
+predictions, per-class results, confusion, document text and training
+history. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> shows confusion or training loss. <code><a href="predict.hg_hypergat.html">predict.hg_hypergat()</a></code>
+classifies new documents with the same network and frozen vocabulary.</p>
+<p>Attention is computed on request, without training again. Word weights
+sum to one within each hyperedge; edge weights sum to one over each
+word's hyperedges. A word in just one edge gives it weight one
+automatically. These are internal aggregation weights, not
+class-specific contributions or explanations. The diagnostic tables
+and their normalization baselines are described in
+<code><a href="hg_get.hg_hypergat.html">hg_get.hg_hypergat()</a></code>. Softmax scores are not calibrated probabilities
+of correctness. The vocabulary is estimated from known labels only;
+held-out and unlabelled documents cannot change it.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -303,18 +322,15 @@ less: Hypergraph attention networks for inductive text classification.
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"torch"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="va">docs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    cooking_1 <span class="op">=</span> <span class="st">"Simmer the soup. Add onions and carrots."</span>,</span></span>
-<span class="r-in"><span>    cooking_2 <span class="op">=</span> <span class="st">"This soup recipe needs salt. Serve on a cold night."</span>,</span></span>
-<span class="r-in"><span>    space_1 <span class="op">=</span> <span class="st">"The telescope revealed a galaxy. Stars everywhere."</span>,</span></span>
-<span class="r-in"><span>    space_2 <span class="op">=</span> <span class="st">"Astronomers aimed the telescope. The stars were sharp."</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu">hg_hypergat</span><span class="op">(</span><span class="va">docs</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>cooking_1 <span class="op">=</span> <span class="st">"cooking"</span>, space_1 <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>              embed_dim <span class="op">=</span> <span class="fl">16</span>, hidden <span class="op">=</span> <span class="fl">8</span>, epochs <span class="op">=</span> <span class="fl">5</span>, validation <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># articles has text and an existing subject-label column called label.</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">hg_hypergat</span><span class="op">(</span><span class="va">articles</span>, column <span class="op">=</span> <span class="st">"text"</span>, labels <span class="op">=</span> <span class="st">"label"</span>,</span></span>
+<span class="r-in"><span>                   holdout <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"documents"</span>, split <span class="op">=</span> <span class="st">"test"</span>, correct <span class="op">=</span> <span class="cn">FALSE</span>, top <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">new_articles</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

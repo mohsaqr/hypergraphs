@@ -31,10 +31,11 @@ hg_topics(
 # S3 method for class 'net_hg_topics'
 hg_get(
   x,
-  what = c("topics", "shares", "words", "documents", "restarts"),
+  what = c("topics", "shares", "words", "documents", "restarts", "prevalence"),
   ...,
   n = 10L,
   topic = NULL,
+  group = NULL,
   top = NULL
 )
 
@@ -42,7 +43,7 @@ hg_get(
 print(x, n = 10L, ...)
 
 # S3 method for class 'net_hg_topics'
-plot(x, y, n = 8L, ...)
+plot(x, y, n = 8L, type = c("words", "prevalence"), group = NULL, ...)
 ```
 
 ## Arguments
@@ -97,7 +98,8 @@ plot(x, y, n = 8L, ...)
 - what:
 
   Which table: `"topics"` (default), `"shares"`, `"words"`,
-  `"documents"` or `"restarts"`.
+  `"documents"`, `"restarts"` or `"prevalence"` (the topics' mean share
+  within each group of documents given by `group`).
 
 - ...:
 
@@ -114,6 +116,15 @@ plot(x, y, n = 8L, ...)
   For `what = "shares"` and `"words"`: keep only these topics (labels
   such as `"Topic 3"`).
 
+- group:
+
+  For `what = "prevalence"`: the group of each document, as the name of
+  a column of the modelled text hypergraph's document table
+  (`group = "period"`), a named character vector (names are document
+  ids) or a data.frame with a `node` column and a `label`, `cluster`,
+  `community` or `predicted` column. Documents without a group are left
+  out.
+
 - top:
 
   Keep only the first `top` rows of the returned table.
@@ -121,6 +132,13 @@ plot(x, y, n = 8L, ...)
 - y:
 
   Unused.
+
+- type:
+
+  For [`plot()`](https://rdrr.io/r/graphics/plot.default.html):
+  `"words"` (default), the `n` most probable words of every topic, or
+  `"prevalence"`, the mean share of every topic in each group of
+  documents given by `group`.
 
 ## Value
 
@@ -135,7 +153,11 @@ document's topics); one row per topic and word (`"words"`: `topic`,
 `rank`, `word`, `probability`, `n` words per topic); one row per
 document with its largest share (`"documents"`: `node`, `topic`,
 `share`); or one row per start (`"restarts"`: `run`, `divergence`,
-`iterations`, `converged`, `best`, `agreement`).
+`iterations`, `converged`, `best`, `agreement`); or, with `group`, one
+row per topic and group (`"prevalence"`: `topic`, `group`, `prevalence`
+(the mean share over the group's documents), `documents` (the summed
+shares), `n` (the group's documents) and `top_words`), the topic
+prevalence by covariate of Roberts et al. (2014).
 [`print()`](https://rdrr.io/r/base/print.html) shows the topics,
 [`summary()`](https://rdrr.io/r/base/summary.html) every table, and
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) the top words
@@ -144,7 +166,9 @@ raises the warning `hypergraphs_no_converge`.
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) returns a
 ggplot of the `n` most probable words of every topic, one panel per
-topic.
+topic, or with `type = "prevalence"` of the prevalence of every topic in
+each group, one bar per topic and group, the topics labelled by their
+top words.
 
 ## Details
 
@@ -194,6 +218,12 @@ Discovery in Databases (ECML PKDD 2014)*, 498-513.
 Kuhn, H. W. (1955). The Hungarian method for the assignment problem.
 *Naval Research Logistics Quarterly*, 2, 83-97.
 [doi:10.1002/nav.3800020109](https://doi.org/10.1002/nav.3800020109)
+
+Roberts, M. E., Stewart, B. M., Tingley, D., Lucas, C., Leder-Luis, J.,
+Gadarian, S. K., Albertson, B., & Rand, D. G. (2014). Structural topic
+models for open-ended survey responses. *American Journal of Political
+Science*, 58(4), 1064-1082.
+[doi:10.1111/ajps.12103](https://doi.org/10.1111/ajps.12103)
 
 ## See also
 

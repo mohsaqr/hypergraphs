@@ -106,7 +106,7 @@ groups <- data.frame(
   group  = c("g1", "g1", "g1", "g2", "g2", "g3", "g3", "g3",
              "g4", "g4", "g4", "g4")
 )
-hg <- group_hypergraph(groups, actor = "member", group = "group")
+hg <- group_hypergraph(groups, node = "member", hyperedge = "group")
 hg_assortativity(hg, type = c("uniform", "top_2", "top_bottom"))
 #>         type scale assortativity n_edges
 #> 1    uniform  rank    -0.2934132       4

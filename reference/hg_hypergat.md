@@ -12,7 +12,10 @@ sentence-only ("w/o semantic") ablation. `semantic = "lda"` adds the
 full paper path: online variational-Bayes LDA is fitted to labeled
 documents only, with the topic count defaulting to the number of
 classes, and each document receives one edge per topic containing the
-topic's top words present in that document.
+topic's top words present in that document. The official repository's
+`generate_lda.py` fits its topics on every document, test documents
+included; passing its topic words as `lda_keywords` reproduces that
+choice.
 
 ## Usage
 
@@ -48,7 +51,8 @@ hg_hypergat(
   embeddings = NULL,
   seed = 1L,
   verbose = FALSE,
-  what = c("predictions", "attention")
+  what = c("predictions", "attention", "hyperedges", "hyperedge_words"),
+  holdout = NULL
 )
 
 text_hypergat(
@@ -82,7 +86,8 @@ text_hypergat(
   embeddings = NULL,
   seed = 1L,
   verbose = FALSE,
-  what = c("predictions", "attention")
+  what = c("predictions", "attention", "hyperedges", "hyperedge_words"),
+  holdout = NULL
 )
 ```
 
@@ -95,9 +100,10 @@ text_hypergat(
 
 - labels:
 
-  The known labels: a named character vector (names are document ids,
-  values class labels) or a tidy data.frame with a `node` column and a
-  `label`, `cluster` or `predicted` column. At least two classes.
+  The known labels: the name of a column of `x` (a data.frame) holding
+  each document's label, a named character vector (names are document
+  ids, values class labels) or a tidy data.frame with a `node` column
+  and a `label`, `cluster` or `predicted` column. At least two classes.
 
 - column, id:
 
@@ -193,32 +199,41 @@ text_hypergat(
 
 - what:
 
-  `"predictions"` (default) returns the per-document classification
-  table; `"attention"` returns the trained network's node-level
-  attention per document and word, the input
-  `hg_keywords(type = "attention")` takes.
+  Legacy extraction option. Fit once and use
+  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  with `what = "attention"`, `"hyperedges"` or `"hyperedge_words"`
+  instead.
+
+- holdout:
+
+  `NULL` (default) trains on every given label. A share in `(0, 1)`
+  hides that share within each class with `seed`. The fitted object
+  prints its held-out accuracy and balanced accuracy.
 
 ## Value
 
-With `what = "predictions"`, a base `data.frame`, one row per (kept)
-document: `node`, `label` (the given label or `NA`), `predicted`,
-`score` (softmax probability of the winning class), `margin` (winner
-minus runner-up). The training history is attached as attribute
-`"history"` (`epoch`, `loss`, `val_accuracy`). Attribute `"semantic"`
-records the topic keywords and LDA settings.
+An `hg_hypergat` fitted classifier, also an
+[hg_classification](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+and a data frame. [`print()`](https://rdrr.io/r/base/print.html) reports
+held-out evaluation when available.
+[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+reads predictions, per-class results, confusion, document text and
+training history.
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) shows confusion
+or training loss.
+[`predict.hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/predict.hg_hypergat.md)
+classifies new documents with the same network and frozen vocabulary.
 
-With `what = "attention"`, a base `data.frame`, one row per (document,
-word) pair: `node`, `word`, `attention` (the word's node-level attention
-weights from the **first** attention layer, the one that attends over
-the word embeddings, in evaluation mode, summed over the hyperedges it
-belongs to – each hyperedge's weights sum to one, so a document's
-`attention` column sums to its hyperedge count), `attention_2` (the same
-from the second layer) and `n_edges` (how many of the document's
-hyperedges contain the word). Ordered by `node`, then `word`. The second
-layer attends over first-layer outputs, which are identical for every
-word of a document that has a single hyperedge (one sentence), so
-`attention_2` is uniform within such documents by construction;
-`hg_keywords(type = "attention")` uses `attention`.
+Attention is computed on request, without training again. Word weights
+sum to one within each hyperedge; edge weights sum to one over each
+word's hyperedges. A word in just one edge gives it weight one
+automatically. These are internal aggregation weights, not
+class-specific contributions or explanations. The diagnostic tables and
+their normalization baselines are described in
+[`hg_get.hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md).
+Softmax scores are not calibrated probabilities of correctness. The
+vocabulary is estimated from known labels only; held-out and unlabelled
+documents cannot change it.
 
 ## References
 
@@ -229,16 +244,13 @@ Hypergraph attention networks for inductive text classification. *EMNLP
 ## Examples
 
 ``` r
-# \donttest{
-if (requireNamespace("torch", quietly = TRUE)) {
-  docs <- c(
-    cooking_1 = "Simmer the soup. Add onions and carrots.",
-    cooking_2 = "This soup recipe needs salt. Serve on a cold night.",
-    space_1 = "The telescope revealed a galaxy. Stars everywhere.",
-    space_2 = "Astronomers aimed the telescope. The stars were sharp."
-  )
-  hg_hypergat(docs, labels = c(cooking_1 = "cooking", space_1 = "space"),
-              embed_dim = 16, hidden = 8, epochs = 5, validation = 0)
-}
-# }
+if (FALSE) { # \dontrun{
+# articles has text and an existing subject-label column called label.
+fit <- hg_hypergat(articles, column = "text", labels = "label",
+                   holdout = 0.2)
+fit
+plot(fit)
+hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
+predict(fit, newdata = new_articles)
+} # }
 ```

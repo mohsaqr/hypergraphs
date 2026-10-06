@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Windowed and embedding hypergraphs • hypergraphs</title>
+<title>Constructions of a text hypergraph • hypergraphs</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Windowed and embedding hypergraphs">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Constructions of a text hypergraph">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
@@ -36,7 +37,12 @@
 <li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -61,7 +67,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Windowed and embedding hypergraphs</h1>
+      <h1>Constructions of a text hypergraph</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypergraphs/blob/main/vignettes/text-constructions.Rmd" class="external-link"><code>vignettes/text-constructions.Rmd</code></a></small>
@@ -70,275 +76,477 @@
 
     
     
-<p>The bag-of-words hypergraph of
-<code><a href="../articles/text-hypergraphs.html">vignette("text-hypergraphs")</a></code> ignores two things a corpus
-knows: the <em>order</em> of words within a document and the
-<em>position</em> of documents in an embedding space. Two further
-constructions use them. The question for each is the same: does the
-added structure change a conclusion the bag construction would have
-reached?</p>
+<p>A text hypergraph relates the words and the documents of a corpus.
+Its construction decides what a hyperedge is. A hyperedge can be a
+document, which binds the words it contains, or a word, which binds the
+documents that contain it. It can be a sentence, which binds the words
+used together in one statement, or a short window of consecutive words,
+which binds words that stand next to each other. It can also be a
+neighbourhood in a space of sentence embeddings, which binds documents
+of similar meaning whatever their words. Each construction relates
+different units, so the central words and the groups of documents found
+in a corpus depend on it. <code><a href="../reference/text_hypergraph.html">text_hypergraph()</a></code> builds all of
+them with <code>construction = "bag"</code>, <code>"window"</code>,
+<code>"sentence"</code> or <code>"knn"</code>. This document builds each
+construction first on three short documents, where every hyperedge can
+be seen, and then on a corpus of 165 abstracts, where the constructions
+give different results.</p>
 <div class="section level2">
-<h2 id="windowed-hyperedges-word-order-as-structure">Windowed hyperedges: word order as structure<a class="anchor" aria-label="anchor" href="#windowed-hyperedges-word-order-as-structure"></a>
+<h2 id="three-documents">Three documents<a class="anchor" aria-label="anchor" href="#three-documents"></a>
 </h2>
-<p><code>construction = "window"</code> slides a token window over each
-document (never crossing document boundaries); each distinct window
-content — the set of words co-occurring within <code>window</code>
-tokens of each other — is one hyperedge, weighted by its window count.
-This is the sequential construction of Ding et al. (2020, Sec. 3.2),
-extended with weights — the text front end of
-<code><a href="../reference/window_hypergraph.html">window_hypergraph()</a></code>, with which it shares its incidence
-matrix (a shipped package test).</p>
-<p>The 2020 abstracts make a compact testbed:</p>
+<p>The three documents below share some of their words. Stop words such
+as “the” and “of” are removed with <code><a href="../reference/stop_words_en.html">stop_words_en()</a></code>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">stops</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/stop_words_en.html">stop_words_en</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  <span class="st">"using"</span>, <span class="st">"used"</span>, <span class="st">"use"</span>, <span class="st">"based"</span>, <span class="st">"results"</span>, <span class="st">"study"</span>, <span class="st">"research"</span>,</span>
-<span>  <span class="st">"paper"</span>, <span class="st">"article"</span>, <span class="st">"findings"</span>, <span class="st">"data"</span></span>
+<code class="sourceCode R"><span><span class="va">docs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  online   <span class="op">=</span> <span class="st">"Students learn online. Teachers prepare online lessons."</span>,</span>
+<span>  assess   <span class="op">=</span> <span class="st">"Teachers assess students. Online assessment needs feedback."</span>,</span>
+<span>  distance <span class="op">=</span> <span class="st">"Distance learning needs feedback. Students value feedback."</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">early</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, <span class="va">year</span> <span class="op">==</span> <span class="fl">2020</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">windowed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span></span>
-<span>  <span class="va">early</span>,</span>
-<span>  column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
-<span>  id <span class="op">=</span> <span class="st">"doc"</span>,</span>
-<span>  construction <span class="op">=</span> <span class="st">"window"</span>,</span>
-<span>  window <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
-<span>  min_count <span class="op">=</span> <span class="fl">3L</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens</span></span>
-<span><span class="va">windowed</span></span>
-<span><span class="co">#&gt; Text hypergraph: 40 documents, 349 words (windowed hyperedges: w = 3, sliding, 2000 windows)</span></span>
-<span><span class="co">#&gt; Hyperedges: 1880 (distinct windows); sizes 2-3, median 3</span></span>
-<span><span class="co">#&gt;                           edge         word weight</span></span>
-<span><span class="co">#&gt;  access+asynchronous+available       access      1</span></span>
-<span><span class="co">#&gt;  access+asynchronous+available asynchronous      1</span></span>
-<span><span class="co">#&gt;  access+asynchronous+available    available      1</span></span>
-<span><span class="co">#&gt;   access+asynchronous+valuable       access      1</span></span>
-<span><span class="co">#&gt;   access+asynchronous+valuable asynchronous      1</span></span>
-<span><span class="co">#&gt;   access+asynchronous+valuable     valuable      1</span></span>
-<span><span class="co">#&gt;             access+care+future       access      1</span></span>
-<span><span class="co">#&gt;             access+care+future         care      1</span></span>
-<span><span class="co">#&gt;             access+care+future       future      1</span></span>
-<span><span class="co">#&gt;       access+care+implications       access      1</span></span>
-<span><span class="co">#&gt; ... 5575 more rows</span></span></code></pre></div>
+<span><span class="va">stops</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stop_words_en.html">stop_words_en</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="bag-of-words">Bag of words<a class="anchor" aria-label="anchor" href="#bag-of-words"></a>
+</h3>
+<p>The bag construction relates each document to the words it contains,
+and it ignores their order. With <code>nodes = "word"</code>, the words
+are the nodes and each document is a hyperedge over its words. The
+orientation follows the setting of Ding et al. (2020), in which a
+hyperedge holds the words of a text.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">windowed</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          node    clique</span></span>
-<span><span class="co">#&gt; 1   education 0.4174717</span></span>
-<span><span class="co">#&gt; 2       covid 0.2953234</span></span>
-<span><span class="co">#&gt; 3    distance 0.2901158</span></span>
-<span><span class="co">#&gt; 4    pandemic 0.2835453</span></span>
-<span><span class="co">#&gt; 5    learning 0.2741282</span></span>
-<span><span class="co">#&gt; 6    students 0.2405080</span></span>
-<span><span class="co">#&gt; 7      online 0.2318112</span></span>
-<span><span class="co">#&gt; 8    teachers 0.1884582</span></span>
-<span><span class="co">#&gt; 9    teaching 0.1434927</span></span>
-<span><span class="co">#&gt; 10 university 0.1113114</span></span></code></pre></div>
-<p>Compare the same corpus as a bag-of-words hypergraph over words:</p>
+<code class="sourceCode R"><span><span class="va">bag_word</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">docs</span>, nodes <span class="op">=</span> <span class="st">"word"</span>, stop_words <span class="op">=</span> <span class="va">stops</span><span class="op">)</span></span>
+<span><span class="va">bag_word</span></span>
+<span><span class="co">#&gt; Text hypergraph: 3 documents, 13 words (words as nodes, weight = n)</span></span>
+<span><span class="co">#&gt; Hyperedges: 3 (documents); sizes 6-7, median 6</span></span>
+<span><span class="co">#&gt;       doc       word count weight</span></span>
+<span><span class="co">#&gt;    assess     assess     1      1</span></span>
+<span><span class="co">#&gt;    assess assessment     1      1</span></span>
+<span><span class="co">#&gt;    assess   feedback     1      1</span></span>
+<span><span class="co">#&gt;    assess      needs     1      1</span></span>
+<span><span class="co">#&gt;    assess     online     1      1</span></span>
+<span><span class="co">#&gt;    assess   students     1      1</span></span>
+<span><span class="co">#&gt;    assess   teachers     1      1</span></span>
+<span><span class="co">#&gt;  distance   distance     1      1</span></span>
+<span><span class="co">#&gt;  distance   feedback     2      2</span></span>
+<span><span class="co">#&gt;  distance   learning     1      1</span></span>
+<span><span class="co">#&gt; ... 9 more rows</span></span></code></pre></div>
+<p>The figure plots each document as a region around its words.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bag_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span></span>
-<span>  <span class="va">early</span>,</span>
-<span>  column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
-<span>  id <span class="op">=</span> <span class="st">"doc"</span>,</span>
-<span>  nodes <span class="op">=</span> <span class="st">"word"</span>,</span>
-<span>  weight <span class="op">=</span> <span class="st">"tfidf"</span>,</span>
-<span>  stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
-<span>  min_count <span class="op">=</span> <span class="fl">3L</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens</span></span>
-<span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">bag_words</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           node    clique</span></span>
-<span><span class="co">#&gt; 1        covid 0.2792762</span></span>
-<span><span class="co">#&gt; 2     pandemic 0.2660941</span></span>
-<span><span class="co">#&gt; 3    education 0.2569350</span></span>
-<span><span class="co">#&gt; 4     students 0.2173556</span></span>
-<span><span class="co">#&gt; 5     learning 0.1904566</span></span>
-<span><span class="co">#&gt; 6     teachers 0.1463876</span></span>
-<span><span class="co">#&gt; 7     teaching 0.1459636</span></span>
-<span><span class="co">#&gt; 8       online 0.1355434</span></span>
-<span><span class="co">#&gt; 9   university 0.1237287</span></span>
-<span><span class="co">#&gt; 10 educational 0.1141029</span></span></code></pre></div>
-<p>The rankings agree on the theme words — but the windowed construction
-puts <strong>distance</strong> third, and the bag construction does not
-rank it in the top ten at all. Adjacency is doing real work:
-<em>distance</em> matters in this corpus almost exclusively inside the
-phrases <em>distance learning</em> and <em>distance education</em>,
-which a window sees and a bag cannot. The window size is an arbitrary
-choice, so it gets a sensitivity check:</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bag_word</span><span class="op">)</span></span></code></pre></div>
+<p><img src="text-constructions_files/figure-html/bag-word-plot-1.png" class="r-plt" alt="Three documents plotted as hyperedges over their words" width="100%"></p>
+<p>The three regions overlap where documents share words. students lies
+in all three documents, and feedback, needs, online and teachers lie in
+two. The other words belong to one document each.</p>
+<p>With <code>nodes = "doc"</code>, the default, the orientation
+reverses. The documents are the nodes, and each word is a hyperedge over
+the documents that contain it. This orientation suits the clustering and
+classification of documents (Hayashi et al. 2020). Its incidence matrix
+is the transpose of the incidence matrix above, so the two hypergraphs
+are duals of each other (Berge 1989), and <code><a href="../reference/dual_hypergraph.html">dual_hypergraph()</a></code>
+turns one into the other.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">windowed_4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span></span>
-<span>  <span class="va">early</span>,</span>
-<span>  column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
-<span>  id <span class="op">=</span> <span class="st">"doc"</span>,</span>
-<span>  construction <span class="op">=</span> <span class="st">"window"</span>,</span>
-<span>  window <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
-<span>  min_count <span class="op">=</span> <span class="fl">3L</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens</span></span>
-<span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">windowed_4</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          node    clique</span></span>
-<span><span class="co">#&gt; 1   education 0.4314610</span></span>
-<span><span class="co">#&gt; 2    distance 0.3052559</span></span>
-<span><span class="co">#&gt; 3       covid 0.2971267</span></span>
-<span><span class="co">#&gt; 4    learning 0.2805257</span></span>
-<span><span class="co">#&gt; 5    pandemic 0.2689772</span></span>
-<span><span class="co">#&gt; 6    students 0.2455921</span></span>
-<span><span class="co">#&gt; 7      online 0.2170722</span></span>
-<span><span class="co">#&gt; 8    teachers 0.2044145</span></span>
-<span><span class="co">#&gt; 9    teaching 0.1417211</span></span>
-<span><span class="co">#&gt; 10 university 0.1085232</span></span></code></pre></div>
-<p>At <code>window = 4</code>, <em>distance</em> rises to second. The
-conclusion — adjacency promotes phrase vocabulary the bag misses —
-survives the window choice.</p>
+<code class="sourceCode R"><span><span class="va">bag_doc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">docs</span>, stop_words <span class="op">=</span> <span class="va">stops</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/dual_hypergraph.html">dual_hypergraph</a></span><span class="op">(</span><span class="va">bag_doc</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Text hypergraph: 3 documents, 13 words (words as nodes, weight = n)</span></span>
+<span><span class="co">#&gt; Hyperedges: 3 (documents); sizes 6-7, median 6</span></span>
+<span><span class="co">#&gt;       doc       word count weight</span></span>
+<span><span class="co">#&gt;    assess     assess     1      1</span></span>
+<span><span class="co">#&gt;    assess assessment     1      1</span></span>
+<span><span class="co">#&gt;    assess   feedback     1      1</span></span>
+<span><span class="co">#&gt;    assess      needs     1      1</span></span>
+<span><span class="co">#&gt;    assess     online     1      1</span></span>
+<span><span class="co">#&gt;    assess   students     1      1</span></span>
+<span><span class="co">#&gt;    assess   teachers     1      1</span></span>
+<span><span class="co">#&gt;  distance   distance     1      1</span></span>
+<span><span class="co">#&gt;  distance   feedback     2      2</span></span>
+<span><span class="co">#&gt;  distance   learning     1      1</span></span>
+<span><span class="co">#&gt; ... 9 more rows</span></span></code></pre></div>
+<p>The dual of the document-oriented hypergraph has the 13 words as
+nodes and the 3 documents as hyperedges, the same hypergraph as
+<code>bag_word</code>.</p>
+<p>The incidence weight of a word in a document is its count by default.
+With <code>weight = "tfidf"</code>, the count is multiplied by the
+inverse document frequency <code>log((1 + N) / (1 + df)) + 1</code>,
+where N is the number of documents and df the number that contain the
+word (Manning et al. 2008). A word in every document keeps its count,
+and a word in fewer documents gains weight. The vocabulary table holds
+the count, the document frequency and the inverse document frequency of
+each word.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bag_tfidf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">docs</span>, nodes <span class="op">=</span> <span class="st">"word"</span>, weight <span class="op">=</span> <span class="st">"tfidf"</span>,</span>
+<span>                             stop_words <span class="op">=</span> <span class="va">stops</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">bag_tfidf</span>, what <span class="op">=</span> <span class="st">"vocabulary"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          word count doc_freq      idf</span></span>
+<span><span class="co">#&gt; 1      assess     1        1 1.693147</span></span>
+<span><span class="co">#&gt; 2  assessment     1        1 1.693147</span></span>
+<span><span class="co">#&gt; 3    distance     1        1 1.693147</span></span>
+<span><span class="co">#&gt; 4    feedback     3        2 1.287682</span></span>
+<span><span class="co">#&gt; 5       learn     1        1 1.693147</span></span>
+<span><span class="co">#&gt; 6    learning     1        1 1.693147</span></span>
+<span><span class="co">#&gt; 7     lessons     1        1 1.693147</span></span>
+<span><span class="co">#&gt; 8       needs     2        2 1.287682</span></span>
+<span><span class="co">#&gt; 9      online     3        2 1.287682</span></span>
+<span><span class="co">#&gt; 10    prepare     1        1 1.693147</span></span>
+<span><span class="co">#&gt; 11   students     3        3 1.000000</span></span>
+<span><span class="co">#&gt; 12   teachers     2        2 1.287682</span></span>
+<span><span class="co">#&gt; 13      value     1        1 1.693147</span></span></code></pre></div>
+<p>A word in all three documents has an inverse document frequency of 1,
+and a word in one document has 1.69.</p>
+</div>
+<div class="section level3">
+<h3 id="windows-of-words">Windows of words<a class="anchor" aria-label="anchor" href="#windows-of-words"></a>
+</h3>
+<p>The window construction keeps the order of the words. It slides a
+window of <code>window</code> tokens over each document and makes a
+hyperedge of the distinct words in each window (Ding et al. 2020). A
+window never crosses from one document into the next, and windows with
+the same words form one hyperedge whose weight is the number of such
+windows. With <code>window_mode = "sliding"</code>, the default, the
+window moves one token at a time. With
+<code>window_mode = "tumbling"</code>, it moves a whole window at a
+time, so the windows do not overlap.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tumbling</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">docs</span>, construction <span class="op">=</span> <span class="st">"window"</span>, window <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>                            window_mode <span class="op">=</span> <span class="st">"tumbling"</span>, stop_words <span class="op">=</span> <span class="va">stops</span><span class="op">)</span></span>
+<span><span class="va">tumbling</span></span>
+<span><span class="co">#&gt; Text hypergraph: 3 documents, 13 words (windowed hyperedges: w = 3, tumbling, 9 windows)</span></span>
+<span><span class="co">#&gt; Hyperedges: 8 (distinct windows); sizes 1-3, median 3</span></span>
+<span><span class="co">#&gt;                      edge       word weight</span></span>
+<span><span class="co">#&gt;  assess+students+teachers     assess      1</span></span>
+<span><span class="co">#&gt;  assess+students+teachers   students      1</span></span>
+<span><span class="co">#&gt;  assess+students+teachers   teachers      1</span></span>
+<span><span class="co">#&gt;   assessment+needs+online assessment      1</span></span>
+<span><span class="co">#&gt;   assessment+needs+online      needs      1</span></span>
+<span><span class="co">#&gt;   assessment+needs+online     online      1</span></span>
+<span><span class="co">#&gt;   distance+learning+needs   distance      1</span></span>
+<span><span class="co">#&gt;   distance+learning+needs   learning      1</span></span>
+<span><span class="co">#&gt;   distance+learning+needs      needs      1</span></span>
+<span><span class="co">#&gt;                  feedback   feedback      2</span></span>
+<span><span class="co">#&gt; ... 10 more rows</span></span></code></pre></div>
+<p>The figure plots each window as a region with its words and its
+count.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tumbling</span><span class="op">)</span></span></code></pre></div>
+<p><img src="text-constructions_files/figure-html/window-plot-1.png" class="r-plt" alt="Tumbling windows of three words plotted as hyperedges" width="100%"></p>
+<p>Each document has seven tokens after the stop words are removed, so
+it gives two windows of three tokens and a last window of one. The last
+windows of the second and third documents hold only
+<code>feedback</code>, so they form one hyperedge with a count of 2.
+Words that stand far apart in a document share no window, so
+<code>lessons</code> is linked to no other word. The sliding windows of
+the same size give 13 distinct hyperedges against 8 tumbling ones,
+because every run of three consecutive words becomes a window.</p>
+</div>
+<div class="section level3">
+<h3 id="sentences">Sentences<a class="anchor" aria-label="anchor" href="#sentences"></a>
+</h3>
+<p>The sentence construction makes a hyperedge of each sentence, the
+construction of HyperGAT (Ding et al. 2020). A document is split at
+<code>.</code>, <code>!</code>, <code>?</code> and <code>;</code>, and
+the weight of a word in a sentence is its count there. Two words are
+related when they occur in the same sentence.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sentences</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">docs</span>, construction <span class="op">=</span> <span class="st">"sentence"</span>,</span>
+<span>                             stop_words <span class="op">=</span> <span class="va">stops</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">sentences</span>, what <span class="op">=</span> <span class="st">"sentences"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         edge      doc sentence n_tokens</span></span>
+<span><span class="co">#&gt; 1   online#1   online        1        3</span></span>
+<span><span class="co">#&gt; 2   online#2   online        2        4</span></span>
+<span><span class="co">#&gt; 3   assess#1   assess        1        3</span></span>
+<span><span class="co">#&gt; 4   assess#2   assess        2        4</span></span>
+<span><span class="co">#&gt; 5 distance#1 distance        1        4</span></span>
+<span><span class="co">#&gt; 6 distance#2 distance        2        3</span></span></code></pre></div>
+<p>The table has one row for each sentence, with its document, its
+position in the document and its number of tokens.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sentences</span><span class="op">)</span></span></code></pre></div>
+<p><img src="text-constructions_files/figure-html/sentence-plot-1.png" class="r-plt" alt="Six sentences plotted as hyperedges over their words" width="100%"></p>
+<p>The six sentences split each document in two. <code>teachers</code>
+and <code>prepare</code> share a sentence, and <code>teachers</code> and
+<code>feedback</code> share a document without sharing a sentence. The
+bag construction relates the second pair and the sentence construction
+does not.</p>
+</div>
+<div class="section level3">
+<h3 id="neighbourhoods-of-meaning">Neighbourhoods of meaning<a class="anchor" aria-label="anchor" href="#neighbourhoods-of-meaning"></a>
+</h3>
+<p>The kNN construction uses no words. It places each document at a
+point in the space of a sentence embedding, where documents with similar
+meaning lie close together, and makes one hyperedge for each document
+from the document and its <code>k</code> nearest neighbours by cosine
+similarity. Hypergraph neural networks build hyperedges from feature
+space in this way (Feng et al. 2019). The construction needs embeddings,
+which the corpus below provides.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="knn-embedding-hyperedges-semantic-space-as-structure">kNN embedding hyperedges: semantic space as structure<a class="anchor" aria-label="anchor" href="#knn-embedding-hyperedges-semantic-space-as-structure"></a>
+<h2 id="the-corpus">The corpus<a class="anchor" aria-label="anchor" href="#the-corpus"></a>
 </h2>
-<p><code>construction = "knn"</code> places each document in an
-embedding space and forms one hyperedge per document: itself plus its
-<code>k</code> nearest neighbors, weighted by cosine similarity. The
-bundled <code>covid_embeddings</code> matrix holds sbert embeddings of
-the <code>covid_abstracts</code> corpus (pinned
-<code>all-MiniLM-L6-v2</code>, L2-normalized, built by
-<code>data-raw/covid_embeddings.R</code>), so the pipeline runs offline;
-with the sbert package installed, omitting <code>embeddings</code>
-encodes the text directly.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">knn_hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span></span>
-<span>  <span class="va">covid_abstracts</span>,</span>
-<span>  column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
-<span>  id <span class="op">=</span> <span class="st">"doc"</span>,</span>
-<span>  construction <span class="op">=</span> <span class="st">"knn"</span>,</span>
-<span>  k <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  embeddings <span class="op">=</span> <span class="va">covid_embeddings</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">knn_hg</span></span>
-<span><span class="co">#&gt; Text hypergraph: 165 documents (kNN embedding hyperedges: k = 10, cosine)</span></span>
-<span><span class="co">#&gt; Hyperedges: 165 (kNN neighborhoods); sizes 11-11, median 11</span></span>
-<span><span class="co">#&gt;                 doc               edge    weight</span></span>
-<span><span class="co">#&gt;  2-s2.0-85085897904 2-s2.0-85085897904 1.0000000</span></span>
-<span><span class="co">#&gt;  2-s2.0-85092100063 2-s2.0-85085897904 0.5784754</span></span>
-<span><span class="co">#&gt;  2-s2.0-85092577169 2-s2.0-85085897904 0.5940401</span></span>
-<span><span class="co">#&gt;  2-s2.0-85096991345 2-s2.0-85085897904 0.6156138</span></span>
-<span><span class="co">#&gt;  2-s2.0-85096994563 2-s2.0-85085897904 0.5771233</span></span>
-<span><span class="co">#&gt;  2-s2.0-85108879636 2-s2.0-85085897904 0.6228458</span></span>
-<span><span class="co">#&gt;  2-s2.0-85109406490 2-s2.0-85085897904 0.5927937</span></span>
-<span><span class="co">#&gt;  2-s2.0-85119298190 2-s2.0-85085897904 0.6315365</span></span>
-<span><span class="co">#&gt;  2-s2.0-85124102536 2-s2.0-85085897904 0.5749891</span></span>
-<span><span class="co">#&gt;  2-s2.0-85124535349 2-s2.0-85085897904 0.7546323</span></span>
-<span><span class="co">#&gt; ... 1805 more rows</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">knn_clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">knn_hg</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">node</span> <span class="op">~</span> <span class="va">cluster</span>, data <span class="op">=</span> <span class="va">knn_clusters</span>, FUN <span class="op">=</span> <span class="va">length</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     cluster node</span></span>
-<span><span class="co">#&gt; 1 Cluster 1   41</span></span>
-<span><span class="co">#&gt; 2 Cluster 2   41</span></span>
-<span><span class="co">#&gt; 3 Cluster 3   37</span></span>
-<span><span class="co">#&gt; 4 Cluster 4   46</span></span></code></pre></div>
-<p>The embedding hypergraph partitions the corpus into balanced groups
-(41/41/37/46), where the bag-of-words clustering of
-<code><a href="../articles/text-hypergraphs.html">vignette("text-hypergraphs")</a></code> produced 16/44/29/76 — one
-dominant residual cluster. Semantic neighborhoods spread structure more
-evenly than shared vocabulary does. The two views agree only
-partially:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bag</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span></span>
-<span>  <span class="va">covid_abstracts</span>,</span>
-<span>  column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
-<span>  id <span class="op">=</span> <span class="st">"doc"</span>,</span>
-<span>  weight <span class="op">=</span> <span class="st">"tfidf"</span>,</span>
-<span>  stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
-<span>  min_count <span class="op">=</span> <span class="fl">3L</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; vocabulary pruned to 1453 of 4032 words, retaining 81.71% of tokens</span></span>
-<span><span class="va">bag_clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">bag</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/hg_agreement.html">hg_agreement</a></span><span class="op">(</span><span class="va">knn_clusters</span>, <span class="va">bag_clusters</span>, what <span class="op">=</span> <span class="st">"table"</span><span class="op">)</span></span>
+<p><code>covid_abstracts</code> holds 165 abstracts of research on
+education during COVID-19, and <code>covid_embeddings</code> their
+embeddings from the <code>all-MiniLM-L6-v2</code> model, 384 numbers for
+each abstract.</p>
+<p>The vocabulary of a corpus has a long tail of rare words.
+<code>stop_words</code> removes a list of words, <code>min_count</code>
+removes the words that occur fewer times in the corpus, and
+<code>min_chars</code> removes words shorter than a number of
+characters. <code>max_words</code> and <code>coverage</code> cap the
+vocabulary at a number of words or at the most frequent words that cover
+a share of the tokens. Here the stop words are those of
+<code><a href="../reference/stop_words_en.html">stop_words_en()</a></code> with words common to research abstracts,
+<code>min_count = 3</code> keeps words that occur at least three times,
+and <code>min_chars = 3</code> drops shorter fragments.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">stops</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/stop_words_en.html">stop_words_en</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"using"</span>, <span class="st">"used"</span>, <span class="st">"use"</span>, <span class="st">"based"</span>, <span class="st">"results"</span>,</span>
+<span>           <span class="st">"study"</span>, <span class="st">"research"</span>, <span class="st">"paper"</span>, <span class="st">"article"</span>, <span class="st">"findings"</span>, <span class="st">"data"</span><span class="op">)</span></span>
+<span><span class="va">corpus_doc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
+<span>                              id <span class="op">=</span> <span class="st">"doc"</span>, weight <span class="op">=</span> <span class="st">"tfidf"</span>,</span>
+<span>                              stop_words <span class="op">=</span> <span class="va">stops</span>, min_count <span class="op">=</span> <span class="fl">3L</span>,</span>
+<span>                              min_chars <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
+<span><span class="co">#&gt; vocabulary pruned to 1426 of 3975 words, retaining 81.61% of tokens</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">corpus_doc</span>, what <span class="op">=</span> <span class="st">"vocabulary"</span><span class="op">)</span>, <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="co">#&gt;            word count doc_freq      idf</span></span>
+<span><span class="co">#&gt; 1       ability     8        7 4.032546</span></span>
+<span><span class="co">#&gt; 2          able     5        5 4.320228</span></span>
+<span><span class="co">#&gt; 3      academic    47       30 2.678001</span></span>
+<span><span class="co">#&gt; 4     academics     5        3 4.725693</span></span>
+<span><span class="co">#&gt; 5    acceptance     3        1 5.418841</span></span>
+<span><span class="co">#&gt; 6        access    18       13 3.472930</span></span>
+<span><span class="co">#&gt; 7 accessibility     9        6 4.166078</span></span>
+<span><span class="co">#&gt; 8    accordance     3        3 4.725693</span></span></code></pre></div>
+<p>The filters reduce the vocabulary from 4,114 words to 1,426. The same
+filters apply to every token construction below, so the constructions
+differ only in what a hyperedge is.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">corpus_word</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
+<span>                               id <span class="op">=</span> <span class="st">"doc"</span>, nodes <span class="op">=</span> <span class="st">"word"</span>, weight <span class="op">=</span> <span class="st">"tfidf"</span>,</span>
+<span>                               stop_words <span class="op">=</span> <span class="va">stops</span>, min_count <span class="op">=</span> <span class="fl">3L</span>,</span>
+<span>                               min_chars <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
+<span><span class="co">#&gt; vocabulary pruned to 1426 of 3975 words, retaining 81.61% of tokens</span></span>
+<span><span class="va">corpus_window</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
+<span>                                 id <span class="op">=</span> <span class="st">"doc"</span>, construction <span class="op">=</span> <span class="st">"window"</span>,</span>
+<span>                                 window <span class="op">=</span> <span class="fl">3</span>, stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
+<span>                                 min_count <span class="op">=</span> <span class="fl">3L</span>, min_chars <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
+<span><span class="co">#&gt; vocabulary pruned to 1426 of 3975 words, retaining 81.61% of tokens</span></span>
+<span><span class="va">corpus_sentence</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
+<span>                                   id <span class="op">=</span> <span class="st">"doc"</span>, construction <span class="op">=</span> <span class="st">"sentence"</span>,</span>
+<span>                                   stop_words <span class="op">=</span> <span class="va">stops</span>, min_count <span class="op">=</span> <span class="fl">3L</span>,</span>
+<span>                                   min_chars <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
+<span><span class="co">#&gt; vocabulary pruned to 1426 of 3975 words, retaining 81.61% of tokens</span></span>
+<span><span class="va">corpus_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>,</span>
+<span>                              id <span class="op">=</span> <span class="st">"doc"</span>, construction <span class="op">=</span> <span class="st">"knn"</span>, k <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                              embeddings <span class="op">=</span> <span class="va">covid_embeddings</span><span class="op">)</span></span></code></pre></div>
+<p>The constructions give hypergraphs of different shapes from the same
+text. The document-oriented bag has 165 documents as nodes and 1,426
+words as hyperedges, each word in 7.2 documents on average. The
+word-oriented bag is its dual, with 165 hyperedges of 61.8 words. The
+window construction gives 13,120 distinct windows of up to three words,
+and the sentence construction 1,456 sentences of 9.4 words on average.
+The kNN construction has one hyperedge of 11 documents for each
+abstract. In the bag, two words share a hyperedge when they occur in the
+same abstract, which holds for 22% of the pairs of words. In the
+sentence construction they must share a sentence, which holds for 6%,
+and in the window construction they must stand within three words of
+each other, which holds for 2.1%.</p>
+</div>
+<div class="section level2">
+<h2 id="central-words-under-three-constructions">Central words under three constructions<a class="anchor" aria-label="anchor" href="#central-words-under-three-constructions"></a>
+</h2>
+<p>The bag, window and sentence constructions have the words as nodes.
+The clique-motif eigenvector centrality of a word is its eigenvector
+centrality in the clique expansion of the hypergraph, in which two words
+are linked with a weight that grows with the hyperedges they share
+(Benson 2019). With <code>sort_by = "clique"</code> and
+<code>n = 10</code>, each table shows the ten most central words.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">corpus_word</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           node    clique</span></span>
+<span><span class="co">#&gt; 1        covid 0.2816840</span></span>
+<span><span class="co">#&gt; 2     pandemic 0.2725503</span></span>
+<span><span class="co">#&gt; 3    education 0.2510500</span></span>
+<span><span class="co">#&gt; 4     students 0.1938140</span></span>
+<span><span class="co">#&gt; 5     learning 0.1920954</span></span>
+<span><span class="co">#&gt; 6       online 0.1718855</span></span>
+<span><span class="co">#&gt; 7     teaching 0.1664281</span></span>
+<span><span class="co">#&gt; 8  educational 0.1168923</span></span>
+<span><span class="co">#&gt; 9     teachers 0.1091681</span></span>
+<span><span class="co">#&gt; 10  challenges 0.1089907</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">corpus_window</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         node    clique</span></span>
+<span><span class="co">#&gt; 1      covid 0.4105486</span></span>
+<span><span class="co">#&gt; 2   pandemic 0.3980188</span></span>
+<span><span class="co">#&gt; 3  education 0.3055008</span></span>
+<span><span class="co">#&gt; 4     online 0.2837621</span></span>
+<span><span class="co">#&gt; 5   learning 0.2698000</span></span>
+<span><span class="co">#&gt; 6   teaching 0.2280932</span></span>
+<span><span class="co">#&gt; 7   students 0.2049750</span></span>
+<span><span class="co">#&gt; 8   teachers 0.1348209</span></span>
+<span><span class="co">#&gt; 9     higher 0.1314352</span></span>
+<span><span class="co">#&gt; 10  distance 0.1246702</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">corpus_sentence</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          node    clique</span></span>
+<span><span class="co">#&gt; 1       covid 0.3535090</span></span>
+<span><span class="co">#&gt; 2    pandemic 0.3284308</span></span>
+<span><span class="co">#&gt; 3   education 0.3188085</span></span>
+<span><span class="co">#&gt; 4    learning 0.2634389</span></span>
+<span><span class="co">#&gt; 5      online 0.2630279</span></span>
+<span><span class="co">#&gt; 6    students 0.2598502</span></span>
+<span><span class="co">#&gt; 7    teaching 0.2303710</span></span>
+<span><span class="co">#&gt; 8    teachers 0.1817948</span></span>
+<span><span class="co">#&gt; 9  challenges 0.1103918</span></span>
+<span><span class="co">#&gt; 10     higher 0.1067574</span></span></code></pre></div>
+<p>The three constructions share 8 of their ten words, covid, pandemic,
+education, students, learning, online, teaching and teachers. These
+words occur throughout the corpus, so every construction places them at
+the centre. The constructions differ at the end of the lists. Only the
+window construction ranks distance among its ten, and only the bag ranks
+educational. <code>distance</code> is 10th in the window ranking, 16th
+in the sentence ranking and 146th in the bag ranking. Of its 53
+occurrences, 50 are followed by <code>education</code> or
+<code>learning</code>, and the window construction links
+<code>distance</code> to these words at every occurrence. The bag links
+<code>distance</code> to every word of the abstracts that contain it and
+treats the phrase like any other pair of words. The window construction
+thus raises the words of frequent phrases, and the sentence
+construction, whose hyperedges are wider than a window and narrower than
+an abstract, places <code>distance</code> between the two.</p>
+</div>
+<div class="section level2">
+<h2 id="groups-of-documents-under-two-constructions">Groups of documents under two constructions<a class="anchor" aria-label="anchor" href="#groups-of-documents-under-two-constructions"></a>
+</h2>
+<p>The bag and kNN constructions have the documents as nodes.
+<code><a href="../reference/hg_cluster.html">hg_cluster()</a></code> with <code>type = "random_walk"</code>
+partitions the documents by spectral clustering on the Laplacian of the
+random walk on the hypergraph (Hayashi et al. 2020), here into
+<code>k = 4</code> groups, and <code>seed = 1</code> fixes the random
+starts of its k-means step. <code><a href="../reference/hg_topic_sizes.html">hg_topic_sizes()</a></code> counts the
+documents in each group.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bag_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">corpus_doc</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/hg_topic_sizes.html">hg_topic_sizes</a></span><span class="op">(</span><span class="va">corpus_doc</span>, <span class="va">bag_groups</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       topic  n     share</span></span>
+<span><span class="co">#&gt; 1 Cluster 1 16 0.0969697</span></span>
+<span><span class="co">#&gt; 2 Cluster 2 43 0.2606061</span></span>
+<span><span class="co">#&gt; 3 Cluster 3 30 0.1818182</span></span>
+<span><span class="co">#&gt; 4 Cluster 4 76 0.4606061</span></span>
+<span><span class="va">knn_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">corpus_knn</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/hg_topic_sizes.html">hg_topic_sizes</a></span><span class="op">(</span><span class="va">corpus_knn</span>, <span class="va">knn_groups</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       topic  n     share</span></span>
+<span><span class="co">#&gt; 1 Cluster 1 41 0.2484848</span></span>
+<span><span class="co">#&gt; 2 Cluster 2 41 0.2484848</span></span>
+<span><span class="co">#&gt; 3 Cluster 3 37 0.2242424</span></span>
+<span><span class="co">#&gt; 4 Cluster 4 46 0.2787879</span></span></code></pre></div>
+<p>The bag groups hold between 16 and 76 documents, and the kNN groups
+between 37 and 46. A kNN hyperedge holds the same number of documents
+for every abstract, which spreads the documents evenly. A bag hyperedge
+holds every document that uses a word, so common words bind many
+documents together.</p>
+<p>The kNN hypergraph holds no words, so the words of its groups are
+read from the bag. <code><a href="../reference/hg_keywords.html">hg_keywords()</a></code> ranks the words of each
+group by their mass, the summed tf-idf weight that the documents of the
+group place on the word. The figure plots the eight words of largest
+mass in each group.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">knn_keywords</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">corpus_doc</span>, <span class="va">knn_groups</span>, n <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">knn_keywords</span><span class="op">)</span></span></code></pre></div>
+<p><img src="text-constructions_files/figure-html/knn-keywords-1.png" class="r-plt" alt="The eight words with the largest tf-idf mass in each kNN group" width="100%"></p>
+<p>The groups lead with Cluster 1 (students, clinical, teaching,
+online); Cluster 2 (school, teachers, children, parents); Cluster 3
+(social, education, learning, global); Cluster 4 (online, learning,
+distance, students). Each group is a theme of research on education in
+the pandemic, and the kNN construction finds the themes from the meaning
+of the abstracts alone.</p>
+<p>The words of the bag groups come from the same table.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">corpus_doc</span>, <span class="va">bag_groups</span>, n <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  type cluster   size words                                                    </span></span>
+<span><span class="co">#&gt;  mass Cluster 1 16   clinical, dental, students, teachers, learning, distan...</span></span>
+<span><span class="co">#&gt;  mass Cluster 2 43   school, children, parents, health, teachers, schools, ...</span></span>
+<span><span class="co">#&gt;  mass Cluster 3 30   system, science, social, students, covid, education, p...</span></span>
+<span><span class="co">#&gt;  mass Cluster 4 76   online, learning, teaching, education, students, covid...</span></span>
+<span><span class="co">#&gt; 32 rows in the returned long table (rank, score, share, n_docs)</span></span></code></pre></div>
+<p><code><a href="../reference/hg_agreement.html">hg_agreement()</a></code> with <code>what = "table"</code>
+cross-tabulates the two partitions, one row for each pair of a kNN group
+and a bag group with the number of documents they share. Without
+<code>what</code>, it gives the summary. <code>aligned</code> counts the
+documents that fall in the bag group holding most of their kNN group,
+<code>agreement</code> is their share, and <code>ari</code> is the
+adjusted Rand index, which is 1 for identical partitions and near 0 for
+unrelated ones.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_agreement.html">hg_agreement</a></span><span class="op">(</span><span class="va">knn_groups</span>, <span class="va">bag_groups</span>, what <span class="op">=</span> <span class="st">"table"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      label_x   label_y  n</span></span>
 <span><span class="co">#&gt; 1  Cluster 1 Cluster 1  9</span></span>
 <span><span class="co">#&gt; 2  Cluster 1 Cluster 2  4</span></span>
-<span><span class="co">#&gt; 3  Cluster 1 Cluster 3  8</span></span>
-<span><span class="co">#&gt; 4  Cluster 1 Cluster 4 20</span></span>
+<span><span class="co">#&gt; 3  Cluster 1 Cluster 3  7</span></span>
+<span><span class="co">#&gt; 4  Cluster 1 Cluster 4 21</span></span>
 <span><span class="co">#&gt; 5  Cluster 2 Cluster 1  1</span></span>
 <span><span class="co">#&gt; 6  Cluster 2 Cluster 2 32</span></span>
 <span><span class="co">#&gt; 7  Cluster 2 Cluster 3  2</span></span>
 <span><span class="co">#&gt; 8  Cluster 2 Cluster 4  6</span></span>
 <span><span class="co">#&gt; 9  Cluster 3 Cluster 1  2</span></span>
-<span><span class="co">#&gt; 10 Cluster 3 Cluster 2  5</span></span>
-<span><span class="co">#&gt; 11 Cluster 3 Cluster 3 17</span></span>
+<span><span class="co">#&gt; 10 Cluster 3 Cluster 2  4</span></span>
+<span><span class="co">#&gt; 11 Cluster 3 Cluster 3 18</span></span>
 <span><span class="co">#&gt; 12 Cluster 3 Cluster 4 13</span></span>
 <span><span class="co">#&gt; 13 Cluster 4 Cluster 1  4</span></span>
 <span><span class="co">#&gt; 14 Cluster 4 Cluster 2  3</span></span>
-<span><span class="co">#&gt; 15 Cluster 4 Cluster 3  2</span></span>
-<span><span class="co">#&gt; 16 Cluster 4 Cluster 4 37</span></span></code></pre></div>
-<p>Two themes are found by both constructions (32 and 37 documents stay
-together); the rest reshuffles. Neither view is “the” truth — they
-answer different questions (shared vocabulary vs. semantic proximity) —
-but a grouping stable across both is worth trusting.</p>
-<p><code>k</code> is the consequential arbitrary choice here, so it gets
-the sensitivity check:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">knn_5_hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>, id <span class="op">=</span> <span class="st">"doc"</span>,</span>
-<span>                            construction <span class="op">=</span> <span class="st">"knn"</span>, k <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>                            embeddings <span class="op">=</span> <span class="va">covid_embeddings</span><span class="op">)</span></span>
-<span><span class="va">knn_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">knn_5_hg</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">knn_15_hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>, id <span class="op">=</span> <span class="st">"doc"</span>,</span>
-<span>                             construction <span class="op">=</span> <span class="st">"knn"</span>, k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>                             embeddings <span class="op">=</span> <span class="va">covid_embeddings</span><span class="op">)</span></span>
-<span><span class="va">knn_15</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">knn_15_hg</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/hg_agreement.html">hg_agreement</a></span><span class="op">(</span><span class="va">knn_clusters</span>, <span class="va">knn_15</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     n agreement aligned     ari</span></span>
-<span><span class="co">#&gt; 1 165 0.8666667     143 0.67443</span></span>
-<span><span class="fu"><a href="../reference/hg_agreement.html">hg_agreement</a></span><span class="op">(</span><span class="va">knn_clusters</span>, <span class="va">knn_5</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 15 Cluster 4 Cluster 3  3</span></span>
+<span><span class="co">#&gt; 16 Cluster 4 Cluster 4 36</span></span>
+<span><span class="fu"><a href="../reference/hg_agreement.html">hg_agreement</a></span><span class="op">(</span><span class="va">knn_groups</span>, <span class="va">bag_groups</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     n agreement aligned       ari</span></span>
-<span><span class="co">#&gt; 1 165 0.7575758     125 0.5305385</span></span></code></pre></div>
-<p>The <code>aligned</code> column counts the documents that stay with
-the majority of their cluster. Against <code>k = 15</code>, 143 of 165
-documents keep their cluster’s majority alignment; against
-<code>k = 5</code>, 125 do. The partition is robust upward and softer
-downward — small neighborhoods fragment one of the four groups. Report
-conclusions at the k where they are stable, and say so.</p>
-<p>One honesty note: everything in this section is conditional on the
-encoder. <code>covid_embeddings</code> comes from one pinned model; a
-different encoder yields a different geometry, and any claim that
-matters should be re-checked with a second model
-(<code>text_hypergraph(construction = "knn", model = )</code> makes that
-a one-argument change when sbert is installed).</p>
+<span><span class="co">#&gt; 1 165 0.5757576     107 0.2177748</span></span></code></pre></div>
+<p>The two partitions find the same themes and draw their boundaries
+differently. 107 of the 165 documents are aligned, and the adjusted Rand
+index is 0.22. The themes of school and of online learning agree. The
+kNN group on online, learning, distance has 36 of its 46 documents in
+the bag group on online, learning, teaching, and the kNN group on
+school, teachers, children has 32 of its 41 in the bag group on school,
+children, parents. The theme of clinical teaching differs. The kNN group
+on students, clinical, teaching keeps 9 of its 41 documents in the bag
+group on clinical, dental, students, which holds only 16 documents, and
+places 21 in the bag group on online, learning, teaching. The bag forms
+a small group from the abstracts whose vocabulary is clinical and
+dental, and it places most of the other abstracts of the kNN group with
+the abstracts on online learning, whose words they share. The kNN
+construction keeps these abstracts in one group because their embeddings
+lie close together.</p>
 </div>
 <div class="section level2">
-<h2 id="when-to-use-which-construction">When to use which construction<a class="anchor" aria-label="anchor" href="#when-to-use-which-construction"></a>
+<h2 id="choice-of-construction">Choice of construction<a class="anchor" aria-label="anchor" href="#choice-of-construction"></a>
 </h2>
-<ul>
-<li>
-<strong><code>"bag"</code></strong> — the default; shared
-vocabulary, interpretable hyperedges (words or documents), tf-idf
-weighting, the full clustering/transduction story of
-<code><a href="../articles/text-hypergraphs.html">vignette("text-hypergraphs")</a></code>.</li>
-<li>
-<strong><code>"window"</code></strong> — when word order carries the
-signal: phrase vocabulary, collocations, sequence-like corpora. Vertices
-are words; use it with <code><a href="../reference/hg_centrality.html">hg_centrality()</a></code> and
-<code><a href="../reference/hg_measures.html">hg_measures()</a></code>. Prefer modest corpora or
-<code>min_count</code> filtering — distinct windows multiply
-quickly.</li>
-<li>
-<strong><code>"knn"</code></strong> — when meaning matters more than
-vocabulary overlap: paraphrase-heavy or multilingual-adjacent corpora,
-or as the explicit, spectral alternative to UMAP+HDBSCAN pipelines.
-Vertices are documents; every hyperedge has <code>k + 1</code> members;
-the geometry is the encoder’s.</li>
-</ul>
+<p>The construction follows from the relation that the analysis is
+about. The bag relates documents through shared words. Its document
+orientation suits the clustering and classification of documents, and
+its word orientation the centrality of words across documents. The
+window construction relates words that stand next to each other, which
+suits phrases and collocations. Its number of distinct windows grows
+with the size of the corpus, which <code>min_count</code> and the other
+filters keep in check. The sentence construction relates words used in
+one statement, a narrower relation than the document and a wider one
+than the window. The kNN construction relates documents by meaning and
+uses no words, so its results depend on the encoder that produced the
+embeddings, and a result that matters is repeated with a second
+encoder.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<p>Benson, A. R. (2019). Three hypergraph eigenvector centralities.
+<em>SIAM Journal on Mathematics of Data Science</em>, 1(2), 293-312.</p>
+<p>Berge, C. (1989). <em>Hypergraphs: Combinatorics of Finite Sets</em>.
+North-Holland.</p>
 <p>Ding, K., Wang, J., Li, J., Li, D., &amp; Liu, H. (2020). Be more
 with less: Hypergraph attention networks for inductive text
-classification. <em>EMNLP 2020</em>. <a href="doi:10.18653/v1/2020.emnlp-main.399" class="uri">doi:10.18653/v1/2020.emnlp-main.399</a>.</p>
+classification. <em>Proceedings of EMNLP 2020</em>, 4927-4936. <a href="https://doi.org/10.18653/v1/2020.emnlp-main.399" class="external-link uri">https://doi.org/10.18653/v1/2020.emnlp-main.399</a></p>
+<p>Feng, Y., You, H., Zhang, Z., Ji, R., &amp; Gao, Y. (2019).
+Hypergraph neural networks. <em>Proceedings of the AAAI Conference on
+Artificial Intelligence</em>, 33(01), 3558-3565. <a href="https://doi.org/10.1609/aaai.v33i01.33013558" class="external-link uri">https://doi.org/10.1609/aaai.v33i01.33013558</a></p>
 <p>Hayashi, K., Aksoy, S. G., Park, C. H., &amp; Park, H. (2020).
-Hypergraph random walks, Laplacians, and clustering. <em>CIKM 2020</em>.
-<a href="doi:10.1145/3340531.3412034" class="uri">doi:10.1145/3340531.3412034</a>.</p>
+Hypergraph random walks, Laplacians, and clustering. <em>Proceedings of
+CIKM 2020</em>, 495-504. <a href="https://doi.org/10.1145/3340531.3412034" class="external-link uri">https://doi.org/10.1145/3340531.3412034</a></p>
+<p>Manning, C. D., Raghavan, P., &amp; Schütze, H. (2008).
+<em>Introduction to Information Retrieval</em>. Cambridge University
+Press.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

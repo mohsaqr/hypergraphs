@@ -23,7 +23,7 @@ a handful of labeled ones."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,13 +31,19 @@ a handful of labeled ones."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -78,7 +84,9 @@ a handful of labeled ones.</p>
 <span>  xi <span class="op">=</span> <span class="fl">0.99</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zhou"</span>, <span class="st">"random_walk"</span><span class="op">)</span>,</span>
 <span>  normalization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"class_mass"</span><span class="op">)</span>,</span>
-<span>  edge_weights <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  edge_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  holdout <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -93,8 +101,10 @@ a handful of labeled ones.</p>
 <dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
 <dd><p>The known labels: a named character vector (names are
 node identifiers – documents under <code>nodes = "doc"</code> – values their
-class labels), or a tidy data.frame with a <code>node</code> column and a
-<code>label</code>, <code>cluster</code> or <code>predicted</code> column.</p></dd>
+class labels), a tidy data.frame with a <code>node</code> column and a
+<code>label</code>, <code>cluster</code> or <code>predicted</code> column, or the name of a column of
+the hypergraph's document table, which a <code><a href="text_hypergraph.html">text_hypergraph()</a></code> fills
+with the input's other columns (<code>labels = "period"</code>).</p></dd>
 
 
 <dt id="arg-xi">xi<a class="anchor" aria-label="anchor" href="#arg-xi"></a></dt>
@@ -114,11 +124,28 @@ predictions: <code>"none"</code> (default, the raw Zhou 2006 argmax) or
 <code>"class_mass"</code> when the labeled seeds are class-imbalanced – the raw
 rule can collapse every prediction onto the majority class.</p></dd>
 
+
+<dt id="arg-holdout">holdout<a class="anchor" aria-label="anchor" href="#arg-holdout"></a></dt>
+<dd><p><code>NULL</code> (default) uses every given label and returns the
+predictions. A share in <code>(0, 1)</code> hides that share of the labels, drawn
+within each class, predicts them from the rest, and returns an
+<a href="hg_get.hg_classification.html">hg_classification</a> that prints the held-out
+accuracy and balanced accuracy.</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Seed of the held-out draw (default <code>1</code>); the caller's
+random-number stream is restored.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A base <code>data.frame</code>, one row per node, with columns <code>node</code>,
-<code>label</code> (the given label or <code>NA</code>), <code>predicted</code>, <code>score</code>, and <code>margin</code>.</p>
+<code>label</code> (the given label or <code>NA</code>), <code>predicted</code>, <code>score</code>, and <code>margin</code>.
+With <code>holdout</code>, an <code>hg_classification</code>: the same table with <code>label</code>
+holding the true label, <code>split</code> (<code>"train"</code> or <code>"test"</code>) and <code>correct</code>
+for the held-out documents; read its evaluation with <code><a href="hg_get.html">hg_get()</a></code>
+(<code>what = "accuracy"</code>, <code>"classes"</code>, <code>"confusion"</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

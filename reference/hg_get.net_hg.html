@@ -15,7 +15,7 @@ unweighted)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,13 +23,19 @@ unweighted)."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -63,8 +69,7 @@ unweighted).</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'net_hg'</span></span>
 <span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"edges"</span>, <span class="st">"nodes"</span>, <span class="st">"memberships"</span>, <span class="st">"sets"</span>, <span class="st">"state_counts"</span>, <span class="st">"node_data"</span>,</span>
-<span>    <span class="st">"edge_data"</span>, <span class="st">"incidence_data"</span><span class="op">)</span>,</span>
+<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"edges"</span>, <span class="st">"nodes"</span>, <span class="st">"memberships"</span>, <span class="st">"sets"</span>, <span class="st">"state_counts"</span>, <span class="st">"edge_data"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span>,</span>
 <span>  sort_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  top <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -84,9 +89,8 @@ unweighted).</p>
 for one row per node, or <code>"memberships"</code> for one row per node-in-
 hyperedge cell of the incidence matrix. A hypergraph of clustered
 sequences (<code><a href="group_hypergraph.html">group_hypergraph()</a></code> on a clustering of sequences) also has
-<code>"sets"</code> and <code>"state_counts"</code>. A hypergraph read with <code><a href="hg_write_hif.html">hg_read_hif()</a></code>
-also has <code>"node_data"</code> and <code>"incidence_data"</code>; <code>"edge_data"</code> returns the
-per-hyperedge attribute table any constructor or HIF file attached.</p></dd>
+<code>"sets"</code> and <code>"state_counts"</code>. <code>"edge_data"</code> returns the per-hyperedge
+attribute table a constructor attached.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -109,10 +113,11 @@ applied after any filter and after <code>sort_by</code>, so <code>sort_by</code>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data.frame. For <code>what = "edges"</code>, one row per hyperedge with
 columns <code>hyperedge</code> (character id), <code>size</code> (integer), <code>members</code>
-(the member nodes, comma separated), and <code>weight</code> (numeric window count,
-or <code>NA</code>). For <code>what = "nodes"</code>, one row per node with columns <code>node</code>
+(the member nodes, comma separated), and, for a hypergraph of windows
+(<code><a href="window_hypergraph.html">window_hypergraph()</a></code>), <code>weight</code> (the number of windows with that
+member set). <code>sort_by</code> is <code>"size"</code>, or <code>"weight"</code> where it exists. For <code>what = "nodes"</code>, one row per node with columns <code>node</code>
 and <code>degree</code> (the number of hyperedges it belongs to), plus <code>block</code>
-for a hypergraph with planted blocks (<code><a href="hg_sample_sbm.html">hg_sample_sbm()</a></code>); <code>sort_by = "degree"</code> orders it. For <code>what = "memberships"</code>, one row per non-zero
+for a hypergraph with planted blocks (<code><a href="random_hypergraph.html">random_hypergraph()</a></code> with <code>type = "sbm"</code>); <code>sort_by = "degree"</code> orders it. For <code>what = "memberships"</code>, one row per non-zero
 incidence cell with columns <code>node</code>, <code>hyperedge</code> and <code>weight</code> (the
 incidence value: 1 for a binary hypergraph, the summed weight for a
 weighted one), in hyperedge order; <code>sort_by = "weight"</code> orders it.
@@ -122,12 +127,9 @@ group with exactly that set) and <code>share</code> (<code>count</code> over the
 sequences), in group order and decreasing count. For
 <code>what = "state_counts"</code>, one row per group and state with <code>group</code>,
 <code>node</code>, <code>count</code> (sequences of the group containing the state) and
-<code>share</code>. For <code>what = "node_data"</code>, one row per node with <code>node</code> and
-the node weight and attributes an HIF file carried; for
-<code>what = "incidence_data"</code>, one row per incidence with <code>node</code>, <code>edge</code>
-and its attributes; for <code>what = "edge_data"</code>, one row per hyperedge
-with <code>edge</code> and its attributes. Asking for any of these tables of a
-hypergraph without it raises <code>hypergraphs_bad_input</code>.</p>
+<code>share</code>. For <code>what = "edge_data"</code>, one row per hyperedge with <code>edge</code>
+and its attributes; asking for it of a hypergraph without an attribute
+table raises <code>hypergraphs_bad_input</code>.</p>
     </div>
 
     <div class="section level2">

@@ -17,7 +17,7 @@ cardinality before duplicate-edge collapse."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,13 +25,19 @@ cardinality before duplicate-edge collapse."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -141,7 +147,9 @@ counts only, or <code>"draws"</code> for every null count.</p></dd>
 <code>motif</code>, <code>count</code> (observed), <code>expected</code> and <code>null_sd</code> (mean and
 standard deviation of the null counts), <code>z</code>, <code>p_value</code> (empirical),
 <code>delta</code> (relative abundance), <code>normalized_delta</code> (the motif profile used
-by HypergraphX), <code>n_null</code> (null draws) and <code>method</code>.</p>
+by HypergraphX), <code>n_null</code> (null draws) and <code>method</code>. Temporal input adds
+a leading <code>time</code> column, the snapshot time: a date for a calendar
+hypergraph, the number on its clock otherwise.</p>
 <p>For <code><a href="hg_get.html">hg_get()</a></code>, the test table (<code>what = "test"</code>) or every null
 count (<code>what = "draws"</code>, columns <code>run</code>, <code>motif</code>, <code>count</code>) as a plain
 data.frame.</p>

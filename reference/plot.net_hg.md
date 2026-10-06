@@ -24,7 +24,7 @@ plot(
   color_by = NULL,
   linetype_by = NULL,
   labels = TRUE,
-  label_size = 4.2,
+  label_size = NULL,
   edge_labels = FALSE,
   edge_label_size = 3,
   dismantled = FALSE,
@@ -50,6 +50,9 @@ plot(
   pieces = NULL,
   title_gap = 0.06,
   group = NULL,
+  node_groups = NULL,
+  type = c("hulls", "incidence"),
+  sort_by = NULL,
   ...
 )
 ```
@@ -92,11 +95,16 @@ plot(
 - color_by:
 
   Colour of the hulls: `NULL` (the hyperedges' count attribute described
-  above, else one colour), `"size"` (hyperedge cardinality, one
-  Okabe-Ito colour per size), the name of a column in the edge metadata
-  (`x$edge_data`), a vector named by hyperedge, or a vector with one
-  value per hyperedge. Character or factor values get the Okabe-Ito
-  palette; numeric values a sequential scale built from it.
+  above, the window counts of a
+  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  else one colour), `"size"` (hyperedge cardinality, one Okabe-Ito
+  colour per size), `"weight"` (the hyperedge weights of a
+  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  the number of windows behind each hyperedge), the name of a column in
+  the edge metadata (`x$edge_data`), a vector named by hyperedge, or a
+  vector with one value per hyperedge. Character or factor values get
+  the Okabe-Ito palette; numeric values a sequential scale built from
+  it.
 
 - linetype_by:
 
@@ -108,9 +116,13 @@ plot(
   `TRUE` (default) writes the node names, `FALSE` writes none, and a
   character vector named by node replaces the names shown.
 
-- label_size, node_size:
+- label_size:
 
-  Text and point sizes (defaults `4.2` and `2.5`).
+  Text size of the node labels, in mm. `NULL` (default) scales it to the
+  number of labelled nodes `n`: `4.2` up to 12 labels, then
+  `4.2 * sqrt(12 / n)`, the side of the area each label can claim, down
+  to a floor of `2.2` (reached at 44 labels). A number is used as given.
+  With `type = "incidence"` it sizes the row names instead.
 
 - edge_labels:
 
@@ -139,6 +151,10 @@ plot(
 
   Columns in the panel grid when `dismantled = TRUE` (default: roughly
   square).
+
+- node_size:
+
+  Point size of the nodes (default `2.5`).
 
 - detail:
 
@@ -281,13 +297,14 @@ plot(
 - pieces:
 
   How the bipartite layout places a hypergraph that falls into
-  disconnected pieces: `"row"` (default; every piece is laid out in a
-  frame of its own, as if drawn alone, and the frames are set side by
-  side 1.4 frame widths apart, in order of the piece's most prominent
-  hyperedge – see `titles` – with a piece of one node at the middle of
-  its frame) or `"packed"` (pieces are laid out one by one and packed
-  into a square frame). Only the bipartite layout has pieces; `"row"`
-  given with another layout is an error.
+  disconnected pieces: `"packed"` (default; pieces are laid out one by
+  one and packed into a square frame, so each takes room in proportion
+  to its size) or `"row"` (every piece is laid out in a frame of its
+  own, as if drawn alone, and the frames are set side by side 1.4 frame
+  widths apart, in order of the piece's most prominent hyperedge – see
+  `titles` – with a piece of one node at the middle of its frame). Only
+  the bipartite layout has pieces; `"row"` given with another layout is
+  an error.
 
 - title_gap:
 
@@ -297,7 +314,8 @@ plot(
 - group:
 
   Draw one group only: the name of a value of the hyperedges' `group`
-  attribute, such as `"Cluster 1"` of a
+  attribute (a hypergraph of counted sets with a single group is drawn
+  as that group without it), such as `"Cluster 1"` of a
   [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
   built from a clustering of sequences. Only that group's hyperedges and
   their members are drawn; for clustered sequences each node is sized by
@@ -308,6 +326,44 @@ plot(
   the legends are stacked. A name that is not a group, or a hypergraph
   without a `group` attribute, raises `hypergraphs_bad_input`. `NULL`
   (default) draws every hyperedge.
+
+- node_groups:
+
+  Colour and shape every node by its group, such as its community: an
+  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md),
+  [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+  or
+  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  fit, a
+  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  or
+  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+  result, or a data.frame with a `node` column and a `community`,
+  `cluster`, `predicted`, `topic`, `block` or `label` column (read as
+  [`hg_agreement()`](https://mohsaqr.github.io/hypergraphs/reference/hg_agreement.md)
+  reads a labeling). Groups take the Okabe-Ito colours in their natural
+  order and a shape each; a node without a group is plotted as a small
+  grey point. Without `color_by` the hulls are then grey, so the node
+  colours carry the grouping. `NULL` (default) plots every node alike.
+  Raises `hypergraphs_bad_input` with `node_sizes`, `direction`,
+  `transitions`, `dismantled = TRUE` or `outline = "fill"`.
+
+- type:
+
+  `"hulls"` (default) plots each hyperedge as a pebble around its
+  members; `"incidence"` plots the incidence matrix (see Details).
+
+- sort_by:
+
+  Column order of `type = "incidence"`: `NULL` (default; by highest
+  member row, then name), `"size"`, the name of a column in the edge
+  metadata such as a date, a vector named by hyperedge, or a vector with
+  one value per hyperedge. Numbers sort largest first, as in
+  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md);
+  dates, text and a clock column (`start`, `end`, `time`, ... as
+  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)
+  names them, numeric in a snapshot) sort ascending. Ties fall back to
+  the default order.
 
 - ...:
 
@@ -338,10 +394,18 @@ Node labels are bold with a white halo, the legends sit below the plot
 (a colour bar 2.5 cm per key, discrete legends at most four keys to a
 row) and the plot has wide margins (40, 130, 30 and 130 pt) so title
 boxes outside the pebbles are not cut. The look of earlier versions is
-partly available through arguments: `alpha = 0.45`, `label_size = 3` and
-`pieces = "packed"`; the legend position and margins through
+partly available through arguments: `alpha = 0.45` and `label_size = 3`;
+the legend position and margins through
 [`ggplot2::theme()`](https://ggplot2.tidyverse.org/reference/theme.html)
 added to the result.
+
+A hypergraph whose hyperedges repeat the same members, such as the
+trials of an event log, is drawn as its distinct sets: each set once,
+coloured by its number of copies, with each node sized by the hyperedges
+that contain it. A call that styles or labels the hyperedges one by one
+(`titles`, `color_by`, `linetype_by`, `edge_labels`, `notes`,
+`dismantled`), or groups the nodes (`node_groups`), draws every
+hyperedge.
 
 A hypergraph that falls into several disconnected pieces is laid out one
 piece at a time and the pieces are then packed into a roughly square
@@ -352,6 +416,20 @@ edge of the picture and set the scale for everything else, leaving the
 connected structure a speck in the middle. Packing keeps every component
 at its own size and the frame spent on structure.
 
+`type = "incidence"` plots the incidence matrix instead, after UpSet
+(Lex et al. 2014). Each node is a row and each hyperedge a column; a
+vertical bar joins the members of a hyperedge. Rows are ordered by
+decreasing hyperdegree, which a bar at the right of each row also shows,
+and columns by `sort_by`, then by their highest member row, so
+hyperedges that share the busiest nodes stand together. A bar above each
+column shows the hyperedge's size when sizes differ. Empty cells are
+grey points up to 20,000 cells. Every hyperedge is a column, repeated
+sets included. The figure grows linearly with the number of hyperedges,
+so it stays legible where hulls overlap into one shape. It takes
+`color_by` (discrete values also get a point shape each),
+`legend_title`, `labels`, `edge_labels` (the column names), `label_size`
+and `edge_label_size` (row and column text in mm; defaults 8 and 7 pt).
+
 ## Conditions
 
 `hypergraphs_bad_input` for an invalid selector or layout, a
@@ -360,7 +438,9 @@ or `transitions` table without `from`, `to` and one non-negative numeric
 weight, a `direction` without `node_sizes`, `titles` that are not
 numeric, `notes` without titles, an invalid `unit`, `title_prefix` or
 `title_gap`, `pieces = "row"` with a layout other than `"bipartite"`, or
-node overlays or titles combined with `dismantled = TRUE`.
+node overlays or titles combined with `dismantled = TRUE`; with
+`type = "incidence"`, any argument of the hull plot other than those
+listed in Details, and `sort_by` with `type = "hulls"`.
 
 ## References
 
@@ -373,6 +453,11 @@ Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph drawing by
 force-directed placement. *Software: Practice and Experience*, 21(11),
 1129-1164.
 [doi:10.1002/spe.4380211102](https://doi.org/10.1002/spe.4380211102)
+
+Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H.
+(2014). UpSet: Visualization of intersecting sets. *IEEE Transactions on
+Visualization and Computer Graphics*, 20(12), 1983-1992.
+[doi:10.1109/TVCG.2014.2346248](https://doi.org/10.1109/TVCG.2014.2346248)
 
 ## Examples
 
@@ -389,6 +474,18 @@ plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 plot(hg, center = c("b", "c"))
 
 plot(hg, dismantled = TRUE)
+
+plot(hg, type = "incidence", edge_labels = TRUE)
+
+
+# tribunals in claims against Argentina, one column per tribunal by date
+tribunals <- group_hypergraph(icsid_tribunals, node = "arbitrator",
+                              hyperedge = "case")
+argentina <- hg_subset(tribunals,
+                       where = list(respondent = "Argentine Republic"),
+                       component = "largest")
+plot(argentina, type = "incidence", color_by = "economic_sector",
+     sort_by = "constituted")
 
 
 # disconnected pieces are laid out separately and packed
@@ -420,7 +517,7 @@ members <- data.frame(
   state = c("Wrong", "Hint", "Retry", "Wrong", "Question", "Retry"),
   trials = c(120, 120, 120, 80, 80, 80)
 )
-trial_groups <- group_hypergraph(members, actor = "state", group = "group")
+trial_groups <- group_hypergraph(members, node = "state", hyperedge = "group")
 event_trials <- data.frame(state = c("Wrong", "Hint", "Question", "Retry"),
                            trials = c(200, 120, 80, 190))
 plot(trial_groups, node_sizes = event_trials)

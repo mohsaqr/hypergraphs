@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,13 +15,19 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -82,10 +88,24 @@
 
         <dt>
 
+          <code><a href="hg_get.hg_classification.html">hg_get(<i>&lt;hg_classification&gt;</i>)</a></code> <code><a href="hg_get.hg_classification.html">print(<i>&lt;hg_classification&gt;</i>)</a></code> <code><a href="hg_get.hg_classification.html">summary(<i>&lt;hg_classification&gt;</i>)</a></code> <code><a href="hg_get.hg_classification.html">plot(<i>&lt;hg_classification&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Read a classification result</dd>
+
+        <dt>
+
           <code><a href="hg_get.hg_communities.html">print(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_get.hg_communities.html">hg_get(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_get.hg_communities.html">plot(<i>&lt;hg_communities&gt;</i>)</a></code>
 
         </dt>
         <dd>Tables of a hypergraph community ensemble</dd>
+
+        <dt>
+
+          <code><a href="hg_get.hg_hypergat.html">hg_get(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">print(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">summary(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">plot(<i>&lt;hg_hypergat&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Read a fitted HyperGAT classifier</dd>
 
         <dt>
 
@@ -509,7 +529,7 @@
           <code><a href="group_hypergraph.html">group_hypergraph()</a></code>
 
         </dt>
-        <dd>Hypergraph from co-occurrence data or an edge list</dd>
+        <dd>Hypergraph from membership data or an edge list</dd>
 
         <dt>
 
@@ -555,31 +575,10 @@
 
         <dt>
 
-          <code><a href="hg_sample_gnp.html">hg_sample_gnp()</a></code>
+          <code><a href="random_hypergraph.html">random_hypergraph()</a></code>
 
         </dt>
-        <dd>Sample Bernoulli-Incidence Random Hypergraphs</dd>
-
-        <dt>
-
-          <code><a href="hg_sample_sbm.html">hg_sample_sbm()</a></code>
-
-        </dt>
-        <dd>Sample Stochastic-Block-Model Hypergraphs</dd>
-
-        <dt>
-
-          <code><a href="hg_sample_uniform.html">hg_sample_uniform()</a></code> <code><a href="hg_sample_uniform.html">hg_sample_regular()</a></code>
-
-        </dt>
-        <dd>Sample Uniform or Regular Random Hypergraphs</dd>
-
-        <dt>
-
-          <code><a href="hg_write_hif.html">hg_write_hif()</a></code> <code><a href="hg_write_hif.html">hg_read_hif()</a></code>
-
-        </dt>
-        <dd>Read and write the Hypergraph Interchange Format (HIF)</dd>
+        <dd>Random hypergraphs</dd>
       </dl></div><div class="section level2">
 
       <h3 id="measures-and-centralities">Measures and centralities<a class="anchor" aria-label="anchor" href="#measures-and-centralities"></a></h3>
@@ -722,17 +721,17 @@
 
       <dl><dt>
 
-          <code><a href="hg_clique_expansion.html">hg_clique_expansion()</a></code>
+          <code><a href="pairwise_network.html">pairwise_network()</a></code>
 
         </dt>
-        <dd>Clique expansion of a hypergraph</dd>
+        <dd>The pairwise network of a hypergraph</dd>
 
         <dt>
 
-          <code><a href="hg_project.html">hg_project()</a></code>
+          <code><a href="plot.net_hg_pairwise.html">plot(<i>&lt;net_hg_pairwise&gt;</i>)</a></code>
 
         </dt>
-        <dd>Project a hypergraph onto a weighted graph</dd>
+        <dd>Plot the pairwise network of a hypergraph</dd>
 
         <dt>
 
@@ -814,6 +813,13 @@
 
         </dt>
         <dd>HyperGAT document classifier</dd>
+
+        <dt>
+
+          <code><a href="predict.hg_hypergat.html">predict(<i>&lt;hg_hypergat&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Predict documents with a fitted HyperGAT classifier</dd>
 
         <dt>
 
@@ -910,7 +916,7 @@
 
         <dt>
 
-          <code><a href="hg_network.html">hg_network()</a></code>
+          <code><a href="topic_network.html">topic_network()</a></code>
 
         </dt>
         <dd>Network of topics</dd>
@@ -987,6 +993,13 @@
 
         <dt>
 
+          <code><a href="hg_dictionary.html">hg_dictionary()</a></code>
+
+        </dt>
+        <dd>Label nodes with a dictionary of terms</dd>
+
+        <dt>
+
           <code><a href="hg_classify.html">hg_classify()</a></code>
 
         </dt>
@@ -1010,10 +1023,24 @@
 
         <dt>
 
+          <code><a href="hg_get.hg_classification.html">hg_get(<i>&lt;hg_classification&gt;</i>)</a></code> <code><a href="hg_get.hg_classification.html">print(<i>&lt;hg_classification&gt;</i>)</a></code> <code><a href="hg_get.hg_classification.html">summary(<i>&lt;hg_classification&gt;</i>)</a></code> <code><a href="hg_get.hg_classification.html">plot(<i>&lt;hg_classification&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Read a classification result</dd>
+
+        <dt>
+
           <code><a href="hg_get.hg_communities.html">print(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_get.hg_communities.html">hg_get(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_get.hg_communities.html">plot(<i>&lt;hg_communities&gt;</i>)</a></code>
 
         </dt>
         <dd>Tables of a hypergraph community ensemble</dd>
+
+        <dt>
+
+          <code><a href="hg_get.hg_hypergat.html">hg_get(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">print(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">summary(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">plot(<i>&lt;hg_hypergat&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Read a fitted HyperGAT classifier</dd>
 
         <dt>
 
@@ -1199,6 +1226,13 @@
 
         <dt>
 
+          <code><a href="plot.net_hg_pairwise.html">plot(<i>&lt;net_hg_pairwise&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot the pairwise network of a hypergraph</dd>
+
+        <dt>
+
           <code><a href="plot.net_hg_transduction.html">plot(<i>&lt;net_hg_transduction&gt;</i>)</a></code>
 
         </dt>
@@ -1230,7 +1264,7 @@
           <code><a href="plot.net_temporal_hypergraph.html">plot(<i>&lt;net_temporal_hypergraph&gt;</i>)</a></code>
 
         </dt>
-        <dd>Plot a temporal-hypergraph snapshot through cograph</dd>
+        <dd>Plot a temporal-hypergraph snapshot</dd>
       </dl></div><div class="section level2">
       <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
 
@@ -1264,10 +1298,10 @@
 
         <dt>
 
-          <code><a href="debug_events.html">debug_events</a></code>
+          <code><a href="tutoring_events.html">tutoring_events</a></code>
 
         </dt>
-        <dd>Sessions with a coding assistant</dd>
+        <dd>Problem steps of learners with a tutor</dd>
 
         <dt>
 
@@ -1310,6 +1344,13 @@
 
         </dt>
         <dd>Planted communities of the ring sequences</dd>
+
+        <dt>
+
+          <code><a href="forum_posts.html">forum_posts</a></code>
+
+        </dt>
+        <dd>Simulated forum posts whose topics follow second-order memory</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

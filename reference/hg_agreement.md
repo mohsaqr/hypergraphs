@@ -25,7 +25,7 @@ hg_agreement(
   y,
   what = c("summary", "table", "mapping"),
   method = "ari",
-  node = "node",
+  node = NULL,
   label = NULL
 )
 ```
@@ -34,9 +34,23 @@ hg_agreement(
 
 - x, y:
 
-  Tidy labelings: data.frames with a `node` column and a `predicted`,
-  `cluster` or `label` column (first match in that order wins). Nodes
-  are matched by name; nodes present in only one labeling are dropped.
+  Tidy labelings: data.frames with a `node` (or, in the text family's
+  document tables, `doc`) column and a `predicted`, `cluster`,
+  `community`, `topic`, `block` or `label` column (first match in that
+  order wins), one row per node. Nodes are matched by name; nodes
+  present in only one labeling are dropped. A fitted model is read
+  through its one-label-per-node table: a fit of
+  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  on a hypergraph through its medoid partition
+  (`hg_get(fit, what = "medoid")`), a
+  [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+  fit through each node's strongest community (`what = "nodes"`), a
+  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  model through each document's dominant topic (`what = "documents"`),
+  and a
+  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  through its document table, so a corpus column is scored by naming it
+  in `label`.
 
 - what:
 
@@ -55,10 +69,11 @@ hg_agreement(
 
   Column names, one name for both labelings or two names for `x` and `y`
   in turn, that override the defaults above –
-  `hg_agreement(predictions, corpus, node = c("node", "doc"), label = c("predicted", "year"))`
-  scores a classifier against a column of the corpus table without
-  reshaping it. `label = NULL` (default) keeps the `predicted` /
-  `cluster` / `label` lookup.
+  `hg_agreement(predictions, corpus, label = c("predicted", "year"))`
+  scores a classifier against a column of the corpus. `node = NULL`
+  (default) uses `node`, else `doc`; `label = NULL` (default) keeps the
+  `predicted` / `cluster` / `community` / `topic` / `block` / `label`
+  lookup.
 
 ## Value
 
@@ -105,10 +120,9 @@ hg_agreement(fit, topics, what = "mapping")
 #>     label_x n   label_y overlap share
 #> 1 Cluster 1 2 Cluster 1       2     1
 #> 2 Cluster 2 2 Cluster 2       2     1
-# a labeling read from any table: name its node and label columns
+# a labeling read from any table: name its label column
 known <- data.frame(doc = c("cooking_1", "space_2"), theme = c("cooking", "space"))
-hg_agreement(topics, known, node = c("node", "doc"), label = c("cluster", "theme"),
-             what = "table")
+hg_agreement(topics, known, label = c("cluster", "theme"), what = "table")
 #>     label_x label_y n
 #> 1 Cluster 1 cooking 1
 #> 2 Cluster 2   space 1

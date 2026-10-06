@@ -114,7 +114,7 @@ pairwise graph \\W\\ where \\W\_{ij} = \|\\e : i, j \in e\\\|\\ and
 returns the leading eigenvector of \\W\\. Equivalent to running
 [`igraph::eigen_centrality()`](https://r.igraph.org/reference/eigen_centrality.html)
 on
-[`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md)
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
 output.
 
 **Z-eigenvector centrality (ZEC)**: solves the linear eigen-equation on
@@ -206,7 +206,7 @@ interactions: Structure and dynamics. *Physics Reports*, 874, 1-92.
 ## See also
 
 [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md),
-[`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md),
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md),
 [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md).
 
 ## Examples

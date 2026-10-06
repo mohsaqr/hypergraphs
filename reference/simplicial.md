@@ -37,7 +37,14 @@ simplicial(
 )
 
 # S3 method for class 'hypergraphs_simplicial'
-plot(x, y, dismantled = FALSE, top = NULL, ...)
+plot(
+  x,
+  y,
+  dismantled = FALSE,
+  top = NULL,
+  type = c("simplices", "summary"),
+  ...
+)
 
 # S3 method for class 'hypergraphs_simplicial'
 hg_get(x, ...)
@@ -67,8 +74,10 @@ print(x, n = 10L, ...)
 
 - type:
 
-  `"clique"` (default), `"window"`, `"pathway"`, or `"vr"` (alias
-  `"rips"`).
+  For [`plot()`](https://rdrr.io/r/graphics/plot.default.html):
+  `"simplices"` (default) draws the maximal simplices; `"summary"` draws
+  the face counts, the Betti numbers and the simplicial degree.
+  `dismantled` and `top` apply to `"simplices"` only.
 
 - threshold:
 
@@ -191,7 +200,10 @@ their nodes
 ([`cograph::plot_simplicial()`](https://sonsoles.me/cograph/reference/plot_simplicial.html);
 its arguments pass through `...`): the most significant first for a
 validated window complex, the most frequent first for a window complex,
-the closest first for a Vietoris-Rips complex.
+the closest first for a Vietoris-Rips complex. With `type = "summary"`,
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
+summary of the complex instead: the face counts by dimension, the Betti
+numbers, the simplicial degree of each node and its degree by dimension.
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) returns the
 figure. For the [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
 method, `x` is the complex.

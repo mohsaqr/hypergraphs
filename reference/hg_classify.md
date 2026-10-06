@@ -19,7 +19,9 @@ hg_classify(
   xi = 0.99,
   type = c("zhou", "random_walk"),
   normalization = c("none", "class_mass"),
-  edge_weights = NULL
+  edge_weights = NULL,
+  holdout = NULL,
+  seed = 1L
 )
 ```
 
@@ -34,9 +36,12 @@ hg_classify(
 - labels:
 
   The known labels: a named character vector (names are node identifiers
-  – documents under `nodes = "doc"` – values their class labels), or a
-  tidy data.frame with a `node` column and a `label`, `cluster` or
-  `predicted` column.
+  – documents under `nodes = "doc"` – values their class labels), a tidy
+  data.frame with a `node` column and a `label`, `cluster` or
+  `predicted` column, or the name of a column of the hypergraph's
+  document table, which a
+  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  fills with the input's other columns (`labels = "period"`).
 
 - xi:
 
@@ -57,10 +62,28 @@ hg_classify(
   seeds are class-imbalanced – the raw rule can collapse every
   prediction onto the majority class.
 
+- holdout:
+
+  `NULL` (default) uses every given label and returns the predictions. A
+  share in `(0, 1)` hides that share of the labels, drawn within each
+  class, predicts them from the rest, and returns an
+  [hg_classification](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  that prints the held-out accuracy and balanced accuracy.
+
+- seed:
+
+  Seed of the held-out draw (default `1`); the caller's random-number
+  stream is restored.
+
 ## Value
 
 A base `data.frame`, one row per node, with columns `node`, `label` (the
-given label or `NA`), `predicted`, `score`, and `margin`.
+given label or `NA`), `predicted`, `score`, and `margin`. With
+`holdout`, an `hg_classification`: the same table with `label` holding
+the true label, `split` (`"train"` or `"test"`) and `correct` for the
+held-out documents; read its evaluation with
+[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+(`what = "accuracy"`, `"classes"`, `"confusion"`).
 
 ## Details
 

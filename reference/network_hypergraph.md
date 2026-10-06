@@ -168,17 +168,17 @@ hg <- network_hypergraph(adj, p = 1, max_size = 3L)
 print(hg)
 #> Hypergraph: 8 nodes, 51 hyperedges (sizes 2: 23, 3: 28)
 #> Source: network cliques (p = 1.00, include_pairwise = TRUE, max_size = 3)
-#>  hyperedge size members weight
-#>         h1    2    C, E     NA
-#>         h2    2    A, C     NA
-#>         h3    2    A, D     NA
-#>         h4    2    D, E     NA
-#>         h5    2    C, D     NA
-#>         h6    2    A, B     NA
-#>         h7    2    B, E     NA
-#>         h8    2    B, C     NA
-#>         h9    2    B, H     NA
-#>        h10    2    D, H     NA
+#>  hyperedge size members
+#>         h1    2    C, E
+#>         h2    2    A, C
+#>         h3    2    A, D
+#>         h4    2    D, E
+#>         h5    2    C, D
+#>         h6    2    A, B
+#>         h7    2    B, E
+#>         h8    2    B, C
+#>         h9    2    B, H
+#>        h10    2    D, H
 #> ... 41 more rows
 summary(hg)
 #> Hypergraph summary

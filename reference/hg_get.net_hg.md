@@ -12,8 +12,7 @@ constructors, whose hyperedges are unweighted).
 # S3 method for class 'net_hg'
 hg_get(
   x,
-  what = c("edges", "nodes", "memberships", "sets", "state_counts", "node_data",
-    "edge_data", "incidence_data"),
+  what = c("edges", "nodes", "memberships", "sets", "state_counts", "edge_data"),
   ...,
   sort_by = NULL,
   top = NULL
@@ -33,10 +32,7 @@ hg_get(
   of the incidence matrix. A hypergraph of clustered sequences
   ([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
   on a clustering of sequences) also has `"sets"` and `"state_counts"`.
-  A hypergraph read with
-  [`hg_read_hif()`](https://mohsaqr.github.io/hypergraphs/reference/hg_write_hif.md)
-  also has `"node_data"` and `"incidence_data"`; `"edge_data"` returns
-  the per-hyperedge attribute table any constructor or HIF file
+  `"edge_data"` returns the per-hyperedge attribute table a constructor
   attached.
 
 - ...:
@@ -59,26 +55,26 @@ hg_get(
 
 A data.frame. For `what = "edges"`, one row per hyperedge with columns
 `hyperedge` (character id), `size` (integer), `members` (the member
-nodes, comma separated), and `weight` (numeric window count, or `NA`).
-For `what = "nodes"`, one row per node with columns `node` and `degree`
-(the number of hyperedges it belongs to), plus `block` for a hypergraph
-with planted blocks
-([`hg_sample_sbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_sbm.md));
-`sort_by = "degree"` orders it. For `what = "memberships"`, one row per
-non-zero incidence cell with columns `node`, `hyperedge` and `weight`
-(the incidence value: 1 for a binary hypergraph, the summed weight for a
-weighted one), in hyperedge order; `sort_by = "weight"` orders it. For
-`what = "sets"`, one row per hyperedge with `group`, `hyperedge`, `set`
-(the states joined by `" + "`), `size`, `count` (sequences of the group
-with exactly that set) and `share` (`count` over the group's sequences),
-in group order and decreasing count. For `what = "state_counts"`, one
-row per group and state with `group`, `node`, `count` (sequences of the
-group containing the state) and `share`. For `what = "node_data"`, one
-row per node with `node` and the node weight and attributes an HIF file
-carried; for `what = "incidence_data"`, one row per incidence with
-`node`, `edge` and its attributes; for `what = "edge_data"`, one row per
-hyperedge with `edge` and its attributes. Asking for any of these tables
-of a hypergraph without it raises `hypergraphs_bad_input`.
+nodes, comma separated), and, for a hypergraph of windows
+([`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)),
+`weight` (the number of windows with that member set). `sort_by` is
+`"size"`, or `"weight"` where it exists. For `what = "nodes"`, one row
+per node with columns `node` and `degree` (the number of hyperedges it
+belongs to), plus `block` for a hypergraph with planted blocks
+([`random_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/random_hypergraph.md)
+with `type = "sbm"`); `sort_by = "degree"` orders it. For
+`what = "memberships"`, one row per non-zero incidence cell with columns
+`node`, `hyperedge` and `weight` (the incidence value: 1 for a binary
+hypergraph, the summed weight for a weighted one), in hyperedge order;
+`sort_by = "weight"` orders it. For `what = "sets"`, one row per
+hyperedge with `group`, `hyperedge`, `set` (the states joined by
+`" + "`), `size`, `count` (sequences of the group with exactly that set)
+and `share` (`count` over the group's sequences), in group order and
+decreasing count. For `what = "state_counts"`, one row per group and
+state with `group`, `node`, `count` (sequences of the group containing
+the state) and `share`. For `what = "edge_data"`, one row per hyperedge
+with `edge` and its attributes; asking for it of a hypergraph without an
+attribute table raises `hypergraphs_bad_input`.
 
 ## Examples
 

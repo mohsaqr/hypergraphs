@@ -11,7 +11,7 @@ three constructions:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,13 +19,19 @@ three constructions:"></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -72,7 +78,8 @@ three constructions:</p>
 <span>  k <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  embeddings <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  model <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sparse <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  sparse <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  separator <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -191,6 +198,18 @@ of thousands of documents; <code><a href="hg_cluster.html">hg_cluster()</a></cod
 agree with the dense engines (tested), while tensor centralities and
 the null test currently require the dense representation.</p></dd>
 
+
+<dt id="arg-separator">separator<a class="anchor" aria-label="anchor" href="#arg-separator"></a></dt>
+<dd><p><code>NULL</code> (default) splits the text into words. A string
+such as <code>";"</code> reads the column as a delimited field of terms instead,
+such as the author keywords of a bibliographic export: each term is the
+whole phrase between separators ("higher education"), trimmed, and
+becomes one hyperedge, so a paper is bound to the keywords its authors
+gave it. This is the keyword incidence of co-word analysis (Callon et
+al. 1983) read as a hypergraph. <code>stop_words</code> then names whole terms to
+drop and <code>min_count</code> the fewest occurrences a term needs. Bag
+construction only.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -261,7 +280,11 @@ including bag-only arguments passed to other constructions),
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Ding, K., Wang, J., Li, J., Li, D., &amp; Liu, H. (2020). Be more with less:
+    <p>Callon, M., Courtial, J.-P., Turner, W. A., &amp; Bauin, S. (1983). From
+translations to problematic networks: An introduction to co-word
+analysis. <em>Social Science Information</em>, 22(2), 191-235.
+<a href="https://doi.org/10.1177/053901883022002003" class="external-link">doi:10.1177/053901883022002003</a></p>
+<p>Ding, K., Wang, J., Li, J., Li, D., &amp; Liu, H. (2020). Be more with less:
 Hypergraph attention networks for inductive text classification.
 <em>EMNLP 2020</em>. <a href="https://doi.org/10.18653/v1/2020.emnlp-main.399" class="external-link">doi:10.18653/v1/2020.emnlp-main.399</a></p>
 <p>Hayashi, K., Aksoy, S. G., Park, C. H., &amp; Park, H. (2020). Hypergraph

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
@@ -36,7 +37,12 @@
 <li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -111,8 +117,8 @@ require.</p>
 <span>                                stop_words <span class="op">=</span> <span class="va">stops</span>, min_count <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>                                min_chars <span class="op">=</span> <span class="fl">2</span>, sparse <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">abstracts_hg</span></span>
-<span><span class="co">#&gt; Text hypergraph: 1000 documents, 3207 words (documents as nodes, weight = n)</span></span>
-<span><span class="co">#&gt; Hyperedges: 3207 (words); sizes 1-688, median 10</span></span>
+<span><span class="co">#&gt; Text hypergraph: 1000 documents, 3206 words (documents as nodes, weight = n)</span></span>
+<span><span class="co">#&gt; Hyperedges: 3206 (words); sizes 1-688, median 10</span></span>
 <span><span class="co">#&gt;                 doc       word count weight</span></span>
 <span><span class="co">#&gt;  2-s2.0-85082857029   addition     1      1</span></span>
 <span><span class="co">#&gt;  2-s2.0-85082857029   although     1      1</span></span>
@@ -124,8 +130,8 @@ require.</p>
 <span><span class="co">#&gt;  2-s2.0-85082857029    centers     1      1</span></span>
 <span><span class="co">#&gt;  2-s2.0-85082857029  challenge     1      1</span></span>
 <span><span class="co">#&gt;  2-s2.0-85082857029    changes     1      1</span></span>
-<span><span class="co">#&gt; ... 73212 more rows</span></span></code></pre></div>
-<p>The hypergraph has 1000 abstracts and 3,207 words.</p>
+<span><span class="co">#&gt; ... 73167 more rows</span></span></code></pre></div>
+<p>The hypergraph has 1000 abstracts and 3,206 words.</p>
 </div>
 <div class="section level2">
 <h2 id="how-many-topics">How many topics<a class="anchor" aria-label="anchor" href="#how-many-topics"></a>
@@ -156,19 +162,19 @@ probable words of the topics.</p>
 <span>                                nstart <span class="op">=</span> <span class="fl">2</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span>, n_cores <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">topic_search</span></span>
 <span><span class="co">#&gt;    k coherence exclusivity divergence agreement converged frontier</span></span>
-<span><span class="co">#&gt; 1  4 -67.22319    8.498221   273297.4 0.6321988      TRUE    FALSE</span></span>
-<span><span class="co">#&gt; 2  8 -66.85606    8.926085   258437.1 0.5453186      TRUE    FALSE</span></span>
-<span><span class="co">#&gt; 3 12 -65.14011    8.973373   249732.6 0.4432424      TRUE     TRUE</span></span>
-<span><span class="co">#&gt; 4 16 -73.83179    9.169332   242523.0 0.4001491      TRUE     TRUE</span></span>
-<span><span class="co">#&gt; 5 20 -78.43863    9.249530   236057.8 0.3952962      TRUE     TRUE</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  4 -57.04019    8.258057   273341.7 0.6460459      TRUE     TRUE</span></span>
+<span><span class="co">#&gt; 2  8 -67.18732    8.919377   258924.3 0.5405804      TRUE    FALSE</span></span>
+<span><span class="co">#&gt; 3 12 -63.77484    9.044799   249191.7 0.4270125      TRUE     TRUE</span></span>
+<span><span class="co">#&gt; 4 16 -75.73072    9.230223   241968.0 0.4122055      TRUE     TRUE</span></span>
+<span><span class="co">#&gt; 5 20 -77.38563    9.273786   235778.3 0.4196326      TRUE     TRUE</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">topic_search</span><span class="op">)</span></span></code></pre></div>
 <p><img src="topic-mixtures_files/figure-html/topic-search-plot-1.png" class="r-plt" alt="" width="100%"></p>
-<p>Mean coherence falls from -67.2 with 4 topics to -73.8 with 16 and
--78.4 with 20, and mean exclusivity rises from 8.5 to 9.17 and 9.25. The
-models with 12, 16 and 20 topics lie on the frontier. Sixteen topics is
-the number of the published structural topic model of this literature
-(Saqr et al. 2023), and the model below uses it.</p>
+<p>Mean coherence falls from -57 with 4 topics to -75.7 with 16 and
+-77.4 with 20, and mean exclusivity rises from 8.26 to 9.23 and 9.27.
+The models with 4, 12, 16 and 20 topics lie on the frontier. Sixteen
+topics is the number of the published structural topic model of this
+literature (Saqr et al. 2023), and the model below uses it.</p>
 </div>
 <div class="section level2">
 <h2 id="a-mixed-membership-model-of-16-topics">A mixed-membership model of 16 topics<a class="anchor" aria-label="anchor" href="#a-mixed-membership-model-of-16-topics"></a>
@@ -195,37 +201,37 @@ found again from every start.</p>
 <code class="sourceCode R"><span><span class="va">topic_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_topics.html">hg_topics</a></span><span class="op">(</span><span class="va">abstracts_hg</span>, k <span class="op">=</span> <span class="fl">16</span>, nstart <span class="op">=</span> <span class="fl">5</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         n_cores <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">topic_model</span></span>
-<span><span class="co">#&gt; Topic model (KL factorization): 16 topics, 1000 documents, 3207 words; best of 5 starts (divergence 241720, converged)</span></span>
+<span><span class="co">#&gt; Topic model (KL factorization): 16 topics, 1000 documents, 3206 words; best of 5 starts (divergence 241567, converged)</span></span>
 <span><span class="co">#&gt;     topic prevalence documents agreement</span></span>
-<span><span class="co">#&gt;   Topic 1 0.08752438  87.52438 0.6941500</span></span>
-<span><span class="co">#&gt;   Topic 2 0.08720875  87.20875 0.4538721</span></span>
-<span><span class="co">#&gt;   Topic 3 0.08302419  83.02419 0.6403082</span></span>
-<span><span class="co">#&gt;   Topic 4 0.07901333  79.01333 0.4395457</span></span>
-<span><span class="co">#&gt;   Topic 5 0.07558374  75.58374 0.5107730</span></span>
-<span><span class="co">#&gt;   Topic 6 0.07008201  70.08201 0.4917472</span></span>
-<span><span class="co">#&gt;   Topic 7 0.06634116  66.34116 0.6253662</span></span>
-<span><span class="co">#&gt;   Topic 8 0.05904374  59.04374 0.3730107</span></span>
-<span><span class="co">#&gt;   Topic 9 0.05842773  58.42773 0.3084835</span></span>
-<span><span class="co">#&gt;  Topic 10 0.05834905  58.34905 0.3185530</span></span>
-<span><span class="co">#&gt;                                              top_words</span></span>
-<span><span class="co">#&gt;         teachers, online, teaching, learning, students</span></span>
-<span><span class="co">#&gt;              education, crisis, world, article, global</span></span>
-<span><span class="co">#&gt;          online, learning, students, education, higher</span></span>
-<span><span class="co">#&gt;  education, learning, educational, digital, challenges</span></span>
-<span><span class="co">#&gt;           students, teaching, learning, online, remote</span></span>
-<span><span class="co">#&gt;          students, teaching, learning, virtual, course</span></span>
-<span><span class="co">#&gt;          school, children, schools, parents, education</span></span>
-<span><span class="co">#&gt;          education, distance, research, learning, data</span></span>
-<span><span class="co">#&gt;            social, community, education, health, media</span></span>
-<span><span class="co">#&gt;          education, experiences, policy, higher, paper</span></span>
+<span><span class="co">#&gt;   Topic 1 0.08928459  89.28459 0.4701659</span></span>
+<span><span class="co">#&gt;   Topic 2 0.08170103  81.70103 0.5401220</span></span>
+<span><span class="co">#&gt;   Topic 3 0.07823106  78.23106 0.3416270</span></span>
+<span><span class="co">#&gt;   Topic 4 0.07808382  78.08382 0.4845528</span></span>
+<span><span class="co">#&gt;   Topic 5 0.06831896  68.31896 0.3269328</span></span>
+<span><span class="co">#&gt;   Topic 6 0.06743098  67.43098 0.4000271</span></span>
+<span><span class="co">#&gt;   Topic 7 0.06704091  67.04091 0.5148371</span></span>
+<span><span class="co">#&gt;   Topic 8 0.06659078  66.59078 0.5168540</span></span>
+<span><span class="co">#&gt;   Topic 9 0.06592187  65.92187 0.7267678</span></span>
+<span><span class="co">#&gt;  Topic 10 0.06571205  65.71205 0.3998778</span></span>
+<span><span class="co">#&gt;                                            top_words</span></span>
+<span><span class="co">#&gt;          teaching, online, students, remote, faculty</span></span>
+<span><span class="co">#&gt;       teachers, teaching, online, learning, students</span></span>
+<span><span class="co">#&gt;      education, online, higher, challenges, learning</span></span>
+<span><span class="co">#&gt;      education, crisis, social, article, educational</span></span>
+<span><span class="co">#&gt;   digital, learning, teaching, research, educational</span></span>
+<span><span class="co">#&gt;  students, education, process, educational, research</span></span>
+<span><span class="co">#&gt;          learning, students, online, student, course</span></span>
+<span><span class="co">#&gt;      learning, online, education, students, distance</span></span>
+<span><span class="co">#&gt;       school, children, learning, education, parents</span></span>
+<span><span class="co">#&gt;           education, health, social, school, article</span></span>
 <span><span class="co">#&gt; ... 6 more rows</span></span></code></pre></div>
 <p>The prevalence of a topic is its mean share over the abstracts, and
 its documents column is the sum of those shares, the expected number of
-abstracts it accounts for. The largest topic, led by teachers, online,
-teaching, learning, students, accounts for 8.8% of the corpus, and the
-smallest, led by learning, use, based, technology, medical, for 3.8%.
-The mean agreement of the topics across the starts is 0.44. Topics with
-a low agreement are one of several divisions of their part of the
+abstracts it accounts for. The largest topic, led by teaching, online,
+students, remote, faculty, accounts for 8.9% of the corpus, and the
+smallest, led by medical, education, students, dental, clinical, for
+3.5%. The mean agreement of the topics across the starts is 0.43. Topics
+with a low agreement are one of several divisions of their part of the
 vocabulary that the data support about equally well.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">topic_model</span><span class="op">)</span></span></code></pre></div>
@@ -239,25 +245,23 @@ vocabulary that the data support about equally well.</p>
 <code class="sourceCode R"><span><span class="va">main_topics</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">topic_model</span>, what <span class="op">=</span> <span class="st">"documents"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">main_topics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                 node    topic     share</span></span>
-<span><span class="co">#&gt; 1 2-s2.0-85082857029 Topic 14 0.4474206</span></span>
-<span><span class="co">#&gt; 2 2-s2.0-85083678184  Topic 2 0.2732632</span></span>
-<span><span class="co">#&gt; 3 2-s2.0-85085340620  Topic 2 0.3876842</span></span>
-<span><span class="co">#&gt; 4 2-s2.0-85085481629  Topic 2 0.4634364</span></span>
-<span><span class="co">#&gt; 5 2-s2.0-85085656133  Topic 7 0.3388212</span></span>
-<span><span class="co">#&gt; 6 2-s2.0-85085770267  Topic 9 0.8825215</span></span></code></pre></div>
-<p>In the median abstract the main topic has a share of 0.53, and half
-the abstracts lie between 0.4 and 0.71. 9.2% of the abstracts have a
-main topic with a share of 0.9 or more, and 44.3% have no topic with a
+<span><span class="co">#&gt; 1 2-s2.0-85082857029 Topic 16 0.6736757</span></span>
+<span><span class="co">#&gt; 2 2-s2.0-85083678184  Topic 4 0.3823343</span></span>
+<span><span class="co">#&gt; 3 2-s2.0-85085340620 Topic 13 0.2170913</span></span>
+<span><span class="co">#&gt; 4 2-s2.0-85085481629  Topic 4 0.5309569</span></span>
+<span><span class="co">#&gt; 5 2-s2.0-85085656133 Topic 15 0.5887669</span></span>
+<span><span class="co">#&gt; 6 2-s2.0-85085770267  Topic 5 0.5625973</span></span></code></pre></div>
+<p>In the median abstract the main topic has a share of 0.55, and half
+the abstracts lie between 0.4 and 0.73. 11.7% of the abstracts have a
+main topic with a share of 0.9 or more, and 42.5% have no topic with a
 share above one half. Most abstracts combine topics.</p>
 <p>The shares of a single abstract show the mixture.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shares</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">topic_model</span>, what <span class="op">=</span> <span class="st">"shares"</span><span class="op">)</span></span>
 <span><span class="va">example_shares</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">shares</span>, <span class="va">node</span> <span class="op">==</span> <span class="st">"2-s2.0-85101300775"</span> <span class="op">&amp;</span> <span class="va">share</span> <span class="op">&gt;=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="va">example_shares</span></span>
-<span><span class="co">#&gt;                    node    topic     share</span></span>
-<span><span class="co">#&gt; 3926 2-s2.0-85101300775  Topic 6 0.4169550</span></span>
-<span><span class="co">#&gt; 3934 2-s2.0-85101300775 Topic 14 0.4318787</span></span>
-<span><span class="co">#&gt; 3936 2-s2.0-85101300775 Topic 16 0.1289428</span></span></code></pre></div>
+<span><span class="co">#&gt;                    node    topic share</span></span>
+<span><span class="co">#&gt; 3933 2-s2.0-85101300775 Topic 13     1</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">example_abstract</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">abstracts</span>, <span class="va">doc</span> <span class="op">==</span> <span class="st">"2-s2.0-85101300775"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">example_abstract</span>, <span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strwrap.html" class="external-link">strwrap</a></span><span class="op">(</span><span class="va">abstract</span>, <span class="fl">78</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -267,10 +271,10 @@ share above one half. Most abstracts combine topics.</p>
 <span><span class="co">#&gt; and satisfaction demonstrated success of these new curricular elements, many</span></span>
 <span><span class="co">#&gt; of which will be incorporated for future students.</span></span></code></pre></div>
 <p>The abstract describes near-peer teaching in a medical course moved
-online. It takes a share of 0.43 of the topic led by medical, students,
-clinical, training, virtual and 0.42 of the topic led by students,
-teaching, learning, virtual, course. A partition would assign it to one
-of the two and lose the other half of what it is about.</p>
+online. It takes a share of 1 of the topic led by students, medical,
+clinical, learning, virtual and NA of the topic led by . A partition
+would assign it to one of the two and lose the other half of what it is
+about.</p>
 </div>
 <div class="section level2">
 <h2 id="topic-quality">Topic quality<a class="anchor" aria-label="anchor" href="#topic-quality"></a>
@@ -282,22 +286,22 @@ abstracts.</p>
 <code class="sourceCode R"><span><span class="va">model_quality</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_topic_quality.html">hg_topic_quality</a></span><span class="op">(</span><span class="va">abstracts_hg</span>, topics <span class="op">=</span> <span class="va">topic_model</span><span class="op">)</span></span>
 <span><span class="va">model_quality</span></span>
 <span><span class="co">#&gt;       topic     size n_words  coherence exclusivity coherence_type</span></span>
-<span><span class="co">#&gt; 1   Topic 1 87.52438      10  -66.13544    9.609738          umass</span></span>
-<span><span class="co">#&gt; 2   Topic 2 87.20875      10  -71.98103    9.092124          umass</span></span>
-<span><span class="co">#&gt; 3   Topic 3 83.02419      10  -55.13079    9.600369          umass</span></span>
-<span><span class="co">#&gt; 4   Topic 4 79.01333      10  -83.30129    9.389781          umass</span></span>
-<span><span class="co">#&gt; 5   Topic 5 75.58374      10  -72.49343    9.260411          umass</span></span>
-<span><span class="co">#&gt; 6   Topic 6 70.08201      10  -70.51942    9.192791          umass</span></span>
-<span><span class="co">#&gt; 7   Topic 7 66.34116      10  -72.73872    9.344828          umass</span></span>
-<span><span class="co">#&gt; 8   Topic 8 59.04374      10  -49.33452    9.146173          umass</span></span>
-<span><span class="co">#&gt; 9   Topic 9 58.42773      10 -107.62267    9.432636          umass</span></span>
-<span><span class="co">#&gt; 10 Topic 10 58.34905      10  -90.72152    9.321368          umass</span></span>
-<span><span class="co">#&gt; 11 Topic 11 54.74724      10 -102.49338    9.475982          umass</span></span>
-<span><span class="co">#&gt; 12 Topic 12 47.78552      10  -58.32491    8.859948          umass</span></span>
-<span><span class="co">#&gt; 13 Topic 13 46.24201      10  -98.34051    9.010448          umass</span></span>
-<span><span class="co">#&gt; 14 Topic 14 45.78699      10 -107.25060    9.588114          umass</span></span>
-<span><span class="co">#&gt; 15 Topic 15 43.33170      10  -97.41630    9.049778          umass</span></span>
-<span><span class="co">#&gt; 16 Topic 16 37.50845      10  -51.01024    8.996497          umass</span></span>
+<span><span class="co">#&gt; 1   Topic 1 89.28459      10  -63.29858    9.317035          umass</span></span>
+<span><span class="co">#&gt; 2   Topic 2 81.70103      10  -67.86600    9.427454          umass</span></span>
+<span><span class="co">#&gt; 3   Topic 3 78.23106      10  -48.12967    9.004363          umass</span></span>
+<span><span class="co">#&gt; 4   Topic 4 78.08382      10  -74.77638    9.191168          umass</span></span>
+<span><span class="co">#&gt; 5   Topic 5 68.31896      10  -52.63135    9.152760          umass</span></span>
+<span><span class="co">#&gt; 6   Topic 6 67.43098      10  -62.27314    9.119797          umass</span></span>
+<span><span class="co">#&gt; 7   Topic 7 67.04091      10  -59.01273    8.929498          umass</span></span>
+<span><span class="co">#&gt; 8   Topic 8 66.59078      10  -62.15559    9.342915          umass</span></span>
+<span><span class="co">#&gt; 9   Topic 9 65.92187      10  -71.61741    9.442916          umass</span></span>
+<span><span class="co">#&gt; 10 Topic 10 65.71205      10  -80.11552    8.949298          umass</span></span>
+<span><span class="co">#&gt; 11 Topic 11 55.93086      10  -88.96585    8.653444          umass</span></span>
+<span><span class="co">#&gt; 12 Topic 12 53.36061      10  -77.85715    9.240048          umass</span></span>
+<span><span class="co">#&gt; 13 Topic 13 44.18119      10  -65.90307    9.303953          umass</span></span>
+<span><span class="co">#&gt; 14 Topic 14 42.86529      10 -110.09596    9.356549          umass</span></span>
+<span><span class="co">#&gt; 15 Topic 15 40.25358      10 -108.51756    9.070723          umass</span></span>
+<span><span class="co">#&gt; 16 Topic 16 35.09241      10  -88.93457    9.060258          umass</span></span>
 <span><span class="co">#&gt;    exclusivity_type</span></span>
 <span><span class="co">#&gt; 1              frex</span></span>
 <span><span class="co">#&gt; 2              frex</span></span>
@@ -339,18 +343,18 @@ or more topics, and <code>top = Inf</code> keeps every combination.</p>
 <span>                               top <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span>
 <span><span class="va">combinations</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">topic_sets</span>, what <span class="op">=</span> <span class="st">"sets"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">combinations</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           group          hyperedge                set size count share</span></span>
-<span><span class="co">#&gt; 1 All documents  Topic 3 + Topic 4  Topic 3 + Topic 4    2    14 0.014</span></span>
-<span><span class="co">#&gt; 2 All documents  Topic 2 + Topic 5  Topic 2 + Topic 5    2    13 0.013</span></span>
-<span><span class="co">#&gt; 3 All documents  Topic 1 + Topic 5  Topic 1 + Topic 5    2    12 0.012</span></span>
-<span><span class="co">#&gt; 4 All documents  Topic 1 + Topic 6  Topic 1 + Topic 6    2    12 0.012</span></span>
-<span><span class="co">#&gt; 5 All documents  Topic 1 + Topic 3  Topic 1 + Topic 3    2    11 0.011</span></span>
-<span><span class="co">#&gt; 6 All documents Topic 2 + Topic 10 Topic 2 + Topic 10    2    11 0.011</span></span></code></pre></div>
-<p>At this threshold 62.3% of the abstracts combine two or more topics,
-in 216 distinct combinations. The proportion depends on the threshold.
-With 0.1 it is 88.4%, and with 0.3 it is 23%, so a count of combinations
-is reported together with its threshold. The eight most frequent
-combinations of three or more topics are plotted below. Every
+<span><span class="co">#&gt;           group           hyperedge                 set size count share</span></span>
+<span><span class="co">#&gt; 1 All documents   Topic 1 + Topic 7   Topic 1 + Topic 7    2    16 0.016</span></span>
+<span><span class="co">#&gt; 2 All documents   Topic 1 + Topic 2   Topic 1 + Topic 2    2    14 0.014</span></span>
+<span><span class="co">#&gt; 3 All documents   Topic 3 + Topic 5   Topic 3 + Topic 5    2    14 0.014</span></span>
+<span><span class="co">#&gt; 4 All documents   Topic 1 + Topic 6   Topic 1 + Topic 6    2    12 0.012</span></span>
+<span><span class="co">#&gt; 5 All documents Topic 10 + Topic 11 Topic 10 + Topic 11    2    10 0.010</span></span>
+<span><span class="co">#&gt; 6 All documents  Topic 2 + Topic 12  Topic 2 + Topic 12    2    10 0.010</span></span></code></pre></div>
+<p>At this threshold 63.8% of the abstracts combine two or more topics,
+in 226 distinct combinations. The proportion depends on the threshold.
+With 0.1 it is 85.8%, and with 0.3 it is 23.9%, so a count of
+combinations is reported together with its threshold. The eight most
+frequent combinations of three or more topics are plotted below. Every
 combination is a pebble around its topics, coloured by the number of
 abstracts that carry it, and every topic is a circle whose area is the
 number of these abstracts that contain it.</p>
@@ -363,49 +367,38 @@ number of these abstracts that contain it.</p>
 documents table, such as the publication year.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sets_by_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">topic_model</span>, threshold <span class="op">=</span> <span class="fl">0.2</span>, min_size <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>                                 by <span class="op">=</span> <span class="st">"year"</span>, top <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>                                 group <span class="op">=</span> <span class="st">"year"</span>, top <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">sets_by_year</span>, what <span class="op">=</span> <span class="st">"sets"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   group                          hyperedge                          set size</span></span>
-<span><span class="co">#&gt; 1  2020            2020: Topic 1 + Topic 6            Topic 1 + Topic 6    2</span></span>
-<span><span class="co">#&gt; 2  2020            2020: Topic 3 + Topic 4            Topic 3 + Topic 4    2</span></span>
-<span><span class="co">#&gt; 3  2021            2021: Topic 2 + Topic 7            Topic 2 + Topic 7    2</span></span>
-<span><span class="co">#&gt; 4  2021           2021: Topic 3 + Topic 11           Topic 3 + Topic 11    2</span></span>
-<span><span class="co">#&gt; 5  2022           2022: Topic 3 + Topic 16           Topic 3 + Topic 16    2</span></span>
-<span><span class="co">#&gt; 6  2022           2022: Topic 1 + Topic 10           Topic 1 + Topic 10    2</span></span>
-<span><span class="co">#&gt; 7  2023            2023: Topic 1 + Topic 7            Topic 1 + Topic 7    2</span></span>
-<span><span class="co">#&gt; 8  2023           2023: Topic 1 + Topic 10           Topic 1 + Topic 10    2</span></span>
-<span><span class="co">#&gt; 9  2024 2024: Topic 2 + Topic 4 + Topic 10 Topic 2 + Topic 4 + Topic 10    3</span></span>
-<span><span class="co">#&gt;   count      share</span></span>
-<span><span class="co">#&gt; 1     4 0.02247191</span></span>
-<span><span class="co">#&gt; 2     4 0.02247191</span></span>
-<span><span class="co">#&gt; 3     9 0.01391036</span></span>
-<span><span class="co">#&gt; 4     9 0.01391036</span></span>
-<span><span class="co">#&gt; 5     4 0.02797203</span></span>
-<span><span class="co">#&gt; 6     3 0.02097902</span></span>
-<span><span class="co">#&gt; 7     3 0.09677419</span></span>
-<span><span class="co">#&gt; 8     1 0.03225806</span></span>
-<span><span class="co">#&gt; 9     1 1.00000000</span></span></code></pre></div>
+<span><span class="co">#&gt;   group                hyperedge                set size count      share</span></span>
+<span><span class="co">#&gt; 1  2020  2020: Topic 1 + Topic 7  Topic 1 + Topic 7    2     5 0.02808989</span></span>
+<span><span class="co">#&gt; 2  2020  2020: Topic 4 + Topic 5  Topic 4 + Topic 5    2     5 0.02808989</span></span>
+<span><span class="co">#&gt; 3  2021  2021: Topic 3 + Topic 5  Topic 3 + Topic 5    2    12 0.01854714</span></span>
+<span><span class="co">#&gt; 4  2021  2021: Topic 1 + Topic 7  Topic 1 + Topic 7    2    11 0.01700155</span></span>
+<span><span class="co">#&gt; 5  2022  2022: Topic 1 + Topic 2  Topic 1 + Topic 2    2     3 0.02097902</span></span>
+<span><span class="co">#&gt; 6  2022 2022: Topic 4 + Topic 11 Topic 4 + Topic 11    2     3 0.02097902</span></span>
+<span><span class="co">#&gt; 7  2023  2023: Topic 2 + Topic 9  Topic 2 + Topic 9    2     3 0.09677419</span></span>
+<span><span class="co">#&gt; 8  2023 2023: Topic 1 + Topic 11 Topic 1 + Topic 11    2     1 0.03225806</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="the-network-of-topics">The network of topics<a class="anchor" aria-label="anchor" href="#the-network-of-topics"></a>
 </h2>
-<p><code><a href="../reference/hg_network.html">hg_network()</a></code> reduces the combinations to pairs. With the
-same threshold, the weight of two topics is the number of abstracts in
-which both are present. The pairs above the upper quartile of the
+<p><code><a href="../reference/topic_network.html">topic_network()</a></code> reduces the combinations to pairs. With
+the same threshold, the weight of two topics is the number of abstracts
+in which both are present. The pairs above the upper quartile of the
 weights are drawn, with the width of an edge proportional to its
 weight.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">topic_network</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_network.html">hg_network</a></span><span class="op">(</span><span class="va">abstracts_hg</span>, topics <span class="op">=</span> <span class="va">topic_model</span>,</span>
-<span>                            threshold <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">topic_network</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topic_network.html">topic_network</a></span><span class="op">(</span><span class="va">abstracts_hg</span>, topics <span class="op">=</span> <span class="va">topic_model</span>,</span>
+<span>                                  threshold <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="va">strong_pair</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">topic_network</span>, <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">weight</span>, <span class="fl">0.75</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">network_view</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_network.html">hg_network</a></span><span class="op">(</span><span class="va">abstracts_hg</span>, topics <span class="op">=</span> <span class="va">topic_model</span>,</span>
-<span>                           threshold <span class="op">=</span> <span class="fl">0.2</span>, what <span class="op">=</span> <span class="st">"network"</span><span class="op">)</span></span>
+<span><span class="va">network_view</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topic_network.html">topic_network</a></span><span class="op">(</span><span class="va">abstracts_hg</span>, topics <span class="op">=</span> <span class="va">topic_model</span>,</span>
+<span>                                 threshold <span class="op">=</span> <span class="fl">0.2</span>, what <span class="op">=</span> <span class="st">"network"</span><span class="op">)</span></span>
 <span><span class="fu">cograph</span><span class="fu">::</span><span class="fu"><a href="https://sonsoles.me/cograph/reference/splot.html" class="external-link">splot</a></span><span class="op">(</span><span class="va">network_view</span>, minimum <span class="op">=</span> <span class="va">strong_pair</span>,</span>
 <span>               edge_width_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">6</span><span class="op">)</span>, node_fill <span class="op">=</span> <span class="st">"#56B4E9"</span>,</span>
 <span>               edge_color <span class="op">=</span> <span class="st">"#0072B2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="topic-mixtures_files/figure-html/topic-network-1.png" class="r-plt" alt="" width="100%"></p>
-<p>Without a threshold, <code><a href="../reference/hg_network.html">hg_network()</a></code> relates two topics by
-the correlation of their shares over the abstracts, the simple topic
+<p>Without a threshold, <code><a href="../reference/topic_network.html">topic_network()</a></code> relates two topics
+by the correlation of their shares over the abstracts, the simple topic
 correlation of the stm package (Roberts et al. 2019).</p>
 </div>
 <div class="section level2">
@@ -422,22 +415,22 @@ al. (2006) and divides them by k-means.</p>
 <span><span class="va">cluster_quality</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_topic_quality.html">hg_topic_quality</a></span><span class="op">(</span><span class="va">abstracts_hg</span>, clusters <span class="op">=</span> <span class="va">clusters</span><span class="op">)</span></span>
 <span><span class="va">cluster_quality</span></span>
 <span><span class="co">#&gt;         topic size n_words coherence exclusivity coherence_type</span></span>
-<span><span class="co">#&gt; 1   Cluster 1   43      10 -53.76285    8.488092          umass</span></span>
-<span><span class="co">#&gt; 2   Cluster 2   86      10 -56.98734    8.238415          umass</span></span>
-<span><span class="co">#&gt; 3   Cluster 3   61      10 -56.35060    7.666019          umass</span></span>
-<span><span class="co">#&gt; 4   Cluster 4   46      10 -82.65985    8.189977          umass</span></span>
-<span><span class="co">#&gt; 5   Cluster 5   47      10 -87.24374    8.760715          umass</span></span>
-<span><span class="co">#&gt; 6   Cluster 6   77      10 -49.88350    8.606339          umass</span></span>
-<span><span class="co">#&gt; 7   Cluster 7   64      10 -47.64373    7.452209          umass</span></span>
-<span><span class="co">#&gt; 8   Cluster 8   76      10 -58.02618    7.526915          umass</span></span>
-<span><span class="co">#&gt; 9   Cluster 9   59      10 -71.12633    8.644594          umass</span></span>
-<span><span class="co">#&gt; 10 Cluster 10   87      10 -55.87994    8.640050          umass</span></span>
-<span><span class="co">#&gt; 11 Cluster 11   32      10 -50.52326    8.163612          umass</span></span>
-<span><span class="co">#&gt; 12 Cluster 12   35      10 -47.87456    8.621547          umass</span></span>
-<span><span class="co">#&gt; 13 Cluster 13   84      10 -64.51622    8.489412          umass</span></span>
-<span><span class="co">#&gt; 14 Cluster 14   78      10 -64.96824    8.617097          umass</span></span>
-<span><span class="co">#&gt; 15 Cluster 15   49      10 -47.11714    8.488738          umass</span></span>
-<span><span class="co">#&gt; 16 Cluster 16   76      10 -56.74517    8.090683          umass</span></span>
+<span><span class="co">#&gt; 1   Cluster 1   38      10 -68.61270    8.937439          umass</span></span>
+<span><span class="co">#&gt; 2   Cluster 2   78      10 -58.98300    8.135931          umass</span></span>
+<span><span class="co">#&gt; 3   Cluster 3   68      10 -63.04592    8.025318          umass</span></span>
+<span><span class="co">#&gt; 4   Cluster 4   49      10 -62.14649    7.796460          umass</span></span>
+<span><span class="co">#&gt; 5   Cluster 5   61      10 -66.20346    7.663566          umass</span></span>
+<span><span class="co">#&gt; 6   Cluster 6   57      10 -68.27162    8.299203          umass</span></span>
+<span><span class="co">#&gt; 7   Cluster 7   69      10 -52.76982    8.221282          umass</span></span>
+<span><span class="co">#&gt; 8   Cluster 8   61      10 -83.49170    8.768531          umass</span></span>
+<span><span class="co">#&gt; 9   Cluster 9   54      10 -60.71516    7.979398          umass</span></span>
+<span><span class="co">#&gt; 10 Cluster 10   59      10 -62.14102    8.290540          umass</span></span>
+<span><span class="co">#&gt; 11 Cluster 11   81      10 -56.10482    8.760107          umass</span></span>
+<span><span class="co">#&gt; 12 Cluster 12   38      10 -49.35100    8.634525          umass</span></span>
+<span><span class="co">#&gt; 13 Cluster 13   71      10 -57.59601    8.653729          umass</span></span>
+<span><span class="co">#&gt; 14 Cluster 14   61      10 -60.80613    8.412389          umass</span></span>
+<span><span class="co">#&gt; 15 Cluster 15   88      10 -58.01940    8.047817          umass</span></span>
+<span><span class="co">#&gt; 16 Cluster 16   67      10 -61.23081    8.471678          umass</span></span>
 <span><span class="co">#&gt;    exclusivity_type</span></span>
 <span><span class="co">#&gt; 1              frex</span></span>
 <span><span class="co">#&gt; 2              frex</span></span>
@@ -459,9 +452,9 @@ al. (2006) and divides them by k-means.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_agreement.html">hg_agreement</a></span><span class="op">(</span><span class="va">clusters</span>, <span class="va">main_topics</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster"</span>, <span class="st">"topic"</span><span class="op">)</span>,</span>
 <span>             method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ari"</span>, <span class="st">"nmi"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      n agreement aligned       ari       nmi</span></span>
-<span><span class="co">#&gt; 1 1000         0     347 0.1297581 0.2816076</span></span></code></pre></div>
-<p>The clusters have a mean coherence of -59.5 and a mean exclusivity of
-8.29, against -78.4 and 9.27 for the topics of the mixed model, so the
+<span><span class="co">#&gt; 1 1000         0     334 0.1286573 0.2918899</span></span></code></pre></div>
+<p>The clusters have a mean coherence of -61.8 and a mean exclusivity of
+8.32, against -73.9 and 9.16 for the topics of the mixed model, so the
 clusters are more coherent and less exclusive. The adjusted Rand index
 between the clusters and the main topics is 0.13. A partition has to
 place every abstract that lies between topics on one side, and the two
@@ -478,14 +471,14 @@ model its words.</p>
 <span>                                 seed <span class="op">=</span> <span class="fl">1</span>, nstart <span class="op">=</span> <span class="fl">5</span>, what <span class="op">=</span> <span class="st">"membership"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">cluster_membership</span>, <span class="va">node</span> <span class="op">==</span> <span class="st">"2-s2.0-85101300775"</span> <span class="op">&amp;</span> <span class="va">membership</span> <span class="op">&gt;=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    node    cluster membership</span></span>
-<span><span class="co">#&gt; 3921 2-s2.0-85101300775  Cluster 1 0.43309197</span></span>
-<span><span class="co">#&gt; 3922 2-s2.0-85101300775  Cluster 2 0.16387455</span></span>
-<span><span class="co">#&gt; 3928 2-s2.0-85101300775  Cluster 8 0.08706796</span></span>
-<span><span class="co">#&gt; 3929 2-s2.0-85101300775  Cluster 9 0.10006368</span></span>
-<span><span class="co">#&gt; 3930 2-s2.0-85101300775 Cluster 10 0.06309764</span></span>
-<span><span class="co">#&gt; 3933 2-s2.0-85101300775 Cluster 13 0.07978621</span></span></code></pre></div>
+<span><span class="co">#&gt; 3921 2-s2.0-85101300775  Cluster 1 0.43443557</span></span>
+<span><span class="co">#&gt; 3922 2-s2.0-85101300775  Cluster 2 0.16082991</span></span>
+<span><span class="co">#&gt; 3928 2-s2.0-85101300775  Cluster 8 0.08741200</span></span>
+<span><span class="co">#&gt; 3929 2-s2.0-85101300775  Cluster 9 0.10151056</span></span>
+<span><span class="co">#&gt; 3930 2-s2.0-85101300775 Cluster 10 0.06038962</span></span>
+<span><span class="co">#&gt; 3933 2-s2.0-85101300775 Cluster 13 0.07950704</span></span></code></pre></div>
 <p>The main cluster of an abstract has a membership of 0.24 in the
-median abstract, and 0.6% of the abstracts have a main cluster with a
+median abstract, and 0.5% of the abstracts have a main cluster with a
 membership of 0.9 or more. The graded memberships of the clustering also
 place most abstracts between clusters.</p>
 </div>

@@ -2,7 +2,9 @@
 
 `hypergraph()` is the main constructor of the package. It reads the
 input and builds the hypergraph the input describes, through the
-constructor of that kind of data:
+constructor of that kind of data. A data frame is read in one of three
+formats, each with its own argument names, and the format is recognised
+from the arguments given:
 
 ## Usage
 
@@ -28,31 +30,37 @@ identical to the result of the constructor called directly.
 
 ## Details
 
-- A data frame in long format with `actor` and `group` (or `from` and
-  `to`) describes observed groups, and every group becomes a hyperedge
+- **Membership data** name a `node` and a `hyperedge` (or `from` and
+  `to` for an edge list): every value of `hyperedge` becomes a hyperedge
+  of the nodes it holds
   ([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)).
-  With `by` or `top` the groups are read as sets and the most frequent
-  sets become hyperedges. With `time`, `start` or `end` the hyperedges
-  carry a clock
+  With `time`, `start` or `end` the hyperedges carry a clock
   ([`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)).
-  With `window`, `step` or `action` the data are sequences, and every
-  window of consecutive actions becomes a hyperedge
-  ([`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)).
 
-- A list of sequences is read the same way
-  ([`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)).
+- **Event data** name an `action`, the column of what happened, with the
+  `session` and `actor` it belongs to, in the vocabulary of the memory
+  family. Without `window`, the actions of each session become one
+  hyperedge; a session is read within its actor when both are given, and
+  with `actor` alone each actor's actions become one hyperedge. With
+  `window`, every window of consecutive actions within an actor becomes
+  a hyperedge
+  ([`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)),
+  ordered by `time`.
 
-- A network, as a weight matrix, a sparse matrix, a `netobject` or a
-  `cograph_network`, has its cliques promoted to hyperedges
-  ([`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md));
-  with `window`, a model object built from sequences is read as
-  sequences instead.
+- With `group`, `top` or `min_share`, the sets of either format are
+  counted and the most frequent become hyperedges; `group` names the
+  comparison variable within whose values the sets are counted.
 
-- A topic model fitted by
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md),
-  or a clustering of sequences, becomes the hypergraph of its frequent
-  sets
-  ([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)).
+A list of sequences is read as event data with `window`. A network, as a
+weight matrix, a sparse matrix, a `netobject` or a `cograph_network`,
+has its cliques promoted to hyperedges
+([`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md));
+with `window`, a model object built from sequences is read as sequences
+instead. A topic model fitted by
+[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md),
+or a clustering of sequences, becomes the hypergraph of its frequent
+sets
+([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)).
 
 Every argument in `...` is passed to that constructor, whose
 documentation describes it, and the result is the constructor's own.
@@ -60,7 +68,9 @@ documentation describes it, and the result is the constructor's own.
 ## Conditions
 
 `hypergraphs_bad_input` for an input of a class no constructor reads,
-naming the class, and the conditions of the constructor called.
+naming the class; for event data given a clock without `window`, since
+the set of a session has no order; and the conditions of the constructor
+called.
 
 ## References
 
@@ -84,13 +94,25 @@ for a corpus.
 meetings <- data.frame(
   person = c("Alice", "Bob", "Carol", "Alice", "Bob", "Dave", "Eve"),
   meeting = c("m1", "m1", "m1", "m2", "m2", "m3", "m3"))
-hypergraph(meetings, actor = "person", group = "meeting")
+hypergraph(meetings, node = "person", hyperedge = "meeting")
 #> Hypergraph: 5 nodes, 3 hyperedges (sizes 2: 2, 3: 1)
-#> Source: group membership (actor = person, group = meeting)
-#>  hyperedge size           members weight
-#>         m1    3 Alice, Bob, Carol     NA
-#>         m2    2        Alice, Bob     NA
-#>         m3    2         Dave, Eve     NA
+#> Source: group membership (node = person, hyperedge = meeting)
+#>  hyperedge size           members
+#>         m1    3 Alice, Bob, Carol
+#>         m2    2        Alice, Bob
+#>         m3    2         Dave, Eve
+
+visits <- data.frame(
+  user = c("u1", "u1", "u1", "u1", "u2", "u2"),
+  visit = c(1, 1, 2, 2, 1, 1),
+  page = c("home", "cart", "home", "help", "home", "cart"))
+hypergraph(visits, action = "page", actor = "user", session = "visit")
+#> Hypergraph: 3 nodes, 3 hyperedges (sizes 2: 3)
+#> Source: group membership (node = page, hyperedge = visit)
+#>  hyperedge size    members
+#>       u1.1    2 cart, home
+#>       u1.2    2 help, home
+#>       u2.1    2 cart, home
 
 sessions <- list(c("a", "b", "c", "a"), c("b", "c", "d"))
 hypergraph(sessions, window = 2)
@@ -107,9 +129,9 @@ weights <- matrix(c(0, 1, 1, 1, 0, 1, 1, 1, 0), 3, 3,
 hypergraph(weights)
 #> Hypergraph: 3 nodes, 4 hyperedges (sizes 2: 3, 3: 1)
 #> Source: network cliques (p = 1.00, include_pairwise = TRUE, max_size = 3)
-#>  hyperedge size members weight
-#>         h1    2    y, z     NA
-#>         h2    2    x, y     NA
-#>         h3    2    x, z     NA
-#>         h4    3 x, y, z     NA
+#>  hyperedge size members
+#>         h1    2    y, z
+#>         h2    2    x, y
+#>         h3    2    x, z
+#>         h4    3 x, y, z
 ```

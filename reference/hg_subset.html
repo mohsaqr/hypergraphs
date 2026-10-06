@@ -21,7 +21,7 @@ citation-block hypergraph is the hypergraph of one citing decision
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,13 +29,19 @@ citation-block hypergraph is the hypergraph of one citing decision
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -75,6 +81,7 @@ citation-block hypergraph is the hypergraph of one citing decision
 <span>  nodes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  where <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  component <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>, <span class="st">"largest"</span><span class="op">)</span>,</span>
 <span>  drop_isolated <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -112,6 +119,16 @@ members): <code>size = 3</code> keeps the hyperedges with exactly three members,
 3-uniform hypergraph that <code><a href="hg_motifs.html">hg_motifs()</a></code> needs.</p></dd>
 
 
+<dt id="arg-component">component<a class="anchor" aria-label="anchor" href="#arg-component"></a></dt>
+<dd><p><code>"all"</code> (default) keeps every connected component;
+<code>"largest"</code> keeps only the largest connected component, in which two
+nodes are connected when a chain of shared hyperedges joins them.
+Spectral clustering and label spreading need a connected hypergraph
+(Hayashi et al. 2020), and a corpus of short texts often holds a few
+texts that share no word with the rest. Applied after the other
+filters.</p></dd>
+
+
 <dt id="arg-drop-isolated">drop_isolated<a class="anchor" aria-label="anchor" href="#arg-drop-isolated"></a></dt>
 <dd><p>Drop nodes that belong to no retained hyperedge?
 Default <code>TRUE</code>. Ignored when <code>nodes</code> is given.</p></dd>
@@ -121,14 +138,22 @@ Default <code>TRUE</code>. Ignored when <code>nodes</code> is given.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>net_hg</code> whose incidence matrix is the selected
 sub-matrix of the input, sparse if the input is sparse. Edge metadata
-(<code>edge_data</code>) and duplicate multiplicities (<code>edge_multiplicity</code>) are
-subset alongside.</p>
+(<code>edge_data</code>), duplicate multiplicities (<code>edge_multiplicity</code>) and the
+window counts of a <code><a href="window_hypergraph.html">window_hypergraph()</a></code> are subset alongside. The
+nodes the subset removes are recorded in <code>params$subset$removed</code>, and
+the labels of removed nodes are set aside with a
+<code>hypergraphs_dropped_documents</code> warning by <code><a href="hg_classify.html">hg_classify()</a></code>,
+<code><a href="hg_keywords.html">hg_keywords()</a></code> and the other verbs that take labels, so the table that
+built the hypergraph can be passed back whole.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Coupette, C., Hartung, D., &amp; Katz, D. M. (2024). Legal
 hypergraphs. <em>Philosophical Transactions of the Royal Society A</em>,
 382(2270), 20230141. <a href="https://doi.org/10.1098/rsta.2023.0141" class="external-link">doi:10.1098/rsta.2023.0141</a></p>
+<p>Hayashi, K., Aksoy, S. G., Park, C. H., &amp; Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. <em>Proceedings of CIKM 2020</em>,
+495-504. <a href="https://doi.org/10.1145/3340531.3412034" class="external-link">doi:10.1145/3340531.3412034</a></p>
     </div>
 
     <div class="section level2">
@@ -138,24 +163,29 @@ hypergraphs. <em>Philosophical Transactions of the Royal Society A</em>,
 <span class="r-in"><span>  event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"e1"</span>, <span class="st">"e1"</span>, <span class="st">"e1"</span>, <span class="st">"e2"</span>, <span class="st">"e2"</span>, <span class="st">"e2"</span>, <span class="st">"e3"</span>, <span class="st">"e3"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  kind <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"x"</span>, <span class="st">"x"</span>, <span class="st">"x"</span>, <span class="st">"x"</span>, <span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"y"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">dat</span>, actor <span class="op">=</span> <span class="st">"member"</span>, group <span class="op">=</span> <span class="st">"event"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">dat</span>, node <span class="op">=</span> <span class="st">"member"</span>, hyperedge <span class="op">=</span> <span class="st">"event"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">hg_subset</span><span class="op">(</span><span class="va">hg</span>, edges <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"e1"</span>, <span class="st">"e2"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 4 nodes, 2 hyperedges (sizes 3: 2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Source: group membership (actor = member, group = event)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size members weight</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         e1    3 a, b, c     NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         e2    3 b, c, d     NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Source: group membership (node = member, hyperedge = event)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size members</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         e1    3 a, b, c</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         e2    3 b, c, d</span>
 <span class="r-in"><span><span class="fu">hg_subset</span><span class="op">(</span><span class="va">hg</span>, nodes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"d"</span>, <span class="st">"e"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 4 nodes, 2 hyperedges (sizes 2: 1, 3: 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Source: group membership (actor = member, group = event)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size members weight</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         e2    3 b, c, d     NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         e3    2    d, e     NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Source: group membership (node = member, hyperedge = event)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size members</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         e2    3 b, c, d</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         e3    2    d, e</span>
 <span class="r-in"><span><span class="fu">hg_subset</span><span class="op">(</span><span class="va">hg</span>, where <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 2 nodes, 1 hyperedges (sizes 2: 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Source: group membership (actor = member, group = event)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size members weight</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         e3    2    d, e     NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Source: group membership (node = member, hyperedge = event)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size members</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         e3    2    d, e</span>
+<span class="r-in"><span><span class="fu">hg_subset</span><span class="op">(</span><span class="va">hg</span>, edges <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"e1"</span>, <span class="st">"e3"</span><span class="op">)</span>, component <span class="op">=</span> <span class="st">"largest"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 3 nodes, 1 hyperedges (sizes 3: 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Source: group membership (node = member, hyperedge = event)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size members</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         e1    3 a, b, c</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

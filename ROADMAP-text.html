@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,13 +15,19 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="articles/hypergraphs.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="articles/index.html">More articles...</a></li>
   </ul></li>
@@ -67,7 +73,7 @@
 </ul></div>
 <div class="section level2">
 <h2 id="v02--text-native-constructions">v0.2 — Text-native constructions<a class="anchor" aria-label="anchor" href="#v02--text-native-constructions"></a></h2>
-<p><strong>Status 2026-08-25: v0.2 COMPLETE.</strong> Both constructions shipped: <code>text_hypergraph(construction = "window")</code> (sliding/tumbling, set-valued window hyperedges; w = 2 off-diagonal parity with <code><a href="https://saqr.me/Nestimate/reference/wtna.html" class="external-link">Nestimate::wtna()</a></code> shipped as a package test — diagonals differ by design, wtna counts within-window repeats) and <code>construction = "knn"</code> + <code><a href="reference/knn_hypergraph.html">knn_hypergraph()</a></code> (cosine-weighted, deterministic tie-breaks, classed refusal of non-positive similarities; binary support verified identical to <code>HyperG::knn_hypergraph</code> in local_testing_and_equivalence/). <code>covid_embeddings</code> bundled (sbert all-MiniLM-L6-v2, 165x384). <code>vignette("constructions")</code> demonstrates both on the real corpus with w and k sensitivity checks. 136 tests; check 0 / 0 / 1 environmental NOTE. Version 0.2.0.</p>
+<p><strong>Status 2026-08-25: v0.2 COMPLETE.</strong> Both constructions shipped: <code>text_hypergraph(construction = "window")</code> (sliding/tumbling, set-valued window hyperedges; w = 2 off-diagonal parity with <code><a href="https://pak.dynasite.org/Nestimate/reference/wtna.html" class="external-link">Nestimate::wtna()</a></code> shipped as a package test — diagonals differ by design, wtna counts within-window repeats) and <code>construction = "knn"</code> + <code><a href="reference/knn_hypergraph.html">knn_hypergraph()</a></code> (cosine-weighted, deterministic tie-breaks, classed refusal of non-positive similarities; binary support verified identical to <code>HyperG::knn_hypergraph</code> in local_testing_and_equivalence/). <code>covid_embeddings</code> bundled (sbert all-MiniLM-L6-v2, 165x384). <code>vignette("constructions")</code> demonstrates both on the real corpus with w and k sensitivity checks. 136 tests; check 0 / 0 / 1 environmental NOTE. Version 0.2.0.</p>
 <ul><li>
 <strong>Windowed sequence hyperedges</strong> — <code>text_hypergraph(construction = "window", w = )</code>: the HyperGAT construction, weighted/windowed extension. No upstream oracle; invariant-gated (window-count conservation; <code>w = 2</code> reduces exactly to <code>wtna_cooccurrence</code>).</li>
 <li>
@@ -130,7 +136,7 @@ Dynet            separate temporal-network peer; never an hypergraphs dependency
 <p><strong>Dependency decision.</strong> Dynet is absent from both Imports and Suggests. <code>cograph</code> is an explicit Import: it is already the rendering contract for hypergraphs objects, so making the graph algorithms optional would add guards without delivering meaningful independence. Hypergraph-specific mathematics stays in hypergraphs; cograph begins at the graph-shaped boundary.</p>
 <div class="section level3">
 <h3 id="items--each-names-its-equivalence-oracle-before-implementation">Items — each names its equivalence oracle before implementation<a class="anchor" aria-label="anchor" href="#items--each-names-its-equivalence-oracle-before-implementation"></a></h3>
-<ul class="task-list"><li><label><input type="checkbox" checked><strong>DONE 2026-09-01 <code><a href="reference/hg_project.html">hg_project()</a></code></strong> — hypergraph to weighted graph. <code>method = "clique"</code> (unnormalised co-occurrence, <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> parity with <code><a href="https://saqr.me/Nestimate/reference/clique_expansion.html" class="external-link">Nestimate::clique_expansion()</a></code>) and <code>method = "association"</code>, the random-walk-correct <code>w({u,v}) = sum_e 1/(|e|-1)</code> of Coupette et al. (2024). Verified 2026-09-01: <code>clique_expansion()</code> is <code>tcrossprod(incidence)</code> with a zeroed diagonal and applies no <code>|e|</code> normalisation, so the association weighting exists nowhere in the stack. <em>Oracle</em>: the paper’s Zenodo reproducibility package (<a href="doi:10.5281/zenodo.8081507" class="uri">doi:10.5281/zenodo.8081507</a>). <em>Invariant</em>: each hyperedge contributes total weight exactly 1 to the edges incident on each of its own members.</label></li>
+<ul class="task-list"><li><label><input type="checkbox" checked><strong>DONE 2026-09-01 <code>hg_project()</code></strong> — hypergraph to weighted graph. <code>method = "clique"</code> (unnormalised co-occurrence, <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> parity with <code><a href="https://pak.dynasite.org/Nestimate/reference/clique_expansion.html" class="external-link">Nestimate::clique_expansion()</a></code>) and <code>method = "association"</code>, the random-walk-correct <code>w({u,v}) = sum_e 1/(|e|-1)</code> of Coupette et al. (2024). Verified 2026-09-01: <code>clique_expansion()</code> is <code>tcrossprod(incidence)</code> with a zeroed diagonal and applies no <code>|e|</code> normalisation, so the association weighting exists nowhere in the stack. <em>Oracle</em>: the paper’s Zenodo reproducibility package (<a href="doi:10.5281/zenodo.8081507" class="uri">doi:10.5281/zenodo.8081507</a>). <em>Invariant</em>: each hyperedge contributes total weight exactly 1 to the edges incident on each of its own members.</label></li>
 <li><label><input type="checkbox" checked><strong>DONE 2026-09-01 <code>hg_line_graph(s = 1)</code></strong> — the s-line graph (hyperedges as vertices, adjacent when <code>|e_i &amp; e_j| &gt;= s</code>). <code><a href="reference/dual_hypergraph.html">dual_hypergraph()</a></code> is the s = 1 case; this generalises it. <em>Oracle</em>: HyperNetX <code>s_line_graph</code>.</label></li>
 <li><label><input type="checkbox" checked><strong>DONE 2026-09-01 <code><a href="reference/hg_edges.html">hg_edges()</a></code></strong> — the missing hyperedge-level tier: cardinality, degree, node-neighbourhood size, one row per hyperedge, with <code>what = "distribution"</code> for degree/cardinality CCDFs. Everything the package returns today is keyed on vertices. <em>Oracle</em>: XGI edge-stat suite.</label></li>
 <li><label><input type="checkbox" checked><strong>DONE 2026-09-02 <code><a href="reference/hg_edge_centrality.html">hg_edge_centrality()</a></code></strong> — s-betweenness and s-closeness via <code><a href="reference/hg_line_graph.html">hg_line_graph()</a></code> handed to cograph’s statnet-verified graph kernels. hypergraphs owns the s-line transformation; cograph owns the ordinary shortest-path centrality after that boundary.</label></li>

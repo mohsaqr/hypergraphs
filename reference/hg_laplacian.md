@@ -75,7 +75,7 @@ events <- data.frame(
               "m4", "m4"),
   hours = c(2, 1, 1, 3, 2, 1, 2, 2, 4, 1, 1)
 )
-hg <- group_hypergraph(events, actor = "person", group = "meeting",
+hg <- group_hypergraph(events, node = "person", hyperedge = "meeting",
                        weight = "hours")
 L <- hg_laplacian(hg, type = "random_walk")
 range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)

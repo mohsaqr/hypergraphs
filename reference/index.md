@@ -17,10 +17,20 @@ One reader for every object.
   [`hg_get(`*`<hypergraphs_community_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare_communities.md)
   [`plot(`*`<hypergraphs_community_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare_communities.md)
   : Compare community structure across representations
+- [`hg_get(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [`print(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [`summary(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [`plot(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  : Read a classification result
 - [`print(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.md)
   [`hg_get(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.md)
   [`plot(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.md)
   : Tables of a hypergraph community ensemble
+- [`hg_get(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  [`print(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  [`summary(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  [`plot(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  : Read a fitted HyperGAT classifier
 - [`hg_get(`*`<net_hg>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg.md)
   : Tables of a hypergraph
 - [`hg_get(`*`<net_hg_cluster>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg_cluster.md)
@@ -186,7 +196,7 @@ An arbitrary set of nodes bound as a unit.
 - [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
   : Windowed Sequence Hyperedges
 - [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
-  : Hypergraph from co-occurrence data or an edge list
+  : Hypergraph from membership data or an edge list
 - [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md)
   : Build a k-nearest-neighbor hypergraph from embeddings
 - [`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md)
@@ -199,16 +209,8 @@ An arbitrary set of nodes bound as a unit.
   : Extract a sequence of temporal-hypergraph snapshots
 - [`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md)
   : Sub-hypergraph by hyperedges, nodes or hyperedge attributes
-- [`hg_sample_gnp()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_gnp.md)
-  : Sample Bernoulli-Incidence Random Hypergraphs
-- [`hg_sample_sbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_sbm.md)
-  : Sample Stochastic-Block-Model Hypergraphs
-- [`hg_sample_uniform()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_uniform.md)
-  [`hg_sample_regular()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_uniform.md)
-  : Sample Uniform or Regular Random Hypergraphs
-- [`hg_write_hif()`](https://mohsaqr.github.io/hypergraphs/reference/hg_write_hif.md)
-  [`hg_read_hif()`](https://mohsaqr.github.io/hypergraphs/reference/hg_write_hif.md)
-  : Read and write the Hypergraph Interchange Format (HIF)
+- [`random_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/random_hypergraph.md)
+  : Random hypergraphs
 
 ### Measures and centralities
 
@@ -254,10 +256,10 @@ An arbitrary set of nodes bound as a unit.
 
 ### Projections
 
-- [`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md)
-  : Clique expansion of a hypergraph
-- [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md)
-  : Project a hypergraph onto a weighted graph
+- [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+  : The pairwise network of a hypergraph
+- [`plot(`*`<net_hg_pairwise>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_pairwise.md)
+  : Plot the pairwise network of a hypergraph
 - [`hg_line_graph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_line_graph.md)
   : The s-line graph of a hypergraph
 
@@ -286,6 +288,8 @@ An arbitrary set of nodes bound as a unit.
 - [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
   [`text_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
   : HyperGAT document classifier
+- [`predict(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/predict.hg_hypergat.md)
+  : Predict documents with a fitted HyperGAT classifier
 - [`heterogeneous_hgat()`](https://mohsaqr.github.io/hypergraphs/reference/heterogeneous_hgat.md)
   : Heterogeneous graph attention classifier (HGAT)
 - [`hg_hypergcn()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergcn.md)
@@ -319,7 +323,7 @@ verbs.
   : Characteristic words (keywords) per cluster
 - [`hg_sequences()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sequences.md)
   : Per-actor state sequences from a clustered corpus
-- [`hg_network()`](https://mohsaqr.github.io/hypergraphs/reference/hg_network.md)
+- [`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
   : Network of topics
 - [`hg_topic_sizes()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md)
   [`plot(`*`<hypergraphs_topic_sizes>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md)
@@ -351,6 +355,8 @@ verbs.
   : Agreement between two labelings of the same nodes
 - [`hg_seeds()`](https://mohsaqr.github.io/hypergraphs/reference/hg_seeds.md)
   : Seed labels from a clustering, for spreading or training
+- [`hg_dictionary()`](https://mohsaqr.github.io/hypergraphs/reference/hg_dictionary.md)
+  : Label nodes with a dictionary of terms
 - [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
   : Transductive label spreading on a hypergraph
 
@@ -361,10 +367,20 @@ verbs.
   [`hg_get(`*`<hypergraphs_community_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare_communities.md)
   [`plot(`*`<hypergraphs_community_comparison>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare_communities.md)
   : Compare community structure across representations
+- [`hg_get(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [`print(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [`summary(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [`plot(`*`<hg_classification>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  : Read a classification result
 - [`print(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.md)
   [`hg_get(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.md)
   [`plot(`*`<hg_communities>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.md)
   : Tables of a hypergraph community ensemble
+- [`hg_get(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  [`print(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  [`summary(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  [`plot(`*`<hg_hypergat>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md)
+  : Read a fitted HyperGAT classifier
 - [`print(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
   [`hg_get(`*`<net_hon_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
   [`print(`*`<net_hon_boot_group>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hon_group.md)
@@ -458,6 +474,8 @@ verbs.
   : Plot a hypergraph with hyperedges as pebbles
 - [`plot(`*`<net_hg_cluster>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_cluster.md)
   : Plot method for net_hg_cluster
+- [`plot(`*`<net_hg_pairwise>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_pairwise.md)
+  : Plot the pairwise network of a hypergraph
 - [`plot(`*`<net_hg_transduction>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_transduction.md)
   : Plot method for net_hg_transduction
 - [`plot(`*`<net_hon_boot>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_boot.md)
@@ -467,7 +485,7 @@ verbs.
 - [`plot(`*`<net_hon_compare>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_compare.md)
   : Plot method for net_hon_compare
 - [`plot(`*`<net_temporal_hypergraph>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md)
-  : Plot a temporal-hypergraph snapshot through cograph
+  : Plot a temporal-hypergraph snapshot
 
 ## Data
 
@@ -478,8 +496,8 @@ verbs.
   : COVID-19 education research abstracts
 - [`covid_sample`](https://mohsaqr.github.io/hypergraphs/reference/covid_sample.md)
   : A random sample of 1,000 COVID-19 education research abstracts
-- [`debug_events`](https://mohsaqr.github.io/hypergraphs/reference/debug_events.md)
-  : Sessions with a coding assistant
+- [`tutoring_events`](https://mohsaqr.github.io/hypergraphs/reference/tutoring_events.md)
+  : Problem steps of learners with a tutor
 - [`covid_embeddings`](https://mohsaqr.github.io/hypergraphs/reference/covid_embeddings.md)
   : Sentence embeddings of the COVID-19 abstracts
 - [`icsid_tribunals`](https://mohsaqr.github.io/hypergraphs/reference/icsid_tribunals.md)
@@ -492,3 +510,5 @@ verbs.
   : Simulated sequences with planted memory modules
 - [`ring_communities`](https://mohsaqr.github.io/hypergraphs/reference/ring_communities.md)
   : Planted communities of the ring sequences
+- [`forum_posts`](https://mohsaqr.github.io/hypergraphs/reference/forum_posts.md)
+  : Simulated forum posts whose topics follow second-order memory

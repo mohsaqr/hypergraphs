@@ -6,7 +6,14 @@ Tidy tables of a text hypergraph
 
 ``` r
 # S3 method for class 'text_hypergraph'
-hg_get(x, what = c("weights", "documents", "vocabulary", "sentences"), ...)
+hg_get(
+  x,
+  what = c("weights", "documents", "vocabulary", "sentences"),
+  node = NULL,
+  sort_by = NULL,
+  top = NULL,
+  ...
+)
 ```
 
 ## Arguments
@@ -34,6 +41,22 @@ hg_get(x, what = c("weights", "documents", "vocabulary", "sentences"), ...)
   and `idf` under tf-idf weighting; empty for the knn construction,
   which has no token layer).
 
+- node:
+
+  For `"documents"`: keep only these documents, given as ids or as a
+  table with a `node` column, such as the predictions of
+  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
+  in the order given.
+
+- sort_by:
+
+  For `"vocabulary"`: `"count"` (total occurrences) or `"doc_freq"`
+  (documents that contain the word), from the largest, ties by word.
+
+- top:
+
+  Keep only the first `top` rows of the returned table.
+
 - ...:
 
   Unused.
@@ -58,4 +81,7 @@ hg_get(hg, what = "documents")
 #>   doc n_tokens n_types
 #> 1   a        3       3
 #> 2   b        3       3
+hg_get(hg, what = "documents", node = "b")
+#>   doc n_tokens n_types
+#> 1   b        3       3
 ```

@@ -87,9 +87,7 @@ The hypergraph and text families are hypergraphs' own.
   [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md);
   random models
-  [`hg_sample_gnp()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_gnp.md),
-  [`hg_sample_sbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_sbm.md),
-  [`hg_sample_uniform()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sample_uniform.md);
+  [`random_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/random_hypergraph.md);
   measures
   [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
   [`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md);
@@ -102,8 +100,7 @@ The hypergraph and text families are hypergraphs' own.
   embeddings
   [`hg_embed()`](https://mohsaqr.github.io/hypergraphs/reference/hg_embed.md);
   projections
-  [`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md),
-  [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md),
+  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md),
   [`hg_line_graph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_line_graph.md),
   [`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md);
   temporal views
@@ -206,7 +203,7 @@ with `type = "pathway"` turns a memory network into a simplicial
 complex;
 [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
 turns the same sequences into a hypergraph;
-[`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md)
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
 projects a hypergraph back to a pairwise network that any of the
 first-order tools accept. `hg_get(x, what = "pathways")` on a memory
 network hands its sequence-derived path strings to the other two.

@@ -45,8 +45,9 @@ wherever the overlap is below `s`, sparse if `hg`'s incidence is sparse.
 ## Details
 
 This is the projection of the dual: `hg_line_graph(hg, s = 1)` returns
-the same graph as `hg_project(dual_hypergraph(hg), weighted = FALSE)`,
-which the tests assert.
+the same pairs as
+`pairwise_network(dual_hypergraph(hg), weighted = FALSE)`, which the
+tests assert.
 
 ## References
 
@@ -57,7 +58,7 @@ Data Science*, 9(1), 16.
 
 ## See also
 
-[`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md)
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
 for the projection onto vertices,
 [`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md)
 for the role swap itself.

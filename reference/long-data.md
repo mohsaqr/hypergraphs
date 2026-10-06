@@ -83,9 +83,20 @@ with `type = "pathway"`).
 bs <- hg_bootstrap(human_long, action = "code", actor = "session_id",
                     time = "timestamp", n_boot = 20, max_order = 2,
                     seed = 1)
-#> Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone): unused argument (timezone = timezone)
 rules <- hg_get(bs, order_min = 2)
-#> Error: object 'bs' not found
 head(rules)
-#> Error: object 'rules' not found
+#>                   from        to order count probability   ci_lower   ci_upper
+#> 1 Frustrate -> Specify   Command     2     6  0.05405405 0.02738722 0.07904095
+#> 2 Frustrate -> Specify   Correct     2     9  0.08108108 0.03276329 0.12788847
+#> 3 Frustrate -> Specify Frustrate     2    21  0.18918919 0.11566507 0.24824375
+#> 4 Frustrate -> Specify   Inquire     2     8  0.07207207 0.03930894 0.10455508
+#> 5 Frustrate -> Specify Interrupt     2     9  0.08108108 0.03793060 0.11064680
+#> 6 Frustrate -> Specify    Refine     2     7  0.06306306 0.02103135 0.10300585
+#>   support n_boot_used
+#> 1    0.95          20
+#> 2    0.95          20
+#> 3    0.95          20
+#> 4    0.95          20
+#> 5    0.95          20
+#> 6    0.95          20
 ```

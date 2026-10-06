@@ -89,7 +89,9 @@ A tidy data frame. The test table has one row per motif: `motif`,
 `count` (observed), `expected` and `null_sd` (mean and standard
 deviation of the null counts), `z`, `p_value` (empirical), `delta`
 (relative abundance), `normalized_delta` (the motif profile used by
-HypergraphX), `n_null` (null draws) and `method`.
+HypergraphX), `n_null` (null draws) and `method`. Temporal input adds a
+leading `time` column, the snapshot time: a date for a calendar
+hypergraph, the number on its clock otherwise.
 
 For
 [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md),

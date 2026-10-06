@@ -95,7 +95,7 @@ and generative models of real-world hypergraphs. arXiv:2006.07060.
 
 [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md),
 [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
-[`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md).
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
 
 ## Examples
 

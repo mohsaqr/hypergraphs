@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,13 +15,19 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -55,7 +61,10 @@
 <span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"medoid"</span>, <span class="st">"partitions"</span>, <span class="st">"runs"</span>, <span class="st">"sizes"</span>, <span class="st">"ami"</span>, <span class="st">"ari"</span>, <span class="st">"nmi"</span>, <span class="st">"weights"</span><span class="op">)</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  converged <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sort_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  top <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'hg_communities'</span></span>
@@ -86,10 +95,30 @@ its community in the AMI-medoid run), <code>"partitions"</code>, <code>"runs"</c
 The three similarity tables have one row per distinct pair of runs
 (<code>run_a</code>, <code>run_b</code>, and the similarity), without the diagonal.</p></dd>
 
+
+<dt id="arg-converged">converged<a class="anchor" aria-label="anchor" href="#arg-converged"></a></dt>
+<dd><p>For <code>what = "runs"</code> of an IRMM fit: <code>TRUE</code> keeps the
+runs whose weights settled, <code>FALSE</code> the runs that reached <code>max_iter</code>.
+<code>NULL</code> (default) keeps every run.</p></dd>
+
+
+<dt id="arg-sort-by">sort_by<a class="anchor" aria-label="anchor" href="#arg-sort-by"></a></dt>
+<dd><p>For <code>what = "runs"</code>: a numeric column of the runs table
+(<code>"modularity"</code>, <code>"n_communities"</code> or <code>"iterations"</code>) to order the runs
+by, largest first, ties broken by run number. <code>NULL</code> (default) keeps run
+order.</p></dd>
+
+
+<dt id="arg-top">top<a class="anchor" aria-label="anchor" href="#arg-top"></a></dt>
+<dd><p><code>NULL</code> (default, every row) or the number of first rows of
+any table to return, applied after <code>converged</code> and <code>sort_by</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code><a href="hg_get.html">hg_get()</a></code>: a base data.frame. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>: <code>x</code>, invisibly.
+    <p><code><a href="hg_get.html">hg_get()</a></code>: a base data.frame. Raises <code>hypergraphs_bad_input</code>
+for <code>converged</code> or <code>sort_by</code> with a table other than <code>"runs"</code>, or
+<code>converged</code> with an Infomap fit. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>: <code>x</code>, invisibly.
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>: the cograph plot of the projection, coloured by the medoid
 communities.</p>
     </div>
@@ -104,10 +133,10 @@ communities.</p>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"igraph"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_communities.html">hg_communities</a></span><span class="op">(</span><span class="va">h</span>, n_runs <span class="op">=</span> <span class="fl">2</span>, trials <span class="op">=</span> <span class="fl">2</span>, seeds <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"runs"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"runs"</span>, sort_by <span class="op">=</span> <span class="st">"n_communities"</span>, top <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   run seed n_communities codelength</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1   1    1             2   2.052397</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   2    2             2   2.052397</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

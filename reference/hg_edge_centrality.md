@@ -66,7 +66,8 @@ hg_edge_centrality(
 ## Value
 
 A tidy data frame with `edge`, `s`, `measure`, and `value`; temporal
-input adds a leading `time` column.
+input adds a leading `time` column, the snapshot time: a date for a
+calendar hypergraph, the number on its clock otherwise.
 
 ## References
 

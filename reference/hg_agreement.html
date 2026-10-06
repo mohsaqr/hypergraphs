@@ -27,7 +27,7 @@ AMI to select the medoid of repeated Infomap partitions."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,13 +35,19 @@ AMI to select the medoid of repeated Infomap partitions."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -83,7 +89,7 @@ AMI to select the medoid of repeated Infomap partitions.</p>
 <span>  <span class="va">y</span>,</span>
 <span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"summary"</span>, <span class="st">"table"</span>, <span class="st">"mapping"</span><span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"ari"</span>,</span>
-<span>  node <span class="op">=</span> <span class="st">"node"</span>,</span>
+<span>  node <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -93,10 +99,18 @@ AMI to select the medoid of repeated Infomap partitions.</p>
 
 
 <dl><dt id="arg-x-y">x, y<a class="anchor" aria-label="anchor" href="#arg-x-y"></a></dt>
-<dd><p>Tidy labelings: data.frames with a <code>node</code> column and a
-<code>predicted</code>, <code>cluster</code> or <code>label</code> column (first match in that
-order wins). Nodes are matched by name; nodes present in only one
-labeling are dropped.</p></dd>
+<dd><p>Tidy labelings: data.frames with a <code>node</code> (or, in the text
+family's document tables, <code>doc</code>) column and a <code>predicted</code>, <code>cluster</code>,
+<code>community</code>, <code>topic</code>, <code>block</code> or <code>label</code> column (first match in that
+order wins), one row per node. Nodes are matched by name; nodes present in
+only one labeling are dropped. A fitted model is read through its
+one-label-per-node table: a fit of <code><a href="hg_communities.html">hg_communities()</a></code> on a hypergraph
+through its medoid partition (<code>hg_get(fit, what = "medoid")</code>), a
+<code><a href="hg_mmsbm.html">hg_mmsbm()</a></code> fit through each node's strongest community
+(<code>what = "nodes"</code>), a <code><a href="hg_topics.html">hg_topics()</a></code> model through each document's
+dominant topic (<code>what = "documents"</code>), and a <code><a href="text_hypergraph.html">text_hypergraph()</a></code>
+through its document table, so a corpus column is scored by naming it
+in <code>label</code>.</p></dd>
 
 
 <dt id="arg-what">what<a class="anchor" aria-label="anchor" href="#arg-what"></a></dt>
@@ -115,9 +129,11 @@ change of method, topic by topic.</p></dd>
 <dt id="arg-node-label">node, label<a class="anchor" aria-label="anchor" href="#arg-node-label"></a></dt>
 <dd><p>Column names, one name for both labelings or two
 names for <code>x</code> and <code>y</code> in turn, that override the defaults above –
-<code>hg_agreement(predictions, corpus, node = c("node", "doc"), label = c("predicted", "year"))</code> scores a classifier against a column of the
-corpus table without reshaping it. <code>label = NULL</code> (default) keeps the
-<code>predicted</code> / <code>cluster</code> / <code>label</code> lookup.</p></dd>
+<code>hg_agreement(predictions, corpus, label = c("predicted", "year"))</code>
+scores a classifier against a column of the corpus. <code>node = NULL</code>
+(default) uses <code>node</code>, else <code>doc</code>; <code>label = NULL</code> (default) keeps the
+<code>predicted</code> / <code>cluster</code> / <code>community</code> / <code>topic</code> / <code>block</code> / <code>label</code>
+lookup.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -165,10 +181,9 @@ Research</em>, 11, 2837–2854.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     label_x n   label_y overlap share</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 Cluster 1 2 Cluster 1       2     1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 Cluster 2 2 Cluster 2       2     1</span>
-<span class="r-in"><span><span class="co"># a labeling read from any table: name its node and label columns</span></span></span>
+<span class="r-in"><span><span class="co"># a labeling read from any table: name its label column</span></span></span>
 <span class="r-in"><span><span class="va">known</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>doc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cooking_1"</span>, <span class="st">"space_2"</span><span class="op">)</span>, theme <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cooking"</span>, <span class="st">"space"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">hg_agreement</span><span class="op">(</span><span class="va">topics</span>, <span class="va">known</span>, node <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"node"</span>, <span class="st">"doc"</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster"</span>, <span class="st">"theme"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>             what <span class="op">=</span> <span class="st">"table"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">hg_agreement</span><span class="op">(</span><span class="va">topics</span>, <span class="va">known</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster"</span>, <span class="st">"theme"</span><span class="op">)</span>, what <span class="op">=</span> <span class="st">"table"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     label_x label_y n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 Cluster 1 cooking 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 Cluster 2   space 1</span>

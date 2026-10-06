@@ -186,5 +186,15 @@ hg_sequences(hg, actor = "student", order_by = "turn", state = "phase")
 # Into the memory family: every memory verb reads the long table.
 seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
 hon(seqs, action = "action", actor = "actor", time = "time", max_order = 2L)
-#> Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone): unused argument (timezone = timezone)
+#> Higher-order network: 2 states, 2 nodes, 4 rules (highest order 1, min_freq 1, 2 sequences)
+#>                    path      from        to count probability from_order
+#>  Cluster 1 -> Cluster 1 Cluster 1 Cluster 1     2         0.5          1
+#>  Cluster 1 -> Cluster 2 Cluster 1 Cluster 2     2         0.5          1
+#>  Cluster 2 -> Cluster 1 Cluster 2 Cluster 1     1         0.5          1
+#>  Cluster 2 -> Cluster 2 Cluster 2 Cluster 2     1         0.5          1
+#>  to_order
+#>         1
+#>         1
+#>         1
+#>         1
 ```

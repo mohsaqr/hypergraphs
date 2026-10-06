@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
@@ -36,7 +37,12 @@
 <li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -282,7 +288,7 @@ uniform value; a diffuse topic sits close to it.</p>
 <div class="section level2">
 <h2 id="relations-between-topics">Relations between topics<a class="anchor" aria-label="anchor" href="#relations-between-topics"></a>
 </h2>
-<p><code><a href="../reference/hg_relations.html">hg_relations()</a></code> builds the topic-by-topic co-occurrence
+<p><code><a href="../reference/topic_network.html">topic_network()</a></code> builds the topic-by-topic co-occurrence
 network through shared vocabulary. For each pair of topics it sums, over
 all words, the product of the number of documents in each topic that
 contain the word, the full-counting aggregation of bibliometric keyword
@@ -294,14 +300,15 @@ divides it by the geometric mean of the two topics’ totals and lies in
 and with <code>what = "network"</code> a
 <code>cograph_network</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">relations</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_relations.html">hg_relations</a></span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, similarity <span class="op">=</span> <span class="st">"cosine"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">relations</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topic_network.html">topic_network</a></span><span class="op">(</span><span class="va">hg</span>, clusters <span class="op">=</span> <span class="va">topics</span>, similarity <span class="op">=</span> <span class="st">"cosine"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">relations</span><span class="op">)</span></span></code></pre></div>
 <p>Every pair of topics shares the corpus vocabulary, so all 120 cosine
 weights lie between 0.58 and 0.90. The plot keeps the upper quartile of
 the edges (<code>minimum = 0.82</code>), places the topics with a spring
 layout and scales line width by weight.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">network</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_relations.html">hg_relations</a></span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, similarity <span class="op">=</span> <span class="st">"cosine"</span>, what <span class="op">=</span> <span class="st">"network"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">network</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topic_network.html">topic_network</a></span><span class="op">(</span><span class="va">hg</span>, clusters <span class="op">=</span> <span class="va">topics</span>, similarity <span class="op">=</span> <span class="st">"cosine"</span>,</span>
+<span>                            what <span class="op">=</span> <span class="st">"network"</span><span class="op">)</span></span>
 <span><span class="fu">cograph</span><span class="fu">::</span><span class="fu"><a href="https://sonsoles.me/cograph/reference/splot.html" class="external-link">splot</a></span><span class="op">(</span><span class="va">network</span>, layout <span class="op">=</span> <span class="st">"spring"</span>, minimum <span class="op">=</span> <span class="fl">0.82</span>,</span>
 <span>               edge_width_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>

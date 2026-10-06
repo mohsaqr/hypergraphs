@@ -7,9 +7,13 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/ROADMAP-text.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/ROADMAP.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/TODO-text.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/articles/argentina-tribunals.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/articles/benchmarks.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/articles/covid-topics.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/articles/hypergat-classification.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/articles/hypergraphs.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/articles/index.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/articles/legal-hypergraphs.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/articles/text-constructions.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/articles/text-hypergraphs.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/articles/topic-mixtures.html</loc></url>
@@ -20,8 +24,8 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/covid_abstracts.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/covid_embeddings.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/covid_sample.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/debug_events.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/forum_posts.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/gfcc_citations.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/gfcc_decisions.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.html</loc></url>
@@ -36,7 +40,6 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.net_hg.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.net_hon.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_classify.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_cocluster.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_communities.html</loc></url>
@@ -47,11 +50,14 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_compare_communities.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_degree.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_degree_correlation.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_dictionary.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_edge_centrality.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_edges.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_embed.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_euler.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_get.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg_cluster.html</loc></url>
@@ -91,17 +97,11 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_modularity.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_motifs.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_network.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_neural.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_null_test.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_pagerank.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_project.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_qanalysis.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_relations.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_representations.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_sample_gnp.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_sample_sbm.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_sample_uniform.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_seeds.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_sequences.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.html</loc></url>
@@ -114,7 +114,6 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_topics.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_transitivity.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_wasserstein.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypergraphs/reference/hg_write_hif.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hon.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/honem.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/hypa.default.html</loc></url>
@@ -130,14 +129,17 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/memory.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/mogen.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.hypergraphs_distribution.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_cluster.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_pairwise.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg_transduction.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_boot.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_communities.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_compare.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/predict.hg_hypergat.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/print.hypergraphs_result.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/print.net_hg_cluster.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/print.net_hg_transduction.html</loc></url>
@@ -145,6 +147,7 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/print.net_hon_communities.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/print.net_hon_compare.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/print.text_hypergraph.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/random_hypergraph.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/result-summary.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/ring_communities.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/ring_sequences.html</loc></url>
@@ -155,6 +158,8 @@
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/summary.net_hg_transduction.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/topic_network.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypergraphs/reference/tutoring_events.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.html</loc></url>
 </urlset>
 

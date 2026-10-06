@@ -15,7 +15,7 @@ structure families, and hypergraphs implements all three behind one taxonomy."><
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,13 +23,19 @@ structure families, and hypergraphs implements all three behind one taxonomy."><
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -105,11 +111,11 @@ topology <code><a href="hg_homology.html">hg_homology()</a></code>, <code><a hre
 a unit, with no requirement that its subsets also be relations.
 Constructors <code><a href="network_hypergraph.html">network_hypergraph()</a></code>, <code><a href="window_hypergraph.html">window_hypergraph()</a></code>,
 <code><a href="group_hypergraph.html">group_hypergraph()</a></code>, <code><a href="temporal_hypergraph.html">temporal_hypergraph()</a></code>; random models
-<code><a href="hg_sample_gnp.html">hg_sample_gnp()</a></code>, <code><a href="hg_sample_sbm.html">hg_sample_sbm()</a></code>, <code><a href="hg_sample_uniform.html">hg_sample_uniform()</a></code>; measures <code><a href="hg_measures.html">hg_measures()</a></code>,
+<code><a href="random_hypergraph.html">random_hypergraph()</a></code>; measures <code><a href="hg_measures.html">hg_measures()</a></code>,
 <code><a href="hg_centrality.html">hg_centrality()</a></code>; spectral methods <code><a href="hg_laplacian.html">hg_laplacian()</a></code>,
 <code><a href="hg_cluster.html">hg_cluster()</a></code>, <code><a href="hg_classify.html">hg_classify()</a></code>; PageRank
-<code><a href="hg_pagerank.html">hg_pagerank()</a></code>; embeddings <code><a href="hg_embed.html">hg_embed()</a></code>; projections <code><a href="hg_clique_expansion.html">hg_clique_expansion()</a></code>,
-<code><a href="hg_project.html">hg_project()</a></code>, <code><a href="hg_line_graph.html">hg_line_graph()</a></code>,
+<code><a href="hg_pagerank.html">hg_pagerank()</a></code>; embeddings <code><a href="hg_embed.html">hg_embed()</a></code>; projections <code><a href="pairwise_network.html">pairwise_network()</a></code>,
+<code><a href="hg_line_graph.html">hg_line_graph()</a></code>,
 <code><a href="dual_hypergraph.html">dual_hypergraph()</a></code>; temporal views <code><a href="hg_snapshot.html">hg_snapshot()</a></code>,
 <code><a href="hg_snapshots.html">hg_snapshots()</a></code>; hyperedge tables <code><a href="hg_edges.html">hg_edges()</a></code> and
 s-centrality <code><a href="hg_edge_centrality.html">hg_edge_centrality()</a></code>; communities
@@ -174,7 +180,7 @@ family is the corpus front end of the hypergraph family: a
 it, and every <code>hg_*()</code> verb takes any <code>net_hg</code> in return.
 <code><a href="simplicial.html">simplicial()</a></code> with <code>type = "pathway"</code> turns a memory network into a
 simplicial complex; <code><a href="window_hypergraph.html">window_hypergraph()</a></code> turns the same sequences into a
-hypergraph; <code><a href="hg_clique_expansion.html">hg_clique_expansion()</a></code> projects a hypergraph back to a pairwise
+hypergraph; <code><a href="pairwise_network.html">pairwise_network()</a></code> projects a hypergraph back to a pairwise
 network that any of the first-order tools accept.
 <code>hg_get(x, what = "pathways")</code> on a memory network hands its
 sequence-derived path strings to the other two.</p>

@@ -59,8 +59,8 @@ the sentence embeddings `sbert`, both optional.
 | [`hg_laplacian()`](https://mohsaqr.github.io/hypergraphs/reference/hg_laplacian.md), [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md), [`hg_joint_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_joint_cluster.md), [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md) | Weighted normalised Laplacian; RDC-Spec, RDC-SymNMF, J-NMF and JS-NMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
 | [`hg_pagerank()`](https://mohsaqr.github.io/hypergraphs/reference/hg_pagerank.md) | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
 | [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md), [`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md) | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
-| [`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md), [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md), [`hg_line_graph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_line_graph.md) | Projections: weighted pairwise network, association-weighted graph, s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
-| [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md), [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md), [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md) | Interval and contact hypergraphs in Dynet’s vocabulary (`actor`/`group`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
+| [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md), [`hg_line_graph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_line_graph.md) | Projections: the pairwise network (clique, association or citation weighting) as a network object, and the s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
+| [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md), [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md), [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md) | Interval and contact hypergraphs in a standard vocabulary (`node`/`group` or `from`/`to`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
 | [`hg_edges()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edges.md), [`hg_edge_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edge_centrality.md) | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
 | [`hg_motifs()`](https://mohsaqr.github.io/hypergraphs/reference/hg_motifs.md) | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
 | [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md), [`hg_community_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_community_quality.md) | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance (on a memory network: the map equation for memory networks) | Coupette, Hartung & Katz (2024); Rosvall et al. (2014) |
@@ -170,7 +170,7 @@ sc <- simplicial(net, type = "pathway")
 hg_betti(sc)
 
 # hypergraph: each session as one multi-way interaction over its codes
-hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
+hg <- group_hypergraph(human_long, node = "code", hyperedge = "session_id")
 hg_centrality(hg, type = "pagerank")
 
 # text: a corpus as a document-word hypergraph, clustered into topics
@@ -183,7 +183,7 @@ hg_keywords(thg, topics, n = 5, type = "ctfidf", collapse = TRUE)  # BERTopic's 
 hg_keywords(thg, topics, n = 5, type = "centrality", collapse = TRUE)
 ```
 
-[`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md)
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
 projects a hypergraph back to a pairwise network that any first-order
 tool accepts; `hg_get(net, what = "pathways")` hands sequence-derived
 path strings from the memory family to the other two.

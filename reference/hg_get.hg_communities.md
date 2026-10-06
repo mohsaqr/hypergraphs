@@ -14,7 +14,10 @@ print(x, n = 10L, ...)
 hg_get(
   x,
   what = c("medoid", "partitions", "runs", "sizes", "ami", "ari", "nmi", "weights"),
-  ...
+  ...,
+  converged = NULL,
+  sort_by = NULL,
+  top = NULL
 )
 
 # S3 method for class 'hg_communities'
@@ -46,10 +49,30 @@ plot(x, ...)
   similarity tables have one row per distinct pair of runs (`run_a`,
   `run_b`, and the similarity), without the diagonal.
 
+- converged:
+
+  For `what = "runs"` of an IRMM fit: `TRUE` keeps the runs whose
+  weights settled, `FALSE` the runs that reached `max_iter`. `NULL`
+  (default) keeps every run.
+
+- sort_by:
+
+  For `what = "runs"`: a numeric column of the runs table
+  (`"modularity"`, `"n_communities"` or `"iterations"`) to order the
+  runs by, largest first, ties broken by run number. `NULL` (default)
+  keeps run order.
+
+- top:
+
+  `NULL` (default, every row) or the number of first rows of any table
+  to return, applied after `converged` and `sort_by`.
+
 ## Value
 
 [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
-a base data.frame. [`print()`](https://rdrr.io/r/base/print.html): `x`,
+a base data.frame. Raises `hypergraphs_bad_input` for `converged` or
+`sort_by` with a table other than `"runs"`, or `converged` with an
+Infomap fit. [`print()`](https://rdrr.io/r/base/print.html): `x`,
 invisibly. [`plot()`](https://rdrr.io/r/graphics/plot.default.html): the
 cograph plot of the projection, coloured by the medoid communities.
 
@@ -64,8 +87,8 @@ h <- group_hypergraph(dat, "member", "edge")
 if (requireNamespace("igraph", quietly = TRUE)) {
   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
   hg_get(fit, what = "runs")
+  hg_get(fit, what = "runs", sort_by = "n_communities", top = 1)
 }
 #>   run seed n_communities codelength
 #> 1   1    1             2   2.052397
-#> 2   2    2             2   2.052397
 ```

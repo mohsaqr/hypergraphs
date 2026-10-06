@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/hypergraphs.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
@@ -38,7 +39,12 @@
 <li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="articles/index.html">More articles...</a></li>
   </ul>
@@ -279,9 +285,9 @@
 </tr>
 <tr>
 <td>
-<code><a href="reference/hg_clique_expansion.html">hg_clique_expansion()</a></code>, <code><a href="reference/hg_project.html">hg_project()</a></code>, <code><a href="reference/hg_line_graph.html">hg_line_graph()</a></code>
+<code><a href="reference/pairwise_network.html">pairwise_network()</a></code>, <code><a href="reference/hg_line_graph.html">hg_line_graph()</a></code>
 </td>
-<td>Projections: weighted pairwise network, association-weighted graph, s-line graph</td>
+<td>Projections: the pairwise network (clique, association or citation weighting) as a network object, and the s-line graph</td>
 <td>
 <a href="https://doi.org/10.1098/rsta.2023.0141" class="external-link">Coupette, Hartung &amp; Katz (2024)</a>; Aksoy et al. (2020)</td>
 </tr>
@@ -289,7 +295,7 @@
 <td>
 <code><a href="reference/temporal_hypergraph.html">temporal_hypergraph()</a></code>, <code><a href="reference/hg_snapshot.html">hg_snapshot()</a></code>, <code><a href="reference/hg_snapshots.html">hg_snapshots()</a></code>
 </td>
-<td>Interval and contact hypergraphs in Dynet’s vocabulary (<code>actor</code>/<code>group</code>, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a <code>step</code>/<code>window</code> grid</td>
+<td>Interval and contact hypergraphs in a standard vocabulary (<code>node</code>/<code>group</code> or <code>from</code>/<code>to</code>, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a <code>step</code>/<code>window</code> grid</td>
 <td>Coupette, Hartung &amp; Katz (2024)</td>
 </tr>
 <tr>
@@ -435,7 +441,7 @@
 <span><span class="fu"><a href="reference/hg_betti.html">hg_betti</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># hypergraph: each session as one multi-way interaction over its codes</span></span>
-<span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">human_long</span>, actor <span class="op">=</span> <span class="st">"code"</span>, group <span class="op">=</span> <span class="st">"session_id"</span><span class="op">)</span></span>
+<span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">human_long</span>, node <span class="op">=</span> <span class="st">"code"</span>, hyperedge <span class="op">=</span> <span class="st">"session_id"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">hg</span>, type <span class="op">=</span> <span class="st">"pagerank"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># text: a corpus as a document-word hypergraph, clustered into topics</span></span>
@@ -446,7 +452,7 @@
 <span><span class="fu"><a href="reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">thg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">5</span>, collapse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>                    <span class="co"># tf-idf mass</span></span>
 <span><span class="fu"><a href="reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">thg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">5</span>, type <span class="op">=</span> <span class="st">"ctfidf"</span>, collapse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>  <span class="co"># BERTopic's c-TF-IDF</span></span>
 <span><span class="fu"><a href="reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">thg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">5</span>, type <span class="op">=</span> <span class="st">"centrality"</span>, collapse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="reference/hg_clique_expansion.html">hg_clique_expansion()</a></code> projects a hypergraph back to a pairwise network that any first-order tool accepts; <code>hg_get(net, what = "pathways")</code> hands sequence-derived path strings from the memory family to the other two.</p>
+<p><code><a href="reference/pairwise_network.html">pairwise_network()</a></code> projects a hypergraph back to a pairwise network that any first-order tool accepts; <code>hg_get(net, what = "pathways")</code> hands sequence-derived path strings from the memory family to the other two.</p>
 <p>Bundled data: <code>human_long</code>, <code>ai_long</code> (coded human-AI pair-programming sessions); <code>covid_abstracts</code>, <code>covid_embeddings</code> (COVID-19 education research abstracts and their sentence embeddings).</p>
 </div>
 <div class="section level2">

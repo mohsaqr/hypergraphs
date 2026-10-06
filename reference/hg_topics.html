@@ -29,7 +29,7 @@ priors on these distributions."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,13 +37,19 @@ priors on these distributions."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -96,10 +102,11 @@ priors on these distributions.</p>
 <span><span class="co"># S3 method for class 'net_hg_topics'</span></span>
 <span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"topics"</span>, <span class="st">"shares"</span>, <span class="st">"words"</span>, <span class="st">"documents"</span>, <span class="st">"restarts"</span><span class="op">)</span>,</span>
+<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"topics"</span>, <span class="st">"shares"</span>, <span class="st">"words"</span>, <span class="st">"documents"</span>, <span class="st">"restarts"</span>, <span class="st">"prevalence"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span>,</span>
 <span>  n <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  topic <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  top <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -107,7 +114,7 @@ priors on these distributions.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, n <span class="op">=</span> <span class="fl">10L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'net_hg_topics'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, n <span class="op">=</span> <span class="fl">8L</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, n <span class="op">=</span> <span class="fl">8L</span>, type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"words"</span>, <span class="st">"prevalence"</span><span class="op">)</span>, group <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -163,7 +170,8 @@ one. Default <code>FALSE</code>.</p></dd>
 
 <dt id="arg-what">what<a class="anchor" aria-label="anchor" href="#arg-what"></a></dt>
 <dd><p>Which table: <code>"topics"</code> (default), <code>"shares"</code>, <code>"words"</code>,
-<code>"documents"</code> or <code>"restarts"</code>.</p></dd>
+<code>"documents"</code>, <code>"restarts"</code> or <code>"prevalence"</code> (the topics' mean share
+within each group of documents given by <code>group</code>).</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -180,12 +188,27 @@ one. Default <code>FALSE</code>.</p></dd>
 (labels such as <code>"Topic 3"</code>).</p></dd>
 
 
+<dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
+<dd><p>For <code>what = "prevalence"</code>: the group of each document, as
+the name of a column of the modelled text hypergraph's document table
+(<code>group = "period"</code>), a named character vector (names are document ids)
+or a data.frame with a <code>node</code> column and a <code>label</code>, <code>cluster</code>,
+<code>community</code> or <code>predicted</code> column. Documents without a group are left
+out.</p></dd>
+
+
 <dt id="arg-top">top<a class="anchor" aria-label="anchor" href="#arg-top"></a></dt>
 <dd><p>Keep only the first <code>top</code> rows of the returned table.</p></dd>
 
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
 <dd><p>Unused.</p></dd>
+
+
+<dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
+<dd><p>For <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>: <code>"words"</code> (default), the <code>n</code> most probable
+words of every topic, or <code>"prevalence"</code>, the mean share of every topic
+in each group of documents given by <code>group</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -200,12 +223,18 @@ document's topics); one row per topic and word (<code>"words"</code>: <code>topi
 <code>rank</code>, <code>word</code>, <code>probability</code>, <code>n</code> words per topic); one row per
 document with its largest share (<code>"documents"</code>: <code>node</code>, <code>topic</code>,
 <code>share</code>); or one row per start (<code>"restarts"</code>: <code>run</code>, <code>divergence</code>,
-<code>iterations</code>, <code>converged</code>, <code>best</code>, <code>agreement</code>). <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> shows the
+<code>iterations</code>, <code>converged</code>, <code>best</code>, <code>agreement</code>); or, with <code>group</code>,
+one row per topic and group (<code>"prevalence"</code>: <code>topic</code>, <code>group</code>,
+<code>prevalence</code> (the mean share over the group's documents), <code>documents</code>
+(the summed shares), <code>n</code> (the group's documents) and <code>top_words</code>), the
+topic prevalence by covariate of Roberts et al. (2014). <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> shows the
 topics, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> every table, and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> the top words of every
 topic. A start that reaches <code>max_iter</code> without converging raises the
 warning <code>hypergraphs_no_converge</code>.</p>
 <p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> returns a ggplot of the <code>n</code> most probable words of every
-topic, one panel per topic.</p>
+topic, one panel per topic, or with <code>type = "prevalence"</code> of the
+prevalence of every topic in each group, one bar per topic and group,
+the topics labelled by their top words.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -249,6 +278,10 @@ Discovery in Databases (ECML PKDD 2014)</em>, 498-513.
 <p>Kuhn, H. W. (1955). The Hungarian method for the assignment problem.
 <em>Naval Research Logistics Quarterly</em>, 2, 83-97.
 <a href="https://doi.org/10.1002/nav.3800020109" class="external-link">doi:10.1002/nav.3800020109</a></p>
+<p>Roberts, M. E., Stewart, B. M., Tingley, D., Lucas, C., Leder-Luis, J.,
+Gadarian, S. K., Albertson, B., &amp; Rand, D. G. (2014). Structural topic
+models for open-ended survey responses. <em>American Journal of
+Political Science</em>, 58(4), 1064-1082. <a href="https://doi.org/10.1111/ajps.12103" class="external-link">doi:10.1111/ajps.12103</a></p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

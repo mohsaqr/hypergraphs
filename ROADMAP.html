@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,13 +15,19 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="articles/hypergraphs.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="articles/index.html">More articles...</a></li>
   </ul></li>
@@ -145,7 +151,7 @@
 <th>Why</th>
 </tr></thead><tbody><tr><td>G1</td>
 <td>
-<strong>Done 2026-09-29.</strong> <code>hg_*</code> is the only public hypergraph naming: 27 <code>hypergraph_*</code> aliases dropped; <code>hg_allset</code> / <code>hg_hypergcn</code> / <code>hg_hnhn</code> / <code>hg_snapshot(s)</code> / <code>hg_laplacian</code> / <code>hg_joint_cluster</code> primary; engines <code>hypergraph_centrality</code> / <code>_cluster</code> / <code>_measures</code> / <code>_transduction</code> internal (<code>.hg_*_fit</code>) behind <code>hg_centrality</code> / <code>hg_cluster</code> / <code>hg_measures</code> / <code>hg_classify</code>, which gained the engines’ arguments and docs; <code>build_hypergraph()</code> -&gt; <code><a href="reference/network_hypergraph.html">network_hypergraph()</a></code>; <code>clique_expansion()</code> -&gt; <code><a href="reference/hg_clique_expansion.html">hg_clique_expansion()</a></code>; class <code>net_hypergraph*</code> -&gt; <code>net_hg*</code>. Exports 115 -&gt; 77. Guard: <code>tests/testthat/test-api-names.R</code>. Tests 4064/0; <code>--as-cran</code> 0/0/1 (network-time note only); R8 guard 0.8451; equivalence suite green after two pre-existing test-harness fixes (source-Nestimate <code>load_all()</code> left attached; blob reference pinned to pipeline commit cc58acf)</td>
+<strong>Done 2026-09-29.</strong> <code>hg_*</code> is the only public hypergraph naming: 27 <code>hypergraph_*</code> aliases dropped; <code>hg_allset</code> / <code>hg_hypergcn</code> / <code>hg_hnhn</code> / <code>hg_snapshot(s)</code> / <code>hg_laplacian</code> / <code>hg_joint_cluster</code> primary; engines <code>hypergraph_centrality</code> / <code>_cluster</code> / <code>_measures</code> / <code>_transduction</code> internal (<code>.hg_*_fit</code>) behind <code>hg_centrality</code> / <code>hg_cluster</code> / <code>hg_measures</code> / <code>hg_classify</code>, which gained the engines’ arguments and docs; <code>build_hypergraph()</code> -&gt; <code><a href="reference/network_hypergraph.html">network_hypergraph()</a></code>; <code>clique_expansion()</code> -&gt; <code>hg_clique_expansion()</code>; class <code>net_hypergraph*</code> -&gt; <code>net_hg*</code>. Exports 115 -&gt; 77. Guard: <code>tests/testthat/test-api-names.R</code>. Tests 4064/0; <code>--as-cran</code> 0/0/1 (network-time note only); R8 guard 0.8451; equivalence suite green after two pre-existing test-harness fixes (source-Nestimate <code>load_all()</code> left attached; blob reference pinned to pipeline commit cc58acf)</td>
 <td>The inherited <code>hypergraph_*</code> names are Nestimate’s; the same names overwrite each other’s S3 methods and mask verbs in every session. hypergraphs is unreleased, so the rename breaks no one</td>
 </tr><tr><td>G2</td>
 <td>
@@ -264,7 +270,7 @@
 </td>
 </tr><tr><td>7</td>
 <td>
-<strong>Done 2026-09-29</strong> (<code><a href="reference/hg_write_hif.html">hg_read_hif()</a></code> / <code><a href="reference/hg_write_hif.html">hg_write_hif()</a></code>, schema-valid, XGI + HNX round-trips). HIF read/write (makes every later oracle test cheaper)</td>
+<strong>Done 2026-09-29</strong> (<code>hg_read_hif()</code> / <code>hg_write_hif()</code>, schema-valid, XGI + HNX round-trips). HIF read/write (makes every later oracle test cheaper)</td>
 <td>HIF standard (Coll et al.)</td>
 <td>round-trip via XGI / HNX</td>
 </tr><tr><td>8</td>

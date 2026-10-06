@@ -24,7 +24,8 @@ plot(x, ...)
 
   The tidy table returned by
   [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
-  (columns `node`, `cluster`), or a named vector of cluster labels.
+  (columns `node`, `cluster`), a named vector of cluster labels, or the
+  name of a column of the hypergraph's document table.
 
 - weights:
 

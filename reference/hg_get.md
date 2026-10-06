@@ -15,6 +15,9 @@ hg_get(x, what = NULL, ...)
 
 # Default S3 method
 hg_get(x, what = NULL, ...)
+
+# S3 method for class 'net_hg_pairwise'
+hg_get(x, what = c("edges", "nodes"), ..., sort_by = NULL, top = NULL)
 ```
 
 ## Arguments
@@ -34,6 +37,15 @@ hg_get(x, what = NULL, ...)
   `min_count`, `dim`, `k`, `dimension`, `significant`, ...), `sort_by`,
   and `top` (the first `top` rows, applied last).
 
+- sort_by:
+
+  Ordering supported by the selected object's method.
+
+- top:
+
+  Number of rows to return, applied after filters and ordering as
+  described by the selected object's method.
+
 ## Value
 
 A base `data.frame`, one row per observation of the selected table. An
@@ -45,8 +57,7 @@ naming the class.
 - `net_hg` (hypergraphs):
 
   `"edges"` (default), `"nodes"`, `"memberships"`, `"sets"`,
-  `"state_counts"`, `"node_data"`, `"edge_data"`, `"incidence_data"`;
-  see
+  `"state_counts"`, `"edge_data"`; see
   [`hg_get.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg.md).
 
 - `text_hypergraph`:
@@ -54,6 +65,12 @@ naming the class.
   `"weights"` (default), `"documents"`, `"vocabulary"`, `"sentences"`;
   see
   [`hg_get.text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.text_hypergraph.md).
+
+- `hg_hypergat`:
+
+  Predictions (default), evaluation, document text, history and optional
+  attention; see
+  [`hg_get.hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md).
 
 - `net_temporal_hypergraph`:
 

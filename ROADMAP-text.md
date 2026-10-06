@@ -75,7 +75,7 @@ errors / 0 warnings / 1 environmental NOTE.
 **Status 2026-08-25: v0.2 COMPLETE.** Both constructions shipped:
 `text_hypergraph(construction = "window")` (sliding/tumbling, set-valued
 window hyperedges; w = 2 off-diagonal parity with
-[`Nestimate::wtna()`](https://saqr.me/Nestimate/reference/wtna.html)
+[`Nestimate::wtna()`](https://pak.dynasite.org/Nestimate/reference/wtna.html)
 shipped as a package test — diagonals differ by design, wtna counts
 within-window repeats) and `construction = "knn"` +
 [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md)
@@ -273,12 +273,10 @@ the graph-shaped boundary.
 
 ### Items — each names its equivalence oracle before implementation
 
-**DONE 2026-09-01
-[`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md)**
-— hypergraph to weighted graph. `method = "clique"` (unnormalised
-co-occurrence, [`identical()`](https://rdrr.io/r/base/identical.html)
-parity with
-[`Nestimate::clique_expansion()`](https://saqr.me/Nestimate/reference/clique_expansion.html))
+**DONE 2026-09-01 `hg_project()`** — hypergraph to weighted graph.
+`method = "clique"` (unnormalised co-occurrence,
+[`identical()`](https://rdrr.io/r/base/identical.html) parity with
+[`Nestimate::clique_expansion()`](https://pak.dynasite.org/Nestimate/reference/clique_expansion.html))
 and `method = "association"`, the random-walk-correct
 `w({u,v}) = sum_e 1/(|e|-1)` of Coupette et al. (2024). Verified
 2026-09-01: `clique_expansion()` is `tcrossprod(incidence)` with a

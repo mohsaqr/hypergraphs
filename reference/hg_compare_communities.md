@@ -41,7 +41,7 @@ plot(x, what = c("sizes", "similarity"), ...)
 
   Hyperedge sources for the citation and self-association projections
   when scoring, as in
-  [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md).
+  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
 
 - x:
 

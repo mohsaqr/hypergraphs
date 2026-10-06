@@ -26,7 +26,8 @@ text_hypergraph(
   k = 10L,
   embeddings = NULL,
   model = NULL,
-  sparse = NULL
+  sparse = NULL,
+  separator = NULL
 )
 ```
 
@@ -144,6 +145,18 @@ text_hypergraph(
   while tensor centralities and the null test currently require the
   dense representation.
 
+- separator:
+
+  `NULL` (default) splits the text into words. A string such as `";"`
+  reads the column as a delimited field of terms instead, such as the
+  author keywords of a bibliographic export: each term is the whole
+  phrase between separators ("higher education"), trimmed, and becomes
+  one hyperedge, so a paper is bound to the keywords its authors gave
+  it. This is the keyword incidence of co-word analysis (Callon et
+  al. 1983) read as a hypergraph. `stop_words` then names whole terms to
+  drop and `min_count` the fewest occurrences a term needs. Bag
+  construction only.
+
 ## Value
 
 An object of class `c("text_hypergraph", "net_hg")` – a
@@ -224,6 +237,11 @@ with neither `embeddings` nor the sbert package), and warns with
 `hypergraphs_dropped_documents` when some documents end up empty.
 
 ## References
+
+Callon, M., Courtial, J.-P., Turner, W. A., & Bauin, S. (1983). From
+translations to problematic networks: An introduction to co-word
+analysis. *Social Science Information*, 22(2), 191-235.
+[doi:10.1177/053901883022002003](https://doi.org/10.1177/053901883022002003)
 
 Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with less:
 Hypergraph attention networks for inductive text classification. *EMNLP

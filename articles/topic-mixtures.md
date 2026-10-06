@@ -46,8 +46,8 @@ abstracts_hg <- text_hypergraph(abstracts, column = "abstract", id = "doc",
                                 stop_words = stops, min_count = 5,
                                 min_chars = 2, sparse = FALSE)
 abstracts_hg
-#> Text hypergraph: 1000 documents, 3207 words (documents as nodes, weight = n)
-#> Hyperedges: 3207 (words); sizes 1-688, median 10
+#> Text hypergraph: 1000 documents, 3206 words (documents as nodes, weight = n)
+#> Hyperedges: 3206 (words); sizes 1-688, median 10
 #>                 doc       word count weight
 #>  2-s2.0-85082857029   addition     1      1
 #>  2-s2.0-85082857029   although     1      1
@@ -59,10 +59,10 @@ abstracts_hg
 #>  2-s2.0-85082857029    centers     1      1
 #>  2-s2.0-85082857029  challenge     1      1
 #>  2-s2.0-85082857029    changes     1      1
-#> ... 73212 more rows
+#> ... 73167 more rows
 ```
 
-The hypergraph has 1000 abstracts and 3,207 words.
+The hypergraph has 1000 abstracts and 3,206 words.
 
 ## How many topics
 
@@ -95,11 +95,11 @@ topic_search <- hg_topic_search(abstracts_hg, k = seq(4, 20, by = 4),
                                 nstart = 2, parallel = TRUE, n_cores = 2)
 topic_search
 #>    k coherence exclusivity divergence agreement converged frontier
-#> 1  4 -67.22319    8.498221   273297.4 0.6321988      TRUE    FALSE
-#> 2  8 -66.85606    8.926085   258437.1 0.5453186      TRUE    FALSE
-#> 3 12 -65.14011    8.973373   249732.6 0.4432424      TRUE     TRUE
-#> 4 16 -73.83179    9.169332   242523.0 0.4001491      TRUE     TRUE
-#> 5 20 -78.43863    9.249530   236057.8 0.3952962      TRUE     TRUE
+#> 1  4 -57.04019    8.258057   273341.7 0.6460459      TRUE     TRUE
+#> 2  8 -67.18732    8.919377   258924.3 0.5405804      TRUE    FALSE
+#> 3 12 -63.77484    9.044799   249191.7 0.4270125      TRUE     TRUE
+#> 4 16 -75.73072    9.230223   241968.0 0.4122055      TRUE     TRUE
+#> 5 20 -77.38563    9.273786   235778.3 0.4196326      TRUE     TRUE
 ```
 
 ``` r
@@ -109,10 +109,10 @@ plot(topic_search)
 
 ![](topic-mixtures_files/figure-html/topic-search-plot-1.png)
 
-Mean coherence falls from -67.2 with 4 topics to -73.8 with 16 and -78.4
-with 20, and mean exclusivity rises from 8.5 to 9.17 and 9.25. The
-models with 12, 16 and 20 topics lie on the frontier. Sixteen topics is
-the number of the published structural topic model of this literature
+Mean coherence falls from -57 with 4 topics to -75.7 with 16 and -77.4
+with 20, and mean exclusivity rises from 8.26 to 9.23 and 9.27. The
+models with 4, 12, 16 and 20 topics lie on the frontier. Sixteen topics
+is the number of the published structural topic model of this literature
 (Saqr et al. 2023), and the model below uses it.
 
 ## A mixed-membership model of 16 topics
@@ -143,39 +143,39 @@ found again from every start.
 topic_model <- hg_topics(abstracts_hg, k = 16, nstart = 5, parallel = TRUE,
                          n_cores = 2)
 topic_model
-#> Topic model (KL factorization): 16 topics, 1000 documents, 3207 words; best of 5 starts (divergence 241720, converged)
+#> Topic model (KL factorization): 16 topics, 1000 documents, 3206 words; best of 5 starts (divergence 241567, converged)
 #>     topic prevalence documents agreement
-#>   Topic 1 0.08752438  87.52438 0.6941500
-#>   Topic 2 0.08720875  87.20875 0.4538721
-#>   Topic 3 0.08302419  83.02419 0.6403082
-#>   Topic 4 0.07901333  79.01333 0.4395457
-#>   Topic 5 0.07558374  75.58374 0.5107730
-#>   Topic 6 0.07008201  70.08201 0.4917472
-#>   Topic 7 0.06634116  66.34116 0.6253662
-#>   Topic 8 0.05904374  59.04374 0.3730107
-#>   Topic 9 0.05842773  58.42773 0.3084835
-#>  Topic 10 0.05834905  58.34905 0.3185530
-#>                                              top_words
-#>         teachers, online, teaching, learning, students
-#>              education, crisis, world, article, global
-#>          online, learning, students, education, higher
-#>  education, learning, educational, digital, challenges
-#>           students, teaching, learning, online, remote
-#>          students, teaching, learning, virtual, course
-#>          school, children, schools, parents, education
-#>          education, distance, research, learning, data
-#>            social, community, education, health, media
-#>          education, experiences, policy, higher, paper
+#>   Topic 1 0.08928459  89.28459 0.4701659
+#>   Topic 2 0.08170103  81.70103 0.5401220
+#>   Topic 3 0.07823106  78.23106 0.3416270
+#>   Topic 4 0.07808382  78.08382 0.4845528
+#>   Topic 5 0.06831896  68.31896 0.3269328
+#>   Topic 6 0.06743098  67.43098 0.4000271
+#>   Topic 7 0.06704091  67.04091 0.5148371
+#>   Topic 8 0.06659078  66.59078 0.5168540
+#>   Topic 9 0.06592187  65.92187 0.7267678
+#>  Topic 10 0.06571205  65.71205 0.3998778
+#>                                            top_words
+#>          teaching, online, students, remote, faculty
+#>       teachers, teaching, online, learning, students
+#>      education, online, higher, challenges, learning
+#>      education, crisis, social, article, educational
+#>   digital, learning, teaching, research, educational
+#>  students, education, process, educational, research
+#>          learning, students, online, student, course
+#>      learning, online, education, students, distance
+#>       school, children, learning, education, parents
+#>           education, health, social, school, article
 #> ... 6 more rows
 ```
 
 The prevalence of a topic is its mean share over the abstracts, and its
 documents column is the sum of those shares, the expected number of
-abstracts it accounts for. The largest topic, led by teachers, online,
-teaching, learning, students, accounts for 8.8% of the corpus, and the
-smallest, led by learning, use, based, technology, medical, for 3.8%.
-The mean agreement of the topics across the starts is 0.44. Topics with
-a low agreement are one of several divisions of their part of the
+abstracts it accounts for. The largest topic, led by teaching, online,
+students, remote, faculty, accounts for 8.9% of the corpus, and the
+smallest, led by medical, education, students, dental, clinical, for
+3.5%. The mean agreement of the topics across the starts is 0.43. Topics
+with a low agreement are one of several divisions of their part of the
 vocabulary that the data support about equally well.
 
 ``` r
@@ -194,17 +194,17 @@ The largest share of an abstract identifies its main topic.
 main_topics <- hg_get(topic_model, what = "documents")
 head(main_topics)
 #>                 node    topic     share
-#> 1 2-s2.0-85082857029 Topic 14 0.4474206
-#> 2 2-s2.0-85083678184  Topic 2 0.2732632
-#> 3 2-s2.0-85085340620  Topic 2 0.3876842
-#> 4 2-s2.0-85085481629  Topic 2 0.4634364
-#> 5 2-s2.0-85085656133  Topic 7 0.3388212
-#> 6 2-s2.0-85085770267  Topic 9 0.8825215
+#> 1 2-s2.0-85082857029 Topic 16 0.6736757
+#> 2 2-s2.0-85083678184  Topic 4 0.3823343
+#> 3 2-s2.0-85085340620 Topic 13 0.2170913
+#> 4 2-s2.0-85085481629  Topic 4 0.5309569
+#> 5 2-s2.0-85085656133 Topic 15 0.5887669
+#> 6 2-s2.0-85085770267  Topic 5 0.5625973
 ```
 
-In the median abstract the main topic has a share of 0.53, and half the
-abstracts lie between 0.4 and 0.71. 9.2% of the abstracts have a main
-topic with a share of 0.9 or more, and 44.3% have no topic with a share
+In the median abstract the main topic has a share of 0.55, and half the
+abstracts lie between 0.4 and 0.73. 11.7% of the abstracts have a main
+topic with a share of 0.9 or more, and 42.5% have no topic with a share
 above one half. Most abstracts combine topics.
 
 The shares of a single abstract show the mixture.
@@ -214,10 +214,8 @@ The shares of a single abstract show the mixture.
 shares <- hg_get(topic_model, what = "shares")
 example_shares <- subset(shares, node == "2-s2.0-85101300775" & share >= 0.05)
 example_shares
-#>                    node    topic     share
-#> 3926 2-s2.0-85101300775  Topic 6 0.4169550
-#> 3934 2-s2.0-85101300775 Topic 14 0.4318787
-#> 3936 2-s2.0-85101300775 Topic 16 0.1289428
+#>                    node    topic share
+#> 3933 2-s2.0-85101300775 Topic 13     1
 ```
 
 ``` r
@@ -232,10 +230,10 @@ with(example_abstract, writeLines(strwrap(abstract, 78)))
 ```
 
 The abstract describes near-peer teaching in a medical course moved
-online. It takes a share of 0.43 of the topic led by medical, students,
-clinical, training, virtual and 0.42 of the topic led by students,
-teaching, learning, virtual, course. A partition would assign it to one
-of the two and lose the other half of what it is about.
+online. It takes a share of 1 of the topic led by students, medical,
+clinical, learning, virtual and NA of the topic led by . A partition
+would assign it to one of the two and lose the other half of what it is
+about.
 
 ## Topic quality
 
@@ -248,22 +246,22 @@ topic is its expected number of abstracts.
 model_quality <- hg_topic_quality(abstracts_hg, topics = topic_model)
 model_quality
 #>       topic     size n_words  coherence exclusivity coherence_type
-#> 1   Topic 1 87.52438      10  -66.13544    9.609738          umass
-#> 2   Topic 2 87.20875      10  -71.98103    9.092124          umass
-#> 3   Topic 3 83.02419      10  -55.13079    9.600369          umass
-#> 4   Topic 4 79.01333      10  -83.30129    9.389781          umass
-#> 5   Topic 5 75.58374      10  -72.49343    9.260411          umass
-#> 6   Topic 6 70.08201      10  -70.51942    9.192791          umass
-#> 7   Topic 7 66.34116      10  -72.73872    9.344828          umass
-#> 8   Topic 8 59.04374      10  -49.33452    9.146173          umass
-#> 9   Topic 9 58.42773      10 -107.62267    9.432636          umass
-#> 10 Topic 10 58.34905      10  -90.72152    9.321368          umass
-#> 11 Topic 11 54.74724      10 -102.49338    9.475982          umass
-#> 12 Topic 12 47.78552      10  -58.32491    8.859948          umass
-#> 13 Topic 13 46.24201      10  -98.34051    9.010448          umass
-#> 14 Topic 14 45.78699      10 -107.25060    9.588114          umass
-#> 15 Topic 15 43.33170      10  -97.41630    9.049778          umass
-#> 16 Topic 16 37.50845      10  -51.01024    8.996497          umass
+#> 1   Topic 1 89.28459      10  -63.29858    9.317035          umass
+#> 2   Topic 2 81.70103      10  -67.86600    9.427454          umass
+#> 3   Topic 3 78.23106      10  -48.12967    9.004363          umass
+#> 4   Topic 4 78.08382      10  -74.77638    9.191168          umass
+#> 5   Topic 5 68.31896      10  -52.63135    9.152760          umass
+#> 6   Topic 6 67.43098      10  -62.27314    9.119797          umass
+#> 7   Topic 7 67.04091      10  -59.01273    8.929498          umass
+#> 8   Topic 8 66.59078      10  -62.15559    9.342915          umass
+#> 9   Topic 9 65.92187      10  -71.61741    9.442916          umass
+#> 10 Topic 10 65.71205      10  -80.11552    8.949298          umass
+#> 11 Topic 11 55.93086      10  -88.96585    8.653444          umass
+#> 12 Topic 12 53.36061      10  -77.85715    9.240048          umass
+#> 13 Topic 13 44.18119      10  -65.90307    9.303953          umass
+#> 14 Topic 14 42.86529      10 -110.09596    9.356549          umass
+#> 15 Topic 15 40.25358      10 -108.51756    9.070723          umass
+#> 16 Topic 16 35.09241      10  -88.93457    9.060258          umass
 #>    exclusivity_type
 #> 1              frex
 #> 2              frex
@@ -312,18 +310,18 @@ topic_sets <- group_hypergraph(topic_model, threshold = 0.2, min_size = 2,
                                top = Inf)
 combinations <- hg_get(topic_sets, what = "sets")
 head(combinations)
-#>           group          hyperedge                set size count share
-#> 1 All documents  Topic 3 + Topic 4  Topic 3 + Topic 4    2    14 0.014
-#> 2 All documents  Topic 2 + Topic 5  Topic 2 + Topic 5    2    13 0.013
-#> 3 All documents  Topic 1 + Topic 5  Topic 1 + Topic 5    2    12 0.012
-#> 4 All documents  Topic 1 + Topic 6  Topic 1 + Topic 6    2    12 0.012
-#> 5 All documents  Topic 1 + Topic 3  Topic 1 + Topic 3    2    11 0.011
-#> 6 All documents Topic 2 + Topic 10 Topic 2 + Topic 10    2    11 0.011
+#>           group           hyperedge                 set size count share
+#> 1 All documents   Topic 1 + Topic 7   Topic 1 + Topic 7    2    16 0.016
+#> 2 All documents   Topic 1 + Topic 2   Topic 1 + Topic 2    2    14 0.014
+#> 3 All documents   Topic 3 + Topic 5   Topic 3 + Topic 5    2    14 0.014
+#> 4 All documents   Topic 1 + Topic 6   Topic 1 + Topic 6    2    12 0.012
+#> 5 All documents Topic 10 + Topic 11 Topic 10 + Topic 11    2    10 0.010
+#> 6 All documents  Topic 2 + Topic 12  Topic 2 + Topic 12    2    10 0.010
 ```
 
-At this threshold 62.3% of the abstracts combine two or more topics, in
-216 distinct combinations. The proportion depends on the threshold. With
-0.1 it is 88.4%, and with 0.3 it is 23%, so a count of combinations is
+At this threshold 63.8% of the abstracts combine two or more topics, in
+226 distinct combinations. The proportion depends on the threshold. With
+0.1 it is 85.8%, and with 0.3 it is 23.9%, so a count of combinations is
 reported together with its threshold. The eight most frequent
 combinations of three or more topics are plotted below. Every
 combination is a pebble around its topics, coloured by the number of
@@ -345,33 +343,22 @@ such as the publication year.
 ``` r
 
 sets_by_year <- group_hypergraph(topic_model, threshold = 0.2, min_size = 2,
-                                 by = "year", top = 2)
+                                 group = "year", top = 2)
 hg_get(sets_by_year, what = "sets")
-#>   group                          hyperedge                          set size
-#> 1  2020            2020: Topic 1 + Topic 6            Topic 1 + Topic 6    2
-#> 2  2020            2020: Topic 3 + Topic 4            Topic 3 + Topic 4    2
-#> 3  2021            2021: Topic 2 + Topic 7            Topic 2 + Topic 7    2
-#> 4  2021           2021: Topic 3 + Topic 11           Topic 3 + Topic 11    2
-#> 5  2022           2022: Topic 3 + Topic 16           Topic 3 + Topic 16    2
-#> 6  2022           2022: Topic 1 + Topic 10           Topic 1 + Topic 10    2
-#> 7  2023            2023: Topic 1 + Topic 7            Topic 1 + Topic 7    2
-#> 8  2023           2023: Topic 1 + Topic 10           Topic 1 + Topic 10    2
-#> 9  2024 2024: Topic 2 + Topic 4 + Topic 10 Topic 2 + Topic 4 + Topic 10    3
-#>   count      share
-#> 1     4 0.02247191
-#> 2     4 0.02247191
-#> 3     9 0.01391036
-#> 4     9 0.01391036
-#> 5     4 0.02797203
-#> 6     3 0.02097902
-#> 7     3 0.09677419
-#> 8     1 0.03225806
-#> 9     1 1.00000000
+#>   group                hyperedge                set size count      share
+#> 1  2020  2020: Topic 1 + Topic 7  Topic 1 + Topic 7    2     5 0.02808989
+#> 2  2020  2020: Topic 4 + Topic 5  Topic 4 + Topic 5    2     5 0.02808989
+#> 3  2021  2021: Topic 3 + Topic 5  Topic 3 + Topic 5    2    12 0.01854714
+#> 4  2021  2021: Topic 1 + Topic 7  Topic 1 + Topic 7    2    11 0.01700155
+#> 5  2022  2022: Topic 1 + Topic 2  Topic 1 + Topic 2    2     3 0.02097902
+#> 6  2022 2022: Topic 4 + Topic 11 Topic 4 + Topic 11    2     3 0.02097902
+#> 7  2023  2023: Topic 2 + Topic 9  Topic 2 + Topic 9    2     3 0.09677419
+#> 8  2023 2023: Topic 1 + Topic 11 Topic 1 + Topic 11    2     1 0.03225806
 ```
 
 ## The network of topics
 
-[`hg_network()`](https://mohsaqr.github.io/hypergraphs/reference/hg_network.md)
+[`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
 reduces the combinations to pairs. With the same threshold, the weight
 of two topics is the number of abstracts in which both are present. The
 pairs above the upper quartile of the weights are drawn, with the width
@@ -379,11 +366,11 @@ of an edge proportional to its weight.
 
 ``` r
 
-topic_network <- hg_network(abstracts_hg, topics = topic_model,
-                            threshold = 0.2)
+topic_network <- topic_network(abstracts_hg, topics = topic_model,
+                                  threshold = 0.2)
 strong_pair <- with(topic_network, quantile(weight, 0.75))
-network_view <- hg_network(abstracts_hg, topics = topic_model,
-                           threshold = 0.2, what = "network")
+network_view <- topic_network(abstracts_hg, topics = topic_model,
+                                 threshold = 0.2, what = "network")
 cograph::splot(network_view, minimum = strong_pair,
                edge_width_range = c(0.5, 6), node_fill = "#56B4E9",
                edge_color = "#0072B2")
@@ -392,7 +379,7 @@ cograph::splot(network_view, minimum = strong_pair,
 ![](topic-mixtures_files/figure-html/topic-network-1.png)
 
 Without a threshold,
-[`hg_network()`](https://mohsaqr.github.io/hypergraphs/reference/hg_network.md)
+[`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
 relates two topics by the correlation of their shares over the
 abstracts, the simple topic correlation of the stm package (Roberts et
 al. 2019).
@@ -413,22 +400,22 @@ clusters <- hg_cluster(abstracts_hg, k = 16, seed = 1)
 cluster_quality <- hg_topic_quality(abstracts_hg, clusters = clusters)
 cluster_quality
 #>         topic size n_words coherence exclusivity coherence_type
-#> 1   Cluster 1   43      10 -53.76285    8.488092          umass
-#> 2   Cluster 2   86      10 -56.98734    8.238415          umass
-#> 3   Cluster 3   61      10 -56.35060    7.666019          umass
-#> 4   Cluster 4   46      10 -82.65985    8.189977          umass
-#> 5   Cluster 5   47      10 -87.24374    8.760715          umass
-#> 6   Cluster 6   77      10 -49.88350    8.606339          umass
-#> 7   Cluster 7   64      10 -47.64373    7.452209          umass
-#> 8   Cluster 8   76      10 -58.02618    7.526915          umass
-#> 9   Cluster 9   59      10 -71.12633    8.644594          umass
-#> 10 Cluster 10   87      10 -55.87994    8.640050          umass
-#> 11 Cluster 11   32      10 -50.52326    8.163612          umass
-#> 12 Cluster 12   35      10 -47.87456    8.621547          umass
-#> 13 Cluster 13   84      10 -64.51622    8.489412          umass
-#> 14 Cluster 14   78      10 -64.96824    8.617097          umass
-#> 15 Cluster 15   49      10 -47.11714    8.488738          umass
-#> 16 Cluster 16   76      10 -56.74517    8.090683          umass
+#> 1   Cluster 1   38      10 -68.61270    8.937439          umass
+#> 2   Cluster 2   78      10 -58.98300    8.135931          umass
+#> 3   Cluster 3   68      10 -63.04592    8.025318          umass
+#> 4   Cluster 4   49      10 -62.14649    7.796460          umass
+#> 5   Cluster 5   61      10 -66.20346    7.663566          umass
+#> 6   Cluster 6   57      10 -68.27162    8.299203          umass
+#> 7   Cluster 7   69      10 -52.76982    8.221282          umass
+#> 8   Cluster 8   61      10 -83.49170    8.768531          umass
+#> 9   Cluster 9   54      10 -60.71516    7.979398          umass
+#> 10 Cluster 10   59      10 -62.14102    8.290540          umass
+#> 11 Cluster 11   81      10 -56.10482    8.760107          umass
+#> 12 Cluster 12   38      10 -49.35100    8.634525          umass
+#> 13 Cluster 13   71      10 -57.59601    8.653729          umass
+#> 14 Cluster 14   61      10 -60.80613    8.412389          umass
+#> 15 Cluster 15   88      10 -58.01940    8.047817          umass
+#> 16 Cluster 16   67      10 -61.23081    8.471678          umass
 #>    exclusivity_type
 #> 1              frex
 #> 2              frex
@@ -453,11 +440,11 @@ cluster_quality
 hg_agreement(clusters, main_topics, label = c("cluster", "topic"),
              method = c("ari", "nmi"))
 #>      n agreement aligned       ari       nmi
-#> 1 1000         0     347 0.1297581 0.2816076
+#> 1 1000         0     334 0.1286573 0.2918899
 ```
 
-The clusters have a mean coherence of -59.5 and a mean exclusivity of
-8.29, against -78.4 and 9.27 for the topics of the mixed model, so the
+The clusters have a mean coherence of -61.8 and a mean exclusivity of
+8.32, against -73.9 and 9.16 for the topics of the mixed model, so the
 clusters are more coherent and less exclusive. The adjusted Rand index
 between the clusters and the main topics is 0.13. A partition has to
 place every abstract that lies between topics on one side, and the two
@@ -477,16 +464,16 @@ cluster_membership <- hg_cluster(abstracts_hg, k = 16, algorithm = "symnmf",
                                  seed = 1, nstart = 5, what = "membership")
 subset(cluster_membership, node == "2-s2.0-85101300775" & membership >= 0.05)
 #>                    node    cluster membership
-#> 3921 2-s2.0-85101300775  Cluster 1 0.43309197
-#> 3922 2-s2.0-85101300775  Cluster 2 0.16387455
-#> 3928 2-s2.0-85101300775  Cluster 8 0.08706796
-#> 3929 2-s2.0-85101300775  Cluster 9 0.10006368
-#> 3930 2-s2.0-85101300775 Cluster 10 0.06309764
-#> 3933 2-s2.0-85101300775 Cluster 13 0.07978621
+#> 3921 2-s2.0-85101300775  Cluster 1 0.43443557
+#> 3922 2-s2.0-85101300775  Cluster 2 0.16082991
+#> 3928 2-s2.0-85101300775  Cluster 8 0.08741200
+#> 3929 2-s2.0-85101300775  Cluster 9 0.10151056
+#> 3930 2-s2.0-85101300775 Cluster 10 0.06038962
+#> 3933 2-s2.0-85101300775 Cluster 13 0.07950704
 ```
 
 The main cluster of an abstract has a membership of 0.24 in the median
-abstract, and 0.6% of the abstracts have a main cluster with a
+abstract, and 0.5% of the abstracts have a main cluster with a
 membership of 0.9 or more. The graded memberships of the clustering also
 place most abstracts between clusters.
 

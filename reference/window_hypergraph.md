@@ -118,7 +118,7 @@ Conference on Machine Learning*, PMLR 97, 1172-1181.
 [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
 [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
 [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md),
-[`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md)
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
 
 ## Examples
 
@@ -126,13 +126,30 @@ Conference on Machine Learning*, PMLR 97, 1172-1181.
 hg <- window_hypergraph(human_long, action = "code",
                         actor = "session_id", time = "timestamp",
                         window = 3L)
-#> Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone): unused argument (timezone = timezone)
 hg
-#> Error: object 'hg' not found
+#> Hypergraph: 9 nodes, 129 hyperedges (sizes 1: 9, 2: 36, 3: 84)
+#> Source: windowed sequences, window = 3, step = 1 (9762 windows from 526 sequences)
+#>  hyperedge size                     members weight
+#>         h1    1                     Command    163
+#>         h2    2            Command, Correct    140
+#>         h3    3 Command, Correct, Frustrate     55
+#>         h4    3   Command, Correct, Inquire     70
+#>         h5    3 Command, Correct, Interrupt     38
+#>         h6    3    Command, Correct, Refine     42
+#>         h7    3   Command, Correct, Request     53
+#>         h8    3   Command, Correct, Specify    152
+#>         h9    3    Command, Correct, Verify     35
+#>        h10    2          Command, Frustrate    113
+#> ... 119 more rows
 edges <- hg_get(hg)
-#> Error: object 'hg' not found
 head(edges)
-#> Error: object 'edges' not found
+#>   hyperedge size                     members weight
+#> 1        h1    1                     Command    163
+#> 2        h2    2            Command, Correct    140
+#> 3        h3    3 Command, Correct, Frustrate     55
+#> 4        h4    3   Command, Correct, Inquire     70
+#> 5        h5    3 Command, Correct, Interrupt     38
+#> 6        h6    3    Command, Correct, Refine     42
 
 # Tumbling windows over wide-format sequences
 wide <- data.frame(

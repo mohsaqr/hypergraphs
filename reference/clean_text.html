@@ -21,7 +21,7 @@ warning, so nothing leaves the corpus silently."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,13 +29,19 @@ warning, so nothing leaves the corpus silently."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -78,6 +84,7 @@ warning, so nothing leaves the corpus silently.</p>
 <span>  urls <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  copyright <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  copyright_max <span class="op">=</span> <span class="fl">300L</span>,</span>
+<span>  boilerplate <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  numbers <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  remove <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stop_words <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -104,8 +111,9 @@ strip tags (default <code>TRUE</code>).</p></dd>
 
 
 <dt id="arg-encoding">encoding<a class="anchor" aria-label="anchor" href="#arg-encoding"></a></dt>
-<dd><p>Repair common UTF-8-read-as-Latin-1 mojibake (the
-three-character garble of a curly apostrophe) and normalise typographic
+<dd><p>Repair UTF-8-read-as-Latin-1 mojibake (the
+three-character garble of a curly apostrophe, the four-character garble
+of an emoji) and normalise typographic
 quotes, dashes and non-breaking spaces to their ASCII forms (default
 <code>TRUE</code>).</p></dd>
 
@@ -130,6 +138,20 @@ under <code>copyright_max</code> characters, plus "All rights reserved" (default
 
 <dt id="arg-copyright-max">copyright_max<a class="anchor" aria-label="anchor" href="#arg-copyright-max"></a></dt>
 <dd><p>Longest tail treated as a notice (default <code>300</code>).</p></dd>
+
+
+<dt id="arg-boilerplate">boilerplate<a class="anchor" aria-label="anchor" href="#arg-boilerplate"></a></dt>
+<dd><p>Remove publisher boilerplate wherever it occurs in a
+text, not only at the end (default <code>FALSE</code>): publisher names (IEEE,
+Elsevier, Springer, Wiley, Taylor &amp; Francis, Informa, Emerald,
+Routledge, SAGE, MDPI, Frontiers, Oxford and Cambridge University
+Press, the American Chemical Society and its Division of Chemical
+Education), company suffixes (Inc, Ltd, LLC, B.V., GmbH) and the
+phrases of licence and rights notices ("all rights reserved", "under
+exclusive licence", "the author(s)", "published by", "open access",
+"Creative Commons", CC licence codes, "copyright"). Publishers change
+the wording of their notices over time, so a classifier trained on
+abstracts with boilerplate learns the publisher and the year.</p></dd>
 
 
 <dt id="arg-numbers">numbers<a class="anchor" aria-label="anchor" href="#arg-numbers"></a></dt>

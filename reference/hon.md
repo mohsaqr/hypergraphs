@@ -125,5 +125,12 @@ events <- data.frame(
 )
 hg_get(hon(events, action = "what", actor = "who", time = "step",
            max_order = 2), what = "nodes")
-#> Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone): unused argument (timezone = timezone)
+#>   id   node
+#> 1  1      a
+#> 2  2 a -> b
+#> 3  3      b
+#> 4  4      c
+#> 5  5      d
+#> 6  6      x
+#> 7  7 x -> b
 ```

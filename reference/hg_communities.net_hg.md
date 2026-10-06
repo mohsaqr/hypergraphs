@@ -55,12 +55,12 @@ hg_communities(
   `mhs`) or the `"citation"` projection (its classic graph
   representations `bg`, `mg`, and with `directed = FALSE` their
   undirected variants `bgu`, `mgu`). See
-  [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md).
+  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
 
 - duplicate_edges, self_association, edge_source:
 
   Projection controls passed to
-  [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md).
+  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
   Together these reproduce the paper's binary/multi and self-association
   representations.
 

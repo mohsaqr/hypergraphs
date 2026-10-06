@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,13 +15,19 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="articles/hypergraphs.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="articles/index.html">More articles...</a></li>
   </ul></li>
@@ -47,7 +53,7 @@
 
 <p><strong>Status (2026-09-01): EXECUTED in the working tree, uncommitted.</strong> See <code>HANDOFF.md</code> / <code>CHANGES.md</code> for what was done and the measured results. Deviations from the plan below, found while executing it:</p>
 <ul><li>
-<code><a href="https://saqr.me/Nestimate/reference/bipartite_groups.html" class="external-link">Nestimate::bipartite_groups()</a></code> does not exist in hypergraphs under that name; it is <code>group_hypergraph(member =)</code> — a pure rename with <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> output (verified on binary and weighted builds). Four call sites and all test fixtures were renamed.</li>
+<code><a href="https://pak.dynasite.org/Nestimate/reference/bipartite_groups.html" class="external-link">Nestimate::bipartite_groups()</a></code> does not exist in hypergraphs under that name; it is <code>group_hypergraph(member =)</code> — a pure rename with <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> output (verified on binary and weighted builds). Four call sites and all test fixtures were renamed.</li>
 <li>The spectral S3 methods: <strong>hypergraphs’ were kept, not ours</strong> — they are the superset (plot methods, <code>top =</code>, scalar <code>edge_weights</code>, window-count defaults). Only the <code>normalization</code> argument and its helper (<code>.hl_score_predictions()</code>) were ported.</li>
 <li>
 <code><a href="reference/hg_pagerank.html">hg_pagerank()</a></code> stays as the tidy verb (personalization, sparse path, convergence warning) beside <code>hypergraph_centrality(type = "pagerank")</code>; parity to <code>1e-10</code> is tested rather than merging the two engines.</li>
@@ -107,7 +113,7 @@
 </tr><tr><td><code>hg_project(method = "clique")</code></td>
 <td>
 <code>R/hypergraph_expansion.R</code> (93)</td>
-<td>both — <code>clique_expansion()</code> stays as the engine, <code><a href="reference/hg_project.html">hg_project()</a></code> as the tidy verb, with an <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> parity test</td>
+<td>both — <code>clique_expansion()</code> stays as the engine, <code>hg_project()</code> as the tidy verb, with an <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> parity test</td>
 </tr><tr><td><code>text_hypergraph(construction = "window")</code></td>
 <td>
 <code>R/hypergraph_window.R</code> (312)</td>

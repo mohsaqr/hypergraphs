@@ -5,8 +5,8 @@ data in this ecosystem (Dynet's `dynet()`): one row per relation, with
 the columns that name its ends and its clock. Two input shapes are
 accepted. An **edge list** names `from` and `to`, and every row is a
 hyperedge of size two, so an ordinary temporal network is the same
-object. **Co-presence data** name an `actor` and a `group`: every actor
-sharing one value of `group` (a case, a citation block, a seminar)
+object. **Membership data** name a `node` and a `hyperedge`: every node
+sharing one value of `hyperedge` (a case, a citation block, a seminar)
 belongs to one hyperedge. Two clocks are understood, and the one you
 name selects the format:
 
@@ -17,8 +17,8 @@ temporal_hypergraph(
   data,
   from = NULL,
   to = NULL,
-  actor = NULL,
-  group = NULL,
+  node = NULL,
+  hyperedge = NULL,
   time = NULL,
   start = NULL,
   end = NULL,
@@ -44,13 +44,13 @@ temporal_hypergraph(
 - from, to:
 
   Column names of a pairwise edge list. Detected from the alias table
-  when neither is given and `actor`/`group` are not named.
+  when neither is given and `node`/`hyperedge` are not named.
 
-- actor, group:
+- node, hyperedge:
 
-  Column names of co-presence data: the node, and the grouping whose
+  Column names of membership data: the node, and the grouping whose
   shared values bind nodes into one hyperedge. Naming either selects the
-  co-presence format; the other is then detected by alias if not given.
+  membership format; the other is then detected by alias if not given.
 
 - time:
 
@@ -95,7 +95,7 @@ temporal_hypergraph(
 
 - separator:
 
-  Split the `actor` column on this string, one row per member, before
+  Split the `node` column on this string, one row per member, before
   building. Bibliographic exports ship a hyperedge's members as a single
   delimited cell – EUR-Lex `citationcelex` and `eurovoc`, Scopus and Web
   of Science reference and keyword fields – so `separator = ";"`
@@ -186,7 +186,7 @@ Every other column that is constant within a hyperedge is kept as a
 hyperedge attribute in the edge metadata, where
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) can colour by
 it and where
-[`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md)
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
 finds the source a citation block belongs to. Columns that vary within a
 hyperedge, such as the seat an arbitrator held, are not attributes of
 the hyperedge and are left out.
@@ -207,7 +207,7 @@ seats <- data.frame(
   constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5),
   sector = c("oil", "oil", "oil", "gas", "gas", "gas")
 )
-thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                            start = "constituted", end = "concluded")
 thg
 #> Temporal hypergraph: 5 nodes, 2 hyperedges, 4 event times
@@ -222,10 +222,10 @@ thg
 #>    a3    B     2   5      1
 hg_snapshot(thg, at = 3)
 #> Hypergraph: 5 nodes, 2 hyperedges (sizes 3: 2)
-#> Source: group membership (actor = node, group = edge)
-#>  hyperedge size    members weight
-#>          A    3 a1, a2, p1     NA
-#>          B    3 a1, a3, p2     NA
+#> Source: group membership (node = arbitrator, hyperedge = case)
+#>  hyperedge size    members
+#>          A    3 a1, a2, p1
+#>          B    3 a1, a3, p2
 
 # a contact log on a calendar: instants at each date, cumulative on request
 contacts <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"),
@@ -244,13 +244,13 @@ calls
 #>     a   e3     8  NA      1
 hg_snapshot(calls, at = as.Date("2024-01-05"))
 #> Hypergraph: 2 nodes, 1 hyperedges (sizes 2: 1)
-#> Source: group membership (actor = node, group = edge)
-#>  hyperedge size members weight
-#>         e2    2    b, c     NA
+#> Source: group membership (node = node, hyperedge = edge)
+#>  hyperedge size members
+#>         e2    2    b, c
 hg_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
 #> Hypergraph: 3 nodes, 2 hyperedges (sizes 2: 2)
-#> Source: group membership (actor = node, group = edge)
-#>  hyperedge size members weight
-#>         e1    2    a, b     NA
-#>         e2    2    b, c     NA
+#> Source: group membership (node = node, hyperedge = edge)
+#>  hyperedge size members
+#>         e1    2    a, b
+#>         e2    2    b, c
 ```

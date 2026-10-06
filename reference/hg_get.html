@@ -17,7 +17,7 @@ orderings and top = are named arguments of the method for that class."></head><b
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,13 +25,19 @@ orderings and top = are named arguments of the method for that class."></head><b
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -48,7 +54,7 @@ orderings and top = are named arguments of the method for that class."></head><b
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Read a table from any hypergraphs object</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypergraphs/blob/main/R/accessors.R" class="external-link"><code>R/accessors.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypergraphs/blob/main/R/accessors.R" class="external-link"><code>R/accessors.R</code></a>, <a href="https://github.com/mohsaqr/hypergraphs/blob/main/R/hypergraph_project.R" class="external-link"><code>R/hypergraph_project.R</code></a></small>
       <div class="d-none name"><code>hg_get.Rd</code></div>
     </div>
 
@@ -66,7 +72,10 @@ orderings and <code>top =</code> are named arguments of the method for that clas
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hg_get</span><span class="op">(</span><span class="va">x</span>, what <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Default S3 method</span></span>
-<span><span class="fu">hg_get</span><span class="op">(</span><span class="va">x</span>, what <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">hg_get</span><span class="op">(</span><span class="va">x</span>, what <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'net_hg_pairwise'</span></span>
+<span><span class="fu">hg_get</span><span class="op">(</span><span class="va">x</span>, what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"edges"</span>, <span class="st">"nodes"</span><span class="op">)</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="cn">NULL</span>, top <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -87,6 +96,15 @@ of one of its tables (see <em>Tables by class</em>).</p></dd>
 <code>min_count</code>, <code>dim</code>, <code>k</code>, <code>dimension</code>, <code>significant</code>, ...), <code>sort_by</code>,
 and <code>top</code> (the first <code>top</code> rows, applied last).</p></dd>
 
+
+<dt id="arg-sort-by">sort_by<a class="anchor" aria-label="anchor" href="#arg-sort-by"></a></dt>
+<dd><p>Ordering supported by the selected object's method.</p></dd>
+
+
+<dt id="arg-top">top<a class="anchor" aria-label="anchor" href="#arg-top"></a></dt>
+<dd><p>Number of rows to return, applied after filters and ordering
+as described by the selected object's method.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -100,12 +118,16 @@ table. An object of a class without a method raises
 
 <dl><dt><code>net_hg</code> (hypergraphs)</dt>
 <dd><p><code>"edges"</code> (default), <code>"nodes"</code>,
-<code>"memberships"</code>, <code>"sets"</code>, <code>"state_counts"</code>, <code>"node_data"</code>,
-<code>"edge_data"</code>, <code>"incidence_data"</code>; see <code><a href="hg_get.net_hg.html">hg_get.net_hg()</a></code>.</p></dd>
+<code>"memberships"</code>, <code>"sets"</code>, <code>"state_counts"</code>, <code>"edge_data"</code>;
+see <code><a href="hg_get.net_hg.html">hg_get.net_hg()</a></code>.</p></dd>
 
 <dt><code>text_hypergraph</code></dt>
 <dd><p><code>"weights"</code> (default), <code>"documents"</code>,
 <code>"vocabulary"</code>, <code>"sentences"</code>; see <code><a href="hg_get.text_hypergraph.html">hg_get.text_hypergraph()</a></code>.</p></dd>
+
+<dt><code>hg_hypergat</code></dt>
+<dd><p>Predictions (default), evaluation, document text,
+history and optional attention; see <code><a href="hg_get.hg_hypergat.html">hg_get.hg_hypergat()</a></code>.</p></dd>
 
 <dt><code>net_temporal_hypergraph</code></dt>
 <dd><p><code>"memberships"</code> (default), <code>"edges"</code>,

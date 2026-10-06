@@ -238,7 +238,7 @@ diffuse topic sits close to it.
 
 ## Relations between topics
 
-[`hg_relations()`](https://mohsaqr.github.io/hypergraphs/reference/hg_relations.md)
+[`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
 builds the topic-by-topic co-occurrence network through shared
 vocabulary. For each pair of topics it sums, over all words, the product
 of the number of documents in each topic that contain the word, the
@@ -251,7 +251,7 @@ with `source`, `target` and `weight`, the columns Gephi reads, and with
 
 ``` r
 
-relations <- hg_relations(hg, topics, similarity = "cosine")
+relations <- topic_network(hg, clusters = topics, similarity = "cosine")
 head(relations)
 ```
 
@@ -262,7 +262,8 @@ scales line width by weight.
 
 ``` r
 
-network <- hg_relations(hg, topics, similarity = "cosine", what = "network")
+network <- topic_network(hg, clusters = topics, similarity = "cosine",
+                            what = "network")
 cograph::splot(network, layout = "spring", minimum = 0.82,
                edge_width_range = c(0.5, 8))
 ```

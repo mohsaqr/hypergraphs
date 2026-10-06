@@ -23,6 +23,7 @@ clean_text(
   urls = TRUE,
   copyright = TRUE,
   copyright_max = 300L,
+  boilerplate = FALSE,
   numbers = TRUE,
   remove = NULL,
   stop_words = NULL,
@@ -48,9 +49,10 @@ clean_text(
 
 - encoding:
 
-  Repair common UTF-8-read-as-Latin-1 mojibake (the three-character
-  garble of a curly apostrophe) and normalise typographic quotes, dashes
-  and non-breaking spaces to their ASCII forms (default `TRUE`).
+  Repair UTF-8-read-as-Latin-1 mojibake (the three-character garble of a
+  curly apostrophe, the four-character garble of an emoji) and normalise
+  typographic quotes, dashes and non-breaking spaces to their ASCII
+  forms (default `TRUE`).
 
 - citations:
 
@@ -73,6 +75,20 @@ clean_text(
 - copyright_max:
 
   Longest tail treated as a notice (default `300`).
+
+- boilerplate:
+
+  Remove publisher boilerplate wherever it occurs in a text, not only at
+  the end (default `FALSE`): publisher names (IEEE, Elsevier, Springer,
+  Wiley, Taylor & Francis, Informa, Emerald, Routledge, SAGE, MDPI,
+  Frontiers, Oxford and Cambridge University Press, the American
+  Chemical Society and its Division of Chemical Education), company
+  suffixes (Inc, Ltd, LLC, B.V., GmbH) and the phrases of licence and
+  rights notices ("all rights reserved", "under exclusive licence", "the
+  author(s)", "published by", "open access", "Creative Commons", CC
+  licence codes, "copyright"). Publishers change the wording of their
+  notices over time, so a classifier trained on abstracts with
+  boilerplate learns the publisher and the year.
 
 - numbers:
 

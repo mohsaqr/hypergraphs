@@ -27,13 +27,13 @@ hg_representations(hg, graph = c("clique", "citation"), edge_source = NULL)
 
   `"clique"` (default) or `"citation"`, the graph projection compared;
   see
-  [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md).
+  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
   `"citation"` needs hyperedge sources.
 
 - edge_source:
 
   Hyperedge sources for `graph = "citation"`, as in
-  [`hg_project()`](https://mohsaqr.github.io/hypergraphs/reference/hg_project.md);
+  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md);
   omitted when the hypergraph carries them.
 
 ## Value

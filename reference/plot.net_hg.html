@@ -25,7 +25,7 @@ selector. A hyperedge with a single member is drawn as its node alone."></head><
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,13 +33,19 @@ selector. A hyperedge with a single member is drawn as its node alone."></head><
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -84,7 +90,7 @@ selector. A hyperedge with a single member is drawn as its node alone.</p>
 <span>  color_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  linetype_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  label_size <span class="op">=</span> <span class="fl">4.2</span>,</span>
+<span>  label_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  edge_labels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  edge_label_size <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  dismantled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -110,6 +116,9 @@ selector. A hyperedge with a single member is drawn as its node alone.</p>
 <span>  pieces <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  title_gap <span class="op">=</span> <span class="fl">0.06</span>,</span>
 <span>  group <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  node_groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hulls"</span>, <span class="st">"incidence"</span><span class="op">)</span>,</span>
+<span>  sort_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -152,9 +161,11 @@ caller's random number stream is left untouched.</p></dd>
 
 <dt id="arg-color-by">color_by<a class="anchor" aria-label="anchor" href="#arg-color-by"></a></dt>
 <dd><p>Colour of the hulls: <code>NULL</code> (the hyperedges' count
-attribute described above, else one colour), <code>"size"</code>
-(hyperedge cardinality, one Okabe-Ito colour per size), the name of a
-column in the
+attribute described above, the window counts of a
+<code><a href="window_hypergraph.html">window_hypergraph()</a></code>, else one colour), <code>"size"</code>
+(hyperedge cardinality, one Okabe-Ito colour per size), <code>"weight"</code>
+(the hyperedge weights of a <code><a href="window_hypergraph.html">window_hypergraph()</a></code>, the number of
+windows behind each hyperedge), the name of a column in the
 edge metadata (<code>x$edge_data</code>), a vector named by hyperedge, or a vector
 with one value per hyperedge. Character or factor values get the
 Okabe-Ito palette; numeric values a sequential scale built from it.</p></dd>
@@ -170,9 +181,12 @@ Okabe-Ito palette; numeric values a sequential scale built from it.</p></dd>
 none, and a character vector named by node replaces the names shown.</p></dd>
 
 
-<dt id="arg-label-size-node-size">label_size, node_size<a class="anchor" aria-label="anchor" href="#arg-label-size-node-size"></a></dt>
-<dd><p>Text and point sizes (defaults <code>4.2</code> and
-<code>2.5</code>).</p></dd>
+<dt id="arg-label-size">label_size<a class="anchor" aria-label="anchor" href="#arg-label-size"></a></dt>
+<dd><p>Text size of the node labels, in mm. <code>NULL</code> (default)
+scales it to the number of labelled nodes <code>n</code>: <code>4.2</code> up to 12 labels,
+then <code>4.2 * sqrt(12 / n)</code>, the side of the area each label can claim,
+down to a floor of <code>2.2</code> (reached at 44 labels). A number is used as
+given. With <code>type = "incidence"</code> it sizes the row names instead.</p></dd>
 
 
 <dt id="arg-edge-labels">edge_labels<a class="anchor" aria-label="anchor" href="#arg-edge-labels"></a></dt>
@@ -201,6 +215,10 @@ titled with its hyperedge name. <code>edge_labels</code> does not apply.</p></dd
 <dt id="arg-ncol">ncol<a class="anchor" aria-label="anchor" href="#arg-ncol"></a></dt>
 <dd><p>Columns in the panel grid when <code>dismantled = TRUE</code>
 (default: roughly square).</p></dd>
+
+
+<dt id="arg-node-size">node_size<a class="anchor" aria-label="anchor" href="#arg-node-size"></a></dt>
+<dd><p>Point size of the nodes (default <code>2.5</code>).</p></dd>
 
 
 <dt id="arg-detail">detail<a class="anchor" aria-label="anchor" href="#arg-detail"></a></dt>
@@ -342,12 +360,13 @@ texts stay generic.</p></dd>
 
 <dt id="arg-pieces">pieces<a class="anchor" aria-label="anchor" href="#arg-pieces"></a></dt>
 <dd><p>How the bipartite layout places a hypergraph that falls into
-disconnected pieces: <code>"row"</code> (default; every piece is laid out in a
+disconnected pieces: <code>"packed"</code> (default; pieces are laid out one by
+one and packed into a square frame, so each takes room in proportion to
+its size) or <code>"row"</code> (every piece is laid out in a
 frame of its own, as if drawn alone, and the frames are set side by
 side 1.4 frame widths apart, in order of the piece's most prominent
 hyperedge – see <code>titles</code> – with a piece of one node at the middle of
-its frame) or <code>"packed"</code> (pieces are laid out one by one and packed into
-a square frame). Only the bipartite layout has pieces; <code>"row"</code> given
+its frame). Only the bipartite layout has pieces; <code>"row"</code> given
 with another layout is an error.</p></dd>
 
 
@@ -358,7 +377,8 @@ units (the layout spans 0 to 1; default <code>0.06</code>).</p></dd>
 
 <dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
 <dd><p>Draw one group only: the name of a value of the hyperedges'
-<code>group</code> attribute, such as <code>"Cluster 1"</code> of a <code><a href="group_hypergraph.html">group_hypergraph()</a></code> built
+<code>group</code> attribute (a hypergraph of counted sets with a single group is
+drawn as that group without it), such as <code>"Cluster 1"</code> of a <code><a href="group_hypergraph.html">group_hypergraph()</a></code> built
 from a clustering of sequences. Only that group's hyperedges and their
 members are drawn; for clustered sequences each node is sized by the
 sequences of the group containing it (unless <code>node_sizes</code> is given),
@@ -368,6 +388,35 @@ and its number of sequences, <code>titles</code> defaults to <code>FALSE</code> 
 legends are stacked. A
 name that is not a group, or a hypergraph without a <code>group</code> attribute,
 raises <code>hypergraphs_bad_input</code>. <code>NULL</code> (default) draws every hyperedge.</p></dd>
+
+
+<dt id="arg-node-groups">node_groups<a class="anchor" aria-label="anchor" href="#arg-node-groups"></a></dt>
+<dd><p>Colour and shape every node by its group, such as its
+community: an <code><a href="hg_communities.html">hg_communities()</a></code>, <code><a href="hg_mmsbm.html">hg_mmsbm()</a></code> or <code><a href="hg_topics.html">hg_topics()</a></code> fit, a
+<code><a href="hg_cluster.html">hg_cluster()</a></code> or <code><a href="hg_classify.html">hg_classify()</a></code> result, or a data.frame with a <code>node</code>
+column and a <code>community</code>, <code>cluster</code>, <code>predicted</code>, <code>topic</code>, <code>block</code> or
+<code>label</code> column (read as <code><a href="hg_agreement.html">hg_agreement()</a></code> reads a labeling). Groups take
+the Okabe-Ito colours in their natural order and a shape each; a node
+without a group is plotted as a small grey point. Without <code>color_by</code> the
+hulls are then grey, so the node colours carry the grouping. <code>NULL</code>
+(default) plots every node alike. Raises <code>hypergraphs_bad_input</code> with
+<code>node_sizes</code>, <code>direction</code>, <code>transitions</code>, <code>dismantled = TRUE</code> or
+<code>outline = "fill"</code>.</p></dd>
+
+
+<dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
+<dd><p><code>"hulls"</code> (default) plots each hyperedge as a pebble around
+its members; <code>"incidence"</code> plots the incidence matrix (see Details).</p></dd>
+
+
+<dt id="arg-sort-by">sort_by<a class="anchor" aria-label="anchor" href="#arg-sort-by"></a></dt>
+<dd><p>Column order of <code>type = "incidence"</code>: <code>NULL</code> (default;
+by highest member row, then name), <code>"size"</code>, the name of a column in the
+edge metadata such as a date, a vector named by hyperedge, or a vector
+with one value per hyperedge. Numbers sort largest first, as in
+<code><a href="hg_get.html">hg_get()</a></code>; dates, text and a clock column (<code>start</code>, <code>end</code>, <code>time</code>,
+... as <code><a href="temporal_hypergraph.html">temporal_hypergraph()</a></code> names them, numeric in a snapshot) sort
+ascending. Ties fall back to the default order.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -396,9 +445,15 @@ is. <code>color_by</code>, <code>titles</code> and <code>unit</code> override it
 (a colour bar 2.5 cm per key, discrete legends at most four keys to a
 row) and the plot has wide margins (40, 130, 30 and 130 pt) so title
 boxes outside the pebbles are not cut. The look of
-earlier versions is partly available through arguments: <code>alpha = 0.45</code>,
-<code>label_size = 3</code> and <code>pieces = "packed"</code>; the legend position and margins
+earlier versions is partly available through arguments: <code>alpha = 0.45</code>
+and <code>label_size = 3</code>; the legend position and margins
 through <code><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">ggplot2::theme()</a></code> added to the result.</p>
+<p>A hypergraph whose hyperedges repeat the same members, such as the trials
+of an event log, is drawn as its distinct sets: each set once, coloured by
+its number of copies, with each node sized by the hyperedges that contain
+it. A call that styles or labels the hyperedges one by one (<code>titles</code>,
+<code>color_by</code>, <code>linetype_by</code>, <code>edge_labels</code>, <code>notes</code>, <code>dismantled</code>), or
+groups the nodes (<code>node_groups</code>), draws every hyperedge.</p>
 <p>A hypergraph that falls into several disconnected pieces is laid out one
 piece at a time and the pieces are then packed into a roughly square frame.
 A force-directed layout has no force at all between two disconnected
@@ -407,6 +462,19 @@ hypergraph out at once lets a stray hyperedge drift to the edge of the
 picture and set the scale for everything else, leaving the connected
 structure a speck in the middle. Packing keeps every component at its own
 size and the frame spent on structure.</p>
+<p><code>type = "incidence"</code> plots the incidence matrix instead, after UpSet (Lex
+et al. 2014). Each node is a row and each hyperedge a column; a vertical
+bar joins the members of a hyperedge. Rows are ordered by decreasing
+hyperdegree, which a bar at the right of each row also shows, and columns
+by <code>sort_by</code>, then by their highest member row, so hyperedges that share
+the busiest nodes stand together. A bar above each column shows the
+hyperedge's size when sizes differ. Empty cells are grey points up to
+20,000 cells. Every hyperedge is a column, repeated sets included. The
+figure grows linearly with the number of hyperedges, so it stays legible
+where hulls overlap into one shape. It takes <code>color_by</code> (discrete values
+also get a point shape each), <code>legend_title</code>, <code>labels</code>, <code>edge_labels</code>
+(the column names), <code>label_size</code> and <code>edge_label_size</code> (row and column
+text in mm; defaults 8 and 7 pt).</p>
     </div>
     <div class="section level2">
     <h2 id="conditions">Conditions<a class="anchor" aria-label="anchor" href="#conditions"></a></h2>
@@ -419,7 +487,9 @@ weight, a <code>direction</code> without <code>node_sizes</code>, <code>titles</
 numeric, <code>notes</code> without titles, an invalid <code>unit</code>, <code>title_prefix</code> or
 <code>title_gap</code>, <code>pieces = "row"</code> with a layout other than
 <code>"bipartite"</code>, or node overlays or titles combined with
-<code>dismantled = TRUE</code>.</p>
+<code>dismantled = TRUE</code>; with <code>type = "incidence"</code>, any argument of the hull
+plot other than those listed in Details, and <code>sort_by</code> with
+<code>type = "hulls"</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -429,6 +499,10 @@ hypergraphs. <em>Philosophical Transactions of the Royal Society A</em>,
 <p>Fruchterman, T. M. J., &amp; Reingold, E. M. (1991). Graph drawing by
 force-directed placement. <em>Software: Practice and Experience</em>, 21(11),
 1129-1164. <a href="https://doi.org/10.1002/spe.4380211102" class="external-link">doi:10.1002/spe.4380211102</a></p>
+<p>Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., &amp; Pfister, H.
+(2014). UpSet: Visualization of intersecting sets. <em>IEEE Transactions on
+Visualization and Computer Graphics</em>, 20(12), 1983-1992.
+<a href="https://doi.org/10.1109/TVCG.2014.2346248" class="external-link">doi:10.1109/TVCG.2014.2346248</a></p>
     </div>
 
     <div class="section level2">
@@ -446,6 +520,18 @@ force-directed placement. <em>Software: Practice and Experience</em>, 21(11),
 <span class="r-plt img"><img src="plot.net_hg-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, dismantled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.net_hg-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, type <span class="op">=</span> <span class="st">"incidence"</span>, edge_labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.net_hg-5.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># tribunals in claims against Argentina, one column per tribunal by date</span></span></span>
+<span class="r-in"><span><span class="va">tribunals</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">icsid_tribunals</span>, node <span class="op">=</span> <span class="st">"arbitrator"</span>,</span></span>
+<span class="r-in"><span>                              hyperedge <span class="op">=</span> <span class="st">"case"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">argentina</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_subset.html">hg_subset</a></span><span class="op">(</span><span class="va">tribunals</span>,</span></span>
+<span class="r-in"><span>                       where <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>respondent <span class="op">=</span> <span class="st">"Argentine Republic"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                       component <span class="op">=</span> <span class="st">"largest"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">argentina</span>, type <span class="op">=</span> <span class="st">"incidence"</span>, color_by <span class="op">=</span> <span class="st">"economic_sector"</span>,</span></span>
+<span class="r-in"><span>     sort_by <span class="op">=</span> <span class="st">"constituted"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.net_hg-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># disconnected pieces are laid out separately and packed</span></span></span>
 <span class="r-in"><span><span class="va">apart</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span></span></span>
@@ -454,7 +540,7 @@ force-directed placement. <em>Software: Practice and Experience</em>, 21(11),
 <span class="r-in"><span>  <span class="st">"member"</span>, <span class="st">"event"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">apart</span>, color_by <span class="op">=</span> <span class="st">"size"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># circles sized by how often each node occurs, pointing where it goes next</span></span></span>
 <span class="r-in"><span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">40</span>, b <span class="op">=</span> <span class="fl">25</span>, c <span class="op">=</span> <span class="fl">12</span>, d <span class="op">=</span> <span class="fl">30</span>, e <span class="op">=</span> <span class="fl">5</span>, f <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
@@ -463,10 +549,10 @@ force-directed placement. <em>Software: Practice and Experience</em>, 21(11),
 <span class="r-in"><span>                    weight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">9</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, node_sizes <span class="op">=</span> <span class="va">counts</span>, direction <span class="op">=</span> <span class="va">moves</span>,</span></span>
 <span class="r-in"><span>     size_title <span class="op">=</span> <span class="st">"occurrences of the node"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, node_sizes <span class="op">=</span> <span class="va">counts</span>, direction <span class="op">=</span> <span class="va">moves</span>, transitions <span class="op">=</span> <span class="va">moves</span>,</span></span>
 <span class="r-in"><span>     arrow_style <span class="op">=</span> <span class="st">"outside"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># groups of events with their trial counts: the count colours the pebbles</span></span></span>
 <span class="r-in"><span><span class="co"># and writes a title box per group; points sized by how many trials</span></span></span>
@@ -476,11 +562,11 @@ force-directed placement. <em>Software: Practice and Experience</em>, 21(11),
 <span class="r-in"><span>  state <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Wrong"</span>, <span class="st">"Hint"</span>, <span class="st">"Retry"</span>, <span class="st">"Wrong"</span>, <span class="st">"Question"</span>, <span class="st">"Retry"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  trials <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">120</span>, <span class="fl">120</span>, <span class="fl">80</span>, <span class="fl">80</span>, <span class="fl">80</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">trial_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">members</span>, actor <span class="op">=</span> <span class="st">"state"</span>, group <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">trial_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">members</span>, node <span class="op">=</span> <span class="st">"state"</span>, hyperedge <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">event_trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>state <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Wrong"</span>, <span class="st">"Hint"</span>, <span class="st">"Question"</span>, <span class="st">"Retry"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                           trials <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">120</span>, <span class="fl">80</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trial_groups</span>, node_sizes <span class="op">=</span> <span class="va">event_trials</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-10.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

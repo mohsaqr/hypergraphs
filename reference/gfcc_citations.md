@@ -64,8 +64,8 @@ head(gfcc_citations)
 #> 4 001-074 001-322 001-074:000  1951-11-13 1952-05-28
 #> 5 001-085 001-117 001-085:000  1951-11-27 1952-02-20
 #> 6 001-202 001-184 001-202:000  1952-03-20 1952-03-20
-blocks <- temporal_hypergraph(gfcc_citations, actor = "cited",
-                              group = "block", time = "date_citing",
+blocks <- temporal_hypergraph(gfcc_citations, node = "cited",
+                              hyperedge = "block", time = "date_citing",
                               nodes = gfcc_decisions, sparse = TRUE)
 summary(blocks)
 #>   n_nodes n_hyperedges n_event_times first_time last_time n_memberships

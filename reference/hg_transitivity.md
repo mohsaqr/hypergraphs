@@ -146,7 +146,7 @@ Chodrow, P. S. (2020). Configuration models of random hypergraphs.
 
 [`hg_assortativity()`](https://mohsaqr.github.io/hypergraphs/reference/hg_assortativity.md),
 [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
-[`hg_clique_expansion()`](https://mohsaqr.github.io/hypergraphs/reference/hg_clique_expansion.md).
+[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
 
 ## Examples
 
@@ -155,7 +155,7 @@ groups <- data.frame(
   member = c("a", "b", "c", "a", "d", "b", "d", "c", "d", "e"),
   group  = c("g1", "g1", "g1", "g2", "g2", "g3", "g3", "g4", "g4", "g4")
 )
-hg <- group_hypergraph(groups, actor = "member", group = "group")
+hg <- group_hypergraph(groups, node = "member", hyperedge = "group")
 hg_transitivity(hg, type = c("projection", "extra_overlap"))
 #>   node projection extra_overlap
 #> 1    a  1.0000000     1.0000000

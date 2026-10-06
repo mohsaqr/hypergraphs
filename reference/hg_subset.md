@@ -18,6 +18,7 @@ hg_subset(
   nodes = NULL,
   where = NULL,
   size = NULL,
+  component = c("all", "largest"),
   drop_isolated = TRUE
 )
 ```
@@ -62,6 +63,15 @@ hg_subset(
   [`hg_motifs()`](https://mohsaqr.github.io/hypergraphs/reference/hg_motifs.md)
   needs.
 
+- component:
+
+  `"all"` (default) keeps every connected component; `"largest"` keeps
+  only the largest connected component, in which two nodes are connected
+  when a chain of shared hyperedges joins them. Spectral clustering and
+  label spreading need a connected hypergraph (Hayashi et al. 2020), and
+  a corpus of short texts often holds a few texts that share no word
+  with the rest. Applied after the other filters.
+
 - drop_isolated:
 
   Drop nodes that belong to no retained hyperedge? Default `TRUE`.
@@ -70,8 +80,17 @@ hg_subset(
 ## Value
 
 A `net_hg` whose incidence matrix is the selected sub-matrix of the
-input, sparse if the input is sparse. Edge metadata (`edge_data`) and
-duplicate multiplicities (`edge_multiplicity`) are subset alongside.
+input, sparse if the input is sparse. Edge metadata (`edge_data`),
+duplicate multiplicities (`edge_multiplicity`) and the window counts of
+a
+[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+are subset alongside. The nodes the subset removes are recorded in
+`params$subset$removed`, and the labels of removed nodes are set aside
+with a `hypergraphs_dropped_documents` warning by
+[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
+[`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+and the other verbs that take labels, so the table that built the
+hypergraph can be passed back whole.
 
 ## References
 
@@ -79,6 +98,11 @@ Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 *Philosophical Transactions of the Royal Society A*, 382(2270),
 20230141.
 [doi:10.1098/rsta.2023.0141](https://doi.org/10.1098/rsta.2023.0141)
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. *Proceedings of CIKM 2020*,
+495-504.
+[doi:10.1145/3340531.3412034](https://doi.org/10.1145/3340531.3412034)
 
 ## Examples
 
@@ -88,22 +112,27 @@ dat <- data.frame(
   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3"),
   kind = c("x", "x", "x", "x", "x", "x", "y", "y")
 )
-hg <- group_hypergraph(dat, actor = "member", group = "event")
+hg <- group_hypergraph(dat, node = "member", hyperedge = "event")
 hg_subset(hg, edges = c("e1", "e2"))
 #> Hypergraph: 4 nodes, 2 hyperedges (sizes 3: 2)
-#> Source: group membership (actor = member, group = event)
-#>  hyperedge size members weight
-#>         e1    3 a, b, c     NA
-#>         e2    3 b, c, d     NA
+#> Source: group membership (node = member, hyperedge = event)
+#>  hyperedge size members
+#>         e1    3 a, b, c
+#>         e2    3 b, c, d
 hg_subset(hg, nodes = c("b", "c", "d", "e"))
 #> Hypergraph: 4 nodes, 2 hyperedges (sizes 2: 1, 3: 1)
-#> Source: group membership (actor = member, group = event)
-#>  hyperedge size members weight
-#>         e2    3 b, c, d     NA
-#>         e3    2    d, e     NA
+#> Source: group membership (node = member, hyperedge = event)
+#>  hyperedge size members
+#>         e2    3 b, c, d
+#>         e3    2    d, e
 hg_subset(hg, where = c(kind = "y"))
 #> Hypergraph: 2 nodes, 1 hyperedges (sizes 2: 1)
-#> Source: group membership (actor = member, group = event)
-#>  hyperedge size members weight
-#>         e3    2    d, e     NA
+#> Source: group membership (node = member, hyperedge = event)
+#>  hyperedge size members
+#>         e3    2    d, e
+hg_subset(hg, edges = c("e1", "e3"), component = "largest")
+#> Hypergraph: 3 nodes, 1 hyperedges (sizes 3: 1)
+#> Source: group membership (node = member, hyperedge = event)
+#>  hyperedge size members
+#>         e1    3 a, b, c
 ```

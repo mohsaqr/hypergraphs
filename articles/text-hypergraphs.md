@@ -206,8 +206,7 @@ aggregate(year ~ predicted, data = predicted_years, FUN = mean)
 
 ``` r
 
-hg_agreement(predictions, covid_abstracts,
-             node = c("node", "doc"), label = c("predicted", "year"),
+hg_agreement(predictions, covid_abstracts, label = c("predicted", "year"),
              what = "table")
 #>   label_x label_y  n
 #> 1   early    2020  3
@@ -323,13 +322,13 @@ directly:
 # document, term, count (verified against quanteda 4.x / tidytext 0.4.x)
 group_hypergraph(
   tidytext::tidy(my_dfm),
-  actor = "term", group = "document", weight = "count"
+  node = "term", hyperedge = "document", weight = "count"
 )
 
 # tidytext: word counts are already long (document, word, n)
 group_hypergraph(
   my_word_counts,
-  actor = "word", group = "document", weight = "n"
+  node = "word", hyperedge = "document", weight = "n"
 )
 ```
 

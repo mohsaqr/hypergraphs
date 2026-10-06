@@ -101,8 +101,8 @@ head(icsid_tribunals)
 #> 4       Jamaica
 #> 5       Jamaica
 #> 6       Jamaica
-tribunals <- temporal_hypergraph(icsid_tribunals, actor = "arbitrator",
-                                 group = "case", start = "constituted",
+tribunals <- temporal_hypergraph(icsid_tribunals, node = "arbitrator",
+                                 hyperedge = "case", start = "constituted",
                                  end = "concluded")
 summary(tribunals)
 #>   n_nodes n_hyperedges n_event_times first_time last_time n_memberships

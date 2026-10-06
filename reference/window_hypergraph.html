@@ -27,7 +27,7 @@ hg_classify()).'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,13 +35,19 @@ hg_classify()).'></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/hypergraphs.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
-    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
+    <li><a class="dropdown-item" href="../articles/argentina-tribunals.html">Analysis of ICSID tribunals in claims against Argentina</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -170,7 +176,7 @@ International Conference on Machine Learning</em>, PMLR 97, 1172-1181.</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="network_hypergraph.html">network_hypergraph()</a></code>, <code><a href="group_hypergraph.html">group_hypergraph()</a></code>,
-<code><a href="hg_measures.html">hg_measures()</a></code>, <code><a href="hg_cluster.html">hg_cluster()</a></code>, <code><a href="hg_clique_expansion.html">hg_clique_expansion()</a></code></p></div>
+<code><a href="hg_measures.html">hg_measures()</a></code>, <code><a href="hg_cluster.html">hg_cluster()</a></code>, <code><a href="pairwise_network.html">pairwise_network()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -178,13 +184,30 @@ International Conference on Machine Learning</em>, PMLR 97, 1172-1181.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu">window_hypergraph</span><span class="op">(</span><span class="va">human_long</span>, action <span class="op">=</span> <span class="st">"code"</span>,</span></span>
 <span class="r-in"><span>                        actor <span class="op">=</span> <span class="st">"session_id"</span>, time <span class="op">=</span> <span class="st">"timestamp"</span>,</span></span>
 <span class="r-in"><span>                        window <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone):</span> unused argument (timezone = timezone)</span>
 <span class="r-in"><span><span class="va">hg</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'hg' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 9 nodes, 129 hyperedges (sizes 1: 9, 2: 36, 3: 84)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Source: windowed sequences, window = 3, step = 1 (9762 windows from 526 sequences)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size                     members weight</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h1    1                     Command    163</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h2    2            Command, Correct    140</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h3    3 Command, Correct, Frustrate     55</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h4    3   Command, Correct, Inquire     70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h5    3 Command, Correct, Interrupt     38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h6    3    Command, Correct, Refine     42</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h7    3   Command, Correct, Request     53</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h8    3   Command, Correct, Specify    152</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h9    3    Command, Correct, Verify     35</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        h10    2          Command, Frustrate    113</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ... 119 more rows</span>
 <span class="r-in"><span><span class="va">edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">hg</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'hg' not found</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">edges</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'edges' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   hyperedge size                     members weight</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        h1    1                     Command    163</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        h2    2            Command, Correct    140</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        h3    3 Command, Correct, Frustrate     55</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        h4    3   Command, Correct, Inquire     70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        h5    3 Command, Correct, Interrupt     38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        h6    3    Command, Correct, Refine     42</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Tumbling windows over wide-format sequences</span></span></span>
 <span class="r-in"><span><span class="va">wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>

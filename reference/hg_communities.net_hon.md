@@ -164,12 +164,12 @@ comm
 #>   Codelength first-order: 2.2525 bits (one module 2.2525; communities: 1)
 #>   Runs: 3 (teleportation 0.15, seed 1)
 #>    node state community      flow
-#>       a     a         2 0.1664584
-#>  a -> h     h         2 0.1629182
-#>       b     b         2 0.1706234
-#>       c     c         1 0.1664584
-#>  c -> h     h         1 0.1629182
-#>       d     d         1 0.1706234
+#>       a     a         1 0.1664584
+#>  a -> h     h         1 0.1629182
+#>       b     b         1 0.1706234
+#>       c     c         2 0.1664584
+#>  c -> h     h         2 0.1629182
+#>       d     d         2 0.1706234
 #>       h     h         3 0.0000000
 summary(comm)
 #> Memory-network communities (map equation)
@@ -177,18 +177,18 @@ summary(comm)
 #> 
 #> states (7 rows)
 #>    node state community      flow
-#>       a     a         2 0.1664584
-#>  a -> h     h         2 0.1629182
-#>       b     b         2 0.1706234
-#>       c     c         1 0.1664584
-#>  c -> h     h         1 0.1629182
+#>       a     a         1 0.1664584
+#>  a -> h     h         1 0.1629182
+#>       b     b         1 0.1706234
+#>       c     c         2 0.1664584
+#>  c -> h     h         2 0.1629182
 #> 
 #> physical (6 rows)
 #>  state community      flow share n_communities
-#>      a         2 0.1664584   1.0             1
-#>      b         2 0.1706234   1.0             1
-#>      c         1 0.1664584   1.0             1
-#>      d         1 0.1706234   1.0             1
+#>      a         1 0.1664584   1.0             1
+#>      b         1 0.1706234   1.0             1
+#>      c         2 0.1664584   1.0             1
+#>      d         2 0.1706234   1.0             1
 #>      h         1 0.1629182   0.5             2
 #> 
 #> modules (3 rows)
@@ -220,19 +220,19 @@ summary(comm)
 #>      0.000000     0.00000             1
 hg_get(comm)
 #>     node state community      flow
-#> 1      a     a         2 0.1664584
-#> 2 a -> h     h         2 0.1629182
-#> 3      b     b         2 0.1706234
-#> 4      c     c         1 0.1664584
-#> 5 c -> h     h         1 0.1629182
-#> 6      d     d         1 0.1706234
+#> 1      a     a         1 0.1664584
+#> 2 a -> h     h         1 0.1629182
+#> 3      b     b         1 0.1706234
+#> 4      c     c         2 0.1664584
+#> 5 c -> h     h         2 0.1629182
+#> 6      d     d         2 0.1706234
 #> 7      h     h         3 0.0000000
 hg_get(comm, what = "physical")
 #>   state community      flow share n_communities
-#> 1     a         2 0.1664584   1.0             1
-#> 2     b         2 0.1706234   1.0             1
-#> 3     c         1 0.1664584   1.0             1
-#> 4     d         1 0.1706234   1.0             1
+#> 1     a         1 0.1664584   1.0             1
+#> 2     b         1 0.1706234   1.0             1
+#> 3     c         2 0.1664584   1.0             1
+#> 4     d         2 0.1706234   1.0             1
 #> 5     h         1 0.1629182   0.5             2
 #> 6     h         2 0.1629182   0.5             2
 ```

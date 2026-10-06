@@ -1,5 +1,12 @@
 # Changelog
 
+## hypergraphs 0.6.7
+
+- [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  on a memory network numbers communities of equal flow the same way on
+  every platform: flows equal to 12 significant digits are ties, broken
+  by the first node.
+
 ## hypergraphs 0.6.6
 
 - [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)

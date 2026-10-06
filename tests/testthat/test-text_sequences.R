@@ -144,7 +144,7 @@ test_that("hg_sequences() feeds hon() through build_network()", {
   boot <- hg_bootstrap(seqs, action = "action", actor = "actor",
                         time = "time", n_boot = 10L, max_order = 2L,
                         seed = 1L)
-  expect_s3_class(boot, "net_hon_boot")
+  expect_s3_class(boot, "hypergraphs_bootstrap")
   wh <- window_hypergraph(seqs, window = 2L, action = "action",
                           actor = "actor", time = "time")
   expect_s3_class(wh, "net_hg")

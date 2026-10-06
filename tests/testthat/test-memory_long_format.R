@@ -47,7 +47,7 @@ test_that("the long-format arguments still work and give the right model", {
   fit <- hg_bootstrap(long, action = "code", actor = "user",
                        time = "timestamp", n_boot = 5L, max_order = 2L,
                        seed = 1L)
-  expect_s3_class(fit, "net_hon_boot")
+  expect_s3_class(fit, "hypergraphs_bootstrap")
   # two trajectories -- not eight, which is what a wide reading produced
   expect_identical(fit$n_trajectories, 2L)
   # identical to the hand-split list
@@ -58,16 +58,16 @@ test_that("the long-format arguments still work and give the right model", {
 
 test_that("the guard does not fire on the wide frames the verbs accept", {
   wide <- .lf_wide()
-  expect_s3_class(hg_bootstrap(wide, n_boot = 2L, seed = 1L), "net_hon_boot")
+  expect_s3_class(hg_bootstrap(wide, n_boot = 2L, seed = 1L), "hypergraphs_bootstrap")
   # a list of sequences is untouched by the guard
   expect_s3_class(hg_bootstrap(list(c("A", "B", "C"), c("B", "C", "A")),
-                                n_boot = 2L, seed = 1L), "net_hon_boot")
+                                n_boot = 2L, seed = 1L), "hypergraphs_bootstrap")
   # one canonical name alone is not enough: a wide frame may legitimately
   # have a column called "time" without being a long table
   one_name <- .lf_wide()
   names(one_name)[1L] <- "time"
   expect_s3_class(hg_bootstrap(one_name, n_boot = 2L, seed = 1L),
-                  "net_hon_boot")
+                  "hypergraphs_bootstrap")
 })
 
 test_that("detection is on names, case-insensitively, and needs two of three", {

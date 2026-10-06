@@ -46,7 +46,7 @@ test_that("hg_centrality refuses an argument of the other method", {
 test_that("hg_communities dispatches on memory networks and hypergraphs", {
   h <- hon(.dp_seqs(), max_order = 2L)
   comm <- hg_communities(h, trials = 2L)
-  expect_s3_class(comm, "net_hon_communities")
+  expect_s3_class(comm, "hypergraphs_memory_communities")
   expect_identical(comm, hg_communities.net_hon(h, trials = 2L))
   skip_if_not_installed("igraph")
   fit <- hg_communities(.dp_hg(), n_runs = 2L, trials = 2L, seeds = 1:2)

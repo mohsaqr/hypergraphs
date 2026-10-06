@@ -27,7 +27,7 @@ hg_bootstrap(
 event table (with \code{action}), a wide data.frame (one sequence per row),
 a list of vectors, or a model object carrying its sequences. A group
 model from \code{\link[=hon]{hon()}} with \code{group} is resampled group by group with its
-own settings, and the result is a \code{net_hon_boot_group} (one bootstrap
+own settings, and the result is a \code{hypergraphs_bootstrap_group} (one bootstrap
 per group; \code{summary()} and \code{\link[=hg_get]{hg_get()}} stack them with a \code{group}
 column).}
 
@@ -50,7 +50,7 @@ wide or list input.}
 \item{seed}{Optional integer seed.}
 }
 \value{
-An object of class \code{net_hon_boot}: a list with \code{edges} (the
+An object of class \code{hypergraphs_bootstrap}: a list with \code{edges} (the
 tidy inference table, one row per rule edge of the observed network:
 \code{from}, \code{to}, \code{order}, \code{count}, \code{probability}, \code{ci_lower},
 \code{ci_upper}, \code{support}, \code{n_boot_used}), \code{n_boot}, \code{level},

@@ -30,7 +30,7 @@ adjusted p-values. Default \code{0.05}.}
 \item{parallel, n_cores, seed}{As in \code{\link[=hg_bootstrap]{hg_bootstrap()}}.}
 }
 \value{
-An object of class \code{net_hon_compare}: a list with \code{edges} (one
+An object of class \code{hypergraphs_comparison}: a list with \code{edges} (one
 row per pooled rule: \code{from}, \code{to}, \code{order}, \code{count}, the two groups'
 counts and probabilities (columns named after the groups), \code{diff}
 (probability difference, first minus second), \code{p_value}, \code{p_adj} (BH),

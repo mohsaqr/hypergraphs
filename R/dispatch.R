@@ -91,7 +91,7 @@ hg_centrality.default <- function(x, ...) {
 #' @param x A `net_hg` or a `net_hon`.
 #' @param ... Arguments of the method for `class(x)`.
 #' @return An `hg_communities` object (hypergraph) or a
-#'   `net_hon_communities` object (memory network); read either with
+#'   `hypergraphs_memory_communities` object (memory network); read either with
 #'   [hg_get()]. Any other input raises `hypergraphs_bad_input`.
 #' @examples
 #' seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),

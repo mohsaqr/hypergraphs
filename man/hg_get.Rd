@@ -64,9 +64,9 @@ history and optional attention; see \code{\link[=hg_get.hg_hypergat]{hg_get.hg_h
 \item{\code{net_path_dependence} (\code{\link[=memory]{memory()}})}{\code{"contexts"}.}
 \item{\code{net_markov_stability} (\code{\link[=hg_markov_stability]{hg_markov_stability()}})}{\code{"states"}
 (default), \code{"passage_time"}, \code{"stationary"}.}
-\item{\code{net_hon_boot} (\code{\link[=hg_bootstrap]{hg_bootstrap()}})}{\code{"edges"}.}
-\item{\code{net_hon_compare} (\code{\link[=hg_compare]{hg_compare()}})}{\code{"edges"}.}
-\item{\code{net_hon_communities} (\code{\link[=hg_communities]{hg_communities()}} on a memory
+\item{\code{hypergraphs_bootstrap} (\code{\link[=hg_bootstrap]{hg_bootstrap()}})}{\code{"edges"}.}
+\item{\code{hypergraphs_comparison} (\code{\link[=hg_compare]{hg_compare()}})}{\code{"edges"}.}
+\item{\code{hypergraphs_memory_communities} (\code{\link[=hg_communities]{hg_communities()}} on a memory
 network)}{\code{"states"} (default), \code{"physical"}, \code{"modules"},
 \code{"codelength"}, \code{"trials"}.}
 \item{\code{simplicial_complex} (\code{\link[=simplicial]{simplicial()}})}{\code{"simplices"} (default),

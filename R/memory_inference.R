@@ -197,7 +197,7 @@
 #'   event table (with `action`), a wide data.frame (one sequence per row),
 #'   a list of vectors, or a model object carrying its sequences. A group
 #'   model from [hon()] with `group` is resampled group by group with its
-#'   own settings, and the result is a `net_hon_boot_group` (one bootstrap
+#'   own settings, and the result is a `hypergraphs_bootstrap_group` (one bootstrap
 #'   per group; `summary()` and [hg_get()] stack them with a `group`
 #'   column).
 #' @param n_boot Integer >= 2. Bootstrap replicates. Default `500`.
@@ -212,7 +212,7 @@
 #' @param n_cores Integer. Cores when `parallel = TRUE`.
 #' @param seed Optional integer seed.
 #'
-#' @return An object of class `net_hon_boot`: a list with `edges` (the
+#' @return An object of class `hypergraphs_bootstrap`: a list with `edges` (the
 #'   tidy inference table, one row per rule edge of the observed network:
 #'   `from`, `to`, `order`, `count`, `probability`, `ci_lower`,
 #'   `ci_upper`, `support`, `n_boot_used`), `n_boot`, `level`,
@@ -250,7 +250,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
                          parallel = FALSE, n_cores = 2L, seed = NULL,
                          session = NULL, time_threshold = 900,
                          timezone = "UTC") {
-  if (inherits(data, "net_hon_group")) {
+  if (inherits(data, "hypergraphs_memory_group")) {
     # a group model: resample each group separately, with its settings
     parts <- attr(data, "data")
     args <- attr(data, "args")
@@ -261,7 +261,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
       parallel = parallel, n_cores = n_cores, seed = seed,
       session = args$session, time_threshold = args$time_threshold,
       timezone = args$timezone))
-    return(structure(fits, class = c("net_hon_boot_group", "list")))
+    return(structure(fits, class = c("hypergraphs_bootstrap_group", "list")))
   }
   stopifnot(
     "`n_boot` must be a single integer >= 2" =
@@ -345,7 +345,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
       n_trajectories = n_seq,
       seed = seed
     ),
-    class = "net_hon_boot"
+    class = "hypergraphs_bootstrap"
   )
 }
 
@@ -478,17 +478,17 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
       n_trajectories = stats::setNames(c(n_x, n_y), names),
       seed = seed
     ),
-    class = "net_hon_compare"
+    class = "hypergraphs_comparison"
   )
 }
 
 # ---------------------------------------------------------------------------
-# S3 methods: net_hon_boot
+# S3 methods: hypergraphs_bootstrap
 # ---------------------------------------------------------------------------
 
-#' Inference table of a HON bootstrap
+#' Inference table of a memory-network bootstrap
 #'
-#' @param x A `net_hon_boot` object from [hg_bootstrap()].
+#' @param x A `hypergraphs_bootstrap` object from [hg_bootstrap()].
 #' @param what `"edges"`, the only table: one row per rule edge.
 #' @param ... Additional arguments (ignored).
 #' @param min_support Numeric in `[0, 1]` or NULL. Keep only rule edges
@@ -505,7 +505,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
 #' @export
-hg_get.net_hon_boot <- function(x, what = "edges", ...,
+hg_get.hypergraphs_bootstrap <- function(x, what = "edges", ...,
                                 min_support = NULL,
                                 order_min = NULL,
                                 sort_by = NULL, top = NULL) {
@@ -531,17 +531,17 @@ hg_get.net_hon_boot <- function(x, what = "edges", ...,
   .ho_top(out, top)
 }
 
-#' Print method for net_hon_boot
+#' Print method for hypergraphs_bootstrap
 #'
-#' @param x A `net_hon_boot` object.
+#' @param x A `hypergraphs_bootstrap` object.
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x`, invisibly.
 #' @export
-print.net_hon_boot <- function(x, n = 10L, ...) {
+print.hypergraphs_bootstrap <- function(x, n = 10L, ...) {
   e <- x$edges
   ho <- e[e$order > 1L, , drop = FALSE]
-  cat(sprintf("HON bootstrap: %d rule edges (%d higher-order) from %d sequences\n",
+  cat(sprintf("Memory-network bootstrap: %d rule edges (%d higher-order) from %d sequences\n",
               nrow(e), nrow(ho), x$n_trajectories))
   cat(sprintf("  %d replicates, %.0f%% percentile CIs\n",
               x$n_boot, 100 * x$level))
@@ -555,7 +555,7 @@ print.net_hon_boot <- function(x, n = 10L, ...) {
 
 #' @rdname result-summary
 #' @export
-summary.net_hon_boot <- function(object, ...) {
+summary.hypergraphs_bootstrap <- function(object, ...) {
   e <- object$edges
   by_order <- do.call(rbind, lapply(split(e, e$order), function(d) {
     data.frame(order = d$order[1L], n_edges = nrow(d),
@@ -567,19 +567,19 @@ summary.net_hon_boot <- function(object, ...) {
   .ho_summary(object, list(by_order = by_order))
 }
 
-#' Plot method for net_hon_boot
+#' Plot a memory-network bootstrap
 #'
 #' Forest plot of the rule-edge probabilities with their bootstrap
 #' percentile intervals, the most frequent edges first. Order is encoded
 #' by both colour (Okabe-Ito) and point shape.
 #'
-#' @param x A `net_hon_boot` object.
+#' @param x A `hypergraphs_bootstrap` object.
 #' @param top Integer. Number of edges to show (by descending count).
 #'   Default `20`.
 #' @param ... Additional arguments (ignored).
 #' @return A ggplot object, invisibly.
 #' @export
-plot.net_hon_boot <- function(x, top = 20L, ...) {
+plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
   e <- x$edges
   e <- e[order(-e$count, e$from, e$to), , drop = FALSE]
   e <- e[seq_len(min(top, nrow(e))), , drop = FALSE]
@@ -609,12 +609,12 @@ plot.net_hon_boot <- function(x, top = 20L, ...) {
 }
 
 # ---------------------------------------------------------------------------
-# S3 methods: net_hon_compare
+# S3 methods: hypergraphs_comparison
 # ---------------------------------------------------------------------------
 
-#' Edge table of a HON comparison
+#' Edge table of a memory-network comparison
 #'
-#' @param x A `net_hon_compare` object from [hg_compare()].
+#' @param x A `hypergraphs_comparison` object from [hg_compare()].
 #' @param what `"edges"`, the only table: one row per pooled rule edge.
 #' @param ... Additional arguments (ignored).
 #' @param significant Logical. `TRUE` restricts to edges whose adjusted
@@ -630,7 +630,7 @@ plot.net_hon_boot <- function(x, top = 20L, ...) {
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
 #' @export
-hg_get.net_hon_compare <- function(x, what = "edges", ...,
+hg_get.hypergraphs_comparison <- function(x, what = "edges", ...,
                                    significant = FALSE,
                                    sort_by = NULL, top = NULL) {
   .ho_match_what(what, "edges")
@@ -650,16 +650,16 @@ hg_get.net_hon_compare <- function(x, what = "edges", ...,
   .ho_top(out, top)
 }
 
-#' Print method for net_hon_compare
+#' Print method for hypergraphs_comparison
 #'
-#' @param x A `net_hon_compare` object.
+#' @param x A `hypergraphs_comparison` object.
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x`, invisibly.
 #' @export
-print.net_hon_compare <- function(x, n = 10L, ...) {
+print.hypergraphs_comparison <- function(x, n = 10L, ...) {
   e <- x$edges
-  cat(sprintf("HON comparison: %s (%d sequences) vs %s (%d sequences)\n",
+  cat(sprintf("Memory-network comparison: %s (%d sequences) vs %s (%d sequences)\n",
               x$names[1L], x$n_trajectories[1L],
               x$names[2L], x$n_trajectories[2L]))
   cat(sprintf("  %d pooled rule edges, %d permutations\n",
@@ -674,7 +674,7 @@ print.net_hon_compare <- function(x, n = 10L, ...) {
 
 #' @rdname result-summary
 #' @export
-summary.net_hon_compare <- function(object, ...) {
+summary.hypergraphs_comparison <- function(object, ...) {
   e <- object$edges
   by_order <- do.call(rbind, lapply(split(e, e$order), function(d) {
     data.frame(order = d$order[1L], n_edges = nrow(d),
@@ -689,19 +689,19 @@ summary.net_hon_compare <- function(object, ...) {
   .ho_summary(object, list(by_order = by_order, overall = overall))
 }
 
-#' Plot method for net_hon_compare
+#' Plot a memory-network comparison
 #'
 #' Difference plot of the per-edge probability differences, the largest
 #' absolute differences first. Significance (BH-adjusted) is encoded by
 #' both colour and point shape.
 #'
-#' @param x A `net_hon_compare` object.
+#' @param x A `hypergraphs_comparison` object.
 #' @param top Integer. Number of edges to show (by descending absolute
 #'   difference). Default `20`.
 #' @param ... Additional arguments (ignored).
 #' @return A ggplot object, invisibly.
 #' @export
-plot.net_hon_compare <- function(x, top = 20L, ...) {
+plot.hypergraphs_comparison <- function(x, top = 20L, ...) {
   e <- x$edges
   e <- e[!is.na(e$diff), , drop = FALSE]
   e <- e[order(-abs(e$diff), e$from, e$to), , drop = FALSE]

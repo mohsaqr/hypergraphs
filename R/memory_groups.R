@@ -39,18 +39,18 @@
                session = session, time_threshold = time_threshold,
                timezone = timezone)
   fits <- lapply(parts, \(d) do.call(hon, c(list(d), args)))
-  structure(fits, class = c("net_hon_group", "list"), data = parts,
+  structure(fits, class = c("hypergraphs_memory_group", "list"), data = parts,
             args = args,
             group = if (is.character(group) && length(group) == 1L) group)
 }
 
-#' @rdname hg_get.net_hon_group
-#' @param x A `net_hon_group` from [hon()] with `group`.
+#' @rdname hg_get.hypergraphs_memory_group
+#' @param x A `hypergraphs_memory_group` from [hon()] with `group`.
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Unused.
 #' @return `print()` returns `x` invisibly.
 #' @export
-print.net_hon_group <- function(x, n = 10L, ...) {
+print.hypergraphs_memory_group <- function(x, n = 10L, ...) {
   cat(sprintf("Memory networks by %s: %d groups (%s)\n",
               attr(x, "group") %||% "group", length(x),
               paste(sprintf("%s: %d sequences", names(x),
@@ -66,7 +66,7 @@ print.net_hon_group <- function(x, n = 10L, ...) {
 #' Returns the requested table of every group's memory network, stacked,
 #' with a `group` column first.
 #'
-#' @param x A `net_hon_group` from [hon()] with `group`.
+#' @param x A `hypergraphs_memory_group` from [hon()] with `group`.
 #' @param ... Passed to [hg_get()] on each group's network (`what`,
 #'   `order_min`, `sort_by`, `top`, ...).
 #' @return A data.frame: `group`, then the columns of the requested table.
@@ -77,7 +77,7 @@ print.net_hon_group <- function(x, n = 10L, ...) {
 #' by_group
 #' hg_get(by_group, top = 3)
 #' @export
-hg_get.net_hon_group <- function(x, ...) {
+hg_get.hypergraphs_memory_group <- function(x, ...) {
   tables <- lapply(names(x), \(g) {
     t <- hg_get(x[[g]], ...)
     data.frame(group = rep(g, nrow(t)), t, stringsAsFactors = FALSE,
@@ -113,7 +113,7 @@ hg_get.net_hon_group <- function(x, ...) {
 #' @param alpha Significance level for the `significant` flag on the
 #'   adjusted p-values. Default `0.05`.
 #' @param parallel,n_cores,seed As in [hg_bootstrap()].
-#' @return An object of class `net_hon_compare`: a list with `edges` (one
+#' @return An object of class `hypergraphs_comparison`: a list with `edges` (one
 #'   row per pooled rule: `from`, `to`, `order`, `count`, the two groups'
 #'   counts and probabilities (columns named after the groups), `diff`
 #'   (probability difference, first minus second), `p_value`, `p_adj` (BH),
@@ -148,7 +148,7 @@ hg_get.net_hon_group <- function(x, ...) {
 #' @export
 hg_compare <- function(x, groups = NULL, n_perm = 1000L, alpha = 0.05,
                        parallel = FALSE, n_cores = 2L, seed = NULL) {
-  if (!inherits(x, "net_hon_group")) {
+  if (!inherits(x, "hypergraphs_memory_group")) {
     .thg_bad_input(paste0("`x` must be a group model: ",
                           "hon(data, ..., group = <column or labels>)"))
   }
@@ -181,10 +181,10 @@ hg_compare <- function(x, groups = NULL, n_perm = 1000L, alpha = 0.05,
                    seed = seed)
 }
 
-#' @rdname hg_get.net_hon_group
+#' @rdname hg_get.hypergraphs_memory_group
 #' @export
-print.net_hon_boot_group <- function(x, n = 10L, ...) {
-  cat(sprintf("HON bootstrap by group: %d groups, %d replicates each\n",
+print.hypergraphs_bootstrap_group <- function(x, n = 10L, ...) {
+  cat(sprintf("Memory-network bootstrap by group: %d groups, %d replicates each\n",
               length(x), x[[1L]]$n_boot))
   .ho_print_table(x, n)
   invisible(x)
@@ -192,12 +192,12 @@ print.net_hon_boot_group <- function(x, n = 10L, ...) {
 
 #' @rdname result-summary
 #' @export
-summary.net_hon_boot_group <- function(object, ...) .ho_summary(object)
+summary.hypergraphs_bootstrap_group <- function(object, ...) .ho_summary(object)
 
 #' @rdname result-summary
 #' @export
-summary.net_hon_group <- function(object, ...) .ho_summary(object)
+summary.hypergraphs_memory_group <- function(object, ...) .ho_summary(object)
 
-#' @rdname hg_get.net_hon_group
+#' @rdname hg_get.hypergraphs_memory_group
 #' @export
-hg_get.net_hon_boot_group <- function(x, ...) hg_get.net_hon_group(x, ...)
+hg_get.hypergraphs_bootstrap_group <- function(x, ...) hg_get.hypergraphs_memory_group(x, ...)

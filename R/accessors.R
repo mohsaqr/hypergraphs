@@ -157,9 +157,9 @@
 #'   \item{`net_path_dependence` ([memory()])}{`"contexts"`.}
 #'   \item{`net_markov_stability` ([hg_markov_stability()])}{`"states"`
 #'     (default), `"passage_time"`, `"stationary"`.}
-#'   \item{`net_hon_boot` ([hg_bootstrap()])}{`"edges"`.}
-#'   \item{`net_hon_compare` ([hg_compare()])}{`"edges"`.}
-#'   \item{`net_hon_communities` ([hg_communities()] on a memory
+#'   \item{`hypergraphs_bootstrap` ([hg_bootstrap()])}{`"edges"`.}
+#'   \item{`hypergraphs_comparison` ([hg_compare()])}{`"edges"`.}
+#'   \item{`hypergraphs_memory_communities` ([hg_communities()] on a memory
 #'     network)}{`"states"` (default), `"physical"`, `"modules"`,
 #'     `"codelength"`, `"trials"`.}
 #'   \item{`simplicial_complex` ([simplicial()])}{`"simplices"` (default),
@@ -336,7 +336,7 @@ print.hypergraphs_result <- function(x, n = 10L, ...) {
 #' The `what` values of the hg_get() method that reads `x`
 #' @noRd
 .ho_what_values <- function(x) {
-  probe <- if (inherits(x, c("net_hon_group", "net_hon_boot_group",
+  probe <- if (inherits(x, c("hypergraphs_memory_group", "hypergraphs_bootstrap_group",
                              "net_markov_order_group")) && length(x)) {
     x[[1L]]
   } else {

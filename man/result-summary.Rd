@@ -13,11 +13,11 @@
 \alias{summary.hg_communities}
 \alias{summary.net_hg_mmsbm}
 \alias{summary.hypergraphs_motifs}
-\alias{summary.net_hon_communities}
-\alias{summary.net_hon_boot_group}
-\alias{summary.net_hon_group}
-\alias{summary.net_hon_boot}
-\alias{summary.net_hon_compare}
+\alias{summary.hypergraphs_memory_communities}
+\alias{summary.hypergraphs_bootstrap_group}
+\alias{summary.hypergraphs_memory_group}
+\alias{summary.hypergraphs_bootstrap}
+\alias{summary.hypergraphs_comparison}
 \alias{summary.hypergraphs_simplicial}
 \alias{summary.net_hg_topics}
 \title{Summaries of results}
@@ -38,15 +38,15 @@
 
 \method{summary}{hypergraphs_motifs}(object, ...)
 
-\method{summary}{net_hon_communities}(object, ...)
+\method{summary}{hypergraphs_memory_communities}(object, ...)
 
-\method{summary}{net_hon_boot_group}(object, ...)
+\method{summary}{hypergraphs_bootstrap_group}(object, ...)
 
-\method{summary}{net_hon_group}(object, ...)
+\method{summary}{hypergraphs_memory_group}(object, ...)
 
-\method{summary}{net_hon_boot}(object, ...)
+\method{summary}{hypergraphs_bootstrap}(object, ...)
 
-\method{summary}{net_hon_compare}(object, ...)
+\method{summary}{hypergraphs_comparison}(object, ...)
 
 \method{summary}{hypergraphs_simplicial}(object, ...)
 

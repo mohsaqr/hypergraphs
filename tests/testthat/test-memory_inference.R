@@ -152,7 +152,7 @@ test_that("permutation p-values are valid (add-one) and BH-adjusted", {
 test_that("methods: print, summary, plot, accessor filters", {
   bs <- hg_bootstrap(.hi_planted(), n_boot = 50, max_order = 3, seed = 5)
   expect_invisible(print(bs))
-  expect_output(print(bs), "HON bootstrap")
+  expect_output(print(bs), "Memory-network bootstrap")
   s <- summary(bs)
   expect_s3_class(s, "hypergraphs_summary")
   expect_identical(s$edges, hg_get(bs))
@@ -167,7 +167,7 @@ test_that("methods: print, summary, plot, accessor filters", {
   y <- replicate(6, rep(c("a", "b", "d"), 4), simplify = FALSE)
   cmp <- hg_compare(.pair(x, y, 2), n_perm = 49, seed = 6)
   expect_invisible(print(cmp))
-  expect_output(print(cmp), "HON comparison")
+  expect_output(print(cmp), "Memory-network comparison")
   cmp_summary <- summary(cmp)
   expect_s3_class(cmp_summary$by_order, "data.frame")
   expect_named(cmp_summary$overall, c("statistic", "p_value", "n_permutations"))
@@ -213,7 +213,7 @@ test_that("hon(group =) builds one network per group; hg_compare reads it", {
   z <- replicate(6, rep(c("c", "b", "a"), 4), simplify = FALSE)
   model <- hon(c(x, y, z), group = rep(c("x", "y", "z"), each = 6),
                max_order = 2)
-  expect_s3_class(model, "net_hon_group")
+  expect_s3_class(model, "hypergraphs_memory_group")
   expect_identical(names(model), c("x", "y", "z"))
   expect_identical(model[["y"]], hon(y, max_order = 2))
   stacked <- hg_get(model)
@@ -235,7 +235,7 @@ test_that("hon(group =) builds one network per group; hg_compare reads it", {
   expect_identical(by_period[["late"]]$matrix, hon(y, max_order = 2)$matrix)
   # bootstrap per group
   bg <- hg_bootstrap(by_period, n_boot = 10, seed = 2)
-  expect_s3_class(bg, "net_hon_boot_group")
+  expect_s3_class(bg, "hypergraphs_bootstrap_group")
   expect_identical(unique(summary(bg)$edges$group), c("early", "late"))
   expect_error(hon(long, actor = "id", action = "code", time = "t",
                    group = c("a", "b")), class = "hypergraphs_bad_input")

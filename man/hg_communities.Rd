@@ -16,7 +16,7 @@ hg_communities(x, ...)
 }
 \value{
 An \code{hg_communities} object (hypergraph) or a
-\code{net_hon_communities} object (memory network); read either with
+\code{hypergraphs_memory_communities} object (memory network); read either with
 \code{\link[=hg_get]{hg_get()}}. Any other input raises \code{hypergraphs_bad_input}.
 }
 \description{

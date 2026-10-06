@@ -34,10 +34,10 @@ caller's random-number stream is restored on exit.}
 takes raises \code{hypergraphs_bad_input}.}
 }
 \value{
-A \code{net_hon_communities} object. Read it with \code{\link[=hg_get]{hg_get()}}:
+A \code{hypergraphs_memory_communities} object. Read it with \code{\link[=hg_get]{hg_get()}}:
 \code{what = "states"} (one row per state node), \code{"physical"} (one row per
 physical node x module), \code{"modules"}, \code{"trials"}, \code{"first_order"} and
-\code{"codelength"}; see \code{\link[=hg_get.net_hon_communities]{hg_get.net_hon_communities()}}.
+\code{"codelength"}; see \code{\link[=hg_get.hypergraphs_memory_communities]{hg_get.hypergraphs_memory_communities()}}.
 }
 \description{
 Finds modules in a higher-order network by minimising the map equation for

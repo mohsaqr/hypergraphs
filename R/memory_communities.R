@@ -451,10 +451,10 @@
 #'   (default 0.15, Infomap's default).
 #' @param seed Integer seed for the random node orders (default 1). The
 #'   caller's random-number stream is restored on exit.
-#' @return A `net_hon_communities` object. Read it with [hg_get()]:
+#' @return A `hypergraphs_memory_communities` object. Read it with [hg_get()]:
 #'   `what = "states"` (one row per state node), `"physical"` (one row per
 #'   physical node x module), `"modules"`, `"trials"`, `"first_order"` and
-#'   `"codelength"`; see [hg_get.net_hon_communities()].
+#'   `"codelength"`; see [hg_get.hypergraphs_memory_communities()].
 #' @section Conditions:
 #' `hypergraphs_bad_input` for a non-`net_hon` input, invalid arguments, or a
 #' partition that does not cover every state; `hypergraphs_not_ergodic` when
@@ -641,12 +641,12 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
     n_trials = if (is.null(partition)) trials else 0L,
     searched = is.null(partition),
     seed = seed
-  ), class = "net_hon_communities")
+  ), class = "hypergraphs_memory_communities")
 }
 
 #' Tidy tables of a memory-network community result
 #'
-#' @param x A `net_hon_communities` object.
+#' @param x A `hypergraphs_memory_communities` object.
 #' @param ... Ignored.
 #' @param what Which table:
 #'   \describe{
@@ -680,7 +680,7 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
 #' hg_get(comm, what = "modules")
 #' hg_get(comm, what = "physical", overlapping = TRUE)
 #' @export
-hg_get.net_hon_communities <- function(
+hg_get.hypergraphs_memory_communities <- function(
     x, what = c("states", "physical", "modules", "trials", "first_order",
                 "codelength"), ...,
     community = NULL, overlapping = FALSE) {
@@ -711,7 +711,7 @@ hg_get.net_hon_communities <- function(
 
 #' Print a memory-network community result
 #'
-#' @param x A `net_hon_communities` object.
+#' @param x A `hypergraphs_memory_communities` object.
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Ignored.
 #' @return `x`, invisibly.
@@ -720,7 +720,7 @@ hg_get.net_hon_communities <- function(
 #'              c("c", "h", "d", "c", "h", "d", "c"))
 #' print(hg_communities(hon(seqs, max_order = 2L), trials = 2L))
 #' @export
-print.net_hon_communities <- function(x, n = 10L, ...) {
+print.hypergraphs_memory_communities <- function(x, n = 10L, ...) {
   cl <- x$codelengths
   mem <- cl[cl$model == "memory", , drop = FALSE]
   fo <- cl[cl$model == "first_order", , drop = FALSE]
@@ -753,7 +753,7 @@ print.net_hon_communities <- function(x, n = 10L, ...) {
 
 #' @rdname result-summary
 #' @export
-summary.net_hon_communities <- function(object, ...) .ho_summary(object)
+summary.hypergraphs_memory_communities <- function(object, ...) .ho_summary(object)
 
 .HCM_PALETTE <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
                   "#D55E00", "#CC79A7", "#999999")
@@ -978,9 +978,9 @@ summary.net_hon_communities <- function(object, ...) .ho_summary(object)
 #' Memory nodes with no flow (reached only by random jumps, see
 #' [hg_communities()]) carry no flow of their states and are never drawn in
 #' the physical view. The tables returned by
-#' [hg_get.net_hon_communities()] are unaffected.
+#' [hg_get.hypergraphs_memory_communities()] are unaffected.
 #'
-#' @param x A `net_hon_communities` object.
+#' @param x A `hypergraphs_memory_communities` object.
 #' @param type `"physical"` (default), `"network"` or `"states"`.
 #' @param show_zero_flow Draw the memory nodes with no flow in the
 #'   `type = "states"` view? Default `FALSE`.
@@ -1010,7 +1010,7 @@ summary.net_hon_communities <- function(object, ...) .ho_summary(object)
 #' plot(comm, type = "network")
 #' plot(comm, type = "states")
 #' @export
-plot.net_hon_communities <- function(x,
+plot.hypergraphs_memory_communities <- function(x,
                                      type = c("physical", "network",
                                               "states"),
                                      show_zero_flow = FALSE, ...) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## hypergraphs 0.6.8
+
+- Test suite only: the regression test of default hull plots, whose
+  baseline was recorded on macOS, is skipped on Linux and Windows, where
+  the force-directed layout settles about 1e-4 away.
+
 ## hypergraphs 0.6.7
 
 - [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)

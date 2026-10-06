@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -152,7 +152,7 @@ the test set. For a corpus without a supplied test split,
 stratified share of the known labels.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">fit</span>, type <span class="op">=</span> <span class="st">"history"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="../../../../../../tmp/RtmpVCPqh6/temp_libpath1a0d36e64ee6/hypergraphs/extdata/hypergat-classification/history.png" class="r-plt" alt="Training loss of the fitted document classifier" width="100%"></p>
+<p><img src="../../../../../../tmp/RtmpfmXxVB/temp_libpath193313c3b961/hypergraphs/extdata/hypergat-classification/history.png" class="r-plt" alt="Training loss of the fitted document classifier" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="predict-independent-documents">Predict independent documents<a class="anchor" aria-label="anchor" href="#predict-independent-documents"></a>
@@ -182,7 +182,7 @@ vocabulary retain their rows and count as errors. These results measure
 recovery of the eight existing subjects in this test set.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">evaluation</span><span class="op">)</span></span></code></pre></div>
-<p><img src="../../../../../../tmp/RtmpVCPqh6/temp_libpath1a0d36e64ee6/hypergraphs/extdata/hypergat-classification/confusion.png" class="r-plt" alt="Existing subject against predicted subject on the independent test set" width="100%"></p>
+<p><img src="../../../../../../tmp/RtmpfmXxVB/temp_libpath193313c3b961/hypergraphs/extdata/hypergat-classification/confusion.png" class="r-plt" alt="Existing subject against predicted subject on the independent test set" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="read-the-errors">Read the errors<a class="anchor" aria-label="anchor" href="#read-the-errors"></a>
@@ -413,7 +413,7 @@ the network consumes for this article.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">fit</span>, type <span class="op">=</span> <span class="st">"hyperedges"</span>, node <span class="op">=</span> <span class="va">first_article</span>, edge_labels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>     label_size <span class="op">=</span> <span class="fl">3</span>, titles <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="../../../../../../tmp/RtmpVCPqh6/temp_libpath1a0d36e64ee6/hypergraphs/extdata/hypergat-classification/hyperedges.png" class="r-plt" alt="Words joined by the sentence hyperedges of one training article" width="100%"></p>
+<p><img src="../../../../../../tmp/RtmpfmXxVB/temp_libpath193313c3b961/hypergraphs/extdata/hypergat-classification/hyperedges.png" class="r-plt" alt="Words joined by the sentence hyperedges of one training article" width="100%"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">fit</span>, what <span class="op">=</span> <span class="st">"hyperedges"</span>, node <span class="op">=</span> <span class="va">first_article</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -487,7 +487,7 @@ the network consumes for this article.</p>
 </table>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">fit</span>, type <span class="op">=</span> <span class="st">"attention"</span>, node <span class="op">=</span> <span class="va">first_article</span><span class="op">)</span></span></code></pre></div>
-<p><img src="../../../../../../tmp/RtmpVCPqh6/temp_libpath1a0d36e64ee6/hypergraphs/extdata/hypergat-classification/attention.png" class="r-plt" alt="Internal edge attention with its uniform normalization baseline for one training article" width="100%"></p>
+<p><img src="../../../../../../tmp/RtmpfmXxVB/temp_libpath193313c3b961/hypergraphs/extdata/hypergat-classification/attention.png" class="r-plt" alt="Internal edge attention with its uniform normalization baseline for one training article" width="100%"></p>
 <p>Crosses show the uniform normalization baseline and bars show the
 mean learned edge attention. These internal weights do not measure a
 sentence’s contribution to the predicted subject. Classification errors

@@ -25,7 +25,7 @@ selector. A hyperedge with a single member is drawn as its node alone."></head><
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -117,7 +117,7 @@ selector. A hyperedge with a single member is drawn as its node alone.</p>
 <span>  title_gap <span class="op">=</span> <span class="fl">0.06</span>,</span>
 <span>  group <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  node_groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hulls"</span>, <span class="st">"incidence"</span><span class="op">)</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hulls"</span>, <span class="st">"incidence"</span>, <span class="st">"storyline"</span><span class="op">)</span>,</span>
 <span>  sort_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -406,7 +406,9 @@ hulls are then grey, so the node colours carry the grouping. <code>NULL</code>
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
 <dd><p><code>"hulls"</code> (default) plots each hyperedge as a pebble around
-its members; <code>"incidence"</code> plots the incidence matrix (see Details).</p></dd>
+its members; <code>"incidence"</code> plots the incidence matrix; <code>"storyline"</code>
+plots the hyperedges in order as columns and the nodes as lines (see
+Details).</p></dd>
 
 
 <dt id="arg-sort-by">sort_by<a class="anchor" aria-label="anchor" href="#arg-sort-by"></a></dt>
@@ -416,11 +418,16 @@ edge metadata such as a date, a vector named by hyperedge, or a vector
 with one value per hyperedge. Numbers sort largest first, as in
 <code><a href="hg_get.html">hg_get()</a></code>; dates, text and a clock column (<code>start</code>, <code>end</code>, <code>time</code>,
 ... as <code><a href="temporal_hypergraph.html">temporal_hypergraph()</a></code> names them, numeric in a snapshot) sort
-ascending. Ties fall back to the default order.</p></dd>
+ascending. Ties fall back to the default order. For
+<code>type = "storyline"</code> it is the order of the columns, always ascending;
+<code>NULL</code> keeps the stored order of the hyperedges.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Unused; for S3 consistency.</p></dd>
+<dd><p>For <code>type = "storyline"</code>: <code>top</code> (the number of nodes with the
+most hyperedges drawn as lines, default <code>8</code>, <code>NULL</code> for all), <code>spacing</code>
+(<code>"even"</code> or <code>"strength"</code>), <code>width_by</code> (<code>NULL</code> or <code>"degree"</code>) and
+<code>point_size</code>, as in <code><a href="plot.net_temporal_hypergraph.html">plot.net_temporal_hypergraph()</a></code>. Otherwise unused.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -462,6 +469,13 @@ hypergraph out at once lets a stray hyperedge drift to the edge of the
 picture and set the scale for everything else, leaving the connected
 structure a speck in the middle. Packing keeps every component at its own
 size and the frame spent on structure.</p>
+<p><code>type = "storyline"</code> plots a hypergraph whose hyperedges have an order,
+such as the windows of one sequence from
+<code>window_hypergraph(collapse = FALSE)</code>, as a storyline (Tanahashi and Ma
+2012): each hyperedge is a column, in stored order or by <code>sort_by</code>, and
+each of the busiest nodes a line that its hyperedges gather, laid out as
+for <code><a href="plot.net_temporal_hypergraph.html">plot.net_temporal_hypergraph()</a></code>. It takes <code>sort_by</code>, <code>edge_labels</code>
+(<code>FALSE</code> drops the column names) and the storyline arguments in <code>...</code>.</p>
 <p><code>type = "incidence"</code> plots the incidence matrix instead, after UpSet (Lex
 et al. 2014). Each node is a row and each hyperedge a column; a vertical
 bar joins the members of a hyperedge. Rows are ordered by decreasing
@@ -499,6 +513,9 @@ hypergraphs. <em>Philosophical Transactions of the Royal Society A</em>,
 <p>Fruchterman, T. M. J., &amp; Reingold, E. M. (1991). Graph drawing by
 force-directed placement. <em>Software: Practice and Experience</em>, 21(11),
 1129-1164. <a href="https://doi.org/10.1002/spe.4380211102" class="external-link">doi:10.1002/spe.4380211102</a></p>
+<p>Tanahashi, Y., &amp; Ma, K.-L. (2012). Design considerations for optimizing
+storyline visualizations. <em>IEEE Transactions on Visualization and
+Computer Graphics</em>, 18(12), 2679-2688. <a href="https://doi.org/10.1109/TVCG.2012.212" class="external-link">doi:10.1109/TVCG.2012.212</a></p>
 <p>Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., &amp; Pfister, H.
 (2014). UpSet: Visualization of intersecting sets. <em>IEEE Transactions on
 Visualization and Computer Graphics</em>, 20(12), 1983-1992.
@@ -523,6 +540,13 @@ Visualization and Computer Graphics</em>, 20(12), 1983-1992.
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, type <span class="op">=</span> <span class="st">"incidence"</span>, edge_labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.net_hg-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># the windows of one sequence, in order, as a storyline</span></span></span>
+<span class="r-in"><span><span class="va">steps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"plan"</span>, <span class="st">"monitor"</span>, <span class="st">"discuss"</span>, <span class="st">"plan"</span>, <span class="st">"adapt"</span>, <span class="st">"monitor"</span>,</span></span>
+<span class="r-in"><span>                <span class="st">"discuss"</span>, <span class="st">"consensus"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">windows</span> <span class="op">&lt;-</span> <span class="fu"><a href="window_hypergraph.html">window_hypergraph</a></span><span class="op">(</span><span class="va">steps</span>, window <span class="op">=</span> <span class="fl">3</span>, collapse <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">windows</span>, type <span class="op">=</span> <span class="st">"storyline"</span>, top <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.net_hg-6.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># tribunals in claims against Argentina, one column per tribunal by date</span></span></span>
 <span class="r-in"><span><span class="va">tribunals</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">icsid_tribunals</span>, node <span class="op">=</span> <span class="st">"arbitrator"</span>,</span></span>
 <span class="r-in"><span>                              hyperedge <span class="op">=</span> <span class="st">"case"</span><span class="op">)</span></span></span>
@@ -531,7 +555,7 @@ Visualization and Computer Graphics</em>, 20(12), 1983-1992.
 <span class="r-in"><span>                       component <span class="op">=</span> <span class="st">"largest"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">argentina</span>, type <span class="op">=</span> <span class="st">"incidence"</span>, color_by <span class="op">=</span> <span class="st">"economic_sector"</span>,</span></span>
 <span class="r-in"><span>     sort_by <span class="op">=</span> <span class="st">"constituted"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># disconnected pieces are laid out separately and packed</span></span></span>
 <span class="r-in"><span><span class="va">apart</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span></span></span>
@@ -540,7 +564,7 @@ Visualization and Computer Graphics</em>, 20(12), 1983-1992.
 <span class="r-in"><span>  <span class="st">"member"</span>, <span class="st">"event"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">apart</span>, color_by <span class="op">=</span> <span class="st">"size"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># circles sized by how often each node occurs, pointing where it goes next</span></span></span>
 <span class="r-in"><span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">40</span>, b <span class="op">=</span> <span class="fl">25</span>, c <span class="op">=</span> <span class="fl">12</span>, d <span class="op">=</span> <span class="fl">30</span>, e <span class="op">=</span> <span class="fl">5</span>, f <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
@@ -549,10 +573,10 @@ Visualization and Computer Graphics</em>, 20(12), 1983-1992.
 <span class="r-in"><span>                    weight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">9</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, node_sizes <span class="op">=</span> <span class="va">counts</span>, direction <span class="op">=</span> <span class="va">moves</span>,</span></span>
 <span class="r-in"><span>     size_title <span class="op">=</span> <span class="st">"occurrences of the node"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, node_sizes <span class="op">=</span> <span class="va">counts</span>, direction <span class="op">=</span> <span class="va">moves</span>, transitions <span class="op">=</span> <span class="va">moves</span>,</span></span>
 <span class="r-in"><span>     arrow_style <span class="op">=</span> <span class="st">"outside"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-9.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-10.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># groups of events with their trial counts: the count colours the pebbles</span></span></span>
 <span class="r-in"><span><span class="co"># and writes a title box per group; points sized by how many trials</span></span></span>
@@ -566,7 +590,7 @@ Visualization and Computer Graphics</em>, 20(12), 1983-1992.
 <span class="r-in"><span><span class="va">event_trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>state <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Wrong"</span>, <span class="st">"Hint"</span>, <span class="st">"Question"</span>, <span class="st">"Retry"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                           trials <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">120</span>, <span class="fl">80</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trial_groups</span>, node_sizes <span class="op">=</span> <span class="va">event_trials</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.net_hg-10.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.net_hg-11.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

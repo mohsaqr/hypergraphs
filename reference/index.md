@@ -485,7 +485,7 @@ verbs.
 - [`plot(`*`<net_hon_compare>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hon_compare.md)
   : Plot method for net_hon_compare
 - [`plot(`*`<net_temporal_hypergraph>`*`)`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md)
-  : Plot a temporal-hypergraph snapshot
+  : Plot a temporal hypergraph
 
 ## Data
 

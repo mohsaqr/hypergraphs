@@ -1,5 +1,39 @@
 # Changelog
 
+## hypergraphs 0.6.6
+
+- [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+  gains `collapse`: `FALSE` keeps every window as its own hyperedge, in
+  order, named by its positions (`"1-3"`), with `sequence`, `start` and
+  `end` in the edge metadata.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  hypergraph gains `type = "storyline"` for hyperedges with an order
+  (the stored order or `sort_by`), such as the windows of one sequence:
+  codes become lines that the windows gather.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a temporal
+  hypergraph gains `type = "storyline"` (Tanahashi and Ma 2012): the
+  `top` nodes with the most hyperedges (default 8) are lines from their
+  first to their last hyperedge, hyperedges are columns in order of
+  their start, and each column gathers the lines of its members. Lines
+  are ordered by the barycentre rule (Sugiyama et al. 1981) over
+  repeated sweeps, keeping the ordering with the fewest crossings.
+  `start` and `end` limit the period; `edge_labels` and `point_size`
+  style it. `spacing = "strength"` brings neighbouring lines closer the
+  more hyperedges their nodes share (a full row for none, 0.35 for the
+  strongest tie in the plot, linear in between) without changing their
+  order. `width_by = "degree"` widens each line with its node’s number
+  of hyperedges in the period, with a width legend. Each line has an
+  Okabe-Ito colour and a point shape, distinct for up to 72 lines, named
+  in the legend. `type` is now an explicit argument of
+  [`plot.net_temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md),
+  and an argument of one view given to another raises
+  `hypergraphs_bad_input`.
+
+## hypergraphs 0.6.5
+
+- Requires Nestimate (\>= 0.9.1), whose `prepare()` takes the `timezone`
+  argument the sequence input passes; with 0.8.5 the vignettes failed.
+
 ## hypergraphs 0.6.4
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a

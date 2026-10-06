@@ -51,7 +51,7 @@ plot(
   title_gap = 0.06,
   group = NULL,
   node_groups = NULL,
-  type = c("hulls", "incidence"),
+  type = c("hulls", "incidence", "storyline"),
   sort_by = NULL,
   ...
 )
@@ -351,7 +351,9 @@ plot(
 - type:
 
   `"hulls"` (default) plots each hyperedge as a pebble around its
-  members; `"incidence"` plots the incidence matrix (see Details).
+  members; `"incidence"` plots the incidence matrix; `"storyline"` plots
+  the hyperedges in order as columns and the nodes as lines (see
+  Details).
 
 - sort_by:
 
@@ -363,11 +365,18 @@ plot(
   dates, text and a clock column (`start`, `end`, `time`, ... as
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)
   names them, numeric in a snapshot) sort ascending. Ties fall back to
-  the default order.
+  the default order. For `type = "storyline"` it is the order of the
+  columns, always ascending; `NULL` keeps the stored order of the
+  hyperedges.
 
 - ...:
 
-  Unused; for S3 consistency.
+  For `type = "storyline"`: `top` (the number of nodes with the most
+  hyperedges drawn as lines, default `8`, `NULL` for all), `spacing`
+  (`"even"` or `"strength"`), `width_by` (`NULL` or `"degree"`) and
+  `point_size`, as in
+  [`plot.net_temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md).
+  Otherwise unused.
 
 ## Value
 
@@ -416,6 +425,16 @@ edge of the picture and set the scale for everything else, leaving the
 connected structure a speck in the middle. Packing keeps every component
 at its own size and the frame spent on structure.
 
+`type = "storyline"` plots a hypergraph whose hyperedges have an order,
+such as the windows of one sequence from
+`window_hypergraph(collapse = FALSE)`, as a storyline (Tanahashi and Ma
+2012): each hyperedge is a column, in stored order or by `sort_by`, and
+each of the busiest nodes a line that its hyperedges gather, laid out as
+for
+[`plot.net_temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md).
+It takes `sort_by`, `edge_labels` (`FALSE` drops the column names) and
+the storyline arguments in `...`.
+
 `type = "incidence"` plots the incidence matrix instead, after UpSet
 (Lex et al. 2014). Each node is a row and each hyperedge a column; a
 vertical bar joins the members of a hyperedge. Rows are ordered by
@@ -454,6 +473,11 @@ force-directed placement. *Software: Practice and Experience*, 21(11),
 1129-1164.
 [doi:10.1002/spe.4380211102](https://doi.org/10.1002/spe.4380211102)
 
+Tanahashi, Y., & Ma, K.-L. (2012). Design considerations for optimizing
+storyline visualizations. *IEEE Transactions on Visualization and
+Computer Graphics*, 18(12), 2679-2688.
+[doi:10.1109/TVCG.2012.212](https://doi.org/10.1109/TVCG.2012.212)
+
 Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H.
 (2014). UpSet: Visualization of intersecting sets. *IEEE Transactions on
 Visualization and Computer Graphics*, 20(12), 1983-1992.
@@ -476,6 +500,13 @@ plot(hg, center = c("b", "c"))
 plot(hg, dismantled = TRUE)
 
 plot(hg, type = "incidence", edge_labels = TRUE)
+
+
+# the windows of one sequence, in order, as a storyline
+steps <- list(c("plan", "monitor", "discuss", "plan", "adapt", "monitor",
+                "discuss", "consensus"))
+windows <- window_hypergraph(steps, window = 3, collapse = FALSE)
+plot(windows, type = "storyline", top = NULL)
 
 
 # tribunals in claims against Argentina, one column per tribunal by date

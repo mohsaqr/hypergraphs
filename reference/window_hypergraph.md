@@ -28,7 +28,8 @@ window_hypergraph(
   time_threshold = 900,
   timezone = "UTC",
   min_size = 1L,
-  min_weight = 1L
+  min_weight = 1L,
+  collapse = TRUE
 )
 ```
 
@@ -69,6 +70,17 @@ window_hypergraph(
   everything. The total dropped by `min_size` and `min_weight` together
   is recorded in `params$n_dropped`; with both at their defaults,
   `sum(window_counts)` equals the number of non-empty full windows.
+
+- collapse:
+
+  `TRUE` (default) merges windows with the same set of states into one
+  hyperedge weighted by its number of windows. `FALSE` keeps every
+  window as a hyperedge of its own, in sequence order and in order of
+  position, named by its positions (`"1-3"`, or `"sequence_2:1-3"` when
+  there are several sequences); the edge metadata (`edge_data`) then
+  records each window's `sequence`, `start` and `end` position, every
+  window count is 1, and `min_weight` does not apply. The ordered
+  windows of one sequence are the input of `plot(type = "storyline")`.
 
 ## Value
 

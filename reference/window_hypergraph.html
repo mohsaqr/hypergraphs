@@ -27,7 +27,7 @@ hg_classify()).'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,7 +95,8 @@ family (<code><a href="hg_laplacian.html">hg_laplacian()</a></code>, <code><a hr
 <span>  time_threshold <span class="op">=</span> <span class="fl">900</span>,</span>
 <span>  timezone <span class="op">=</span> <span class="st">"UTC"</span>,</span>
 <span>  min_size <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  min_weight <span class="op">=</span> <span class="fl">1L</span></span>
+<span>  min_weight <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  collapse <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -135,6 +136,18 @@ role <code>min_freq</code> plays in rule extraction). The default <code>1</code>
 everything. The total dropped by <code>min_size</code> and <code>min_weight</code> together
 is recorded in <code>params$n_dropped</code>; with both at their defaults,
 <code>sum(window_counts)</code> equals the number of non-empty full windows.</p></dd>
+
+
+<dt id="arg-collapse">collapse<a class="anchor" aria-label="anchor" href="#arg-collapse"></a></dt>
+<dd><p><code>TRUE</code> (default) merges windows with the same set of
+states into one hyperedge weighted by its number of windows. <code>FALSE</code>
+keeps every window as a hyperedge of its own, in sequence order and in
+order of position, named by its positions (<code>"1-3"</code>, or
+<code>"sequence_2:1-3"</code> when there are several sequences); the edge
+metadata (<code>edge_data</code>) then records each window's <code>sequence</code>, <code>start</code>
+and <code>end</code> position, every window count is 1, and <code>min_weight</code> does not
+apply. The ordered windows of one sequence are the input of
+<code>plot(type = "storyline")</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

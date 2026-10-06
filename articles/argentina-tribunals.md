@@ -328,6 +328,19 @@ January of each year from 2002 to 2022.
 
 grid <- seq(as.Date("2002-01-01"), as.Date("2022-01-01"), by = "year")
 docket <- hg_growth(tribunals, components = TRUE, at = grid)
+tail(docket, 3)
+#>    time n_nodes n_edges n_edges_distinct n_memberships n_nodes_cumulative
+#> 19 8066      15       5                5            15                 71
+#> 20 8432      21       7                7            21                 77
+#> 21 8797      18       6                6            18                 77
+#>    n_edges_cumulative n_edges_distinct_cumulative n_components
+#> 19                 45                          42            5
+#> 20                 47                          44            7
+#> 21                 47                          44            6
+#>    largest_component diameter
+#> 19         0.2000000        1
+#> 20         0.1428571        1
+#> 21         0.1666667        1
 ```
 
 ``` r
@@ -376,6 +389,27 @@ plot(neighbourhood, columns = c("mean", "q25", "median", "q75"),
 
 The mean neighbourhood of an active tribunal peaks at 4.5 arbitrators in
 2005.
+
+The storyline plots the eight arbitrators with the most tribunals as
+lines across their tribunals, in the order the tribunals were
+constituted. A line runs from an arbitrator’s first tribunal to the
+last, and a grey bar at a tribunal gathers the lines of its members
+among the eight. Two neighbouring lines sit closer the more tribunals
+the two arbitrators shared, and a line is wider the more tribunals the
+arbitrator sat on.
+
+``` r
+
+plot(tribunals, type = "storyline", spacing = "strength", width_by = "degree")
+```
+
+![](argentina-tribunals_files/figure-html/storyline-1.png)
+
+Francisco ORREGO VICUÑA and Marc LALONDE shared 3 tribunals, the most of
+any two of the eight, and their lines run closest. Gabrielle
+KAUFMANN-KOHLER and Henri C. ÁLVAREZ shared no tribunal with any of the
+other seven. The longest line is Francisco ORREGO VICUÑA’s, from 2001 to
+2013.
 
 ## Which tribunals held the docket together
 
@@ -468,6 +502,46 @@ same time. A static centrality on the aggregate treats the docket as if
 all of it had sat at once, which is the reason centrality is computed
 here on snapshots.
 
+Betweenness on all tribunals at once ranks them as follows.
+
+``` r
+
+aggregate_bridges <- hg_edge_centrality(argentina_all, s = 1,
+                                        measure = "betweenness", top = 10)
+aggregate_bridges
+#>         edge s     measure      value
+#> 1   ARB/07/5 1 betweenness 0.15209838
+#> 2  ARB/03/10 1 betweenness 0.13913043
+#> 3  ARB/07/17 1 betweenness 0.12971398
+#> 4   ARB/05/2 1 betweenness 0.11784909
+#> 5  ARB/03/15 1 betweenness 0.10109731
+#> 6  ARB/03/27 1 betweenness 0.08490683
+#> 7   ARB/04/1 1 betweenness 0.07816463
+#> 8  ARB/03/20 1 betweenness 0.07620006
+#> 9  ARB/04/14 1 betweenness 0.07171613
+#> 10 ARB/12/38 1 betweenness 0.06957787
+```
+
+6 of the ten tribunals with the highest betweenness are also among the
+ten with the highest closeness. The figure plots the ten with the
+highest betweenness, coloured by economic sector.
+
+``` r
+
+central_tribunals <- hg_subset(argentina_all, edges = aggregate_bridges)
+```
+
+``` r
+
+plot(central_tribunals, color_by = "economic_sector",
+     legend_title = "economic sector")
+```
+
+![](argentina-tribunals_files/figure-html/aggregate-central-plot-1.png)
+
+The central tribunals are joined through a few arbitrators who sit on
+several of them; Brigitte STERN sits on 3 of the ten.
+
 ## Communities of arbitrators
 
 Hypergraph modularity measures the quality of a partition of the nodes
@@ -513,6 +587,31 @@ plot(backbone, node_groups = irmm)
 ```
 
 ![](argentina-tribunals_files/figure-html/communities-plot-1.png)
+
+The contribution of each IRMM community shows where the modularity comes
+from.
+
+``` r
+
+hg_modularity(argentina_all, irmm, what = "communities")
+#>    community n_nodes volume edge_contribution   degree_tax modularity
+#> 1          2      13     35        0.21985816 0.1079383324 0.11191982
+#> 2          8      14     30        0.17730496 0.0809069281 0.09639804
+#> 3          6      11     19        0.12056738 0.0338692525 0.08669812
+#> 4          4       7     14        0.09929078 0.0187384441 0.08055234
+#> 5          7       9     14        0.09219858 0.0187384441 0.07346014
+#> 6          9       6     11        0.05673759 0.0116976150 0.04503997
+#> 7          3       5      6        0.04255319 0.0035444940 0.03900870
+#> 8          1       3      3        0.02127660 0.0008957553 0.02038084
+#> 9         10       3      3        0.02127660 0.0008957553 0.02038084
+#> 10        11       3      3        0.02127660 0.0008957553 0.02038084
+#> 11         5       3      3        0.02127660 0.0008957553 0.02038084
+```
+
+The community of 13 arbitrators contributes most, 0.112 of the 0.615. 4
+communities hold three arbitrators with a volume of three, so each is a
+single tribunal whose arbitrators sat on no other tribunal in these
+claims.
 
 ## Argentina and the other cases
 

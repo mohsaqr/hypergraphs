@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,19 +82,18 @@ accuracy of <code>text_hypergraph(sparse = TRUE)</code> +
 <code><a href="../reference/hg_classify.html">hg_classify()</a></code> on R8, R52, MR, Ohsumed, and 20-Newsgroups,
 against a tf-idf nearest-centroid baseline and against the published
 accuracy tables in Ding et al. (2020). Every number below was produced
-by the harness in <code>benchmarks/</code> of the package repository;
-nothing is copied from memory.</p>
+by running the package on these corpora; nothing is copied from
+memory.</p>
 <div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
 <p>The corpora and train/test splits are the exact files of Yao, Mao
 &amp; Luo (2019), which Ding et al. (2020) also use – any other cleaning
-would make the numbers incomparable. <code>benchmarks/download.sh</code>
-fetches them. Each dataset becomes a sparse document–word hypergraph
-(documents are vertices, words are hyperedges, tf-idf incidence
-weights); the training documents are the labeled seeds; the spreading
-solution classifies every test document in one conjugate-gradient solve
-per class.</p>
+would make the numbers incomparable. Each dataset becomes a sparse
+document–word hypergraph (documents are vertices, words are hyperedges,
+tf-idf incidence weights); the training documents are the labeled seeds;
+the spreading solution classifies every test document in one
+conjugate-gradient solve per class.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">docs</span>, weight <span class="op">=</span> <span class="st">"tfidf"</span>, sparse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_classify.html">hg_classify</a></span><span class="op">(</span><span class="va">hg</span>, labels <span class="op">=</span> <span class="va">train_labels</span>, normalization <span class="op">=</span> <span class="st">"class_mass"</span><span class="op">)</span></span></code></pre></div>

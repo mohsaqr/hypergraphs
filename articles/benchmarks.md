@@ -6,18 +6,18 @@ accuracy of `text_hypergraph(sparse = TRUE)` +
 [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
 on R8, R52, MR, Ohsumed, and 20-Newsgroups, against a tf-idf
 nearest-centroid baseline and against the published accuracy tables in
-Ding et al. (2020). Every number below was produced by the harness in
-`benchmarks/` of the package repository; nothing is copied from memory.
+Ding et al. (2020). Every number below was produced by running the
+package on these corpora; nothing is copied from memory.
 
 ## Setup
 
 The corpora and train/test splits are the exact files of Yao, Mao & Luo
 (2019), which Ding et al. (2020) also use – any other cleaning would
-make the numbers incomparable. `benchmarks/download.sh` fetches them.
-Each dataset becomes a sparse document–word hypergraph (documents are
-vertices, words are hyperedges, tf-idf incidence weights); the training
-documents are the labeled seeds; the spreading solution classifies every
-test document in one conjugate-gradient solve per class.
+make the numbers incomparable. Each dataset becomes a sparse
+document–word hypergraph (documents are vertices, words are hyperedges,
+tf-idf incidence weights); the training documents are the labeled seeds;
+the spreading solution classifies every test document in one
+conjugate-gradient solve per class.
 
 ``` r
 

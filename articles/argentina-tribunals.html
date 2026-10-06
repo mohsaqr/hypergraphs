@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -357,7 +357,20 @@ are added. The grid is the first of January of each year from 2002 to
 2022.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2002-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2022-01-01"</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
-<span><span class="va">docket</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_growth.html">hg_growth</a></span><span class="op">(</span><span class="va">tribunals</span>, components <span class="op">=</span> <span class="cn">TRUE</span>, at <span class="op">=</span> <span class="va">grid</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">docket</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_growth.html">hg_growth</a></span><span class="op">(</span><span class="va">tribunals</span>, components <span class="op">=</span> <span class="cn">TRUE</span>, at <span class="op">=</span> <span class="va">grid</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">docket</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    time n_nodes n_edges n_edges_distinct n_memberships n_nodes_cumulative</span></span>
+<span><span class="co">#&gt; 19 8066      15       5                5            15                 71</span></span>
+<span><span class="co">#&gt; 20 8432      21       7                7            21                 77</span></span>
+<span><span class="co">#&gt; 21 8797      18       6                6            18                 77</span></span>
+<span><span class="co">#&gt;    n_edges_cumulative n_edges_distinct_cumulative n_components</span></span>
+<span><span class="co">#&gt; 19                 45                          42            5</span></span>
+<span><span class="co">#&gt; 20                 47                          44            7</span></span>
+<span><span class="co">#&gt; 21                 47                          44            6</span></span>
+<span><span class="co">#&gt;    largest_component diameter</span></span>
+<span><span class="co">#&gt; 19         0.2000000        1</span></span>
+<span><span class="co">#&gt; 20         0.1428571        1</span></span>
+<span><span class="co">#&gt; 21         0.1666667        1</span></span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">docket</span>,</span>
 <span>     columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_nodes"</span>, <span class="st">"n_edges"</span>, <span class="st">"n_nodes_cumulative"</span>,</span>
@@ -387,6 +400,21 @@ tribunal with one of its members.</p>
 <p><img src="argentina-tribunals_files/figure-html/neighbourhood-plot-1.png" class="r-plt" alt="" width="100%"></p>
 <p>The mean neighbourhood of an active tribunal peaks at 4.5 arbitrators
 in 2005.</p>
+<p>The storyline plots the eight arbitrators with the most tribunals as
+lines across their tribunals, in the order the tribunals were
+constituted. A line runs from an arbitrator’s first tribunal to the
+last, and a grey bar at a tribunal gathers the lines of its members
+among the eight. Two neighbouring lines sit closer the more tribunals
+the two arbitrators shared, and a line is wider the more tribunals the
+arbitrator sat on.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tribunals</span>, type <span class="op">=</span> <span class="st">"storyline"</span>, spacing <span class="op">=</span> <span class="st">"strength"</span>, width_by <span class="op">=</span> <span class="st">"degree"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="argentina-tribunals_files/figure-html/storyline-1.png" class="r-plt" alt="" width="100%"></p>
+<p>Francisco ORREGO VICUÑA and Marc LALONDE shared 3 tribunals, the most
+of any two of the eight, and their lines run closest. Gabrielle
+KAUFMANN-KOHLER and Henri C. ÁLVAREZ shared no tribunal with any of the
+other seven. The longest line is Francisco ORREGO VICUÑA’s, from 2001 to
+2013.</p>
 </div>
 <div class="section level2">
 <h2 id="which-tribunals-held-the-docket-together">Which tribunals held the docket together<a class="anchor" aria-label="anchor" href="#which-tribunals-held-the-docket-together"></a>
@@ -397,7 +425,7 @@ least <em>s</em> arbitrators. With <em>s</em> = 1, a tribunal of high
 betweenness lies on many of the shortest chains of shared arbitrators
 between other tribunals. Computed on the snapshot of each year, it shows
 which tribunal bridged the docket at each time.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bridges</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_edge_centrality.html">hg_edge_centrality</a></span><span class="op">(</span><span class="va">tribunals</span>, s <span class="op">=</span> <span class="fl">1</span>, measure <span class="op">=</span> <span class="st">"betweenness"</span>,</span>
 <span>                              at <span class="op">=</span> <span class="va">grid</span>, top <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">bridges</span></span>
@@ -429,12 +457,12 @@ between two others, because the active tribunals no longer share
 arbitrators.</p>
 <p>On 1 June 2006, near the peak of the docket, the backbone is the ten
 tribunals of highest betweenness in the snapshot of that day.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">peak</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_snapshot.html">hg_snapshot</a></span><span class="op">(</span><span class="va">tribunals</span>, at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2006-06-01"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">backbone_cases</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_edge_centrality.html">hg_edge_centrality</a></span><span class="op">(</span><span class="va">peak</span>, s <span class="op">=</span> <span class="fl">1</span>, measure <span class="op">=</span> <span class="st">"betweenness"</span>,</span>
 <span>                                     top <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">backbone</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_subset.html">hg_subset</a></span><span class="op">(</span><span class="va">peak</span>, edges <span class="op">=</span> <span class="va">backbone_cases</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">backbone</span>, color_by <span class="op">=</span> <span class="st">"economic_sector"</span>, legend_title <span class="op">=</span> <span class="st">"economic sector"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="argentina-tribunals_files/figure-html/backbone-plot-1.png" class="r-plt" alt="" width="100%"></p>
 <p>On that day 25 tribunals were active. The ten tribunals of the
@@ -443,7 +471,7 @@ arbitrators; Francisco ORREGO VICUÑA sits on 3 of them.</p>
 <p>The aggregate hypergraph gives a different backbone. Closeness
 computed on all tribunals at once ranks tribunals as close to each other
 whether or not they were ever active together.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aggregate_cases</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_edge_centrality.html">hg_edge_centrality</a></span><span class="op">(</span><span class="va">argentina_all</span>, s <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                                      measure <span class="op">=</span> <span class="st">"closeness"</span>, top <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">aggregate_cases</span></span>
@@ -462,6 +490,33 @@ whether or not they were ever active together.</p>
 the same time. A static centrality on the aggregate treats the docket as
 if all of it had sat at once, which is the reason centrality is computed
 here on snapshots.</p>
+<p>Betweenness on all tribunals at once ranks them as follows.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">aggregate_bridges</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_edge_centrality.html">hg_edge_centrality</a></span><span class="op">(</span><span class="va">argentina_all</span>, s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                                        measure <span class="op">=</span> <span class="st">"betweenness"</span>, top <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">aggregate_bridges</span></span>
+<span><span class="co">#&gt;         edge s     measure      value</span></span>
+<span><span class="co">#&gt; 1   ARB/07/5 1 betweenness 0.15209838</span></span>
+<span><span class="co">#&gt; 2  ARB/03/10 1 betweenness 0.13913043</span></span>
+<span><span class="co">#&gt; 3  ARB/07/17 1 betweenness 0.12971398</span></span>
+<span><span class="co">#&gt; 4   ARB/05/2 1 betweenness 0.11784909</span></span>
+<span><span class="co">#&gt; 5  ARB/03/15 1 betweenness 0.10109731</span></span>
+<span><span class="co">#&gt; 6  ARB/03/27 1 betweenness 0.08490683</span></span>
+<span><span class="co">#&gt; 7   ARB/04/1 1 betweenness 0.07816463</span></span>
+<span><span class="co">#&gt; 8  ARB/03/20 1 betweenness 0.07620006</span></span>
+<span><span class="co">#&gt; 9  ARB/04/14 1 betweenness 0.07171613</span></span>
+<span><span class="co">#&gt; 10 ARB/12/38 1 betweenness 0.06957787</span></span></code></pre></div>
+<p>6 of the ten tribunals with the highest betweenness are also among
+the ten with the highest closeness. The figure plots the ten with the
+highest betweenness, coloured by economic sector.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">central_tribunals</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_subset.html">hg_subset</a></span><span class="op">(</span><span class="va">argentina_all</span>, edges <span class="op">=</span> <span class="va">aggregate_bridges</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">central_tribunals</span>, color_by <span class="op">=</span> <span class="st">"economic_sector"</span>,</span>
+<span>     legend_title <span class="op">=</span> <span class="st">"economic sector"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="argentina-tribunals_files/figure-html/aggregate-central-plot-1.png" class="r-plt" alt="" width="100%"></p>
+<p>The central tribunals are joined through a few arbitrators who sit on
+several of them; Brigitte STERN sits on 3 of the ten.</p>
 </div>
 <div class="section level2">
 <h2 id="communities-of-arbitrators">Communities of arbitrators<a class="anchor" aria-label="anchor" href="#communities-of-arbitrators"></a>
@@ -474,7 +529,7 @@ partitions the association graph by minimising the description length of
 a random walk on it. Both are run from 20 seeds, and the partition
 reported is the medoid, the run with the largest summed adjusted mutual
 information with the other runs.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">irmm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_communities.html">hg_communities</a></span><span class="op">(</span><span class="va">argentina_all</span>, type <span class="op">=</span> <span class="st">"irmm"</span>, seeds <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,</span>
 <span>                       n_runs <span class="op">=</span> <span class="fl">20</span>, max_iter <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/hg_modularity.html">hg_modularity</a></span><span class="op">(</span><span class="va">argentina_all</span>, <span class="va">irmm</span><span class="op">)</span></span>
@@ -498,9 +553,29 @@ modularity of 0.640, and its runs agree with a median of 1.00. The two
 medoids agree with an adjusted Rand index of 0.61 and an adjusted mutual
 information of 0.76. The figure plots the backbone of 1 June 2006 with
 each arbitrator coloured and shaped by its IRMM community.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">backbone</span>, node_groups <span class="op">=</span> <span class="va">irmm</span><span class="op">)</span></span></code></pre></div>
 <p><img src="argentina-tribunals_files/figure-html/communities-plot-1.png" class="r-plt" alt="" width="100%"></p>
+<p>The contribution of each IRMM community shows where the modularity
+comes from.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_modularity.html">hg_modularity</a></span><span class="op">(</span><span class="va">argentina_all</span>, <span class="va">irmm</span>, what <span class="op">=</span> <span class="st">"communities"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    community n_nodes volume edge_contribution   degree_tax modularity</span></span>
+<span><span class="co">#&gt; 1          2      13     35        0.21985816 0.1079383324 0.11191982</span></span>
+<span><span class="co">#&gt; 2          8      14     30        0.17730496 0.0809069281 0.09639804</span></span>
+<span><span class="co">#&gt; 3          6      11     19        0.12056738 0.0338692525 0.08669812</span></span>
+<span><span class="co">#&gt; 4          4       7     14        0.09929078 0.0187384441 0.08055234</span></span>
+<span><span class="co">#&gt; 5          7       9     14        0.09219858 0.0187384441 0.07346014</span></span>
+<span><span class="co">#&gt; 6          9       6     11        0.05673759 0.0116976150 0.04503997</span></span>
+<span><span class="co">#&gt; 7          3       5      6        0.04255319 0.0035444940 0.03900870</span></span>
+<span><span class="co">#&gt; 8          1       3      3        0.02127660 0.0008957553 0.02038084</span></span>
+<span><span class="co">#&gt; 9         10       3      3        0.02127660 0.0008957553 0.02038084</span></span>
+<span><span class="co">#&gt; 10        11       3      3        0.02127660 0.0008957553 0.02038084</span></span>
+<span><span class="co">#&gt; 11         5       3      3        0.02127660 0.0008957553 0.02038084</span></span></code></pre></div>
+<p>The community of 13 arbitrators contributes most, 0.112 of the 0.615.
+4 communities hold three arbitrators with a volume of three, so each is
+a single tribunal whose arbitrators sat on no other tribunal in these
+claims.</p>
 </div>
 <div class="section level2">
 <h2 id="argentina-and-the-other-cases">Argentina and the other cases<a class="anchor" aria-label="anchor" href="#argentina-and-the-other-cases"></a>

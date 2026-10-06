@@ -11,12 +11,12 @@ Source:
 [`DESCRIPTION`](https://github.com/mohsaqr/hypergraphs/blob/main/DESCRIPTION)
 
 Saqr M (2026). *hypergraphs: Higher-Order Network Analysis*. R package
-version 0.6.8, <https://github.com/mohsaqr/hypergraphs>.
+version 0.6.9, <https://github.com/mohsaqr/hypergraphs>.
 
     @Manual{,
       title = {hypergraphs: Higher-Order Network Analysis},
       author = {Mohammed Saqr},
       year = {2026},
-      note = {R package version 0.6.8},
+      note = {R package version 0.6.9},
       url = {https://github.com/mohsaqr/hypergraphs},
     }

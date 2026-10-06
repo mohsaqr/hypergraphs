@@ -453,6 +453,14 @@
 #' structure a speck in the middle. Packing keeps every component at its own
 #' size and the frame spent on structure.
 #'
+#' `type = "storyline"` plots a hypergraph whose hyperedges have an order,
+#' such as the windows of one sequence from
+#' `window_hypergraph(collapse = FALSE)`, as a storyline (Tanahashi and Ma
+#' 2012): each hyperedge is a column, in stored order or by `sort_by`, and
+#' each of the busiest nodes a line that its hyperedges gather, laid out as
+#' for [plot.net_temporal_hypergraph()]. It takes `sort_by`, `edge_labels`
+#' (`FALSE` drops the column names) and the storyline arguments in `...`.
+#'
 #' `type = "incidence"` plots the incidence matrix instead, after UpSet (Lex
 #' et al. 2014). Each node is a row and each hyperedge a column; a vertical
 #' bar joins the members of a hyperedge. Rows are ordered by decreasing
@@ -644,15 +652,22 @@
 #'   name that is not a group, or a hypergraph without a `group` attribute,
 #'   raises `hypergraphs_bad_input`. `NULL` (default) draws every hyperedge.
 #' @param type `"hulls"` (default) plots each hyperedge as a pebble around
-#'   its members; `"incidence"` plots the incidence matrix (see Details).
+#'   its members; `"incidence"` plots the incidence matrix; `"storyline"`
+#'   plots the hyperedges in order as columns and the nodes as lines (see
+#'   Details).
 #' @param sort_by Column order of `type = "incidence"`: `NULL` (default;
 #'   by highest member row, then name), `"size"`, the name of a column in the
 #'   edge metadata such as a date, a vector named by hyperedge, or a vector
 #'   with one value per hyperedge. Numbers sort largest first, as in
 #'   [hg_get()]; dates, text and a clock column (`start`, `end`, `time`,
 #'   ... as [temporal_hypergraph()] names them, numeric in a snapshot) sort
-#'   ascending. Ties fall back to the default order.
-#' @param ... Unused; for S3 consistency.
+#'   ascending. Ties fall back to the default order. For
+#'   `type = "storyline"` it is the order of the columns, always ascending;
+#'   `NULL` keeps the stored order of the hyperedges.
+#' @param ... For `type = "storyline"`: `top` (the number of nodes with the
+#'   most hyperedges drawn as lines, default `8`, `NULL` for all), `spacing`
+#'   (`"even"` or `"strength"`), `width_by` (`NULL` or `"degree"`) and
+#'   `point_size`, as in [plot.net_temporal_hypergraph()]. Otherwise unused.
 #' @return A ggplot object (with `dismantled = TRUE`, one facet per
 #'   hyperedge). With `node_sizes` and `direction` the nodes are polygon
 #'   layers in data units and the caption names what circle area and
@@ -677,6 +692,10 @@
 #'   force-directed placement. *Software: Practice and Experience*, 21(11),
 #'   1129-1164. \doi{10.1002/spe.4380211102}
 #'
+#'   Tanahashi, Y., & Ma, K.-L. (2012). Design considerations for optimizing
+#'   storyline visualizations. *IEEE Transactions on Visualization and
+#'   Computer Graphics*, 18(12), 2679-2688. \doi{10.1109/TVCG.2012.212}
+#'
 #'   Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H.
 #'   (2014). UpSet: Visualization of intersecting sets. *IEEE Transactions on
 #'   Visualization and Computer Graphics*, 20(12), 1983-1992.
@@ -692,6 +711,12 @@
 #' plot(hg, center = c("b", "c"))
 #' plot(hg, dismantled = TRUE)
 #' plot(hg, type = "incidence", edge_labels = TRUE)
+#'
+#' # the windows of one sequence, in order, as a storyline
+#' steps <- list(c("plan", "monitor", "discuss", "plan", "adapt", "monitor",
+#'                 "discuss", "consensus"))
+#' windows <- window_hypergraph(steps, window = 3, collapse = FALSE)
+#' plot(windows, type = "storyline", top = NULL)
 #'
 #' # tribunals in claims against Argentina, one column per tribunal by date
 #' tribunals <- group_hypergraph(icsid_tribunals, node = "arbitrator",
@@ -751,10 +776,36 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                 notes = NULL, unit = NULL, pieces = NULL,
                                 title_gap = 0.06, group = NULL,
                                 node_groups = NULL,
-                                type = c("hulls", "incidence"),
+                                type = c("hulls", "incidence", "storyline"),
                                 sort_by = NULL, ...) {
   .thg_check_hg(x)
   type <- match.arg(type)
+  if (identical(type, "storyline")) {
+    not_storyline <- c("layout", "center", "seed", "color_by", "linetype_by",
+                       "labels", "label_size", "edge_label_size",
+                       "dismantled", "ncol", "node_size", "detail",
+                       "outline", "alpha", "linewidth", "padding",
+                       "legend_title", "node_sizes", "direction",
+                       "arrow_style", "node_fill", "arrow_fill",
+                       "transitions", "size_title", "titles",
+                       "title_prefix", "notes", "unit", "pieces",
+                       "title_gap", "group", "node_groups")
+    dots <- list(...)
+    dot_names <- names(dots) %||% rep("", length(dots))
+    refused <- c(intersect(names(match.call())[-1L], not_storyline),
+                 setdiff(dot_names[nzchar(dot_names)],
+                         c("top", "spacing", "width_by", "point_size")))
+    if (any(!nzchar(dot_names))) refused <- c(refused, "unnamed arguments")
+    if (length(refused)) {
+      .thg_bad_input(sprintf("%s: not used by `type = \"storyline\"`",
+                             paste0("`", refused, "`", collapse = ", ")))
+    }
+    return(do.call(.thg_plot_storyline_hg,
+                   # a storyline names its columns unless told not to
+                   c(list(x, sort_by = sort_by,
+                          edge_labels = missing(edge_labels) || !isFALSE(edge_labels)),
+                     dots)))
+  }
   if (identical(type, "incidence")) {
     hull_only <- c("layout", "center", "seed", "linetype_by", "dismantled",
                    "ncol", "node_size", "detail", "outline", "alpha",

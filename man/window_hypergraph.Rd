@@ -15,7 +15,8 @@ window_hypergraph(
   time_threshold = 900,
   timezone = "UTC",
   min_size = 1L,
-  min_weight = 1L
+  min_weight = 1L,
+  collapse = TRUE
 )
 }
 \arguments{
@@ -40,6 +41,16 @@ role \code{min_freq} plays in rule extraction). The default \code{1} keeps
 everything. The total dropped by \code{min_size} and \code{min_weight} together
 is recorded in \code{params$n_dropped}; with both at their defaults,
 \code{sum(window_counts)} equals the number of non-empty full windows.}
+
+\item{collapse}{\code{TRUE} (default) merges windows with the same set of
+states into one hyperedge weighted by its number of windows. \code{FALSE}
+keeps every window as a hyperedge of its own, in sequence order and in
+order of position, named by its positions (\code{"1-3"}, or
+\code{"sequence_2:1-3"} when there are several sequences); the edge
+metadata (\code{edge_data}) then records each window's \code{sequence}, \code{start}
+and \code{end} position, every window count is 1, and \code{min_weight} does not
+apply. The ordered windows of one sequence are the input of
+\code{plot(type = "storyline")}.}
 }
 \value{
 A \code{net_hg} object (as from \code{\link[=network_hypergraph]{network_hypergraph()}} and

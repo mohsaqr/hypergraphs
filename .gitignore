@@ -23,3 +23,6 @@ Tutorial_docs/*_files/
 *.Rcheck/
 benchmarks/.venv/
 docs/
+
+# reference PDFs: kept locally, never published
+papers/

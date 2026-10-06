@@ -39,7 +39,7 @@
   title_gap = 0.06,
   group = NULL,
   node_groups = NULL,
-  type = c("hulls", "incidence"),
+  type = c("hulls", "incidence", "storyline"),
   sort_by = NULL,
   ...
 )
@@ -255,7 +255,9 @@ hulls are then grey, so the node colours carry the grouping. \code{NULL}
 \code{outline = "fill"}.}
 
 \item{type}{\code{"hulls"} (default) plots each hyperedge as a pebble around
-its members; \code{"incidence"} plots the incidence matrix (see Details).}
+its members; \code{"incidence"} plots the incidence matrix; \code{"storyline"}
+plots the hyperedges in order as columns and the nodes as lines (see
+Details).}
 
 \item{sort_by}{Column order of \code{type = "incidence"}: \code{NULL} (default;
 by highest member row, then name), \code{"size"}, the name of a column in the
@@ -263,9 +265,14 @@ edge metadata such as a date, a vector named by hyperedge, or a vector
 with one value per hyperedge. Numbers sort largest first, as in
 \code{\link[=hg_get]{hg_get()}}; dates, text and a clock column (\code{start}, \code{end}, \code{time},
 ... as \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} names them, numeric in a snapshot) sort
-ascending. Ties fall back to the default order.}
+ascending. Ties fall back to the default order. For
+\code{type = "storyline"} it is the order of the columns, always ascending;
+\code{NULL} keeps the stored order of the hyperedges.}
 
-\item{...}{Unused; for S3 consistency.}
+\item{...}{For \code{type = "storyline"}: \code{top} (the number of nodes with the
+most hyperedges drawn as lines, default \code{8}, \code{NULL} for all), \code{spacing}
+(\code{"even"} or \code{"strength"}), \code{width_by} (\code{NULL} or \code{"degree"}) and
+\code{point_size}, as in \code{\link[=plot.net_temporal_hypergraph]{plot.net_temporal_hypergraph()}}. Otherwise unused.}
 }
 \value{
 A ggplot object (with \code{dismantled = TRUE}, one facet per
@@ -320,6 +327,14 @@ picture and set the scale for everything else, leaving the connected
 structure a speck in the middle. Packing keeps every component at its own
 size and the frame spent on structure.
 
+\code{type = "storyline"} plots a hypergraph whose hyperedges have an order,
+such as the windows of one sequence from
+\code{window_hypergraph(collapse = FALSE)}, as a storyline (Tanahashi and Ma
+2012): each hyperedge is a column, in stored order or by \code{sort_by}, and
+each of the busiest nodes a line that its hyperedges gather, laid out as
+for \code{\link[=plot.net_temporal_hypergraph]{plot.net_temporal_hypergraph()}}. It takes \code{sort_by}, \code{edge_labels}
+(\code{FALSE} drops the column names) and the storyline arguments in \code{...}.
+
 \code{type = "incidence"} plots the incidence matrix instead, after UpSet (Lex
 et al. 2014). Each node is a row and each hyperedge a column; a vertical
 bar joins the members of a hyperedge. Rows are ordered by decreasing
@@ -359,6 +374,12 @@ plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 plot(hg, center = c("b", "c"))
 plot(hg, dismantled = TRUE)
 plot(hg, type = "incidence", edge_labels = TRUE)
+
+# the windows of one sequence, in order, as a storyline
+steps <- list(c("plan", "monitor", "discuss", "plan", "adapt", "monitor",
+                "discuss", "consensus"))
+windows <- window_hypergraph(steps, window = 3, collapse = FALSE)
+plot(windows, type = "storyline", top = NULL)
 
 # tribunals in claims against Argentina, one column per tribunal by date
 tribunals <- group_hypergraph(icsid_tribunals, node = "arbitrator",
@@ -408,6 +429,10 @@ hypergraphs. \emph{Philosophical Transactions of the Royal Society A},
 Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph drawing by
 force-directed placement. \emph{Software: Practice and Experience}, 21(11),
 1129-1164. \doi{10.1002/spe.4380211102}
+
+Tanahashi, Y., & Ma, K.-L. (2012). Design considerations for optimizing
+storyline visualizations. \emph{IEEE Transactions on Visualization and
+Computer Graphics}, 18(12), 2679-2688. \doi{10.1109/TVCG.2012.212}
 
 Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H.
 (2014). UpSet: Visualization of intersecting sets. \emph{IEEE Transactions on

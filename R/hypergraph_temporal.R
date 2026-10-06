@@ -989,7 +989,7 @@ hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
   switch(what, memberships = x$memberships, edges = x$edge_data, nodes = x$node_data)
 }
 
-#' Plot a temporal-hypergraph snapshot
+#' Plot a temporal hypergraph
 #'
 #' Plots the snapshot that [hg_snapshot()] takes at `at` as a hypergraph,
 #' with [plot.net_hg()]: the hyperedges active then, as hulls by default or
@@ -997,19 +997,66 @@ hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
 #' hyperedge attributes and the data's names for nodes and hyperedges, so
 #' `color_by` can name an attribute and the legends use the data's words.
 #'
+#' `type = "storyline"` plots the whole history instead (Tanahashi and Ma
+#' 2012). Each of the `top` nodes with the most hyperedges is a line, from
+#' its first hyperedge to its last, and each hyperedge is a column, in order
+#' of its start, where a grey bar gathers the lines of its members among the
+#' plotted nodes. The columns are spaced by order, not by elapsed time, and
+#' are labelled with the hyperedge and its start. Lines are ordered by the
+#' barycentre rule of Sugiyama, Tagawa and Toda (1981): along the columns the
+#' members of each hyperedge move to the median of their current rows, and
+#' the ordering is refined over repeated sweeps, keeping the one with the
+#' fewest line crossings. Each line takes an Okabe-Ito colour and its points
+#' a shape, and the legend names the nodes in decreasing order of their
+#' number of hyperedges. Eight colours and nine shapes cycle, so up to 72
+#' lines differ in their pair of colour and shape.
+#'
 #' @param x A [temporal_hypergraph()].
-#' @param at Snapshot time; defaults to the end of observation.
-#' @param mode Snapshot mode passed to [hg_snapshot()].
+#' @param at Snapshot time; defaults to the end of observation. Not used by
+#'   the storyline.
+#' @param mode Snapshot mode passed to [hg_snapshot()]. Not used by the
+#'   storyline.
+#' @param type `"hulls"` (default) or `"incidence"` plot the snapshot at
+#'   `at` (see [plot.net_hg()]); `"storyline"` plots the whole history.
+#' @param top For `type = "storyline"`: the number of nodes with the most
+#'   hyperedges to draw as lines (default `8`, one Okabe-Ito colour each;
+#'   ties broken by name), or
+#'   `NULL` for every node.
+#' @param start,end For `type = "storyline"`: draw only the hyperedges that
+#'   begin in this period, as dates for a calendar hypergraph or numbers on
+#'   its clock. `NULL` (default) leaves the period open.
 #' @param method Deprecated. The snapshot used to be projected to a pairwise
 #'   network; `plot(pairwise_network(hg_snapshot(x, at), type = method))`
 #'   plots that network.
-#' @param ... Arguments passed to [plot.net_hg()], such as `type`,
-#'   `color_by` or `labels`.
-#' @return A ggplot object, as [plot.net_hg()] returns.
+#' @param ... For `"hulls"` and `"incidence"`, arguments passed to
+#'   [plot.net_hg()], such as `color_by` or `labels`. For `"storyline"`,
+#'   `edge_labels` (`TRUE` writes the hyperedge and its start under each
+#'   column), `point_size` (size of the points, default `2.5`) and
+#'   `spacing`: `"even"` (default) puts neighbouring lines one row apart,
+#'   `"strength"` brings two neighbouring lines closer the more plotted
+#'   hyperedges their nodes share: a full row apart for none, 0.35 of a row
+#'   for the largest number shared by any pair in the plot, and linearly in
+#'   between, so lines that often meet run together. Spacing never changes
+#'   the order of the lines. `width_by = "degree"` draws each line with a
+#'   width that grows linearly with its node's number of hyperedges in the
+#'   period, the count `top` ranks by, and adds a width legend; `NULL`
+#'   (default) draws every line alike.
+#' @return A ggplot object.
 #' @section Conditions:
-#' `hypergraphs_bad_input` when the snapshot has no active nodes, and as
-#' [plot.net_hg()] raises it; `hypergraphs_deprecated` (a warning) for
-#' `method`.
+#' `hypergraphs_bad_input` when the snapshot has no active nodes, when no
+#' hyperedge begins between `start` and `end`, for an invalid `top`, for
+#' `at`, `mode` or an argument of [plot.net_hg()] with `type = "storyline"`,
+#' for `top`, `start` or `end` with another type, and as [plot.net_hg()]
+#' raises it; `hypergraphs_deprecated` (a warning) for `method`.
+#' @references
+#' Tanahashi, Y., & Ma, K.-L. (2012). Design considerations for optimizing
+#' storyline visualizations. *IEEE Transactions on Visualization and
+#' Computer Graphics*, 18(12), 2679-2688. \doi{10.1109/TVCG.2012.212}
+#'
+#' Sugiyama, K., Tagawa, S., & Toda, M. (1981). Methods for visual
+#' understanding of hierarchical system structures. *IEEE Transactions on
+#' Systems, Man, and Cybernetics*, 11(2), 109-125.
+#' \doi{10.1109/TSMC.1981.4308636}
 #' @examples
 #' seats <- data.frame(
 #'   case = rep(c("A", "B", "C"), each = 3),
@@ -1021,16 +1068,42 @@ hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
 #'                            start = "constituted", end = "concluded")
 #' plot(thg, at = 2.5)
 #' plot(thg, at = 2.5, type = "incidence", edge_labels = TRUE)
+#' plot(thg, type = "storyline")
 #' @export
 plot.net_temporal_hypergraph <- function(x, at = NULL,
                                          mode = c("active", "cumulative"),
+                                         type = c("hulls", "incidence", "storyline"),
+                                         top = 8L, start = NULL, end = NULL,
                                          method = NULL, ...) {
-  mode <- .thg_check_mode(mode, "plot")
+  type <- match.arg(type)
+  given <- names(match.call())[-1L]
   if (!is.null(method)) {
     .thg_deprecated("method", "plot(pairwise_network(hg_snapshot(x, at), type = method))",
                     "plot")
   }
+  if (identical(type, "storyline")) {
+    snapshot_only <- intersect(given, c("at", "mode"))
+    dots <- list(...)
+    dot_names <- names(dots) %||% rep("", length(dots))
+    refused <- c(paste0("`", snapshot_only, "`"),
+                 paste0("`", setdiff(dot_names[nzchar(dot_names)],
+                                     c("edge_labels", "point_size", "spacing", "width_by")), "`"),
+                 if (any(!nzchar(dot_names))) "unnamed arguments")
+    refused <- refused[refused != "``"]
+    if (length(refused)) {
+      .thg_bad_input(sprintf("%s: not used by `type = \"storyline\"`",
+                             paste(refused, collapse = ", ")))
+    }
+    return(do.call(.thg_plot_storyline,
+                   c(list(x, top = top, start = start, end = end), dots)))
+  }
+  storyline_only <- intersect(given, c("top", "start", "end"))
+  if (length(storyline_only)) {
+    .thg_bad_input(sprintf("%s applies only to `type = \"storyline\"`",
+                           paste0("`", storyline_only, "`", collapse = ", ")))
+  }
+  mode <- .thg_check_mode(mode, "plot")
   hg <- hg_snapshot(x, at = at, mode = mode)
   if (hg$n_nodes == 0L) .thg_bad_input("the selected snapshot has no active nodes")
-  plot(hg, ...)
+  plot(hg, type = type, ...)
 }

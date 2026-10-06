@@ -2,26 +2,61 @@
 % Please edit documentation in R/hypergraph_temporal.R
 \name{plot.net_temporal_hypergraph}
 \alias{plot.net_temporal_hypergraph}
-\title{Plot a temporal-hypergraph snapshot}
+\title{Plot a temporal hypergraph}
 \usage{
-\method{plot}{net_temporal_hypergraph}(x, at = NULL, mode = c("active", "cumulative"), method = NULL, ...)
+\method{plot}{net_temporal_hypergraph}(
+  x,
+  at = NULL,
+  mode = c("active", "cumulative"),
+  type = c("hulls", "incidence", "storyline"),
+  top = 8L,
+  start = NULL,
+  end = NULL,
+  method = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
-\item{at}{Snapshot time; defaults to the end of observation.}
+\item{at}{Snapshot time; defaults to the end of observation. Not used by
+the storyline.}
 
-\item{mode}{Snapshot mode passed to \code{\link[=hg_snapshot]{hg_snapshot()}}.}
+\item{mode}{Snapshot mode passed to \code{\link[=hg_snapshot]{hg_snapshot()}}. Not used by the
+storyline.}
+
+\item{type}{\code{"hulls"} (default) or \code{"incidence"} plot the snapshot at
+\code{at} (see \code{\link[=plot.net_hg]{plot.net_hg()}}); \code{"storyline"} plots the whole history.}
+
+\item{top}{For \code{type = "storyline"}: the number of nodes with the most
+hyperedges to draw as lines (default \code{8}, one Okabe-Ito colour each;
+ties broken by name), or
+\code{NULL} for every node.}
+
+\item{start, end}{For \code{type = "storyline"}: draw only the hyperedges that
+begin in this period, as dates for a calendar hypergraph or numbers on
+its clock. \code{NULL} (default) leaves the period open.}
 
 \item{method}{Deprecated. The snapshot used to be projected to a pairwise
 network; \code{plot(pairwise_network(hg_snapshot(x, at), type = method))}
 plots that network.}
 
-\item{...}{Arguments passed to \code{\link[=plot.net_hg]{plot.net_hg()}}, such as \code{type},
-\code{color_by} or \code{labels}.}
+\item{...}{For \code{"hulls"} and \code{"incidence"}, arguments passed to
+\code{\link[=plot.net_hg]{plot.net_hg()}}, such as \code{color_by} or \code{labels}. For \code{"storyline"},
+\code{edge_labels} (\code{TRUE} writes the hyperedge and its start under each
+column), \code{point_size} (size of the points, default \code{2.5}) and
+\code{spacing}: \code{"even"} (default) puts neighbouring lines one row apart,
+\code{"strength"} brings two neighbouring lines closer the more plotted
+hyperedges their nodes share: a full row apart for none, 0.35 of a row
+for the largest number shared by any pair in the plot, and linearly in
+between, so lines that often meet run together. Spacing never changes
+the order of the lines. \code{width_by = "degree"} draws each line with a
+width that grows linearly with its node's number of hyperedges in the
+period, the count \code{top} ranks by, and adds a width legend; \code{NULL}
+(default) draws every line alike.}
 }
 \value{
-A ggplot object, as \code{\link[=plot.net_hg]{plot.net_hg()}} returns.
+A ggplot object.
 }
 \description{
 Plots the snapshot that \code{\link[=hg_snapshot]{hg_snapshot()}} takes at \code{at} as a hypergraph,
@@ -30,11 +65,28 @@ as the incidence matrix with \code{type = "incidence"}. The snapshot keeps the
 hyperedge attributes and the data's names for nodes and hyperedges, so
 \code{color_by} can name an attribute and the legends use the data's words.
 }
+\details{
+\code{type = "storyline"} plots the whole history instead (Tanahashi and Ma
+2012). Each of the \code{top} nodes with the most hyperedges is a line, from
+its first hyperedge to its last, and each hyperedge is a column, in order
+of its start, where a grey bar gathers the lines of its members among the
+plotted nodes. The columns are spaced by order, not by elapsed time, and
+are labelled with the hyperedge and its start. Lines are ordered by the
+barycentre rule of Sugiyama, Tagawa and Toda (1981): along the columns the
+members of each hyperedge move to the median of their current rows, and
+the ordering is refined over repeated sweeps, keeping the one with the
+fewest line crossings. Each line takes an Okabe-Ito colour and its points
+a shape, and the legend names the nodes in decreasing order of their
+number of hyperedges. Eight colours and nine shapes cycle, so up to 72
+lines differ in their pair of colour and shape.
+}
 \section{Conditions}{
 
-\code{hypergraphs_bad_input} when the snapshot has no active nodes, and as
-\code{\link[=plot.net_hg]{plot.net_hg()}} raises it; \code{hypergraphs_deprecated} (a warning) for
-\code{method}.
+\code{hypergraphs_bad_input} when the snapshot has no active nodes, when no
+hyperedge begins between \code{start} and \code{end}, for an invalid \code{top}, for
+\code{at}, \code{mode} or an argument of \code{\link[=plot.net_hg]{plot.net_hg()}} with \code{type = "storyline"},
+for \code{top}, \code{start} or \code{end} with another type, and as \code{\link[=plot.net_hg]{plot.net_hg()}}
+raises it; \code{hypergraphs_deprecated} (a warning) for \code{method}.
 }
 
 \examples{
@@ -48,4 +100,15 @@ thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
                            start = "constituted", end = "concluded")
 plot(thg, at = 2.5)
 plot(thg, at = 2.5, type = "incidence", edge_labels = TRUE)
+plot(thg, type = "storyline")
+}
+\references{
+Tanahashi, Y., & Ma, K.-L. (2012). Design considerations for optimizing
+storyline visualizations. \emph{IEEE Transactions on Visualization and
+Computer Graphics}, 18(12), 2679-2688. \doi{10.1109/TVCG.2012.212}
+
+Sugiyama, K., Tagawa, S., & Toda, M. (1981). Methods for visual
+understanding of hierarchical system structures. \emph{IEEE Transactions on
+Systems, Man, and Cybernetics}, 11(2), 109-125.
+\doi{10.1109/TSMC.1981.4308636}
 }

@@ -139,6 +139,15 @@
 #'   arguments, as in [sequence-input].
 #' @param min_size Integer >= 1. Drop hyperedges with fewer distinct states
 #'   after collapsing. The default `1` keeps everything.
+#' @param collapse `TRUE` (default) merges windows with the same set of
+#'   states into one hyperedge weighted by its number of windows. `FALSE`
+#'   keeps every window as a hyperedge of its own, in sequence order and in
+#'   order of position, named by its positions (`"1-3"`, or
+#'   `"sequence_2:1-3"` when there are several sequences); the edge
+#'   metadata (`edge_data`) then records each window's `sequence`, `start`
+#'   and `end` position, every window count is 1, and `min_weight` does not
+#'   apply. The ordered windows of one sequence are the input of
+#'   `plot(type = "storyline")`.
 #' @param min_weight Integer >= 1. Drop hyperedges observed in fewer than
 #'   `min_weight` windows, keeping only recurrent state combinations (the
 #'   role `min_freq` plays in rule extraction). The default `1` keeps
@@ -190,7 +199,7 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
                               action = NULL, actor = NULL, time = NULL,
                               session = NULL, time_threshold = 900,
                               timezone = "UTC", min_size = 1L,
-                              min_weight = 1L) {
+                              min_weight = 1L, collapse = TRUE) {
   stopifnot(
     "`window` must be a single integer >= 2" =
       is.numeric(window) && length(window) == 1L && is.finite(window) &&
@@ -204,8 +213,13 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
     "`min_weight` must be a single integer >= 1" =
       is.numeric(min_weight) && length(min_weight) == 1L &&
       is.finite(min_weight) && min_weight >= 1 &&
-      min_weight == as.integer(min_weight)
+      min_weight == as.integer(min_weight),
+    "`collapse` must be TRUE or FALSE" =
+      is.logical(collapse) && length(collapse) == 1L && !is.na(collapse)
   )
+  if (!collapse && min_weight > 1L) {
+    .thg_bad_input("`min_weight` does not apply with `collapse = FALSE`: every window is its own hyperedge")
+  }
   window <- as.integer(window)
   step <- as.integer(step)
   min_size <- as.integer(min_size)
@@ -228,6 +242,11 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   if (length(per) == 0L) {
     stop("No windows: every sequence is shorter than `window` (",
          window, ").", call. = FALSE)
+  }
+
+  if (!collapse) {
+    return(.wh_ordered_windows(per, window, step, min_size, n_sequences,
+                               n_short))
   }
 
   # Stack per-trajectory window tables with globally unique window ids
@@ -309,6 +328,84 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
         n_windows         = n_windows,
         n_empty_windows   = n_empty,
         n_dropped         = n_dropped
+      )
+    ),
+    class = "net_hg"
+  )
+}
+
+# Every window as a hyperedge of its own, in sequence and position order
+# (window_hypergraph(collapse = FALSE)). The incidence cells hold the
+# occurrences of each state in the window; edge_data records the sequence
+# and the first and last position of each window.
+.wh_ordered_windows <- function(per, window, step, min_size, n_sequences,
+                                n_short) {
+  one_sequence <- length(per) == 1L
+  tables <- Map(function(d, sequence) {
+    starts <- seq.int(1L, by = step, length.out = max(d$win))
+    d$start <- starts[d$win]
+    d$sequence <- sequence
+    d$edge <- if (one_sequence) {
+      sprintf("%d-%d", d$start, d$start + window - 1L)
+    } else {
+      sprintf("%s:%d-%d", sequence, d$start, d$start + window - 1L)
+    }
+    d
+  }, per, names(per))
+  long <- do.call(rbind, tables)
+  edge_levels <- unique(long$edge)
+  n_windows <- length(edge_levels)
+  long <- long[!is.na(long$state), , drop = FALSE]
+  if (nrow(long) == 0L) {
+    stop("No windows: all window positions are NA.", call. = FALSE)
+  }
+  states_levels <- sort(unique(long$state))
+  kept <- edge_levels[edge_levels %in% long$edge]
+  incidence <- unclass(table(factor(long$state, levels = states_levels),
+                             factor(long$edge, levels = kept)))
+  incidence <- matrix(as.numeric(incidence), nrow = length(states_levels),
+                      dimnames = list(states_levels, kept))
+  sizes <- colSums(incidence > 0)
+  keep <- sizes >= min_size
+  if (!any(keep)) {
+    stop("No hyperedges left: every window has fewer than `min_size` (",
+         min_size, ") distinct states.", call. = FALSE)
+  }
+  incidence <- incidence[, keep, drop = FALSE]
+  hyperedges <- lapply(seq_len(ncol(incidence)),
+                       function(j) which(incidence[, j] > 0))
+  hyperedges <- lapply(hyperedges, unname)
+  first <- long[!duplicated(long$edge), c("edge", "sequence", "start"),
+                drop = FALSE]
+  edge_data <- first[match(colnames(incidence), first$edge), , drop = FALSE]
+  edge_data$end <- edge_data$start + window - 1L
+  rownames(edge_data) <- NULL
+  tab <- table(lengths(hyperedges))
+  size_dist <- stats::setNames(as.integer(tab), paste0("size_", names(tab)))
+  structure(
+    list(
+      hyperedges        = hyperedges,
+      incidence         = incidence,
+      nodes             = states_levels,
+      n_nodes           = length(states_levels),
+      n_hyperedges      = length(hyperedges),
+      window_counts     = rep(1L, length(hyperedges)),
+      size_distribution = size_dist,
+      edge_data         = edge_data,
+      params = list(
+        source            = "window_hypergraph",
+        window            = window,
+        step              = step,
+        min_size          = min_size,
+        min_weight        = 1L,
+        collapse          = FALSE,
+        n_sequences       = n_sequences,
+        n_short_sequences = n_short,
+        n_windows         = n_windows,
+        n_empty_windows   = n_windows - length(kept),
+        n_dropped         = sum(!keep),
+        hyperedge         = "window",
+        node              = "state"
       )
     ),
     class = "net_hg"

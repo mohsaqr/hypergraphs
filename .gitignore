@@ -26,3 +26,14 @@ docs/
 
 # reference PDFs: kept locally, never published
 papers/
+
+# private work: kept locally, never published (only package files are tracked)
+repos/
+workinprogress/
+Tutorial_docs/
+benchmarks/
+ROADMAP*.md
+TODO*.md
+EXPANSION-PLAN.md
+MIGRATION-PLAN.md
+*.Rcheck

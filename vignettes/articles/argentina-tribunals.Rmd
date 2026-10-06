@@ -378,6 +378,7 @@ each year from 2002 to 2022.
 ```{r growth}
 grid <- seq(as.Date("2002-01-01"), as.Date("2022-01-01"), by = "year")
 docket <- hg_growth(tribunals, components = TRUE, at = grid)
+tail(docket, 3)
 ```
 
 ```{r growth-plot, fig.height = 4}
@@ -430,6 +431,44 @@ largest_neighbourhood <- head(subset(neighbourhood, mean == max(mean)), 1)
 The mean neighbourhood of an active tribunal peaks at
 `r num(largest_neighbourhood$mean, 1)` arbitrators in
 `r year_of(largest_neighbourhood$time)`.
+
+The storyline plots the eight arbitrators with the most tribunals as lines
+across their tribunals, in the order the tribunals were constituted. A line
+runs from an arbitrator's first tribunal to the last, and a grey bar at a
+tribunal gathers the lines of its members among the eight. Two neighbouring
+lines sit closer the more tribunals the two arbitrators shared, and a line is
+wider the more tribunals the arbitrator sat on.
+
+```{r storyline, fig.width = 12, fig.height = 6.5}
+plot(tribunals, type = "storyline", spacing = "strength", width_by = "degree")
+```
+
+```{r storyline-values, include = FALSE}
+storyline_seats <- unique(subset(argentina,
+                                 select = c(arbitrator, case, constituted)))
+eight <- head(hg_get(argentina_all, what = "nodes", sort_by = "degree"), 8)
+eight_seats <- subset(storyline_seats, arbitrator %in% eight$node)
+together <- merge(eight_seats, eight_seats, by = c("case", "constituted"))
+together <- subset(together, arbitrator.x < arbitrator.y)
+shared <- aggregate(case ~ arbitrator.x + arbitrator.y, data = together,
+                    FUN = length)
+closest <- head(subset(shared, case == max(case)), 1)
+apart <- setdiff(eight$node, c(shared$arbitrator.x, shared$arbitrator.y))
+first_seat <- aggregate(constituted ~ arbitrator, data = eight_seats, FUN = min)
+last_seat <- aggregate(constituted ~ arbitrator, data = eight_seats, FUN = max)
+spans <- merge(first_seat, last_seat, by = "arbitrator",
+               suffixes = c("_first", "_last"))
+spans <- transform(spans, years = as.numeric(constituted_last -
+                                               constituted_first) / 365.25)
+longest <- head(subset(spans, years == max(years)), 1)
+```
+
+`r closest$arbitrator.x` and `r closest$arbitrator.y` shared
+`r closest$case` tribunals, the most of any two of the eight, and their lines
+run closest. `r paste(apart, collapse = " and ")` shared no tribunal with any
+of the other seven. The longest line is `r longest$arbitrator`'s, from
+`r format(longest$constituted_first, "%Y")` to
+`r format(longest$constituted_last, "%Y")`.
 
 ## Which tribunals held the docket together
 
@@ -504,6 +543,40 @@ never active at the same time. A static centrality on the aggregate treats
 the docket as if all of it had sat at once, which is the reason centrality
 is computed here on snapshots.
 
+Betweenness on all tribunals at once ranks them as follows.
+
+```{r aggregate-betweenness}
+aggregate_bridges <- hg_edge_centrality(argentina_all, s = 1,
+                                        measure = "betweenness", top = 10)
+aggregate_bridges
+```
+
+```{r aggregate-betweenness-values, include = FALSE}
+n_both <- length(intersect(aggregate_bridges$edge, aggregate_cases$edge))
+```
+
+`r n_both` of the ten tribunals with the highest betweenness are also among
+the ten with the highest closeness. The figure plots the ten with the
+highest betweenness, coloured by economic sector.
+
+```{r aggregate-central}
+central_tribunals <- hg_subset(argentina_all, edges = aggregate_bridges)
+```
+
+```{r aggregate-central-plot, fig.width = 10, fig.height = 7}
+plot(central_tribunals, color_by = "economic_sector",
+     legend_title = "economic sector")
+```
+
+```{r aggregate-central-values, include = FALSE}
+central_hub <- hg_get(central_tribunals, what = "nodes", sort_by = "degree",
+                      top = 1)
+```
+
+The central tribunals are joined through a few arbitrators who sit on
+several of them; `r central_hub$node` sits on `r central_hub$degree` of the
+ten.
+
 ## Communities of arbitrators
 
 Hypergraph modularity measures the quality of a partition of the nodes into
@@ -549,6 +622,25 @@ IRMM community.
 ```{r communities-plot, fig.width = 10, fig.height = 7}
 plot(backbone, node_groups = irmm)
 ```
+
+The contribution of each IRMM community shows where the modularity comes
+from.
+
+```{r modularity-communities}
+hg_modularity(argentina_all, irmm, what = "communities")
+```
+
+```{r modularity-communities-values, include = FALSE}
+by_community <- hg_modularity(argentina_all, irmm, what = "communities")
+top_community <- head(subset(by_community, modularity == max(modularity)), 1)
+lone_tribunals <- subset(by_community, n_nodes == 3L & volume == 3)
+```
+
+The community of `r top_community$n_nodes` arbitrators contributes most,
+`r num(top_community$modularity, 3)` of the
+`r num(irmm_modularity$modularity, 3)`. `r nrow(lone_tribunals)` communities
+hold three arbitrators with a volume of three, so each is a single tribunal
+whose arbitrators sat on no other tribunal in these claims.
 
 ## Argentina and the other cases
 

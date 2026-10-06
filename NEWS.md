@@ -1,3 +1,11 @@
+# hypergraphs 0.6.9
+
+* The Argentina example article gains a storyline of the busiest
+  arbitrators and restores the centrality, per-community modularity and
+  growth tables of its first version.
+* The repository now holds only package files; development notes and
+  local tooling are kept out of it.
+
 # hypergraphs 0.6.8
 
 * Test suite only: the regression test of default hull plots, whose baseline

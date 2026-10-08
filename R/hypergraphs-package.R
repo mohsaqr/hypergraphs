@@ -116,5 +116,4 @@
 #' @importFrom stats setNames
 #' @importFrom utils head
 #' @importFrom ggplot2 .data
-#' @useDynLib hypergraphs, .registration = TRUE
 "_PACKAGE"

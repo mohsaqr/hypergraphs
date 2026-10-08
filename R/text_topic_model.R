@@ -46,14 +46,9 @@
 
 # The model's value W H at the non-zero cells of X, floored as scikit-learn
 # does. The factors are stored transposed (topics x documents, topics x
-# words) so that a cell reads two contiguous columns. The C kernel computes
-# pmax(colSums(Wt[, i] * Htt[, j]), .TM_EPSILON) cell by cell, adding in the
-# accumulator colSums() uses on this R, so the values are identical to that
-# expression without gathering two k x nnz matrices (2.7 GB each for k = 52
-# on a corpus with 3.2 million non-zero cells).
+# words) so that a cell reads two contiguous columns.
 .tm_fitted <- function(Wt, Htt, i, j) {
-  .Call(hg_tm_fitted, Wt, Htt, as.integer(i), as.integer(j), .TM_EPSILON,
-        isTRUE(capabilities("long.double")))
+  pmax(colSums(Wt[, i, drop = FALSE] * Htt[, j, drop = FALSE]), .TM_EPSILON)
 }
 
 # Generalised KL divergence D(X || W H) over every cell: the non-zero cells

@@ -42,6 +42,3 @@ MIGRATION-PLAN.md
 codexfixes
 
 # compiled objects
-src/*.o
-src/*.so
-src/*.dll

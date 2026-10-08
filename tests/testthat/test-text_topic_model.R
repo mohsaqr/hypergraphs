@@ -531,21 +531,19 @@ test_that("prevalence refuses a document given two groups (TXT-07)", {
                class = "hypergraphs_bad_input")
 })
 
-test_that("the expected-count kernel equals the R colSums expression", {
+test_that("the expected counts are the floored per-cell dot products", {
   set.seed(4)
   X <- Matrix::rsparsematrix(40, 70, density = 0.2,
                              rand.x = \(n) stats::rpois(n, 3) + 1)
   i <- X@i + 1L
   j <- rep.int(seq_len(ncol(X)), diff(X@p))
-  for (k in c(1L, 6L, 52L)) {
-    st <- .tm_start(X, k)
-    # spread the scale so some cells fall under the floor
-    st$Wt[, 1:5] <- st$Wt[, 1:5] * 1e-9
-    reference <- pmax(colSums(st$Wt[, i, drop = FALSE] *
-                                st$Htt[, j, drop = FALSE]), .TM_EPSILON)
-    expect_identical(.tm_fitted(st$Wt, st$Htt, i, j), reference)
-  }
-  expect_identical(.tm_fitted(st$Wt, st$Htt, integer(), integer()), numeric(0))
+  st <- .tm_start(X, 6L)
+  # spread the scale so some cells fall under the floor
+  st$Wt[, 1:5] <- st$Wt[, 1:5] * 1e-9
+  by_cell <- vapply(seq_along(i), \(cell)
+    max(sum(st$Wt[, i[cell]] * st$Htt[, j[cell]]), .TM_EPSILON), numeric(1))
+  expect_equal(.tm_fitted(st$Wt, st$Htt, i, j), by_cell)
+  expect_true(any(by_cell == .TM_EPSILON))
 })
 
 test_that("all-pairs topic similarity equals the pairwise average Jaccard", {

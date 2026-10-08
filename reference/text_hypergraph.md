@@ -2,7 +2,7 @@
 
 Tokenizes a corpus (base R, deterministic) and builds a weighted
 hypergraph (a
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
 object with a text layer), in one of three constructions:
 
 ## Usage
@@ -70,7 +70,7 @@ text_hypergraph(
 
   Optional character vector of words to drop after tokenization
   (compared after lowercasing when `lowercase = TRUE`); see
-  [`stop_words_en()`](https://mohsaqr.github.io/hypergraphs/reference/stop_words_en.md).
+  [`stop_words_en()`](https://pak.dynasite.org/hypergraphs/reference/stop_words_en.md).
   Not applicable to `"knn"`.
 
 - min_count:
@@ -136,11 +136,11 @@ text_hypergraph(
   constructions). Default `NULL` chooses: sparse when the
   document-by-word incidence would have a million cells or more, dense
   otherwise. Sparse hypergraphs scale to tens of thousands of documents;
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md),
-  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
-  [`hg_pagerank()`](https://mohsaqr.github.io/hypergraphs/reference/hg_pagerank.md),
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md),
+  [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
+  [`hg_pagerank()`](https://pak.dynasite.org/hypergraphs/reference/hg_pagerank.md),
   and
-  [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md)
+  [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
   use sparse operator paths that agree with the dense engines (tested),
   while tensor centralities and the null test currently require the
   dense representation.
@@ -160,15 +160,15 @@ text_hypergraph(
 ## Value
 
 An object of class `c("text_hypergraph", "net_hg")` – a
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
 hypergraph accepted by every hypergraphs hypergraph verb and by
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
-[`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md),
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md),
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md),
+[`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md),
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md),
 and
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
 – with a `text` field recording the corpus tables. Use
-[`hg_get.text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.text_hypergraph.md)
+[`hg_get.text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.text_hypergraph.md)
 for the tidy weight table, and its `what` argument for the document and
 vocabulary tables.
 
@@ -191,7 +191,7 @@ vocabulary tables.
   shorter than `window` forms one whole-document window); `"tumbling"`
   uses consecutive chunks, trailing partial chunk included. This is the
   text front end of
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md):
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md):
   on token sequences with no repeated word inside a window, the two
   constructions produce the same incidence matrix (tested), with the
   hyperedges here named by their word content. They differ only at the
@@ -206,13 +206,13 @@ vocabulary tables.
   one hyperedge named `<doc>#<sentence>`, and its incidence weight is
   the word's occurrence count in that sentence. Two words are then
   related when they share a sentence, not merely a document – the scope
-  [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+  [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
   uses for `type = "sentence_centrality"`.
 
 - `construction = "knn"`: documents are vertices and each document plus
   its `k` nearest neighbors in an embedding space is one hyperedge,
   weighted by cosine similarity (see
-  [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md)).
+  [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md)).
   Pass a precomputed `embeddings` matrix, or leave it `NULL` to encode
   the text with the `sbert` package (if installed; models download only
   on explicit user confirmation, per sbert's policy).

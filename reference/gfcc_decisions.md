@@ -4,7 +4,7 @@ The 3,618 decisions in volumes 1 to 160 of the official collection of
 the German Federal Constitutional Court (BVerfGE), 1951 to 2022, as
 released by Coupette, Hartung and Katz (2024). The node table of the
 citation-block hypergraph in
-[gfcc_citations](https://mohsaqr.github.io/hypergraphs/reference/gfcc_citations.md):
+[gfcc_citations](https://pak.dynasite.org/hypergraphs/reference/gfcc_citations.md):
 every decision is a node from its own date, whether or not it is ever
 cited.
 

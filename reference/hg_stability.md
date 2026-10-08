@@ -1,7 +1,7 @@
 # Stability of a hypergraph clustering across resolutions
 
 Asks whether the partition
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 finds is a property of the data or of the particular sample, one
 resolution `k` at a time.
 
@@ -27,7 +27,7 @@ hg_stability(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   (or any hypergraphs `net_hg`).
 
 - k:
@@ -37,7 +37,7 @@ hg_stability(
 - type:
 
   `"zhou"` or `"random_walk"`, the Laplacian of
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md).
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md).
 
 - resample:
 
@@ -121,7 +121,7 @@ number stream is restored on exit.
 
 A subsample can disconnect the hypergraph (a word that tied two groups
 of documents may not be drawn);
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 cannot cut a disconnected hypergraph, so that run is not scored, is
 counted in `n_failed`, and a warning of class
 `hypergraphs_hypergraph_disconnected` reports the count.

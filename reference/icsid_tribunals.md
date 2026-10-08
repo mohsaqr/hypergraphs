@@ -7,7 +7,7 @@ Hartung and Katz (2024): one row per seat, so a case has three rows.
 Arbitrators sharing a case are the co-occurrence data of a temporal
 hypergraph whose hyperedges are tribunals active from constitution to
 conclusion; see
-[`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md).
+[`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md).
 
 ## Usage
 

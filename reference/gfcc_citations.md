@@ -1,7 +1,7 @@
 # Citation blocks of the German Federal Constitutional Court
 
 Every citation between the decisions in
-[gfcc_decisions](https://mohsaqr.github.io/hypergraphs/reference/gfcc_decisions.md),
+[gfcc_decisions](https://pak.dynasite.org/hypergraphs/reference/gfcc_decisions.md),
 grouped into citation blocks: an uninterrupted run of cited decisions
 inside one decision, the hyperedge of Coupette, Hartung and Katz (2024).
 One row per citation, dated by both decisions, so backward citations are

@@ -3,7 +3,7 @@
 ## hypergraphs 0.7.2
 
 - The package has no compiled code again:
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   computes its expected counts in R, with the same values as 0.7.1.
 
 ## hypergraphs 0.7.1
@@ -14,7 +14,7 @@ output.
 
 ### Speed
 
-- [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+- [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   is faster with identical results. IRMM builds each reweighting pass’s
   clique reduction as a sparse matrix (about 3 times faster on
   `icsid_tribunals`), and the AMI between runs computes the expected
@@ -24,18 +24,18 @@ output.
   (not on Windows); the fit is identical to the serial one. On
   `icsid_tribunals` (441 arbitrators, 742 cases), 8 cores: Infomap 34 s
   to 11 s, IRMM 27 s to 3 s.
-- [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+- [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md)
   gains `parallel` and `n_cores`: every start’s initial values are drawn
   first, in order, from one stream, then the EM fits run with
   [`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html).
   Fits and the caller’s random stream are identical to the serial run.
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   runs its parallel starts through the same helper, so a failed worker
   raises `hypergraphs_parallel_failed` instead of returning an error
   object as a start.
-- [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+- [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   and
-  [`hg_topic_search()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_search.md)
+  [`hg_topic_search()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_search.md)
   no longer exhaust memory on a large corpus. The expected counts are
   gathered in blocks of about 80 MB (identical values); a
   6,630-document, 91,755-word corpus at `k = 52` allocated about 8 GB
@@ -54,40 +54,40 @@ output.
   every start’s initial factor is drawn first, so parallel starts give
   the serial result.
 - k-means in
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   (spectral) and
-  [`hg_cocluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cocluster.md)
+  [`hg_cocluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cocluster.md)
   finishes a Hartigan-Wong start that stopped early (“Quick-TRANSfer
   stage steps exceeded” or the iteration limit) from the centres it
   reached, instead of comparing it unfinished and warning; when every
   start finishes the result is identical to
   [`stats::kmeans()`](https://rdrr.io/r/stats/kmeans.html).
-- [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+- [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   keeps a data column named `doc`, `n_tokens` or `n_types` as metadata
   `input_doc`, `input_n_tokens`, `input_n_types`, with a
   `hypergraphs_renamed_column` warning, instead of refusing the table.
 - Parallel runs on macOS: a forked worker the system kills (Apple’s
   Accelerate BLAS is not fork-safe) is rerun serially with a
   `hypergraphs_parallel_fallback` warning, and the result is unchanged.
-- [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+- [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md)
   explains a collapsed membership: the rate of a hyperedge sums over its
   node pairs, so in hyperedges of three or more nodes the other members
   can explain it and a node’s activity goes to zero. The warning and the
   documentation say so, and point to
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   for document mixtures, instead of suggesting more starts.
 
 ### Package
 
 - The package ships one vignette,
-  [`vignette("hypergraphs")`](https://mohsaqr.github.io/hypergraphs/articles/hypergraphs.md).
+  [`vignette("hypergraphs")`](https://pak.dynasite.org/hypergraphs/articles/hypergraphs.md).
   The text hypergraph guide, the COVID-19 topic walkthroughs, the text
   constructions and the document classification guide are articles on
   the package website, which keeps the source package small and its
   check short; the saved classification results moved with their
   article.
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md),
-  [`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md)
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
+  [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
   and the classification reader have runnable examples on the bundled
   `forum_posts`.
 
@@ -105,11 +105,11 @@ output.
   take the first non-missing value of the edge whatever the row order.
 - Membership weights must be finite, non-negative numbers; negative,
   infinite, factor and character weights raise `hypergraphs_bad_input`.
-- [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
+- [`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md)
   reorders a matrix whose column names are a permutation of its row
   names, and refuses differing, duplicated or missing labels. Column
   labels were previously overwritten, which moved edges.
-- [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)
+- [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md)
   refuses clocks that fail to parse, infinite clocks and per-membership
   intervals that end before they start. ISO 8601 offsets (`Z`, `+0200`,
   `+02:00`) and fractional seconds are honoured, and trailing text is an
@@ -117,40 +117,40 @@ output.
   every membership is open. Open and closed memberships of one hyperedge
   are filtered by their own spells, so snapshots no longer depend on row
   order.
-- [`hg_growth()`](https://mohsaqr.github.io/hypergraphs/reference/hg_growth.md)
+- [`hg_growth()`](https://pak.dynasite.org/hypergraphs/reference/hg_growth.md)
   and
-  [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md)
+  [`hg_snapshot()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshot.md)
   share one window boundary, the temporal
   [`summary()`](https://rdrr.io/r/base/summary.html) counts distinct
   members, and
-  [`hg_edges()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edges.md)
+  [`hg_edges()`](https://pak.dynasite.org/hypergraphs/reference/hg_edges.md)
   and the readers of an empty snapshot return typed zero-row tables.
 - The canonical `node` and `hyperedge` columns are detected without
   being named.
-  [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md)
+  [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md)
   requires a whole `k` and finite embeddings.
-- [`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md)
+- [`dual_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/dual_hypergraph.md)
   is the transpose of the full incidence, isolated vertices and empty
   hyperedges included, and a sparse dual is a complete `net_hg`.
-  [`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md)
+  [`hg_subset()`](https://pak.dynasite.org/hypergraphs/reference/hg_subset.md)
   keeps planted SBM blocks aligned with the kept nodes.
   [`summary()`](https://rdrr.io/r/base/summary.html) and
-  [`hg_laplacian()`](https://mohsaqr.github.io/hypergraphs/reference/hg_laplacian.md)
+  [`hg_laplacian()`](https://pak.dynasite.org/hypergraphs/reference/hg_laplacian.md)
   accept sparse hypergraphs.
 - `plot(pieces = "row")` places isolated nodes.
 
 ### Measures, random models and null tests
 
 - Sparse
-  [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md)
+  [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
   equals the dense result (pairwise participation, isolate edge sizes,
   uniform density). `hg_null_test(statistic = "density")` uses the same
   density as
-  [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md).
+  [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md).
 - `random_hypergraph(type = "sbm")` and the configuration null drew from
   `1:x` when a candidate pool held one node, producing wrong edge sizes
   and invented memberships. Draws from larger pools are unchanged.
-- [`hg_null_test()`](https://mohsaqr.github.io/hypergraphs/reference/hg_null_test.md)
+- [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
   requires a whole `n`, and a statistic undefined on the input
   (`avg_jaccard` with fewer than two hyperedges) is `NA` with a
   `hypergraphs_undefined_statistic` warning.
@@ -163,19 +163,19 @@ output.
   centrality.
 - Empty hyperedges contribute nothing to Laplacians, random walks and
   PageRank (they produced NaN).
-  [`hg_pagerank()`](https://mohsaqr.github.io/hypergraphs/reference/hg_pagerank.md)
+  [`hg_pagerank()`](https://pak.dynasite.org/hypergraphs/reference/hg_pagerank.md)
   refuses non-finite or conflicting `personalized` weights and, at
   `damping = 1`, disconnected input
   (`hypergraphs_hypergraph_disconnected`).
 - Assortativity is computed on centred scores, so near-regular
   hypergraphs of high degree are no longer reported as undefined.
-- [`hg_compare_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare_communities.md)
+- [`hg_compare_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare_communities.md)
   reports `NA` agreement for fits sharing fewer than two nodes and
   scores each medoid on the projection its fit saved. Directed citation
   fits have an `NA` quality row. `edge_source` is deprecated there.
   Duplicated node or source assignments raise `hypergraphs_bad_input` in
   every partition reader.
-- [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+- [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md)
   does not declare convergence while memberships collapse.
 - The cluster plot supports more than nine clusters (Okabe-Ito colours
   recycle with distinct shapes), and the agreement heatmap shows
@@ -185,73 +185,72 @@ output.
 
 - Missing actions split a trajectory into contiguous runs. No transition
   crosses a gap and no state `NA` is created;
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-  [`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-  [`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md)
-  and
-  [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md)
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+  [`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+  [`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md)
+  and [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md)
   accept sequences with gaps, and
-  [`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md)
+  [`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md)
   resamples whole trajectories. A real state spelled `"NA"` is kept.
 - State labels containing `->` or the internal separators raise
   `hypergraphs_bad_input`, since higher-order node names are built from
   them.
-- [`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md)
+- [`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md)
   averages over the rules whose context both groups observe and reports
   their number; with none the statistic and p-value are `NA`
   (`hypergraphs_undefined_statistic`). The global statistic of partially
   overlapping groups changes accordingly.
 - Window persistence
-  ([`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+  ([`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
   on `simplicial(type = "window")`) keeps essential classes essential,
   and every Betti row comes from the same Z/2 intervals.
-  [`hg_wasserstein()`](https://mohsaqr.github.io/hypergraphs/reference/hg_wasserstein.md)
+  [`hg_wasserstein()`](https://pak.dynasite.org/hypergraphs/reference/hg_wasserstein.md)
   treats a finite death at 0 as finite outside clique mode and computes
   large orders without overflow.
 - `simplicial(validate = TRUE)` refuses an automatic shuffle count above
   100,000 and asks for an explicit `n_null`.
-- [`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md)
+- [`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md)
   with no rule above `min_freq` raises `hypergraphs_empty_result`. HONEM
   variance and Infomap savings are 0 on zero spectra and zero code
   lengths.
-- [`?memory`](https://mohsaqr.github.io/hypergraphs/reference/memory.md)
+- [`?memory`](https://pak.dynasite.org/hypergraphs/reference/memory.md)
   states that `order` is the number of conditioning states;
-  [`?hg_betti`](https://mohsaqr.github.io/hypergraphs/reference/hg_betti.md)
+  [`?hg_betti`](https://pak.dynasite.org/hypergraphs/reference/hg_betti.md)
   states that Betti numbers are computed over the rationals and differ
   from
-  [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+  [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
   on torsion.
 
 ### Text hypergraphs and neural classifiers
 
-- [`clean_text()`](https://mohsaqr.github.io/hypergraphs/reference/clean_text.md)
+- [`clean_text()`](https://pak.dynasite.org/hypergraphs/reference/clean_text.md)
   keeps alphanumeric tokens (`covid19`, `p53`, `covid-19`) intact and
   replaces invalid numeric entities with U+FFFD.
-- [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+- [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
   and
-  [`hg_topic_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_quality.md)
+  [`hg_topic_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_quality.md)
   handle clusters without eligible words and one-word vocabularies;
   external keyword scores count distinct documents.
-- [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+- [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   refuses metadata columns named `doc`, `n_tokens` or `n_types`.
-- [`hg_cocluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cocluster.md)
+- [`hg_cocluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cocluster.md)
   checks `k` against the singular vectors available.
-  [`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
+  [`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md)
   keeps isolated topics and treats constant topics as isolates
   (`hypergraphs_constant_topics`).
 - A topic model is checked against the documents, words and counts it
   was fitted on (`net_hg_topics` gains `$corpus`). KL-NMF ignores
   explicit sparse zeros.
-  [`hg_membership()`](https://mohsaqr.github.io/hypergraphs/reference/hg_membership.md)
+  [`hg_membership()`](https://pak.dynasite.org/hypergraphs/reference/hg_membership.md)
   sums to one at coincident centres.
-  [`hg_topic_sizes()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md)
+  [`hg_topic_sizes()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_sizes.md)
   refuses negative weights.
 - Label inputs of every classifier and topic reader refuse conflicting
   duplicates; an `NA` label marks a node as unlabelled. Embedding and
   feature row names must be unique.
 - `hg_hypergat(min_count =)` counts token occurrences, as documented,
   rather than sentences.
-- [`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md)
+- [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
   restores an absent random seed, HNHN operators are normalised in log
   space, and the confusion table keeps a class named `(unscored)`.
 
@@ -272,11 +271,11 @@ output.
   `hypergraphs_memory_communities` and `net_hon_group`
   `hypergraphs_memory_group`. Code that tests these classes with
   [`inherits()`](https://rdrr.io/r/base/class.html) needs the new names.
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) and
-  [`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md)
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md) and
+  [`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md)
   keep their names (the published BuildHON and HONEM methods), and
   `net_hon` remains the Nestimate class that
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)
   returns. Printed headers read “Memory-network bootstrap” and
   “Memory-network comparison”.
 
@@ -296,14 +295,14 @@ output.
 
 ## hypergraphs 0.6.7
 
-- [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+- [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   on a memory network numbers communities of equal flow the same way on
   every platform: flows equal to 12 significant digits are ties, broken
   by the first node.
 
 ## hypergraphs 0.6.6
 
-- [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+- [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
   gains `collapse`: `FALSE` keeps every window as its own hyperedge, in
   order, named by its positions (`"1-3"`), with `sequence`, `start` and
   `end` in the edge metadata.
@@ -326,7 +325,7 @@ output.
   of hyperedges in the period, with a width legend. Each line has an
   Okabe-Ito colour and a point shape, distinct for up to 72 lines, named
   in the legend. `type` is now an explicit argument of
-  [`plot.net_temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md),
+  [`plot.net_temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_temporal_hypergraph.md),
   and an argument of one view given to another raises
   `hypergraphs_bad_input`.
 
@@ -357,19 +356,19 @@ output.
   raises `hypergraphs_bad_input`.
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a temporal
   hypergraph plots its snapshot as a hypergraph with
-  [`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md)
+  [`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md)
   (hulls, or `type = "incidence"`), so the hyperedges are kept; it used
   to plot a pairwise projection through
   [`cograph::splot()`](https://sonsoles.me/cograph/reference/splot.html).
   `method` is deprecated (`hypergraphs_deprecated`);
   `plot(pairwise_network(hg_snapshot(x, at)))` plots the projection.
-- [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md)
+- [`hg_snapshot()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshot.md)
   keeps the data’s names for nodes and hyperedges, so a printed or
   plotted snapshot says “cases” and “arbitrator” instead of “edge” and
   “node”.
-- [`hg_edge_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edge_centrality.md)
+- [`hg_edge_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_edge_centrality.md)
   and
-  [`hg_motifs()`](https://mohsaqr.github.io/hypergraphs/reference/hg_motifs.md)
+  [`hg_motifs()`](https://pak.dynasite.org/hypergraphs/reference/hg_motifs.md)
   on a temporal hypergraph report the snapshot `time` as a date for a
   calendar hypergraph and as the number on the clock otherwise; it used
   to be a character label of the day offset (`"3104"`), also when `at`
@@ -392,9 +391,9 @@ output.
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
   hypergraph gains `node_groups`: each node is coloured and shaped by
   its group, from a community fit
-  ([`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md),
-  [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md),
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md))
+  ([`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md),
+  [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md),
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md))
   or any node/label table, so communities can be plotted over the
   hyperedges. The hulls turn grey unless `color_by` is given.
 
@@ -407,22 +406,22 @@ output.
   is no longer chosen as the count that titles and colours the hulls;
   the decision figures of a temporal snapshot are readable again.
 
-- [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+- [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on a hypergraph has a `weight` column only for a hypergraph of
   windows; other hypergraphs no longer print a column of `NA`.
 
 - An unknown `what` in any accessor or verb raises
   `hypergraphs_bad_input` naming the available tables.
 
-- [`hg_agreement()`](https://mohsaqr.github.io/hypergraphs/reference/hg_agreement.md)
+- [`hg_agreement()`](https://pak.dynasite.org/hypergraphs/reference/hg_agreement.md)
   reads
-  [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+  [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md)
   and
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   fits and text hypergraphs directly, and a table keyed by `doc` needs
   no `node =`.
 
-- [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+- [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on a community fit gains `converged`, `sort_by` and `top`.
 
 - New article “Legal hypergraphs” on the tribunals of ICSID and the
@@ -432,18 +431,18 @@ output.
 - New dataset `forum_posts`: 360 simulated forum posts by 30 students
   whose sequence of topics has second-order memory, generated by
   `data-raw/forum_posts.R`. It is the example corpus for
-  [`hg_sequences()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sequences.md).
+  [`hg_sequences()`](https://pak.dynasite.org/hypergraphs/reference/hg_sequences.md).
 
 - `read_hif()` and `write_hif()` are removed, and with them the
   `jsonlite` suggestion. A hypergraph is exchanged with other packages
   as a `netobject` or a `cograph_network`.
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on a hypergraph no longer offers `what = "node_data"` or
   `"incidence_data"`, which only a read HIF file filled.
 
 ## hypergraphs 0.6.2
 
-- [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+- [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   gains `separator`: a delimited field such as the author keywords of a
   bibliographic export is read as whole-phrase terms, each a hyperedge
   over the papers that carry it, the keyword incidence of co-word
@@ -451,65 +450,65 @@ output.
   punctuation exports leave at their edges.
 
 - New
-  [`hg_dictionary()`](https://mohsaqr.github.io/hypergraphs/reference/hg_dictionary.md)
+  [`hg_dictionary()`](https://pak.dynasite.org/hypergraphs/reference/hg_dictionary.md)
   labels each node by the dictionary category whose terms it carries
   most (Grimmer & Stewart 2013); the result is the `labels` input of
-  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+  [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
   and
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md).
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md).
 
 - Documents without a label are `split = "unlabelled"` in an
   `hg_classification`, so `hg_get(fit, split = "unlabelled")` reads the
   classifier’s proposals.
 
-- [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+- [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on a text hypergraph gains `node` (documents by id or by a table with
   a `node` column), `sort_by` and `top` (vocabulary).
 
-- [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+- [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
   and
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
   gain `holdout`: a share of the labels, drawn within each class with
   `seed`, is hidden, predicted and scored. The result is an
   `hg_classification` that prints the held-out accuracy and balanced
   accuracy (Brodersen et al. 2010).
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   reads its `"predictions"`, `"accuracy"`, `"classes"` and `"confusion"`
   tables, and filters the predictions with `split`, `correct`, `node`,
   `sort_by` and `top` (per class).
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
   confusion table. A
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
   result retains its trained network.
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   computes attention on request, and `plot(type = "attention")` shows
   its diagnostic weights. `plot(type = "hyperedges")` plots a document’s
   word hypergraph.
 
 - `labels` of
-  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+  [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
   and
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md),
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
   `clusters` of
-  [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md),
-  [`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
+  [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md),
+  [`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md)
   and
-  [`hg_topic_sizes()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md),
+  [`hg_topic_sizes()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_sizes.md),
   and `group` of `hg_get(what = "prevalence")` accept the name of a
   document column (`labels = "subject"`).
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on an
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   model gains `type = "prevalence"` with `group`, the prevalence of
   every topic in each group.
 
-- [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+- [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
   now returns a reusable fitted classifier in every run.
   [`predict()`](https://rdrr.io/r/stats/predict.html) classifies new
   documents using its trained network, frozen vocabulary and topic
   keywords; optional observed labels evaluate these predictions without
   updating the model.
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   reads predictions, evaluation, document text, training history and
   optional attention diagnostics.
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) shows
@@ -524,55 +523,55 @@ output.
   prediction explanation. Legacy `what` extraction remains available
   with a warning.
 
-- [`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md)
+- [`hg_subset()`](https://pak.dynasite.org/hypergraphs/reference/hg_subset.md)
   gains `component = "largest"`, which keeps the largest connected
   component, the input that label spreading and spectral clustering
   need. A subset text hypergraph now carries a matching text layer, so
-  [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+  [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
   and the other text verbs work on it.
 
-- [`stop_words_en()`](https://mohsaqr.github.io/hypergraphs/reference/stop_words_en.md)
+- [`stop_words_en()`](https://pak.dynasite.org/hypergraphs/reference/stop_words_en.md)
   gains `type = "snowball"`, the 174-word Snowball English stop list
   with pronouns and contractions, for chat and other informal text.
 
-- [`clean_text()`](https://mohsaqr.github.io/hypergraphs/reference/clean_text.md)
+- [`clean_text()`](https://pak.dynasite.org/hypergraphs/reference/clean_text.md)
   repairs emoji and other characters garbled by a UTF-8-as-Windows-1252
   export.
 
 - Labels or groups that name documents
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   or
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
   dropped as empty are set aside with a warning in
-  [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md),
-  [`hg_topic_sizes()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md),
-  [`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md),
-  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
-  [`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md)
+  [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md),
+  [`hg_topic_sizes()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_sizes.md),
+  [`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md),
+  [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
+  [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
   and
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md),
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
   so the corpus table can be passed back whole; an id that never was a
   document is still an error.
 
-- [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+- [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on an
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   model gains `what = "prevalence"` with `group =`: the mean share of
   each topic within each group of documents, the topic prevalence by
   covariate of Roberts et al. (2014).
 
-- [`clean_text()`](https://mohsaqr.github.io/hypergraphs/reference/clean_text.md)
+- [`clean_text()`](https://pak.dynasite.org/hypergraphs/reference/clean_text.md)
   gains `boilerplate = TRUE`, which removes publisher names, company
   suffixes and the phrases of licence and rights notices wherever they
   occur in a text, so a classifier of bibliographic abstracts does not
   learn the publisher and the year from the notice.
 
-- [`clean_text()`](https://mohsaqr.github.io/hypergraphs/reference/clean_text.md)
+- [`clean_text()`](https://pak.dynasite.org/hypergraphs/reference/clean_text.md)
   removes the word “Copyright” together with the notice that follows it
   (“Copyright © 2020 Elsevier Ltd.” left “Copyright” behind).
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
   result gains `type =`. `"simplices"` (the default) draws the maximal
   simplices as before; `"summary"` draws the face counts, the Betti
   numbers and the simplicial degree, the summary figure of the complex.
@@ -581,33 +580,33 @@ output.
   `node` and a `hyperedge` (or `from` and `to`); event data name an
   `action` with its `session` and `actor`, as in the memory family;
   `group` is always the comparison variable, as in Nestimate. In
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
   and
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md),
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md),
   `group =` (the hyperedge column) is now `hyperedge =` and `by =` is
   now `group =`.
-  [`hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hypergraph.md)
+  [`hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hypergraph.md)
   recognises the format from the arguments: `action` with `session` (or
   `actor`) gives one hyperedge per session, `window` gives windows,
   `node` with `hyperedge` gives membership hyperedges.
 
-- **[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+- **[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
   builds the pairwise network of a hypergraph.** It returns a network
   object (`net_hg_pairwise`, also `netobject` and `cograph_network`) for
   every projection, chosen with `type = "clique"` (default),
   `"association"` or `"citation"`;
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) plots it
   through cograph,
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   returns its edges (`what = "nodes"` its nodes), and
-  [`hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hypergraph.md)
+  [`hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hypergraph.md)
   reads it as a network. It replaces `hg_project()` and
   `hg_clique_expansion()`, which are removed.
 
 - **The topic network is
-  [`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)**,
+  [`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md)**,
   a constructor like
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
   It replaces `hg_network()`, its name in 0.6.1, and `hg_relations()`,
   which are removed: `hg_relations(hg, clusters)` is
   `hg_topic_network(hg, clusters = clusters)`.
@@ -636,7 +635,7 @@ output.
   of counted sets with one group is drawn as that group; a window
   hypergraph is coloured by its window counts.
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
   uses a circle layout. None of these needs an argument.
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a
@@ -645,7 +644,7 @@ output.
   session number of the runs of one session, no longer colours and
   titles the hyperedges. `color_by = "weight"` colours the hyperedges of
   a
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
   by their window counts.
 
 - **`tutoring_events` replaces `debug_events`.** It holds every step of
@@ -656,21 +655,21 @@ output.
   column marks a step `completed` (with a correct answer) or `stopped`
   (without one).
 
-- [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md)
+- [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
   builds the hyperedge-by-hyperedge overlap matrices only for
   `what = "overlap"`. The node table and the summary of a hypergraph
   with 20,000 hyperedges took minutes or exhausted memory; they take
   under a second.
 
-- [`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md)
+- [`hg_subset()`](https://pak.dynasite.org/hypergraphs/reference/hg_subset.md)
   keeps the window counts of a
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
   aligned with the hyperedges it keeps; printing or plotting such a
   subset failed.
 
-- [`hg_agreement()`](https://mohsaqr.github.io/hypergraphs/reference/hg_agreement.md)
+- [`hg_agreement()`](https://pak.dynasite.org/hypergraphs/reference/hg_agreement.md)
   accepts a fit of
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   and compares its medoid partition.
 
 - New vignette, *Hypergraphs*: observed groups, frequent sets, windows,
@@ -685,21 +684,21 @@ output.
   `hypergraphs_result`, …), so code that catches a condition by class
   changes with them.
 
-- **[`hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hypergraph.md)
+- **[`hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hypergraph.md)
   is the main constructor.** It reads any input and calls the
   constructor of that kind of data, returning its result unchanged: a
   data frame of groups goes to
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
   (with `by` or `top`, the frequent sets), with a clock to
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md),
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md),
   with `window`, `step` or `action` to
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md);
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md);
   a list of sequences to
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md);
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md);
   a network (matrix, sparse matrix, `netobject`, `cograph_network`) to
-  [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md);
+  [`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md);
   a topic model or a clustering of sequences to
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md).
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md).
   The specific constructors remain.
 
 - **`group_hypergraph(by =)` counts frequent sets within groups.** With
@@ -726,7 +725,7 @@ output.
 - **Communities of memory networks can be drawn over the transition
   network.** [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
   a
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   result can draw the network as a transition network analysis plot (TNA
   styling through
   [`cograph::overlay_communities()`](https://sonsoles.me/cograph/reference/overlay_communities.html)):
@@ -759,7 +758,7 @@ output.
 - `hg_sequences(topics =)` builds sequences from each document’s main
   topic, grouped by any column of the documents table.
 
-- [`hg_markov_stability()`](https://mohsaqr.github.io/hypergraphs/reference/hg_markov_stability.md)
+- [`hg_markov_stability()`](https://pak.dynasite.org/hypergraphs/reference/hg_markov_stability.md)
   reads only the possible transitions of a matrix when it checks
   irreducibility, so an unnormalised matrix warns once with
   `normalize = TRUE` (it warned twice) and is refused without a warning

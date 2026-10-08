@@ -1,7 +1,7 @@
 # Sentence embeddings of the COVID-19 abstracts
 
 Sentence embeddings of
-[covid_abstracts](https://mohsaqr.github.io/hypergraphs/reference/covid_abstracts.md)'
+[covid_abstracts](https://pak.dynasite.org/hypergraphs/reference/covid_abstracts.md)'
 abstract texts, computed with the `sbert` package's pinned
 `all-MiniLM-L6-v2` model (L2-normalized rows). Bundled so that
 `text_hypergraph(construction = "knn")` runs offline; rebuilt by
@@ -21,7 +21,7 @@ A numeric matrix with 165 rows (rownames = `covid_abstracts$doc`) and
 ## Source
 
 Computed from
-[covid_abstracts](https://mohsaqr.github.io/hypergraphs/reference/covid_abstracts.md)
+[covid_abstracts](https://pak.dynasite.org/hypergraphs/reference/covid_abstracts.md)
 with `sbert::encode()`.
 
 ## Examples

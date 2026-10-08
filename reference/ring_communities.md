@@ -1,7 +1,7 @@
 # Planted communities of the ring sequences
 
 The true community of every node a second-order network built from
-[ring_sequences](https://mohsaqr.github.io/hypergraphs/reference/ring_sequences.md)
+[ring_sequences](https://pak.dynasite.org/hypergraphs/reference/ring_sequences.md)
 can hold. A node `"u -> v"` belongs to the one group holding both `u`
 and `v`; the first-order node of an action that is not shared (`"p1_1"`)
 belongs to that action's group. First-order nodes of the shared actions
@@ -20,7 +20,7 @@ A data frame with 56 rows (one per node) and 2 columns:
 - node:
 
   Character. A node label as
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)
   writes it.
 
 - community:
@@ -30,7 +30,7 @@ A data frame with 56 rows (one per node) and 2 columns:
 ## Source
 
 Built with
-[ring_sequences](https://mohsaqr.github.io/hypergraphs/reference/ring_sequences.md)
+[ring_sequences](https://pak.dynasite.org/hypergraphs/reference/ring_sequences.md)
 by `data-raw/ring_sequences.R`.
 
 ## Examples

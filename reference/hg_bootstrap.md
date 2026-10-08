@@ -2,7 +2,7 @@
 
 Nonparametric bootstrap over sequences for the rules of a higher-order
 network (see
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)):
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)):
 sequences are resampled with replacement, and for every rule edge of the
 observed network the replicate distribution yields a percentile
 confidence interval for its conditional probability and a *support* -
@@ -38,15 +38,15 @@ hg_bootstrap(
 - data:
 
   Sequences in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md):
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md):
   a long event table (with `action`), a wide data.frame (one sequence
   per row), a list of vectors, or a model object carrying its sequences.
   A group model from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) with
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md) with
   `group` is resampled group by group with its own settings, and the
   result is a `hypergraphs_bootstrap_group` (one bootstrap per group;
   [`summary()`](https://rdrr.io/r/base/summary.html) and
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   stack them with a `group` column).
 
 - n_boot:
@@ -60,12 +60,12 @@ hg_bootstrap(
 - max_order, min_freq, collapse_repeats:
 
   As in
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md).
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md).
 
 - action, actor, time, session, time_threshold, timezone:
 
   Long-format arguments (see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md));
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md));
   leave the column names `NULL` for wide or list input.
 
 - parallel:
@@ -90,7 +90,7 @@ tidy inference table, one row per rule edge of the observed network:
 `from`, `to`, `order`, `count`, `probability`, `ci_lower`, `ci_upper`,
 `support`, `n_boot_used`), `n_boot`, `level`, `max_order`, `min_freq`,
 `n_trajectories`, and `seed`. Has `print`, `summary` and `plot` methods;
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 returns the inference table (optionally filtered with `min_support =` or
 restricted with `order_min =`).
 
@@ -114,9 +114,9 @@ Bootstrap*. Chapman & Hall.
 
 ## See also
 
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-[`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md),
-[`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md)
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+[`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md),
+[`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md)
 
 ## Examples
 

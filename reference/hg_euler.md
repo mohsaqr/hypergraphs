@@ -15,7 +15,7 @@ hg_euler(sc)
 - sc:
 
   A `simplicial_complex` from
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md).
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md).
 
 ## Value
 
@@ -27,7 +27,7 @@ Hatcher, A. (2002). *Algebraic Topology*. Cambridge University Press.
 
 ## See also
 
-[`hg_betti()`](https://mohsaqr.github.io/hypergraphs/reference/hg_betti.md)
+[`hg_betti()`](https://pak.dynasite.org/hypergraphs/reference/hg_betti.md)
 
 ## Examples
 

@@ -71,10 +71,10 @@ Saqr, M. (2026). Human-AI vibe coding interaction study.
 The same data feed all three structure families: the ordered codes are
 sequences for the memory family, a session is a natural hyperedge over
 the codes that co-occur in it
-([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)),
+([`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)),
 and a fitted memory network becomes a pathway complex for the simplicial
 family
-([`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+([`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
 with `type = "pathway"`).
 
 ## Examples

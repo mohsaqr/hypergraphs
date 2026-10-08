@@ -21,7 +21,7 @@ hg_get(
 - x:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   object.
 
 - what:
@@ -45,7 +45,7 @@ hg_get(
 
   For `"documents"`: keep only these documents, given as ids or as a
   table with a `node` column, such as the predictions of
-  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
+  [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
   in the order given.
 
 - sort_by:

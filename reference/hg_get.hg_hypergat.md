@@ -53,7 +53,7 @@ plot(
 - split, correct, sort_by:
 
   Filters and ordering for predictions and documents, as in
-  [`hg_get.hg_classification()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md).
+  [`hg_get.hg_classification()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_classification.md).
 
 - node:
 

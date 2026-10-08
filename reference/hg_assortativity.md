@@ -95,8 +95,8 @@ interactions: Structure and dynamics. *Physics Reports*, 874, 1-92.
 
 ## See also
 
-[`hg_degree_correlation()`](https://mohsaqr.github.io/hypergraphs/reference/hg_degree_correlation.md),
-[`hg_transitivity()`](https://mohsaqr.github.io/hypergraphs/reference/hg_transitivity.md).
+[`hg_degree_correlation()`](https://pak.dynasite.org/hypergraphs/reference/hg_degree_correlation.md),
+[`hg_transitivity()`](https://pak.dynasite.org/hypergraphs/reference/hg_transitivity.md).
 
 ## Examples
 

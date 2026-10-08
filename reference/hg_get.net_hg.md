@@ -2,7 +2,7 @@
 
 One row per hyperedge: its identifier, size (number of distinct member
 states), the member states, and its weight (for hypergraphs built by
-[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+[`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
 the number of windows collapsed into the hyperedge; `NA` for the other
 constructors, whose hyperedges are unweighted).
 
@@ -30,7 +30,7 @@ hg_get(
   `"edges"` (default) for one row per hyperedge, `"nodes"` for one row
   per node, or `"memberships"` for one row per node-in- hyperedge cell
   of the incidence matrix. A hypergraph of clustered sequences
-  ([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+  ([`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
   on a clustering of sequences) also has `"sets"` and `"state_counts"`.
   `"edge_data"` returns the per-hyperedge attribute table a constructor
   attached.
@@ -56,12 +56,12 @@ hg_get(
 A data.frame. For `what = "edges"`, one row per hyperedge with columns
 `hyperedge` (character id), `size` (integer), `members` (the member
 nodes, comma separated), and, for a hypergraph of windows
-([`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)),
+([`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)),
 `weight` (the number of windows with that member set). `sort_by` is
 `"size"`, or `"weight"` where it exists. For `what = "nodes"`, one row
 per node with columns `node` and `degree` (the number of hyperedges it
 belongs to), plus `block` for a hypergraph with planted blocks
-([`random_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/random_hypergraph.md)
+([`random_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/random_hypergraph.md)
 with `type = "sbm"`); `sort_by = "degree"` orders it. For
 `what = "memberships"`, one row per non-zero incidence cell with columns
 `node`, `hyperedge` and `weight` (the incidence value: 1 for a binary

@@ -1,12 +1,12 @@
 # Agreement between two labelings of the same nodes
 
 Compares any two tidy labelings – partitions from
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md),
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md),
 predictions from
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
-[`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
+[`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
 or
-[`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
 – joined on their shared `node` column. `agreement` is the share of
 nodes with literally equal labels (meaningful when both labelings use
 the same label set, e.g. a classifier scored against the clustering that
@@ -40,15 +40,15 @@ hg_agreement(
   order wins), one row per node. Nodes are matched by name; nodes
   present in only one labeling are dropped. A fitted model is read
   through its one-label-per-node table: a fit of
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   on a hypergraph through its medoid partition
   (`hg_get(fit, what = "medoid")`), a
-  [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+  [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md)
   fit through each node's strongest community (`what = "nodes"`), a
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   model through each document's dominant topic (`what = "documents"`),
   and a
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   through its document table, so a corpus column is scored by naming it
   in `label`.
 

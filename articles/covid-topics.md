@@ -12,7 +12,7 @@ membership, and the network of relations between topics.
 
 ## Text cleaning
 
-[`clean_text()`](https://mohsaqr.github.io/hypergraphs/reference/clean_text.md)
+[`clean_text()`](https://pak.dynasite.org/hypergraphs/reference/clean_text.md)
 removes the non-content that a bibliographic export carries in its
 abstracts. It decodes HTML entities, strips tags, normalises typographic
 characters, and removes bracketed citation numbers, list markers, URLs,
@@ -38,7 +38,7 @@ this stage so that the year column stays aligned with the text.
 
 ## Hypergraph construction
 
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 builds a weighted hypergraph from a corpus. With the default
 `construction = "bag"` and `nodes = "doc"`, each document is a node and
 each word is a hyperedge that contains every document using the word.
@@ -56,7 +56,7 @@ hg
 ```
 
 The stop list contains the English function words of
-[`stop_words_en()`](https://mohsaqr.github.io/hypergraphs/reference/stop_words_en.md)
+[`stop_words_en()`](https://pak.dynasite.org/hypergraphs/reference/stop_words_en.md)
 and the two words that name the subject of every abstract; a word
 present in every document does not separate any two documents. Words
 used in fewer than five abstracts are excluded by `min_count`. The
@@ -65,7 +65,7 @@ incidence matrix has more than a million cells, so the default
 
 ## Number of topics
 
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 with `what = "eigenvalues"` returns the leading eigenvalues of the
 normalised hypergraph Laplacian (Zhou, Huang and Schölkopf, 2007) and
 the gap after each. A large gap between consecutive eigenvalues
@@ -88,7 +88,7 @@ owns, reported in the last section.
 
 ## Partition
 
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 embeds the documents in the leading eigenvectors of the Laplacian and
 partitions the embedding with k-means. With the default `type = "zhou"`
 the Laplacian is built from hyperedge membership alone: each hyperedge
@@ -104,7 +104,7 @@ head(topics)
 
 ## Topic description
 
-[`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+[`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
 ranks the words of each cluster. It takes the hypergraph and the
 partition and returns a data frame with one row per cluster and word,
 containing the score, the word’s share and the number of cluster
@@ -161,7 +161,7 @@ plot(words, value = "share")
 
 ## Topic sizes
 
-[`hg_topic_sizes()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md)
+[`hg_topic_sizes()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_sizes.md)
 counts the documents of each topic and their share of the clustered
 documents. With `weights`, a numeric vector named by document, it also
 reports the weighted size and share; a citation count or a repeat count
@@ -176,7 +176,7 @@ plot(sizes)
 
 ## Topic coherence and exclusivity
 
-[`hg_topic_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_quality.md)
+[`hg_topic_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_quality.md)
 scores each topic’s top words on two axes, with the definitions the
 structural topic model uses (Roberts, Stewart & Tingley 2019), so a
 hypergraph clustering and a probabilistic topic model can be compared on
@@ -208,10 +208,10 @@ the top words of a topic model fitted elsewhere with the same measures.
 
 ## Soft membership
 
-[`hg_membership()`](https://mohsaqr.github.io/hypergraphs/reference/hg_membership.md)
+[`hg_membership()`](https://pak.dynasite.org/hypergraphs/reference/hg_membership.md)
 turns the hard partition into a membership of every document in every
 topic. Documents are placed in the spectral embedding that
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 cut, each topic’s centre is the mean position of its documents, and a
 document’s membership in a topic is the fuzzy c-means weight with
 fuzziness 2, the inverse squared distance to the centre normalised over
@@ -238,7 +238,7 @@ diffuse topic sits close to it.
 
 ## Relations between topics
 
-[`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
+[`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md)
 builds the topic-by-topic co-occurrence network through shared
 vocabulary. For each pair of topics it sums, over all words, the product
 of the number of documents in each topic that contain the word, the

@@ -54,7 +54,7 @@ temporal_hypergraph(
   When no column is named and no edge list is detected, both are
   detected by alias (`node`, `actor`, `person`, ... and `hyperedge`,
   `group`, `event`, ...), as
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
   does.
 
 - time:
@@ -77,7 +77,7 @@ temporal_hypergraph(
   `date` column, if present, gives the time each node enters (on the
   same clock as `data`). Nodes that never appear in a hyperedge are then
   kept as zero-degree nodes of every snapshot, and
-  [`hg_growth()`](https://mohsaqr.github.io/hypergraphs/reference/hg_growth.md)
+  [`hg_growth()`](https://pak.dynasite.org/hypergraphs/reference/hg_growth.md)
   counts a node from its own start. Every observed node must be in the
   universe.
 
@@ -140,10 +140,10 @@ description.
   it has appeared (the point-aggregation model of Coupette et al. 2024)
   is a snapshot `mode`, not a property of the data: ask for it with
   `mode = "cumulative"` in
-  [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md),
-  [`hg_growth()`](https://mohsaqr.github.io/hypergraphs/reference/hg_growth.md)
+  [`hg_snapshot()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshot.md),
+  [`hg_growth()`](https://pak.dynasite.org/hypergraphs/reference/hg_growth.md)
   and
-  [`hg_edges()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edges.md).
+  [`hg_edges()`](https://pak.dynasite.org/hypergraphs/reference/hg_edges.md).
 
 A third shape is a **sequence table**: one row per session and one
 column per position holding the state at that step (the wide format of
@@ -183,7 +183,7 @@ it is known independently of the log, with Dynet's meaning: they bound
 the snapshot times and the measurement grid, and an open-ended hyperedge
 is active through `observation_end`, but the stored memberships are
 never rewritten and
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 returns the original spells. Without them the window is the span of the
 data.
 
@@ -191,7 +191,7 @@ Every other column that is constant within a hyperedge is kept as a
 hyperedge attribute in the edge metadata, where
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) can colour by
 it and where
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
 finds the source a citation block belongs to. Columns that vary within a
 hyperedge, such as the seat an arbitrator held, are not attributes of
 the hyperedge and are left out.

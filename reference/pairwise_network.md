@@ -28,9 +28,9 @@ pairwise_network(
 - hg:
 
   A hypergraph (`net_hg`), such as one built by
-  [`hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hypergraph.md)
+  [`hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hypergraph.md)
   or
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md).
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md).
 
 - type:
 
@@ -98,10 +98,10 @@ repeat it (the multi-graph); `"collapse"` keeps the binary graph.
 symmetrises.
 
 The result is a network object that cograph plots and that
-[`hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hypergraph.md)
+[`hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hypergraph.md)
 reads as a network, so the cliques of the projection can be promoted
 back to hyperedges. Its edges are read with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md).
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md).
 
 ## Conditions
 
@@ -122,7 +122,7 @@ clustering, classification, and embedding. *NeurIPS 19*, 1601-1608.
 
 ## See also
 
-[`hg_line_graph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_line_graph.md)
+[`hg_line_graph()`](https://pak.dynasite.org/hypergraphs/reference/hg_line_graph.md)
 for the projection onto hyperedges.
 
 ## Examples

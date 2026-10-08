@@ -6,14 +6,14 @@ One verb, two estimators, chosen by the class of `x`:
 
   an ensemble of Infomap runs on a projection (or IRMM with
   `type = "irmm"`), with the adjusted-mutual- information medoid; see
-  [`hg_communities.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.net_hg.md).
+  [`hg_communities.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.net_hg.md).
 
 - a memory network (`net_hon`, from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)):
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)):
 
   the map equation for memory networks: overlapping modules of the
   physical states, compared with the first-order map; see
-  [`hg_communities.net_hon()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.net_hon.md).
+  [`hg_communities.net_hon()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.net_hon.md).
 
 Each method keeps its own arguments; passing an argument that only the
 other method takes raises `hypergraphs_bad_input`.
@@ -42,7 +42,7 @@ hg_communities(x, ...)
 An `hg_communities` object (hypergraph) or a
 `hypergraphs_memory_communities` object (memory network); read either
 with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md).
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md).
 Any other input raises `hypergraphs_bad_input`.
 
 ## Examples

@@ -10,7 +10,7 @@ neighbourhood in a space of sentence embeddings, which binds documents
 of similar meaning whatever their words. Each construction relates
 different units, so the central words and the groups of documents found
 in a corpus depend on it.
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 builds all of them with `construction = "bag"`, `"window"`, `"sentence"`
 or `"knn"`. This document builds each construction first on three short
 documents, where every hyperedge can be seen, and then on a corpus of
@@ -20,7 +20,7 @@ documents, where every hyperedge can be seen, and then on a corpus of
 
 The three documents below share some of their words. Stop words such as
 “the” and “of” are removed with
-[`stop_words_en()`](https://mohsaqr.github.io/hypergraphs/reference/stop_words_en.md).
+[`stop_words_en()`](https://pak.dynasite.org/hypergraphs/reference/stop_words_en.md).
 
 ``` r
 
@@ -80,7 +80,7 @@ that contain it. This orientation suits the clustering and
 classification of documents (Hayashi et al. 2020). Its incidence matrix
 is the transpose of the incidence matrix above, so the two hypergraphs
 are duals of each other (Berge 1989), and
-[`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md)
+[`dual_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/dual_hypergraph.md)
 turns one into the other.
 
 ``` r
@@ -248,7 +248,7 @@ times in the corpus, and `min_chars` removes words shorter than a number
 of characters. `max_words` and `coverage` cap the vocabulary at a number
 of words or at the most frequent words that cover a share of the tokens.
 Here the stop words are those of
-[`stop_words_en()`](https://mohsaqr.github.io/hypergraphs/reference/stop_words_en.md)
+[`stop_words_en()`](https://pak.dynasite.org/hypergraphs/reference/stop_words_en.md)
 with words common to research abstracts, `min_count = 3` keeps words
 that occur at least three times, and `min_chars = 3` drops shorter
 fragments.
@@ -388,12 +388,12 @@ hyperedges are wider than a window and narrower than an abstract, places
 ## Groups of documents under two constructions
 
 The bag and kNN constructions have the documents as nodes.
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 with `type = "random_walk"` partitions the documents by spectral
 clustering on the Laplacian of the random walk on the hypergraph
 (Hayashi et al. 2020), here into `k = 4` groups, and `seed = 1` fixes
 the random starts of its k-means step.
-[`hg_topic_sizes()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_sizes.md)
+[`hg_topic_sizes()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_sizes.md)
 counts the documents in each group.
 
 ``` r
@@ -422,7 +422,7 @@ documents together.
 
 The kNN hypergraph holds no words, so the words of its groups are read
 from the bag.
-[`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+[`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
 ranks the words of each group by their mass, the summed tf-idf weight
 that the documents of the group place on the word. The figure plots the
 eight words of largest mass in each group.
@@ -456,7 +456,7 @@ hg_keywords(corpus_doc, bag_groups, n = 8)
 #> 32 rows in the returned long table (rank, score, share, n_docs)
 ```
 
-[`hg_agreement()`](https://mohsaqr.github.io/hypergraphs/reference/hg_agreement.md)
+[`hg_agreement()`](https://pak.dynasite.org/hypergraphs/reference/hg_agreement.md)
 with `what = "table"` cross-tabulates the two partitions, one row for
 each pair of a kNN group and a bag group with the number of documents
 they share. Without `what`, it gives the summary. `aligned` counts the

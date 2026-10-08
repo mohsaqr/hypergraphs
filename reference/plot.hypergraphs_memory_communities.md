@@ -3,7 +3,7 @@
 - `type = "physical"` (default):
 
   every community as a pebble around the states it holds, through
-  [`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md)
+  [`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md)
   on the community hypergraph. A state shared by several communities
   lies inside each of their pebbles. Every state is a circle whose area
   follows its flow, with a triangle pointing at the state the walk most
@@ -29,10 +29,10 @@
   20 nodes the probabilities are not printed on the arrows.
 
 Memory nodes with no flow (reached only by random jumps, see
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md))
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md))
 carry no flow of their states and are never drawn in the physical view.
 The tables returned by
-[`hg_get.hypergraphs_memory_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_communities.md)
+[`hg_get.hypergraphs_memory_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_memory_communities.md)
 are unaffected.
 
 ## Usage
@@ -60,7 +60,7 @@ plot(x, type = c("physical", "network", "states"), show_zero_flow = FALSE, ...)
 - ...:
 
   For `"physical"`, passed to
-  [`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md)
+  [`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md)
   (e.g. `seed`, `label_size`, `arrow_style = "outside"`, `layout`); for
   `"network"` and `"states"`, passed to
   [`cograph::overlay_communities()`](https://sonsoles.me/cograph/reference/overlay_communities.html)
@@ -77,7 +77,7 @@ and `"states"`, `x`, invisibly (cograph draws with base graphics).
 ## Conditions
 
 `hypergraphs_bad_input` from
-[`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md)
+[`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md)
 for arguments passed through `...` that it rejects.
 
 ## References

@@ -21,19 +21,19 @@ hg_representations(hg, graph = c("clique", "citation"), edge_source = NULL)
 - hg:
 
   A static `net_hg`, typically a snapshot of a
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md).
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md).
 
 - graph:
 
   `"clique"` (default) or `"citation"`, the graph projection compared;
   see
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
   `"citation"` needs hyperedge sources.
 
 - edge_source:
 
   Hyperedge sources for `graph = "citation"`, as in
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md);
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md);
   omitted when the hypergraph carries them.
 
 ## Value

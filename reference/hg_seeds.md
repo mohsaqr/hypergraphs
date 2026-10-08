@@ -1,10 +1,10 @@
 # Seed labels from a clustering, for spreading or training
 
 Turns an unsupervised partition into the labeled examples that
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
-[`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
+[`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
 and
-[`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
 take: from each cluster, the `n` nodes with the highest stationary
 probability `pi` (the cluster's most representative members under the
 random walk). Ties are broken alphabetically by node name so the
@@ -32,10 +32,10 @@ hg_seeds(embedding, n = 5L)
 
 A named character vector – names are node identifiers, values their
 cluster labels – ready to pass as the `labels` argument of
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
-[`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
+[`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
 or
-[`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md).
+[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md).
 
 ## Examples
 

@@ -1,7 +1,7 @@
 # Compare community structure across representations
 
 Sets several
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
 fits of the same data side by side, as the paper does for its eight GFCC
 representations (Coupette et al. 2024, Figure 8): the cluster-size
 distribution of each AMI medoid, the pairwise AMI, ARI and NMI between
@@ -33,7 +33,7 @@ plot(x, what = c("sizes", "similarity"), ...)
 
   Optional: the static `net_hg` the fits were computed on. When given,
   every medoid is scored with the measures of
-  [`hg_community_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_community_quality.md)
+  [`hg_community_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_community_quality.md)
   on the projection its own fit saved (for `type = "irmm"`, the final
   reweighted clique reduction), and the scores are available as
   `what = "quality"`. A fit run on a directed citation graph cannot be
@@ -62,7 +62,7 @@ plot(x, what = c("sizes", "similarity"), ...)
 ## Value
 
 A `hypergraphs_community_comparison` object.
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 returns its `"summary"` (default; one row per fit with `model`,
 `medoid_seed`, `n_communities`, `n_singletons`, `n_nontrivial`,
 `largest_size`, `second_size` and `balance` = second / largest),
@@ -72,7 +72,7 @@ share; with fewer than two shared nodes the three scores are `NA` and a
 `hypergraphs_undefined_statistic` warning is raised), `"sizes"` (one row
 per community of every medoid with `model`, `rank`, `n_nodes`) or, when
 `hg` was given, `"quality"` (one row per fit with the columns of
-[`hg_community_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_community_quality.md)).
+[`hg_community_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_community_quality.md)).
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 cluster-size distributions (`what = "sizes"`, the number of communities
 at least as large as each size, on logarithmic axes) or the similarity

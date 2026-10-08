@@ -22,7 +22,7 @@ hg_get(
 - x:
 
   A `net_mogen` object from
-  [`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md).
+  [`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md).
 
 - what:
 
@@ -31,7 +31,7 @@ hg_get(
   `"paths"` for the frequency of every observed path of `k` states, or
   `"pathways"` for the layer's transitions written as pathways
   (`"a b -> c"`), the form
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
   turns into simplices.
 
 - ...:

@@ -5,7 +5,7 @@ each cluster is a pair: a set of documents and the set of words that
 characterises them, from one spectral cut of the document-word bipartite
 graph (Dhillon 2001). With \\A\\ the incidence matrix (nodes by
 hyperedges, the stored weights: counts or tf-idf on a
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)),
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)),
 \\D_1\\ and \\D_2\\ its row and column sums, the scaled matrix \\A_n =
 D_1^{-1/2} A D_2^{-1/2}\\ is decomposed by SVD; its leading singular
 pair is trivial, the next \\\ell = \lceil \log_2 k \rceil\\ left and
@@ -32,7 +32,7 @@ hg_cocluster(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   (or any hypergraphs `net_hg`) with no empty node or hyperedge.
 
 - k:
@@ -76,7 +76,7 @@ hyperedge (zero degree, where the scaling is undefined).
 For a binary incidence with unit hyperedge weights, the node half of the
 embedding spans the same space as the Zhou et al. (2006) hypergraph
 Laplacian eigenvectors that
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 cuts (the squared singular values are one minus the Laplacian
 eigenvalues), so co-clustering reads the same cut on both sides of the
 bipartite graph; with other weights the two differ, because the Zhou

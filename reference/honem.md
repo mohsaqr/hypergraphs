@@ -16,8 +16,8 @@ honem(hon, dim = 32L, max_power = 10L)
 - hon:
 
   A `net_hon` from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md), or
-  a square weighted adjacency matrix.
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md), or a
+  square weighted adjacency matrix.
 
 - dim:
 
@@ -32,7 +32,7 @@ honem(hon, dim = 32L, max_power = 10L)
 ## Value
 
 A `net_honem` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 the node coordinates (`what = "embeddings"`, the default) or the
 variance per dimension (`"variance"`).
 
@@ -45,7 +45,7 @@ HONEM: Learning embedding for higher order networks. *Big Data*, 8(4),
 
 ## See also
 
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)
 
 ## Examples
 
@@ -57,7 +57,7 @@ hg_get(emb)
 #>     node      dim1          dim2
 #> 1      a -0.366535 -4.082483e-01
 #> 2 a -> b -0.428539 -4.082483e-01
-#> 3      b -0.428539  6.106227e-16
+#> 3      b -0.428539  2.578122e-15
 #> 4      c -0.366535 -4.082483e-01
 #> 5      d -0.366535  4.082483e-01
 #> 6      x -0.366535  4.082483e-01

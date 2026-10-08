@@ -63,7 +63,7 @@ plot(
 
   A `net_hg` with at least one hyperedge of two or more members. Draw a
   part of a large hypergraph by passing
-  [`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md)
+  [`hg_subset()`](https://pak.dynasite.org/hypergraphs/reference/hg_subset.md)
   first.
 
 - layout:
@@ -96,10 +96,10 @@ plot(
 
   Colour of the hulls: `NULL` (the hyperedges' count attribute described
   above, the window counts of a
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
   else one colour), `"size"` (hyperedge cardinality, one Okabe-Ito
   colour per size), `"weight"` (the hyperedge weights of a
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
   the number of windows behind each hyperedge), the name of a column in
   the edge metadata (`x$edge_data`), a vector named by hyperedge, or a
   vector with one value per hyperedge. Character or factor values get
@@ -201,7 +201,7 @@ plot(
   `data.frame(state, trials)` is read as it is. Every node of the
   hypergraph needs a non-negative value; names that are not nodes are
   skipped, so one table serves every
-  [`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md).
+  [`hg_subset()`](https://pak.dynasite.org/hypergraphs/reference/hg_subset.md).
   Without `direction` the nodes are points whose area follows the value
   ([`ggplot2::scale_size_area()`](https://ggplot2.tidyverse.org/reference/scale_size.html),
   largest 10 mm), with a size legend, and each label sits just above its
@@ -290,7 +290,7 @@ plot(
   given), follows the number in each title box, and names the node area
   ("trials with the event") and the transition widths. `NULL` (default)
   is the unit the hypergraph records (`"sequences"` for
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
   of a clustering), else the name of the hyperedges' count attribute
   described above, else those texts stay generic.
 
@@ -316,7 +316,7 @@ plot(
   Draw one group only: the name of a value of the hyperedges' `group`
   attribute (a hypergraph of counted sets with a single group is drawn
   as that group without it), such as `"Cluster 1"` of a
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
   built from a clustering of sequences. Only that group's hyperedges and
   their members are drawn; for clustered sequences each node is sized by
   the sequences of the group containing it (unless `node_sizes` is
@@ -330,17 +330,17 @@ plot(
 - node_groups:
 
   Colour and shape every node by its group, such as its community: an
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md),
-  [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md)
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md),
+  [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md)
   or
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
   fit, a
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   or
-  [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+  [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
   result, or a data.frame with a `node` column and a `community`,
   `cluster`, `predicted`, `topic`, `block` or `label` column (read as
-  [`hg_agreement()`](https://mohsaqr.github.io/hypergraphs/reference/hg_agreement.md)
+  [`hg_agreement()`](https://pak.dynasite.org/hypergraphs/reference/hg_agreement.md)
   reads a labeling). Groups take the Okabe-Ito colours in their natural
   order and a shape each; a node without a group is plotted as a small
   grey point. Without `color_by` the hulls are then grey, so the node
@@ -361,9 +361,9 @@ plot(
   member row, then name), `"size"`, the name of a column in the edge
   metadata such as a date, a vector named by hyperedge, or a vector with
   one value per hyperedge. Numbers sort largest first, as in
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md);
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md);
   dates, text and a clock column (`start`, `end`, `time`, ... as
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md)
   names them, numeric in a snapshot) sort ascending. Ties fall back to
   the default order. For `type = "storyline"` it is the order of the
   columns, always ascending; `NULL` keeps the stored order of the
@@ -375,7 +375,7 @@ plot(
   hyperedges drawn as lines, default `8`, `NULL` for all), `spacing`
   (`"even"` or `"strength"`), `width_by` (`NULL` or `"degree"`) and
   `point_size`, as in
-  [`plot.net_temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md).
+  [`plot.net_temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_temporal_hypergraph.md).
   Otherwise unused.
 
 ## Value
@@ -390,7 +390,7 @@ the last layer.
 
 A hypergraph whose hyperedges carry one numeric attribute – such as a
 `trials` count that
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
 kept because it is constant within each group – is drawn by that
 attribute with no further argument: it colours the pebbles, writes a
 title box with the count beside each one, and names the unit of the
@@ -431,7 +431,7 @@ such as the windows of one sequence from
 2012): each hyperedge is a column, in stored order or by `sort_by`, and
 each of the busiest nodes a line that its hyperedges gather, laid out as
 for
-[`plot.net_temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_temporal_hypergraph.md).
+[`plot.net_temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_temporal_hypergraph.md).
 It takes `sort_by`, `edge_labels` (`FALSE` drops the column names) and
 the storyline arguments in `...`.
 

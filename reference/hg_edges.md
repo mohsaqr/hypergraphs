@@ -33,10 +33,10 @@ hg_edges(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
-  [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md),
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
+  [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md),
   any hypergraphs `net_hg`, or a
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md).
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md).
 
 - what:
 
@@ -55,13 +55,13 @@ hg_edges(
   Minimum number of shared vertices for another hyperedge to count as
   incident. The default `1` is ordinary incidence; larger values match
   the thresholds used by
-  [`hg_edge_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edge_centrality.md).
+  [`hg_edge_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_edge_centrality.md).
   Several values give one block of rows each, with an `s` column.
 
 - start, end, step, window, at:
 
   Measurement grid passed to
-  [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md)
+  [`hg_snapshots()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshots.md)
   when `hg` is temporal: the bounds of the period, how often to look,
   how much time each look covers, or the instants themselves.
 
@@ -69,7 +69,7 @@ hg_edges(
 
   Snapshot `mode` (`"active"` or `"cumulative"`) and multi-edge handling
   passed to
-  [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md)
+  [`hg_snapshots()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 ## Value
@@ -100,9 +100,9 @@ Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 
 ## See also
 
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md)
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
 for vertex-level measures,
-[`hg_line_graph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_line_graph.md)
+[`hg_line_graph()`](https://pak.dynasite.org/hypergraphs/reference/hg_line_graph.md)
 for the graph whose degrees `n_incident_edges` reports.
 
 ## Examples

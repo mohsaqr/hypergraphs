@@ -29,7 +29,7 @@ hg_edge_centrality(
 - hg:
 
   A static `net_hg` or a
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md).
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md).
 
 - s:
 
@@ -53,14 +53,14 @@ hg_edge_centrality(
 - start, end, step, window, at:
 
   Measurement grid passed to
-  [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md)
+  [`hg_snapshots()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 - snapshot_mode, multiedges:
 
   Snapshot `mode` (`"active"` or `"cumulative"`) and multi-edge handling
   passed to
-  [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md)
+  [`hg_snapshots()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 ## Value

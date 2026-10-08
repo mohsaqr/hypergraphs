@@ -109,12 +109,12 @@ text_hypergat(
 
   When `x` is a data.frame: the text column and the optional id column,
   as in
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md).
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md).
 
 - stop_words:
 
   Words removed before building sentences (default
-  [`stop_words_en()`](https://mohsaqr.github.io/hypergraphs/reference/stop_words_en.md)).
+  [`stop_words_en()`](https://pak.dynasite.org/hypergraphs/reference/stop_words_en.md)).
 
 - min_count:
 
@@ -202,7 +202,7 @@ text_hypergat(
 - what:
 
   Legacy extraction option. Fit once and use
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   with `what = "attention"`, `"hyperedges"` or `"hyperedge_words"`
   instead.
 
@@ -215,15 +215,15 @@ text_hypergat(
 ## Value
 
 An `hg_hypergat` fitted classifier, also an
-[hg_classification](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+[hg_classification](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_classification.md)
 and a data frame. [`print()`](https://rdrr.io/r/base/print.html) reports
 held-out evaluation when available.
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 reads predictions, per-class results, confusion, document text and
 training history.
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) shows confusion
 or training loss.
-[`predict.hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/predict.hg_hypergat.md)
+[`predict.hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/predict.hg_hypergat.md)
 classifies new documents with the same network and frozen vocabulary.
 
 Attention is computed on request, without training again. Word weights
@@ -232,7 +232,7 @@ word's hyperedges. A word in just one edge gives it weight one
 automatically. These are internal aggregation weights, not
 class-specific contributions or explanations. The diagnostic tables and
 their normalization baselines are described in
-[`hg_get.hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md).
+[`hg_get.hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md).
 Softmax scores are not calibrated probabilities of correctness. The
 vocabulary is estimated from known labels only; held-out and unlabelled
 documents cannot change it.

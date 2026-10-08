@@ -7,7 +7,7 @@ trailing copyright notices, bare numbers, and optionally stop words.
 Each step is a switch. The result has the same length (or the same rows)
 as the input; a text that falls below `min_content` becomes the empty
 string, which
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 then drops with a `hypergraphs_dropped_documents` warning, so nothing
 leaves the corpus silently.
 
@@ -112,7 +112,7 @@ clean_text(
 
   Words to remove, case-insensitively at word boundaries (default
   `NULL`, none). Usually left to
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)'s
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)'s
   own `stop_words`; use it here when the cleaned text itself is shown.
 
 - min_chars:

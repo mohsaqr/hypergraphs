@@ -1,9 +1,9 @@
 # English function-word stop list
 
 A fixed list of English function words for the `stop_words` argument of
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 and
-[`clean_text()`](https://mohsaqr.github.io/hypergraphs/reference/clean_text.md).
+[`clean_text()`](https://pak.dynasite.org/hypergraphs/reference/clean_text.md).
 `type = "minimal"` (the default) is a small list of articles,
 prepositions, conjunctions and auxiliaries, deliberately minimal and
 versioned with the package. `type = "snowball"` is the English stop list

@@ -3,7 +3,7 @@
 Returns the node coordinates computed by hypergraphs' existing
 hypergraph spectral or symmetric-NMF engine without exposing the
 incidental k-means assignments produced by
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md).
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md).
 
 ## Usage
 
@@ -82,8 +82,8 @@ h <- group_hypergraph(
 )
 hg_embed(h, dimensions = 2)
 #>   node        pi dim1          dim2
-#> 1    a 0.1666667 -0.5  8.660254e-01
-#> 2    b 0.3333333 -1.0 -1.145529e-15
-#> 3    c 0.3333333 -1.0 -8.735814e-16
-#> 4    d 0.1666667 -0.5 -8.660254e-01
+#> 1    a 0.1666667 -0.5 -8.660254e-01
+#> 2    b 0.3333333 -1.0  8.570850e-16
+#> 3    c 0.3333333 -1.0  5.851370e-16
+#> 4    d 0.1666667 -0.5  8.660254e-01
 ```

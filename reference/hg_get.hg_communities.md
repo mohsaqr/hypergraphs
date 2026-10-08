@@ -1,7 +1,7 @@
 # Tables of a hypergraph community ensemble
 
 Reads, prints and plots the result of
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
 on a hypergraph.
 
 ## Usage
@@ -69,7 +69,7 @@ plot(x, ...)
 
 ## Value
 
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 a base data.frame. Raises `hypergraphs_bad_input` for `converged` or
 `sort_by` with a table other than `"runs"`, or `converged` with an
 Infomap fit. [`print()`](https://rdrr.io/r/base/print.html): `x`,

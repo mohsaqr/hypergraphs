@@ -26,7 +26,7 @@ mogen(
 - data:
 
   Sequences in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md):
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md):
   a long event table (with `action`), a wide data.frame, a list of
   vectors, or a model object carrying its sequences.
 
@@ -46,13 +46,13 @@ mogen(
 - action, actor, time, session, time_threshold, timezone:
 
   Long-format arguments (see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md));
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md));
   leave the column names `NULL` for wide, list or model input.
 
 ## Value
 
 A `net_mogen` object (also a `cograph_network`). Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 the order-selection table (`what = "orders"`, the default), the fitted
 transitions of a layer (`"transitions"`), the path counts (`"paths"`,
 with `k =`) and the pathways (`"pathways"`).
@@ -71,8 +71,8 @@ generative models. *Applied Network Science*, 8, 68.
 
 ## See also
 
-[`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md),
-[`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md)
+[`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md),
+[`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md)
 
 ## Examples
 

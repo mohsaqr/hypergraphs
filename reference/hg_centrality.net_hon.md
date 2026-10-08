@@ -1,10 +1,10 @@
 # Higher-order centralities with first-order projection
 
 The memory-network method of
-[`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md).
+[`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md).
 Computes centralities on the higher-order topology of a
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)
-network and, by default, projects them back onto the first-order states,
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md) network
+and, by default, projects them back onto the first-order states,
 following Scholtes, Wider & Garas (2016). Because a higher-order node
 carries the memory of how a state was reached, these centralities can
 rank states differently from the same measures on the first-order
@@ -36,7 +36,7 @@ hg_centrality(
 - x:
 
   A `net_hon` object from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md).
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md).
 
 - type:
 
@@ -132,7 +132,7 @@ Rows are ordered by state (or by node) so the result is deterministic.
 Semantics match pathpy 2.2.0 (the reference implementation by the
 method's author), generalized from fixed-order to the variable-order
 networks
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)
 produces: a higher-order node's order is the number of states in the
 path it represents, and the first-order distance implied by a
 higher-order hop count adds that node's order minus one. With a uniform
@@ -152,9 +152,9 @@ e1600028.
 
 ## See also
 
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-[`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md),
-[`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md)
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+[`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md),
+[`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md)
 
 ## Examples
 

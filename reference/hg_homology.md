@@ -19,7 +19,7 @@ hg_homology(x, n_steps = 20L, max_dim = 3L, type = "clique", max_scale = NULL)
 
   A square matrix, a network object carrying one (`netobject`, `tna`),
   points for `type = "vr"` (see
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)),
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)),
   a `simplicial_complex` built with `type = "vr"` (its stored filtration
   is used as is), or a window complex from
   `simplicial(type = "window")`. For a window complex the filtration is
@@ -54,7 +54,7 @@ hg_homology(x, n_steps = 20L, max_dim = 3L, type = "clique", max_scale = NULL)
 ## Value
 
 A `persistent_homology` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 the persistence diagram (`what = "persistence"`, the default) or the
 Betti curves (`"betti"`).
 
@@ -72,9 +72,9 @@ e66506.
 
 ## See also
 
-[`hg_landscape()`](https://mohsaqr.github.io/hypergraphs/reference/hg_landscape.md),
-[`hg_bottleneck()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bottleneck.md),
-[`hg_wasserstein()`](https://mohsaqr.github.io/hypergraphs/reference/hg_wasserstein.md)
+[`hg_landscape()`](https://pak.dynasite.org/hypergraphs/reference/hg_landscape.md),
+[`hg_bottleneck()`](https://pak.dynasite.org/hypergraphs/reference/hg_bottleneck.md),
+[`hg_wasserstein()`](https://pak.dynasite.org/hypergraphs/reference/hg_wasserstein.md)
 
 ## Examples
 

@@ -3,7 +3,7 @@
 [`summary()`](https://rdrr.io/r/base/summary.html) on a result returns
 every table of the result as a list of data frames, named after the
 `what` values of
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md),
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md),
 so `summary(x)$validation` is the same data frame as
 `hg_get(x, what = "validation")`. Results with overall figures add them
 as further one-row or per-group tables. Tables that a particular result
@@ -67,7 +67,7 @@ summary(object, ...)
 - what:
 
   For
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on a summary: the name of one of its tables. Default: the first.
 
 - ...:
@@ -82,25 +82,25 @@ summary(object, ...)
 - object:
 
   A result: from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-  [`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md),
-  [`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-  [`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md),
-  [`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md),
-  [`hg_markov_stability()`](https://mohsaqr.github.io/hypergraphs/reference/hg_markov_stability.md),
-  [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md) on
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+  [`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md),
+  [`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+  [`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md),
+  [`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md),
+  [`hg_markov_stability()`](https://pak.dynasite.org/hypergraphs/reference/hg_markov_stability.md),
+  [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md) on
   sequences,
-  [`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md),
-  [`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md),
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md),
-  [`hg_compare_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare_communities.md),
-  [`hg_mmsbm()`](https://mohsaqr.github.io/hypergraphs/reference/hg_mmsbm.md),
-  [`hg_motifs()`](https://mohsaqr.github.io/hypergraphs/reference/hg_motifs.md),
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md),
-  [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md),
-  [`hg_landscape()`](https://mohsaqr.github.io/hypergraphs/reference/hg_landscape.md)
+  [`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md),
+  [`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md),
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md),
+  [`hg_compare_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare_communities.md),
+  [`hg_mmsbm()`](https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.md),
+  [`hg_motifs()`](https://pak.dynasite.org/hypergraphs/reference/hg_motifs.md),
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md),
+  [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md),
+  [`hg_landscape()`](https://pak.dynasite.org/hypergraphs/reference/hg_landscape.md)
   or
-  [`hg_qanalysis()`](https://mohsaqr.github.io/hypergraphs/reference/hg_qanalysis.md).
+  [`hg_qanalysis()`](https://pak.dynasite.org/hypergraphs/reference/hg_qanalysis.md).
 
 ## Value
 

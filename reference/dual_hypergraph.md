@@ -3,7 +3,7 @@
 Returns the dual hypergraph: every hyperedge becomes a vertex and every
 vertex becomes a hyperedge, with the transposed weighted incidence. For
 a bag-construction
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
 the dual is identical to rebuilding with the opposite `nodes`
 orientation (tested), so document-level and word-level analyses can
 share one constructed object. Duals of windowed and kNN hypergraphs are
@@ -21,8 +21,8 @@ dual_hypergraph(hg)
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
-  [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md),
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
+  [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md),
   or any hypergraphs `net_hg`.
 
 ## Value

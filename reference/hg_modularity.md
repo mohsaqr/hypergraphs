@@ -31,7 +31,7 @@ hg_modularity(
   The partition to score: a data.frame with `node` and a label column
   (`community`, `cluster`, `label` or `predicted`), a named label
   vector, an unnamed vector in node order, or an
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   fit (its AMI medoid is scored). Every node must be labelled, once: a
   node listed twice with the same label counts once, with different
   labels it raises `hypergraphs_bad_input`.
@@ -45,7 +45,7 @@ hg_modularity(
 
   Positive hyperedge weights (one per hyperedge, or one value recycled).
   `NULL` uses the window counts of a
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
   else unit weights.
 
 - what:
@@ -95,7 +95,7 @@ Applications IX*, Studies in Computational Intelligence 943, 152-163.
 
 ## See also
 
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
 with `type = "irmm"` to find a partition.
 
 ## Examples

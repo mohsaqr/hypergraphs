@@ -43,19 +43,19 @@ call builds the same sequences there.
 
 A missing state anywhere but at the end of a wide row is a gap. The
 memory verbs
-([`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-[`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-[`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md),
-[`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md),
-[`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md),
-[`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md),
-[`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md))
+([`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+[`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+[`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md),
+[`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md),
+[`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md),
+[`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md),
+[`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md))
 split a sequence at every gap into its runs of observed states: no
 transition is counted across or into a gap and no state `"NA"` is
 created (a state spelled `"NA"` is an ordinary state).
-[`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md)
+[`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md)
 and
-[`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md)
+[`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md)
 still resample the original sequences, each with all its runs. Repeats
 are collapsed within a run. State labels containing `" -> "` (the
 notation of memory nodes) are refused with `hypergraphs_bad_input` by

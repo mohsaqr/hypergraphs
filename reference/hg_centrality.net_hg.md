@@ -1,9 +1,9 @@
 # Hypergraph eigenvector centralities
 
 The hypergraph method of
-[`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md).
+[`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md).
 Computes one or more eigenvector-style centralities on a
-[net_hg](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md):
+[net_hg](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md):
 *clique-motif* (CEC), *Z-eigenvector* (ZEC), and *H-eigenvector* (HEC).
 Each variant captures influence differently - CEC flattens group
 structure via clique expansion, while ZEC and HEC propagate through the
@@ -33,7 +33,7 @@ hg_centrality(
 - x:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   (or any hypergraphs `net_hg`).
 
 - type:
@@ -86,7 +86,7 @@ hg_centrality(
   for unit weights), or a positive numeric vector, one per hyperedge.
   Hyperedge weights of the EDVW random walk behind `type = "pagerank"`;
   `NULL` defaults to the window counts for hypergraphs built by
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
   else the Hayashi et al. dispersion heuristic (unit weights on a binary
   incidence). Only used by `type = "pagerank"`.
 
@@ -119,7 +119,7 @@ pairwise graph \\W\\ where \\W\_{ij} = \|\\e : i, j \in e\\\|\\ and
 returns the leading eigenvector of \\W\\. Equivalent to running
 [`igraph::eigen_centrality()`](https://r.igraph.org/reference/eigen_centrality.html)
 on
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
 output.
 
 **Z-eigenvector centrality (ZEC)**: solves the linear eigen-equation on
@@ -141,7 +141,7 @@ pick a hyperedge \\e \ni v\\ with probability proportional to its weight
 \\w(e)\\, then a node \\u \in e\\ with probability proportional to its
 edge-dependent vertex weight \\\gamma_e(u)\\ (the incidence cell, i.e.
 occurrence totals for
-[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md));
+[`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md));
 with probability \\1 - damping\\ teleport uniformly. Their collapse
 theorem: with edge-*independent* vertex weights (a binary incidence) the
 walk is equivalent to PageRank on the weighted clique expansion with
@@ -150,7 +150,7 @@ information exactly when \\\gamma\\ is edge-dependent. Nodes left in no
 hyperedge (possible after `min_weight`/`min_size` filtering) teleport
 from every step and receive only teleportation mass. The undamped
 stationary distribution of the same walk is the `pi` column reported by
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md).
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md).
 
 **Subhypergraph centrality** (`"subhypergraph"`): the logarithm of the
 diagonal of the matrix exponential of the clique adjacency derived from
@@ -210,9 +210,9 @@ interactions: Structure and dynamics. *Physics Reports*, 874, 1-92.
 
 ## See also
 
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md),
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md),
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md).
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md),
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md),
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md).
 
 ## Examples
 

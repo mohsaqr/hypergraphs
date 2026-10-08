@@ -1,9 +1,9 @@
 # Plot a temporal hypergraph
 
 Plots the snapshot that
-[`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md)
+[`hg_snapshot()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshot.md)
 takes at `at` as a hypergraph, with
-[`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md):
+[`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md):
 the hyperedges active then, as hulls by default or as the incidence
 matrix with `type = "incidence"`. The snapshot keeps the hyperedge
 attributes and the data's names for nodes and hyperedges, so `color_by`
@@ -31,7 +31,7 @@ plot(
 - x:
 
   A
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md).
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md).
 
 - at:
 
@@ -41,13 +41,13 @@ plot(
 - mode:
 
   Snapshot mode passed to
-  [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md).
+  [`hg_snapshot()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshot.md).
   Not used by the storyline.
 
 - type:
 
   `"hulls"` (default) or `"incidence"` plot the snapshot at `at` (see
-  [`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md));
+  [`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md));
   `"storyline"` plots the whole history.
 
 - top:
@@ -71,7 +71,7 @@ plot(
 - ...:
 
   For `"hulls"` and `"incidence"`, arguments passed to
-  [`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md),
+  [`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md),
   such as `color_by` or `labels`. For `"storyline"`, `edge_labels`
   (`TRUE` writes the hyperedge and its start under each column),
   `point_size` (size of the points, default `2.5`) and `spacing`:
@@ -111,10 +111,10 @@ shape.
 `hypergraphs_bad_input` when the snapshot has no active nodes, when no
 hyperedge begins between `start` and `end`, for an invalid `top`, for
 `at`, `mode` or an argument of
-[`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md)
+[`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md)
 with `type = "storyline"`, for `top`, `start` or `end` with another
 type, and as
-[`plot.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/plot.net_hg.md)
+[`plot.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md)
 raises it; `hypergraphs_deprecated` (a warning) for `method`.
 
 ## References

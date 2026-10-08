@@ -37,7 +37,7 @@ plot(x, motif = c("Y", "T", "O"), ...)
 - hg:
 
   A 3-uniform `net_hg` or a
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md).
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md).
 
 - n:
 
@@ -60,14 +60,14 @@ plot(x, motif = c("Y", "T", "O"), ...)
 - start, end, step, window, at:
 
   Measurement grid passed to
-  [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md)
+  [`hg_snapshots()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 - snapshot_mode, multiedges:
 
   Snapshot `mode` (`"active"` or `"cumulative"`) and multi-edge handling
   passed to
-  [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md)
+  [`hg_snapshots()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 - x:
@@ -94,7 +94,7 @@ leading `time` column, the snapshot time: a date for a calendar
 hypergraph, the number on its clock otherwise.
 
 For
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md),
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md),
 the test table (`what = "test"`) or every null count (`what = "draws"`,
 columns `run`, `motif`, `count`) as a plain data.frame.
 

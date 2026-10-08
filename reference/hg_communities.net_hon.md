@@ -34,7 +34,7 @@ hg_communities(
 - x:
 
   A `net_hon` from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md).
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md).
 
 - partition:
 
@@ -66,11 +66,11 @@ hg_communities(
 ## Value
 
 A `hypergraphs_memory_communities` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 `what = "states"` (one row per state node), `"physical"` (one row per
 physical node x module), `"modules"`, `"trials"`, `"first_order"` and
 `"codelength"`; see
-[`hg_get.hypergraphs_memory_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hypergraphs_memory_communities.md).
+[`hg_get.hypergraphs_memory_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_memory_communities.md).
 
 ## Details
 

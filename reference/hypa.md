@@ -6,15 +6,15 @@ One verb, two estimators, chosen by the class of `x`:
 
   co-occurring node pairs scored against a hypergeometric null built
   from the hyperdegrees; returns a table. See
-  [`hypa.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.net_hg.md).
+  [`hypa.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/hypa.net_hg.md).
 
 - sequences (a long, wide or list input, or a model object carrying
   sequences; see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md)):
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md)):
 
   paths of a De Bruijn graph scored against the same null (HYPA);
   returns a `net_hypa` object. See
-  [`hypa.default()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.default.md).
+  [`hypa.default()`](https://pak.dynasite.org/hypergraphs/reference/hypa.default.md).
 
 Each method keeps its own arguments; passing an argument that only the
 other method takes raises `hypergraphs_bad_input`.

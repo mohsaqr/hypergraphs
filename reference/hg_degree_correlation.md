@@ -51,7 +51,7 @@ Complex Networks*, 11(3), cnad019.
 
 ## See also
 
-[`hg_assortativity()`](https://mohsaqr.github.io/hypergraphs/reference/hg_assortativity.md).
+[`hg_assortativity()`](https://pak.dynasite.org/hypergraphs/reference/hg_assortativity.md).
 
 ## Examples
 

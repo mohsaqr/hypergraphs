@@ -7,7 +7,7 @@ first weighs the available neighboring information types; node-level
 attention then weighs individual neighbors before their type-specific
 transformed representations are combined. This is HGAT for heterogeneous
 information networks, distinct from Ding et al.'s document-hypergraph
-[`text_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md).
+[`text_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md).
 
 ## Usage
 
@@ -60,7 +60,7 @@ heterogeneous_hgat(
 - epochs, lr, weight_decay, dropout, validation, seed, verbose:
 
   Training controls as in
-  [`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md).
+  [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md).
 
 ## Value
 

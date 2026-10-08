@@ -14,7 +14,7 @@ hg_get(x, what = c("q_levels", "nodes"), ..., top = NULL)
 - x:
 
   A `q_analysis` object from
-  [`hg_qanalysis()`](https://mohsaqr.github.io/hypergraphs/reference/hg_qanalysis.md).
+  [`hg_qanalysis()`](https://pak.dynasite.org/hypergraphs/reference/hg_qanalysis.md).
 
 - what:
 

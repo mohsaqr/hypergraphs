@@ -33,9 +33,9 @@ identical to the result of the constructor called directly.
 - **Membership data** name a `node` and a `hyperedge` (or `from` and
   `to` for an edge list): every value of `hyperedge` becomes a hyperedge
   of the nodes it holds
-  ([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)).
+  ([`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)).
   With `time`, `start` or `end` the hyperedges carry a clock
-  ([`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)).
+  ([`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md)).
 
 - **Event data** name an `action`, the column of what happened, with the
   `session` and `actor` it belongs to, in the vocabulary of the memory
@@ -44,7 +44,7 @@ identical to the result of the constructor called directly.
   with `actor` alone each actor's actions become one hyperedge. With
   `window`, every window of consecutive actions within an actor becomes
   a hyperedge
-  ([`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)),
+  ([`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)),
   ordered by `time`.
 
 - With `group`, `top` or `min_share`, the sets of either format are
@@ -54,13 +54,13 @@ identical to the result of the constructor called directly.
 A list of sequences is read as event data with `window`. A network, as a
 weight matrix, a sparse matrix, a `netobject` or a `cograph_network`,
 has its cliques promoted to hyperedges
-([`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md));
+([`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md));
 with `window`, a model object built from sequences is read as sequences
 instead. A topic model fitted by
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md),
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md),
 or a clustering of sequences, becomes the hypergraph of its frequent
 sets
-([`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)).
+([`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)).
 
 Every argument in `...` is passed to that constructor, whose
 documentation describes it, and the result is the constructor's own.
@@ -81,11 +81,11 @@ interactions: Structure and dynamics. *Physics Reports*, 874, 1-92.
 
 ## See also
 
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
-[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
-[`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md),
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md),
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md),
+[`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
+[`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md),
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md),
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 for a corpus.
 
 ## Examples

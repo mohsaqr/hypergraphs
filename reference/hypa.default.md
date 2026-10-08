@@ -1,7 +1,7 @@
 # Path anomalies (HYPA) in sequences
 
 The sequence method of
-[`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md).
+[`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md).
 Builds the De Bruijn graph of order `order` from the sequences and
 scores every path of `order + 1` states against a hypergeometric null
 whose propensities are fitted to the observed path counts: paths
@@ -39,7 +39,7 @@ print(x, n = NULL, ...)
 - x:
 
   Sequences in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md):
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md):
   a long event table (with `action`), a wide data.frame, a list of
   vectors, or a model object carrying its sequences.
 
@@ -83,7 +83,7 @@ print(x, n = NULL, ...)
 - action, actor, time, session, time_threshold, timezone:
 
   Long-format arguments (see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md));
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md));
   leave the column names `NULL` for wide, list or model input.
 
 - ...:
@@ -96,9 +96,9 @@ print(x, n = NULL, ...)
 A `net_hypa` object (also a `cograph_network`) that prints the selected
 anomalous paths. `type`, `order_by` and `n` change only what is printed
 and the default of
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md);
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md);
 every path is scored. Read the tables with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 the anomalous paths (`what = "anomalies"`, the default), every scored
 path (`"scores"`), the over- or under-represented ones (`"over"`,
 `"under"`), or the anomalous paths as pathways (`"pathways"`).
@@ -113,7 +113,7 @@ International Conference on Data Mining*, 460-468.
 
 ## See also
 
-[`hypa.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.net_hg.md)
+[`hypa.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/hypa.net_hg.md)
 for the same null on hypergraph co-occurrence.
 
 ## Examples

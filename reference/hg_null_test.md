@@ -8,7 +8,7 @@ size) and randomizes the memberships by checkerboard swaps (Gotelli
 thinning `nnz` between samples, `nnz` being the number of memberships.
 Statistics are evaluated on the binarized hypergraph (weights carry no
 meaning under this null), with the definitions
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md)
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
 uses: `"density"`, `"avg_edge_size"` and `"pairwise_participation"`
 equal the values of `hg_measures(hg, what = "summary")` (density is
 `m / choose(n, k)` for a `k`-uniform hypergraph, `sum(|e|) / (n * m)`
@@ -33,8 +33,8 @@ hg_null_test(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
-  [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md),
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
+  [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md),
   or any hypergraphs `net_hg`.
 
 - statistic:

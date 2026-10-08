@@ -28,7 +28,7 @@ hg_community_quality(
 - partition:
 
   An
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   result, a tidy node/label table, or a named label vector. Every
   projected node needs one non-missing label; a node repeated with
   different labels raises `hypergraphs_bad_input`.
@@ -41,7 +41,7 @@ hg_community_quality(
 - duplicate_edges, self_association, edge_source:
 
   Projection controls passed to
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
   Together these reproduce the paper's binary/multi and self-association
   representations.
 

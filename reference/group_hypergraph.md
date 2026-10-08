@@ -1,7 +1,7 @@
 # Hypergraph from membership data or an edge list
 
 Constructs a
-[net_hg](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
+[net_hg](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md)
 the way a network is defined from data. **Membership data** name a
 `node` and a `hyperedge`: every node sharing one value of `hyperedge` (a
 session, a team, a citation block) belongs to one hyperedge. An **edge
@@ -53,7 +53,7 @@ group_hypergraph(
   hyperedge (sessions, trials, teams, citation blocks). When neither
   pair of columns is named, `from` and `to` are detected
   case-insensitively from the alias table
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md)
   uses (`source`/`target`, `sender`/`receiver`, ...), and failing that
   `node` and `hyperedge`.
 
@@ -144,14 +144,14 @@ group_hypergraph(
 ## Value
 
 A `net_hg` object with the same structure produced by
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md)
 (`hyperedges`, `incidence`, `nodes`, `n_nodes`, `n_hyperedges`,
 `size_distribution`, `params`), plus `edge_data` when `data` carries
 hyperedge attributes (see Details). The `params` list records
 `source = "group_hypergraph"` and the original column names. For
 clustered sequences the object also has `group_sizes` and `state_counts`
 (read them with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md))
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md))
 and `params` records `source = "clustered_sequences"`, `top`, `states`
 and `unit = "sequences"`.
 
@@ -164,7 +164,7 @@ edges AB, AC, BC. This avoids information loss when group interactions
 are the primary unit of analysis (Perc et al. 2013).
 
 Unlike
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md)
 (which derives hyperedges from a network's clique structure),
 `group_hypergraph()` takes group memberships directly. The two functions
 are complementary:
@@ -172,7 +172,7 @@ are complementary:
 - `group_hypergraph()` - when group membership is observed (sessions,
   transactions, co-authorships).
 
-- [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md) -
+- [`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md) -
   when only pairwise interactions are observed and triadic structure
   must be inferred from triangles.
 
@@ -210,7 +210,7 @@ listed `node` values, and `min_size` the sets of at least that many.
 ## Topic combinations
 
 Given a mixed-membership topic model fitted by
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md),
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md),
 every document is reduced to the set of topics whose share in it is at
 least `threshold`, the thresholded topic presence used to build topic
 co-occurrence networks (Abuhay et al. 2017; Cassi et al. 2017). A
@@ -256,9 +256,9 @@ unnamed networks) raises `hypergraphs_bad_input`.
 Every other column of `data` that is constant within a hyperedge (a
 session's date, a team's department) is kept as a hyperedge attribute in
 the result's `edge_data` table, one row per hyperedge, where
-[`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md)'s
+[`hg_subset()`](https://pak.dynasite.org/hypergraphs/reference/hg_subset.md)'s
 `where` argument and
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)'s
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)'s
 `edge_source` can use it. Columns that vary within a hyperedge describe
 memberships, not hyperedges, and are left out.
 
@@ -288,9 +288,9 @@ populations: a review. *Journal of the Royal Society Interface* 10(80),
 
 ## See also
 
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md)
 for the clique-based constructor,
-[`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)
+[`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md)
 for the same inputs with a clock.
 
 ## Examples

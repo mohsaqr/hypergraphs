@@ -5,7 +5,7 @@ Zhou-Huang-Scholkopf form on the binary incidence pattern
 (`type = "zhou"`) or the random-walk form with edge-dependent vertex
 weights (`type = "random_walk"`), in which the weighted incidence cells
 (e.g. the summed weights produced by
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md))
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md))
 determine where a random walker lands inside a hyperedge, and the
 resulting non-reversible walk is symmetrized through its stationary
 distribution (Chung 2005). Both Laplacians are symmetric positive
@@ -23,12 +23,12 @@ hg_laplacian(hg, type = c("zhou", "random_walk"), edge_weights = NULL)
 - hg:
 
   A `net_hg` from
-  [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
+  [`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md)
   or
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md),
   dense or sparse (`sparse = TRUE`). Must be connected and have at least
   one hyperedge. Empty hyperedges (which
-  [`random_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/random_hypergraph.md)
+  [`random_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/random_hypergraph.md)
   can produce) contribute nothing.
 
 - type:
@@ -43,7 +43,7 @@ hg_laplacian(hg, type = c("zhou", "random_walk"), edge_weights = NULL)
   A single positive number (recycled) or a numeric vector of positive
   hyperedge weights (length `hg$n_hyperedges`), or `NULL` for the
   default. Hypergraphs built by
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
   default to their window counts (for both types). Otherwise the default
   is type-specific: unit weights for `"zhou"`; for `"random_walk"` the
   Hayashi et al. heuristic - the population standard deviation of each
@@ -88,5 +88,5 @@ hg <- group_hypergraph(events, node = "person", hyperedge = "meeting",
                        weight = "hours")
 L <- hg_laplacian(hg, type = "random_walk")
 range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)
-#> [1] -2.899699e-16  1.001279e+00
+#> [1] -1.815497e-16  1.001279e+00
 ```

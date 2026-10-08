@@ -2,7 +2,7 @@
 
 Computes one or more published local clustering coefficients for every
 node of a
-[net_hg](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md).
+[net_hg](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md).
 Each variant is named after its definition:
 
 ## Usage
@@ -22,9 +22,9 @@ hg_transitivity(
 - hg:
 
   A hypergraphs `net_hg`
-  ([`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md),
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
+  ([`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md),
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md),
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
   ...), dense or sparse.
 
 - type:
@@ -145,9 +145,9 @@ Chodrow, P. S. (2020). Configuration models of random hypergraphs.
 
 ## See also
 
-[`hg_assortativity()`](https://mohsaqr.github.io/hypergraphs/reference/hg_assortativity.md),
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+[`hg_assortativity()`](https://pak.dynasite.org/hypergraphs/reference/hg_assortativity.md),
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md),
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
 
 ## Examples
 

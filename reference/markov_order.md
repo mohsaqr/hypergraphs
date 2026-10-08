@@ -30,7 +30,7 @@ markov_order(
 - data:
 
   Sequences in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md);
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md);
   a `netobject_group` gives one test per group.
 
 - max_order:
@@ -62,14 +62,14 @@ markov_order(
 - action, actor, time, session, time_threshold, timezone:
 
   Long-format arguments (see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md));
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md));
   leave the column names `NULL` for wide, list or model input.
 
 ## Value
 
 A `net_markov_order` object (a `net_markov_order_group` for a
 `netobject_group`). Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 the per-order test table (`what = "orders"`, the default) or the
 permutation null draws (`"null"`).
 
@@ -84,8 +84,8 @@ Hypotheses* (3rd ed.). Springer.
 
 ## See also
 
-[`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-[`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md)
+[`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+[`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md)
 
 ## Examples
 

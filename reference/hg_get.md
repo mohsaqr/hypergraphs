@@ -58,103 +58,103 @@ naming the class.
 
   `"edges"` (default), `"nodes"`, `"memberships"`, `"sets"`,
   `"state_counts"`, `"edge_data"`; see
-  [`hg_get.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_hg.md).
+  [`hg_get.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_hg.md).
 
 - `text_hypergraph`:
 
   `"weights"` (default), `"documents"`, `"vocabulary"`, `"sentences"`;
   see
-  [`hg_get.text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.text_hypergraph.md).
+  [`hg_get.text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.text_hypergraph.md).
 
 - `hg_hypergat`:
 
   Predictions (default), evaluation, document text, history and optional
   attention; see
-  [`hg_get.hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_hypergat.md).
+  [`hg_get.hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md).
 
 - `net_temporal_hypergraph`:
 
   `"memberships"` (default), `"edges"`, `"nodes"`.
 
 - `net_hon`
-  ([`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)):
+  ([`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)):
 
   `"rules"` (default), `"nodes"`, `"pathways"`.
 
 - `net_honem`
-  ([`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md)):
+  ([`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md)):
 
   `"embeddings"` (default), `"variance"`.
 
 - `net_hypa`
-  ([`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md)
-  on sequences):
+  ([`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md) on
+  sequences):
 
   `"scores"` (default), `"over"`, `"under"`, `"pathways"`.
 
 - `net_mogen`
-  ([`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md)):
+  ([`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md)):
 
   `"orders"` (default), `"transitions"`, `"paths"`, `"pathways"`.
 
 - `net_markov_order`
-  ([`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md)):
+  ([`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md)):
 
   `"orders"` (default), `"null"`.
 
 - `net_path_dependence`
-  ([`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md)):
+  ([`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md)):
 
   `"contexts"`.
 
 - `net_markov_stability`
-  ([`hg_markov_stability()`](https://mohsaqr.github.io/hypergraphs/reference/hg_markov_stability.md)):
+  ([`hg_markov_stability()`](https://pak.dynasite.org/hypergraphs/reference/hg_markov_stability.md)):
 
   `"states"` (default), `"passage_time"`, `"stationary"`.
 
 - `hypergraphs_bootstrap`
-  ([`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md)):
+  ([`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md)):
 
   `"edges"`.
 
 - `hypergraphs_comparison`
-  ([`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md)):
+  ([`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md)):
 
   `"edges"`.
 
 - `hypergraphs_memory_communities`
-  ([`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  ([`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   on a memory network):
 
   `"states"` (default), `"physical"`, `"modules"`, `"codelength"`,
   `"trials"`.
 
 - `simplicial_complex`
-  ([`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)):
+  ([`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)):
 
   `"simplices"` (default), `"f_vector"`, `"degree"`.
 
 - `q_analysis`
-  ([`hg_qanalysis()`](https://mohsaqr.github.io/hypergraphs/reference/hg_qanalysis.md)):
+  ([`hg_qanalysis()`](https://pak.dynasite.org/hypergraphs/reference/hg_qanalysis.md)):
 
   `"q_levels"` (default), `"nodes"`.
 
 - `persistent_homology`
-  ([`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)):
+  ([`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)):
 
   `"persistence"` (default), `"betti"`.
 
 - `persistence_landscape`
-  ([`hg_landscape()`](https://mohsaqr.github.io/hypergraphs/reference/hg_landscape.md)):
+  ([`hg_landscape()`](https://pak.dynasite.org/hypergraphs/reference/hg_landscape.md)):
 
   `"landscape"`.
 
 - `hg_communities`
-  ([`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+  ([`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
   on a hypergraph):
 
   see
-  [`hg_get.hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_communities.md).
+  [`hg_get.hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_communities.md).
 
 - `hypergraphs_community_comparison`, `hypergraphs_motifs`,
   `net_hg_mmsbm`:

@@ -1,13 +1,13 @@
 # Hypergeometric anomaly detection for co-occurring node pairs
 
 The hypergraph method of
-[`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md).
+[`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md).
 Scores every co-occurring pair of nodes against a hypergeometric null in
 which a pair's propensity to share hyperedges is the product of the two
 nodes' hyperdegrees. A pair that co-occurs far more often than that
 product predicts is over-represented; far less often, under-represented.
 This is the hypergraph counterpart of
-[`hypa.default()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.default.md),
+[`hypa.default()`](https://pak.dynasite.org/hypergraphs/reference/hypa.default.md),
 which applies the same null to the transitions of a higher-order
 network, and it returns the same columns so the two read alike.
 
@@ -63,9 +63,9 @@ with columns `from`, `to`, `observed` (co-occurrence count), `expected`,
 
 The test is analytic, so it needs no resampling. That is what makes it
 usable where
-[`hg_null_test()`](https://mohsaqr.github.io/hypergraphs/reference/hg_null_test.md)
+[`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
 is not:
-[`hg_null_test()`](https://mohsaqr.github.io/hypergraphs/reference/hg_null_test.md)
+[`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
 answers whether the hypergraph as a whole carries more repetition than
 chance, by Monte Carlo, and returns one row; this returns one row per
 pair.
@@ -99,9 +99,9 @@ International Conference on Data Mining*, 460-468.
 
 ## See also
 
-[`hypa.default()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.default.md)
+[`hypa.default()`](https://pak.dynasite.org/hypergraphs/reference/hypa.default.md)
 for the same null on the paths of sequences,
-[`hg_null_test()`](https://mohsaqr.github.io/hypergraphs/reference/hg_null_test.md)
+[`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
 for the Monte Carlo whole-hypergraph tests.
 
 ## Examples

@@ -28,18 +28,18 @@ hg_subset(
 - hg:
 
   A `net_hg` (from
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
-  [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md),
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md),
+  [`hg_snapshot()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshot.md),
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
   ...).
 
 - edges:
 
   Hyperedge names to keep: a character vector, or a data.frame with an
   `edge` column such as the table
-  [`hg_edge_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edge_centrality.md)
+  [`hg_edge_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_edge_centrality.md)
   or
-  [`hg_edges()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edges.md)
+  [`hg_edges()`](https://pak.dynasite.org/hypergraphs/reference/hg_edges.md)
   returns, so a ranking can be passed straight through.
 
 - nodes:
@@ -51,7 +51,7 @@ hg_subset(
 
   Hyperedge attribute values to keep: a named vector or list, one
   element per attribute column of the edge metadata (the columns
-  [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md)
+  [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md)
   keeps because they are constant within a hyperedge), each holding the
   value or values to keep.
 
@@ -60,7 +60,7 @@ hg_subset(
   Hyperedge sizes to keep, as a vector of member counts (distinct
   members): `size = 3` keeps the hyperedges with exactly three members,
   the 3-uniform hypergraph that
-  [`hg_motifs()`](https://mohsaqr.github.io/hypergraphs/reference/hg_motifs.md)
+  [`hg_motifs()`](https://pak.dynasite.org/hypergraphs/reference/hg_motifs.md)
   needs.
 
 - component:
@@ -83,12 +83,12 @@ A `net_hg` whose incidence matrix is the selected sub-matrix of the
 input, sparse if the input is sparse. Edge metadata (`edge_data`),
 duplicate multiplicities (`edge_multiplicity`) and the window counts of
 a
-[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+[`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
 are subset alongside. The nodes the subset removes are recorded in
 `params$subset$removed`, and the labels of removed nodes are set aside
 with a `hypergraphs_dropped_documents` warning by
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md),
-[`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
+[`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
 and the other verbs that take labels, so the table that built the
 hypergraph can be passed back whole.
 

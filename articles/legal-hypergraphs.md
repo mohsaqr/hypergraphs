@@ -673,7 +673,7 @@ hypergraph that modularity separates.
 
 Infomap partitions a graph by minimising the description length of a
 random walk on it (Rosvall and Bergstrom 2008). The default method of
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
 runs Infomap on the association graph of the hypergraph, in which a
 hyperedge of size *d* adds $`1/(d-1)`$ to the weight of each pair of its
 members, following Coupette, Hartung and Katz (2024).

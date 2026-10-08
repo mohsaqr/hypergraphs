@@ -21,7 +21,7 @@ hg_get(
 - x:
 
   A `simplicial_complex` object from
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md).
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md).
 
 - what:
 
@@ -29,7 +29,7 @@ hg_get(
   face counts by dimension, `"betti"` for the Betti numbers by
   dimension, `"degree"` for the simplicial degree of every node (the
   table of
-  [`hg_degree()`](https://mohsaqr.github.io/hypergraphs/reference/hg_degree.md)),
+  [`hg_degree()`](https://pak.dynasite.org/hypergraphs/reference/hg_degree.md)),
   or `"validation"` for the tests of a window complex built with
   `validate = TRUE`.
 

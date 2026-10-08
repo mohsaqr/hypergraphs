@@ -10,7 +10,7 @@ neighbouring group with probability 0.05. At a shared action a
 first-order network sees both groups equally, while a second-order state
 such as `"p1_1 -> s2"` knows it came from group 1. The planted group of
 every state is in
-[ring_communities](https://mohsaqr.github.io/hypergraphs/reference/ring_communities.md).
+[ring_communities](https://pak.dynasite.org/hypergraphs/reference/ring_communities.md).
 
 ## Usage
 
@@ -29,7 +29,7 @@ Simulated with seed 1 by `data-raw/ring_sequences.R`.
 
 ## See also
 
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md),
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md),
 which recovers the four groups from these sequences.
 
 ## Examples

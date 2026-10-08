@@ -12,7 +12,7 @@ from the sparse Laplacian and factorised dense (8 n^2 bytes: 350 MB for
 6,630 documents); beyond 15,000 nodes this raises
 `hypergraphs_sparse_too_large`. With `type = "random_walk"` and a
 weighted incidence (e.g. from
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
 with `weight =`), the edge-dependent vertex weights genuinely change the
 partition - with edge-independent weights the walk collapses to a graph
 random walk (Chitra & Raphael 2019).
@@ -42,7 +42,7 @@ hg_cluster(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   (or any hypergraphs `net_hg`).
 
 - k:
@@ -52,7 +52,7 @@ hg_cluster(
 - type:
 
   The Laplacian, as in
-  [`hg_laplacian()`](https://mohsaqr.github.io/hypergraphs/reference/hg_laplacian.md):
+  [`hg_laplacian()`](https://pak.dynasite.org/hypergraphs/reference/hg_laplacian.md):
   `"zhou"` (Zhou et al. 2006) or `"random_walk"` (Hayashi et al. 2020).
 
 - edge_weights:
@@ -179,7 +179,7 @@ hg_cluster(hg, k = 2, seed = 1, what = "embedding")
 #> 4   space_2 Cluster 2 0.25 0.8037070 -0.5950253
 hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues", n = 5)
 #>   index         value        gap
-#> 1     1 -5.551115e-17 0.07162811
+#> 1     1 -2.081668e-17 0.07162811
 #> 2     2  7.162811e-02 0.17318608
 #> 3     3  2.448142e-01 0.23041019
 #> 4     4  4.752244e-01         NA

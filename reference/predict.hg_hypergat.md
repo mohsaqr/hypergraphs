@@ -40,9 +40,9 @@ predict(
 - labels:
 
   Optional observed labels for `newdata`, in the same formats as
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md).
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md).
   Supplying them evaluates the predictions through
-  [`hg_get.hg_classification()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [`hg_get.hg_classification()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_classification.md)
   and [`plot()`](https://rdrr.io/r/graphics/plot.default.html). These
   labels never update the model. Unscorable labelled documents count as
   errors.

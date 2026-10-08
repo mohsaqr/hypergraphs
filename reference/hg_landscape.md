@@ -16,7 +16,7 @@ hg_landscape(ph, k_max = 5L, dimension = 1L, t_grid = NULL)
 - ph:
 
   A
-  [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+  [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
   result, or a data.frame with columns `dimension`, `birth`, `death`.
 
 - k_max:
@@ -34,7 +34,7 @@ hg_landscape(ph, k_max = 5L, dimension = 1L, t_grid = NULL)
 ## Value
 
 A `persistence_landscape` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 one row per level and grid point (`what = "landscape"`).
 
 ## References
@@ -45,7 +45,7 @@ persistence landscapes. *Journal of Machine Learning Research*, 16,
 
 ## See also
 
-[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+[`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
 
 ## Examples
 

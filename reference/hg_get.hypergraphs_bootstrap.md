@@ -22,7 +22,7 @@ hg_get(
 - x:
 
   A `hypergraphs_bootstrap` object from
-  [`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md).
+  [`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md).
 
 - what:
 

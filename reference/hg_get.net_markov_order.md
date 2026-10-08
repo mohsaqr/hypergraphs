@@ -14,7 +14,7 @@ hg_get(x, what = c("orders", "null"), ..., top = NULL)
 - x:
 
   A `net_markov_order` object from
-  [`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md).
+  [`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md).
 
 - what:
 

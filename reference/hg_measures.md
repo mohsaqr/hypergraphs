@@ -1,7 +1,7 @@
 # Structural measures for a hypergraph
 
 Computes a comprehensive structural-statistics suite for a
-[net_hg](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md):
+[net_hg](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md):
 node-level, hyperedge-level, and global measures. All measures are
 derived in a few BLAS calls on the incidence matrix.
 
@@ -31,7 +31,7 @@ hg_measures(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   (or any hypergraphs `net_hg`).
 
 - what:
@@ -93,9 +93,9 @@ and generative models of real-world hypergraphs. arXiv:2006.07060.
 
 ## See also
 
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md),
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md),
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md),
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
 
 ## Examples
 

@@ -28,14 +28,14 @@ topic_network(
 - clusters:
 
   A partition: the tidy table returned by
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   (columns `node`, `cluster`), a named vector of cluster labels, or the
   name of a column of the hypergraph's document table.
 
 - topics:
 
   A mixed-membership topic model of `hg` fitted by
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md).
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md).
   Give `clusters` or `topics`.
 
 - threshold:
@@ -86,7 +86,7 @@ that contain the word (full counting, the aggregation bibnets uses for
 keyword co-occurrence).
 
 For a topic model fitted by
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
 (`topics`), two topics are related when the same documents draw on both.
 Without `threshold`, the weight is the correlation of the two topics'
 shares over the documents, and the pairs with a correlation above
@@ -107,7 +107,7 @@ topic i and `A_ij` the raw count: `"association"` is `A_ij / (D_i D_j)`,
 
 The pairwise network of topics is the projection of the topic
 combinations that
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
 builds from the same topic model, in which every document binds all the
 topics it contains at once.
 

@@ -24,7 +24,7 @@ hg_get(x, ...)
 - x:
 
   A `hypergraphs_memory_group` from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) with
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md) with
   `group`.
 
 - n:
@@ -34,7 +34,7 @@ hg_get(x, ...)
 - ...:
 
   Passed to
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on each group's network (`what`, `order_min`, `sort_by`, `top`, ...).
 
 ## Value

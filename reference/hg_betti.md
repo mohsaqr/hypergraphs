@@ -15,7 +15,7 @@ hg_betti(sc)
 - sc:
 
   A `simplicial_complex` from
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md).
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md).
 
 ## Value
 
@@ -26,10 +26,10 @@ A named integer vector `c(b0 = , b1 = , ...)`.
 The coefficients are rational, not Z/2. The two agree on most complexes
 but not on one with torsion: on the six-vertex real projective plane
 (RP2) `hg_betti()` gives `(1, 0, 0)`, while
-[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md),
+[`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md),
 which reduces over Z/2 as the persistence literature does, ends its
 Betti curve at `(1, 1, 1)`. Use
-[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+[`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
 when Z/2 Betti numbers are meant.
 
 ## References
@@ -38,8 +38,8 @@ Hatcher, A. (2002). *Algebraic Topology*. Cambridge University Press.
 
 ## See also
 
-[`hg_euler()`](https://mohsaqr.github.io/hypergraphs/reference/hg_euler.md),
-[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+[`hg_euler()`](https://pak.dynasite.org/hypergraphs/reference/hg_euler.md),
+[`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
 
 ## Examples
 

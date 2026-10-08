@@ -23,7 +23,7 @@ plot(x, ...)
 - clusters:
 
   The tidy table returned by
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   (columns `node`, `cluster`), a named vector of cluster labels, or the
   name of a column of the hypergraph's document table.
 

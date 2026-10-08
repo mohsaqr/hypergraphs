@@ -51,7 +51,7 @@ The data contain 20,626 trials and 15 distinct events.
 When group membership is observed, each group is a hyperedge. In an
 event log, the events of a session form such a group, and a trial is a
 session in this sense. In
-[`hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/hypergraph.md),
+[`hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hypergraph.md),
 `action` names the column of the events and `session` the column of the
 trials, and the events of each trial become one hyperedge.
 
@@ -318,7 +318,7 @@ The 57,738 windows give 103 distinct hyperedges. A window with a
 repeated event contains fewer distinct events than its length, so some
 hyperedges have two nodes or one. With `min_weight`, only hyperedges
 produced by at least that many windows are kept, and
-[`hg_subset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_subset.md)
+[`hg_subset()`](https://pak.dynasite.org/hypergraphs/reference/hg_subset.md)
 with `size = 3` keeps the windows of three distinct events and drops the
 events left in none.
 
@@ -682,12 +682,12 @@ deviations above it.
 
 A corpus of documents forms a hypergraph in which each document is a
 hyperedge over its words, built with
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md).
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md).
 Memory networks are estimated from paths with
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md), and
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md), and
 simplicial complexes, in which every subset of a relation is also a
 relation, are built with
-[`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md).
+[`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md).
 The help page
-[`?hypergraphs`](https://mohsaqr.github.io/hypergraphs/reference/hypergraphs-package.md)
+[`?hypergraphs`](https://pak.dynasite.org/hypergraphs/reference/hypergraphs-package.md)
 lists the functions of each family.

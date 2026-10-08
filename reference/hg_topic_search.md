@@ -1,11 +1,11 @@
 # Choose the number of topics by coherence and exclusivity
 
 Fits
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
 for every number of topics in `k` and scores each model by the mean
 semantic coherence (UMass; Mimno et al. 2011) and the mean exclusivity
 (FREX; Bischof & Airoldi 2012) of its topics, computed by
-[`hg_topic_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_quality.md)
+[`hg_topic_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_quality.md)
 on the `n` most probable words. This is the diagnostic of
 `stm::searchK()` (Roberts, Stewart & Tingley 2019). Adding topics
 usually makes them more exclusive and less coherent, so no single number
@@ -100,7 +100,7 @@ and `frontier`. [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
 draws exclusivity against coherence, one labelled point per number of
 topics, the frontier joined by a line and drawn as filled points.
 Conditions are those of
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md);
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md);
 a start that does not converge raises `hypergraphs_no_converge`.
 
 ## References
@@ -125,8 +125,8 @@ with word frequency and exclusivity. *Proceedings of ICML 2012*,
 
 ## See also
 
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md),
-[`hg_topic_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_quality.md).
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md),
+[`hg_topic_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_quality.md).
 
 ## Examples
 

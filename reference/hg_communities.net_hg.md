@@ -1,7 +1,7 @@
 # Stable Infomap communities of a hypergraph projection
 
 The hypergraph method of
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md).
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md).
 Builds the normalized association graph of Coupette et al. (2024), runs
 Infomap repeatedly, compares every pair of partitions with AMI, ARI and
 NMI, and returns the run with the largest summed AMI as the medoid. The
@@ -57,12 +57,12 @@ hg_communities(
   `mhs`) or the `"citation"` projection (its classic graph
   representations `bg`, `mg`, and with `directed = FALSE` their
   undirected variants `bgu`, `mgu`). See
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
 
 - duplicate_edges, self_association, edge_source:
 
   Projection controls passed to
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
   Together these reproduce the paper's binary/multi and self-association
   representations.
 
@@ -102,7 +102,7 @@ hg_communities(
 
   For `type = "irmm"`: initial positive hyperedge weights (one per
   hyperedge, or one value recycled). `NULL` uses the window counts of a
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
   else unit weights.
 
 - parallel:
@@ -130,7 +130,7 @@ community sizes, and the graph `projection` Infomap ran on. For
 `type = "irmm"` the `"runs"` table has `run`, `seed`, `n_communities`,
 `iterations`, `converged`, `max_weight_change` and `modularity` (the
 linear hypergraph modularity of
-[`hg_modularity()`](https://mohsaqr.github.io/hypergraphs/reference/hg_modularity.md)),
+[`hg_modularity()`](https://pak.dynasite.org/hypergraphs/reference/hg_modularity.md)),
 `projection` is the reweighted clique reduction of the medoid run, and
 `hg_get(fit, what = "weights")` gives one row per hyperedge with `edge`,
 `size`, `initial_weight` and the medoid run's final `weight`.
@@ -154,7 +154,7 @@ Mechanics*, 2008(10), P10008.
 
 ## See also
 
-[`hg_modularity()`](https://mohsaqr.github.io/hypergraphs/reference/hg_modularity.md)
+[`hg_modularity()`](https://pak.dynasite.org/hypergraphs/reference/hg_modularity.md)
 to score any partition.
 
 ## Examples

@@ -21,7 +21,7 @@ hg_get(
 - x:
 
   A `persistent_homology` object from
-  [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md).
+  [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md).
 
 - what:
 

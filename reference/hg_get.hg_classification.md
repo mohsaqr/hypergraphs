@@ -1,14 +1,14 @@
 # Read a classification result
 
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
 and
-[`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
 with `holdout` return an `hg_classification`: one row per document with
 its true label, its predicted label, its split and whether a held-out
 prediction is correct.
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 reads the evaluation tables, and for
-[`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
 the diagnostic attention of the trained network, computed on request.
 
 ## Usage
@@ -56,7 +56,7 @@ plot(x, y, type = c("confusion", "hyperedges"), node = NULL, top = 8L, ...)
   as the class) and `precision` (the share of the test documents
   predicted as the class that belong to it); `"confusion"`, one row per
   true and predicted class: `label`, `predicted`, `n`. For a result of
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
   only: `"hyperedges"`, one row per document and hyperedge (sentence or
   topic): `node`, `label`, `predicted`, `hyperedge`, `kind`, `text`,
   `weight` (the mean edge-level attention of the hyperedge's words),
@@ -86,7 +86,7 @@ plot(x, y, type = c("confusion", "hyperedges"), node = NULL, top = 8L, ...)
   For `"predictions"`, `"hyperedges"` and `"hyperedge_words"`: keep only
   these documents, given as ids or as a table with a `node` column, such
   as a table
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   returned. For `"hyperedge_words"`, a table that also has a `hyperedge`
   column keeps only those hyperedges.
 
@@ -120,7 +120,7 @@ plot(x, y, type = c("confusion", "hyperedges"), node = NULL, top = 8L, ...)
   For [`plot()`](https://rdrr.io/r/graphics/plot.default.html):
   `"confusion"` (default), the counts of true against predicted labels
   on the test documents, or `"hyperedges"` (a result of
-  [`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md)
+  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
   only), the `top` heaviest hyperedges of each document in `node`, with
   its uniform normalization baseline. Without `node`, the first held-out
   document of each class is selected (the first training document if

@@ -17,8 +17,8 @@ hg_line_graph(hg, s = 1, what = c("edges", "matrix"))
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
-  [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md),
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
+  [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md),
   or any hypergraphs `net_hg`.
 
 - s:
@@ -58,9 +58,9 @@ Data Science*, 9(1), 16.
 
 ## See also
 
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
 for the projection onto vertices,
-[`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md)
+[`dual_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/dual_hypergraph.md)
 for the role swap itself.
 
 ## Examples

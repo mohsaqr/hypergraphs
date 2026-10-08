@@ -21,7 +21,7 @@ hg_get(
 - x:
 
   A `net_hon` object from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md).
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md).
 
 - what:
 
@@ -30,7 +30,7 @@ hg_get(
   the genuinely higher-order rules written as pathways (`"a b -> c"`:
   the context states, then the next state), most frequent first – the
   form
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
   turns into simplices.
 
 - ...:

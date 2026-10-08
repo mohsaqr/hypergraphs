@@ -26,7 +26,7 @@ hg_markov_stability(
   A row-stochastic transition matrix, a network object (`netobject`,
   `tna`, `cograph_network`, `netobject_group`) whose weights are the
   transition matrix, or sequences in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md),
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md),
   from which the first-order transition probabilities are estimated.
 
 - normalize:
@@ -36,13 +36,13 @@ hg_markov_stability(
 - action, actor, time, session, time_threshold, timezone:
 
   Long-format arguments (see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md));
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md));
   leave the column names `NULL` for wide, list or model input.
 
 ## Value
 
 A `net_markov_stability` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 one row per state (`what = "states"`, the default), the mean
 first-passage times (`"passage_time"`) or the stationary distribution
 (`"stationary"`).
@@ -61,7 +61,7 @@ Kemeny, J. G., & Snell, J. L. (1976). *Finite Markov Chains*. Springer.
 
 ## See also
 
-[`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md)
+[`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md)
 
 ## Examples
 

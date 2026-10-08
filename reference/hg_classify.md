@@ -30,7 +30,7 @@ hg_classify(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   (or any hypergraphs `net_hg`).
 
 - labels:
@@ -40,7 +40,7 @@ hg_classify(
   data.frame with a `node` column and a `label`, `cluster` or
   `predicted` column, or the name of a column of the hypergraph's
   document table, which a
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   fills with the input's other columns (`labels = "period"`).
 
 - xi:
@@ -52,7 +52,7 @@ hg_classify(
 - type, edge_weights:
 
   Passed to
-  [`hg_laplacian()`](https://mohsaqr.github.io/hypergraphs/reference/hg_laplacian.md).
+  [`hg_laplacian()`](https://pak.dynasite.org/hypergraphs/reference/hg_laplacian.md).
 
 - normalization:
 
@@ -67,7 +67,7 @@ hg_classify(
   `NULL` (default) uses every given label and returns the predictions. A
   share in `(0, 1)` hides that share of the labels, drawn within each
   class, predicts them from the rest, and returns an
-  [hg_classification](https://mohsaqr.github.io/hypergraphs/reference/hg_get.hg_classification.md)
+  [hg_classification](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_classification.md)
   that prints the held-out accuracy and balanced accuracy.
 
 - seed:
@@ -82,7 +82,7 @@ given label or `NA`), `predicted`, `score`, and `margin`. With
 `holdout`, an `hg_classification`: the same table with `label` holding
 the true label, `split` (`"train"` or `"test"`) and `correct` for the
 held-out documents; read its evaluation with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 (`what = "accuracy"`, `"classes"`, `"confusion"`).
 
 ## Details

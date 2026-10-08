@@ -29,7 +29,7 @@ hon(
 - data:
 
   Sequences in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md):
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md):
   a long event table (with `action`), a wide data.frame, a list of
   vectors, or a model object carrying its sequences.
 
@@ -55,7 +55,7 @@ hon(
 - action, actor, time, session, time_threshold, timezone:
 
   Long-format arguments (see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md));
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md));
   leave the column names `NULL` for wide, list or model input.
 
 - group:
@@ -65,17 +65,17 @@ hon(
   or a vector with one label per sequence (per row of a wide data frame,
   per element of a list). A group model holds one network per group and
   the data of each group; it is the input of
-  [`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md)
+  [`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md)
   and can be passed to
-  [`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md)
+  [`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md)
   and
-  [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md).
+  [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md).
 
 ## Value
 
 A `net_hon` object (also a `cograph_network`, so it plots directly).
 Read its tables with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 the rules (`what = "rules"`, the default), the memory nodes (`"nodes"`)
 and the higher-order pathways (`"pathways"`).
 
@@ -94,11 +94,11 @@ algorithm to application for anomaly detection. *EPJ Data Science*, 9,
 
 ## See also
 
-[`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md),
-[`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md),
-[`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md),
-[`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md),
-[`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md)
+[`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md),
+[`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md),
+[`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md),
+[`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md),
+[`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md)
 
 ## Examples
 

@@ -1,9 +1,9 @@
 # Empirical distribution of a hypergraph measure
 
 The table returned by
-[`hg_edges()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edges.md)
+[`hg_edges()`](https://pak.dynasite.org/hypergraphs/reference/hg_edges.md)
 and
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md)
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
 with `what = "distribution"`: one row per distinct observed value with
 its count, proportion and complementary cumulative share, the CCDF that
 the descriptive figures of Coupette et al. (2024) draw on a logarithmic

@@ -3,19 +3,19 @@
 One verb, two estimators, chosen by the class of `x`:
 
 - a hypergraph (`net_hg`, e.g. from
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)):
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)):
 
   eigenvector-style hypergraph centralities – clique-motif, Z- and
   H-eigenvector, EDVW PageRank, subhypergraph and Katz; see
-  [`hg_centrality.net_hg()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.net_hg.md).
+  [`hg_centrality.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.net_hg.md).
 
 - a memory network (`net_hon`, from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md)):
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md)):
 
   PageRank, betweenness and closeness of the higher-order topology,
   projected onto the first-order states; see
-  [`hg_centrality.net_hon()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.net_hon.md).
+  [`hg_centrality.net_hon()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.net_hon.md).
 
 Each method keeps its own arguments; passing an argument that only the
 other method takes raises `hypergraphs_bad_input`.

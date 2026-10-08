@@ -32,7 +32,7 @@ hg_allset(
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   (or any hypergraphs `net_hg`), dense or sparse.
 
 - labels:
@@ -89,7 +89,7 @@ hg_allset(
 ## Value
 
 A prediction data.frame in the same format as
-[`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md),
+[`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md),
 with training history and the AllSet model name attached.
 
 ## References

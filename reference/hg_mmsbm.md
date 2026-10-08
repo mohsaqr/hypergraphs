@@ -56,9 +56,9 @@ plot(x, type = c("membership", "affinity", "restarts"), labels = NULL, ...)
 - hg:
 
   A hypergraphs `net_hg`
-  ([`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  ([`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
+  [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
   ...).
 
 - k:
@@ -120,7 +120,7 @@ plot(x, type = c("membership", "affinity", "restarts"), labels = NULL, ...)
 
   `NULL` or positive hyperedge weights \\A_e\\, one per hyperedge or one
   recycled. `NULL` uses the window counts of a
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
   and 1 otherwise. The incidence is read as binary: the stored cell
   weights (word counts, tf-idf) do not enter the model.
 
@@ -240,7 +240,7 @@ of size three or more, are the common case: on a 6,630-document legal
 corpus about a third of the documents collapse for `k = 3`, with or
 without stop words and with `max_size = 25`. For the topic mixture of
 every document of a corpus use
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md).
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md).
 
 The membership of node \\i\\ in community \\k\\ is \\u\_{ik} / \sum_q
 u\_{iq}\\; the hard `community` is its largest entry. The size of
@@ -248,7 +248,7 @@ u\_{iq}\\; the hard `community` is its largest entry. The size of
 it mixes; at the maximum of the likelihood many memberships sit at or
 near 0 and 1, and mixing is read from the nodes that do not. Communities
 are numbered by decreasing total membership. On a
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 with documents as nodes, the communities are topics and the memberships
 the documents' topic shares.
 
@@ -265,7 +265,7 @@ Classification*, 2, 193–218.
 
 ## See also
 
-[`hg_membership()`](https://mohsaqr.github.io/hypergraphs/reference/hg_membership.md)
+[`hg_membership()`](https://pak.dynasite.org/hypergraphs/reference/hg_membership.md)
 for soft membership read from a hard spectral partition.
 
 ## Examples

@@ -7,12 +7,12 @@ state sets coincide collapse into a single hyperedge whose weight is the
 number of such windows (`window_counts`); the incidence cells hold the
 total within-window occurrences of each state, so the incidence matrix
 carries edge-dependent vertex weights (Chitra & Raphael 2019) that
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 with `type = "random_walk"` uses directly. The window counts are the
 default hyperedge weights of the whole Laplacian family
-([`hg_laplacian()`](https://mohsaqr.github.io/hypergraphs/reference/hg_laplacian.md),
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md),
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)).
+([`hg_laplacian()`](https://pak.dynasite.org/hypergraphs/reference/hg_laplacian.md),
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md),
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)).
 
 ## Usage
 
@@ -38,7 +38,7 @@ window_hypergraph(
 - data:
 
   Sequences in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md):
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md):
   a long event table, a wide data.frame or character matrix (one
   sequence per row, trailing `NA`s stripped), or a list of character
   vectors. A list's names, when it has them, identify its sequences and
@@ -56,7 +56,7 @@ window_hypergraph(
 - action, actor, time, session, time_threshold, timezone:
 
   Long-format arguments, as in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md).
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md).
 
 - min_size:
 
@@ -86,9 +86,9 @@ window_hypergraph(
 ## Value
 
 A `net_hg` object (as from
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md)
 and
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)):
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)):
 a list with `hyperedges` (list of sorted node index vectors),
 `incidence` (numeric node x hyperedge matrix of within-window occurrence
 totals), `nodes`, `n_nodes`, `n_hyperedges`, `window_counts` (integer,
@@ -96,7 +96,7 @@ one weight per hyperedge: the number of windows collapsed into it),
 `size_distribution`, and `params` (`source = "window_hypergraph"`,
 `window`, `step`, `min_size`, `n_sequences`, `n_short_sequences`,
 `n_windows`, `n_empty_windows`, `n_dropped`). Use
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 for the tidy one-row-per-hyperedge table.
 
 ## Details
@@ -110,7 +110,7 @@ set; a window containing only `NA`s is skipped and counted in
 
 Whole-sequence hyperedges (each complete sequence as one hyperedge) are
 the special case already covered by
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
 on long-format data with `member = action` and `group = actor`; use this
 verb when the hyperedges should be local in time.
 
@@ -127,11 +127,11 @@ Conference on Machine Learning*, PMLR 97, 1172-1181.
 
 ## See also
 
-[`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md),
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md),
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+[`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md),
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md),
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md),
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md),
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
 
 ## Examples
 

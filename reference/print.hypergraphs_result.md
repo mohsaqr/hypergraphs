@@ -2,7 +2,7 @@
 
 Prints one line naming the result and its main settings, then the first
 rows of its default table, the table
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 returns.
 
 ## Usage
@@ -23,16 +23,16 @@ plot(x, y, what = c("states", "passage_time"), ...)
 - x:
 
   A result of
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-  [`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md),
-  [`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-  [`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md),
-  [`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md),
-  [`hg_markov_stability()`](https://mohsaqr.github.io/hypergraphs/reference/hg_markov_stability.md),
-  [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md),
-  [`hg_landscape()`](https://mohsaqr.github.io/hypergraphs/reference/hg_landscape.md)
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+  [`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md),
+  [`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+  [`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md),
+  [`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md),
+  [`hg_markov_stability()`](https://pak.dynasite.org/hypergraphs/reference/hg_markov_stability.md),
+  [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md),
+  [`hg_landscape()`](https://pak.dynasite.org/hypergraphs/reference/hg_landscape.md)
   or
-  [`hg_qanalysis()`](https://mohsaqr.github.io/hypergraphs/reference/hg_qanalysis.md).
+  [`hg_qanalysis()`](https://pak.dynasite.org/hypergraphs/reference/hg_qanalysis.md).
 
 - ...:
 

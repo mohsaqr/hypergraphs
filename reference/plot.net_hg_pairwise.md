@@ -1,7 +1,7 @@
 # Plot the pairwise network of a hypergraph
 
 Plots the network returned by
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
 with
 [`cograph::splot()`](https://sonsoles.me/cograph/reference/splot.html):
 a circle layout, which keeps every label apart however strongly the
@@ -21,7 +21,7 @@ plot(x, ...)
 - x:
 
   A `net_hg_pairwise` from
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+  [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md).
 
 - ...:
 

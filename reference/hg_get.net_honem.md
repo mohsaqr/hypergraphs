@@ -14,7 +14,7 @@ hg_get(x, what = c("embeddings", "variance"), ..., top = NULL)
 - x:
 
   A `net_honem` object from
-  [`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md).
+  [`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md).
 
 - what:
 
@@ -51,7 +51,7 @@ hg_get(emb)
 #>     node      dim1          dim2
 #> 1      a -0.366535 -4.082483e-01
 #> 2 a -> b -0.428539 -4.082483e-01
-#> 3      b -0.428539  6.106227e-16
+#> 3      b -0.428539  2.578122e-15
 #> 4      c -0.366535 -4.082483e-01
 #> 5      d -0.366535  4.082483e-01
 #> 6      x -0.366535  4.082483e-01

@@ -58,13 +58,13 @@ print(x, n = 10L, ...)
 - x:
 
   Sequences for `type = "window"`, in any form described in
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md);
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md);
   a square weighted matrix, a network object carrying one (`netobject`,
   `tna`) or sequences for `type = "clique"`; a memory network
-  ([`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-  [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md) on
+  ([`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+  [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md) on
   sequences,
-  [`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md))
+  [`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md))
   for `type = "pathway"`; or for `type = "vr"` a distance matrix, a
   `dist` object, or points: a table or matrix with one row per point and
   one numeric column per coordinate (not square), or a data frame of
@@ -158,7 +158,7 @@ print(x, n = 10L, ...)
 - action, actor, time, session, time_threshold, timezone:
 
   For `type = "window"`: long-format arguments (see
-  [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md));
+  [sequence-input](https://pak.dynasite.org/hypergraphs/reference/sequence-input.md));
   leave the column names `NULL` for wide or list input.
 
 - ...:
@@ -189,13 +189,13 @@ print(x, n = 10L, ...)
 ## Value
 
 A `simplicial_complex` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 one row per simplex (`what = "simplices"`, the default), the face counts
 (`"f_vector"`), the per-node simplicial degree (`"degree"`) or, for a
 validated window complex, one row per tested set of actions
 (`"validation"`), and the Betti numbers (`"betti"`, with rational
 coefficients as in
-[`hg_betti()`](https://mohsaqr.github.io/hypergraphs/reference/hg_betti.md)).
+[`hg_betti()`](https://pak.dynasite.org/hypergraphs/reference/hg_betti.md)).
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 maximal simplices, those no larger simplex contains, as regions around
 their nodes
@@ -318,10 +318,10 @@ interactions: Structure and dynamics. *Physics Reports*, 874, 1–92.
 
 ## See also
 
-[`hg_betti()`](https://mohsaqr.github.io/hypergraphs/reference/hg_betti.md),
-[`hg_euler()`](https://mohsaqr.github.io/hypergraphs/reference/hg_euler.md),
-[`hg_qanalysis()`](https://mohsaqr.github.io/hypergraphs/reference/hg_qanalysis.md),
-[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+[`hg_betti()`](https://pak.dynasite.org/hypergraphs/reference/hg_betti.md),
+[`hg_euler()`](https://pak.dynasite.org/hypergraphs/reference/hg_euler.md),
+[`hg_qanalysis()`](https://pak.dynasite.org/hypergraphs/reference/hg_qanalysis.md),
+[`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
 
 ## Examples
 

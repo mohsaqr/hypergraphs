@@ -128,7 +128,7 @@ table.
 The construction follows Burgio, Matamalas, Gomez & Arenas (2020) on
 simplicial / hypergraph contagion. For each k-clique with k \>= 3 found
 in the underlying graph (via
-[`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)),
+[`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)),
 an independent Bernoulli(`p`) trial decides whether that clique becomes
 a k-hyperedge. Underlying pairwise edges are always retained when
 `include_pairwise = TRUE`, so the resulting hypergraph contains both the
@@ -152,7 +152,7 @@ networks to hypergraphs. *Entropy* 22(7), 744.
 
 ## See also
 
-[`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+[`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
 (underlying clique enumeration).
 
 ## Examples

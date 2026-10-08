@@ -143,7 +143,7 @@ plot(x, y, n = 8L, type = c("words", "prevalence"), group = NULL, ...)
 ## Value
 
 A `net_hg_topics` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 one row per topic (`what = "topics"`, the default: `topic`, `prevalence`
 (its mean share over the documents), `documents` (the summed shares, the
 expected number of documents), `agreement` (its mean matched average
@@ -182,7 +182,7 @@ coefficients are averaged. A topic that the other starts find again has
 a high `agreement`.
 
 A text hypergraph from
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 is factorized on its word counts, whatever its node orientation and
 incidence weighting; any other hypergraph on its incidence, with its
 nodes as documents and its hyperedges as words.
@@ -227,9 +227,9 @@ Science*, 58(4), 1064-1082.
 
 ## See also
 
-[`hg_topic_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_quality.md)
+[`hg_topic_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_quality.md)
 scores the topics' words,
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 for a partition of the documents.
 
 ## Examples

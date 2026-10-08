@@ -15,7 +15,7 @@ hg_bottleneck(d1, d2, dimension = NULL, tol = .Machine$double.eps^0.5)
 
 - d1, d2:
 
-  [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+  [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
   results, or data.frames with columns `dimension`, `birth`, `death`.
 
 - dimension:
@@ -42,7 +42,7 @@ Introduction*. American Mathematical Society.
 
 ## See also
 
-[`hg_wasserstein()`](https://mohsaqr.github.io/hypergraphs/reference/hg_wasserstein.md)
+[`hg_wasserstein()`](https://pak.dynasite.org/hypergraphs/reference/hg_wasserstein.md)
 
 ## Examples
 

@@ -17,7 +17,7 @@ hg_get(x, what = c("orders", "null"), ..., top = NULL)
 - x:
 
   A `net_markov_order_group`, as returned by
-  [`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md)
+  [`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md)
   on a `netobject_group`.
 
 - what:
@@ -37,7 +37,7 @@ hg_get(x, what = c("orders", "null"), ..., top = NULL)
 
 A base `data.frame`. For `what = "orders"`, one row per group and order,
 with `group` first and then the columns of
-[`hg_get.net_markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.net_markov_order.md).
+[`hg_get.net_markov_order()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_markov_order.md).
 For `what = "null"`, one row per group, order and replicate with columns
 `group`, `order`, `replicate`, `g2`. Returns a zero-row frame with those
 columns when the group is empty.

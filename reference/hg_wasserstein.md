@@ -18,7 +18,7 @@ hg_wasserstein(d1, d2, dimension = NULL, order = 1, internal_p = Inf)
 - d1, d2:
 
   `persistent_homology` objects from
-  [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md),
+  [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md),
   or data.frames with columns `dimension`, `birth`, `death` (finite
   births; deaths finite or `Inf`). An invalid diagram raises
   `hypergraphs_bad_input`.
@@ -48,7 +48,7 @@ Named numeric vector, one value per requested dimension. Names are
 Finite points may match the diagonal. Essential classes are matched only
 to essential classes, and a dimension whose essential counts differ has
 distance `Inf`. An
-[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+[`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md)
 result marks its essential classes itself (`death = Inf` in
 Vietoris–Rips mode, `death = 0` in clique mode and for a window
 complex); in a data.frame an essential class is written with

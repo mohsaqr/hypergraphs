@@ -3,7 +3,7 @@
 Turns a hard partition into a membership of every document in every
 topic. The documents are placed in the spectral embedding of the
 hypergraph Laplacian that
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 cuts (the same `type` and `edge_weights`), each topic's centre is the
 mean position of its documents, and the membership of a document in a
 topic is the fuzzy c-means weight with fuzziness 2: the inverse squared
@@ -39,13 +39,13 @@ plot(x, ...)
 - clusters:
 
   The tidy table returned by
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   (columns `node`, `cluster`), or a named vector of cluster labels.
 
 - type, edge_weights:
 
   Passed to
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   to reproduce the embedding the partition was cut in (defaults as
   there).
 

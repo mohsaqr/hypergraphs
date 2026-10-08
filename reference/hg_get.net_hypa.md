@@ -24,7 +24,7 @@ hg_get(
 - x:
 
   A `net_hypa` object from
-  [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md) on
+  [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md) on
   sequences.
 
 - ...:
@@ -38,14 +38,14 @@ hg_get(
   significantly over- or under-represented paths with all their columns,
   or `"pathways"` for the anomalous paths written as pathways
   (`"a b -> c"`: the context states, then the next state), the form
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
   turns into simplices.
 
 - type:
 
   For `"anomalies"` and `"pathways"`: `"all"`, `"over"` or `"under"`.
   Default: the `type` given to
-  [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md),
+  [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md),
   else `"all"`.
 
 - order_by:
@@ -55,7 +55,7 @@ hg_get(
   paths, lowest for under-represented ones, largest absolute log ratio
   when both directions are listed), `"freq"` (most observed first) or
   `"path"` (alphabetical). Default: the `order_by` given to
-  [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md),
+  [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md),
   else `"sig"`. For `"scores"`, `"sig"` sorts by `p_value`.
 
 - top:

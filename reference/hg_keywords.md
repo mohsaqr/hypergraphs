@@ -2,11 +2,11 @@
 
 For a clustered hypergraph, ranks each cluster's hyperedges – on a
 `nodes = "doc"`
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
 its words – by one of four scores computed from the hypergraph, or by a
 score table supplied from another fit. This is the topic-description
 step that turns a partition from
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 into named topics.
 
 ## Usage
@@ -41,7 +41,7 @@ plot(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
 - clusters:
 
   The tidy table returned by
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   (columns `node`, `cluster`), a named vector of cluster labels, or the
   name of a column of the hypergraph's document table, so a group
   variable of the corpus such as `"period"` gives its words directly.
@@ -73,7 +73,7 @@ plot(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
 - centrality:
 
   For `type = "centrality"`, the
-  [`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md)
+  [`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md)
   measure: `"pagerank"` (default; it reads the incidence weights and
   does not tie on words present in every document, as the clique measure
   does), `"clique"`, `"Z"` or `"H"`.
@@ -163,7 +163,7 @@ collapsed table.
 - `"centrality"`: the word's centrality within the cluster's own word
   hypergraph (words as nodes, the cluster's documents as hyperedges,
   incidence = the stored weights), from
-  [`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md)
+  [`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md)
   with the measure named in `centrality`.
 
 `"frequency"`, `"ctfidf"` and `"centrality"` need the token-level layer

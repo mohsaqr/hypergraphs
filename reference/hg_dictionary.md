@@ -10,9 +10,9 @@ labelling is a count. A node takes the category with the most matched
 terms. A node that matches no term, or matches two categories equally,
 takes no label, and a message reports how many. The result is the
 `labels` input of
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
 and
-[`hg_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md),
+[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
 which spread or learn the labels to the nodes the dictionary cannot
 code.
 
@@ -27,7 +27,7 @@ hg_dictionary(hg, dictionary)
 - hg:
 
   A `net_hg`, typically from
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md).
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md).
 
 - dictionary:
 

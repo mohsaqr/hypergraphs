@@ -27,7 +27,7 @@ hg_compare(
 - x:
 
   A group model from
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) with
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md) with
   `group`. The estimation settings (`max_order`, `min_freq`,
   `collapse_repeats`) and the data of each group are taken from it.
 
@@ -48,7 +48,7 @@ hg_compare(
 - parallel, n_cores, seed:
 
   As in
-  [`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md).
+  [`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md).
 
 ## Value
 
@@ -63,7 +63,7 @@ pooled rules, and `n_perm_used`, the permutations with a defined
 statistic), `names`, `n_perm`, `alpha`, `max_order`, `min_freq`,
 `n_trajectories` (per group) and `seed`. Has `print`, `summary` and
 `plot` methods;
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
 returns the rule table (`significant = TRUE` restricts it).
 
 ## Details
@@ -99,9 +99,9 @@ rate. *Journal of the Royal Statistical Society B*, 57(1), 289-300.
 
 ## See also
 
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-[`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md),
-[`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md)
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+[`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md),
+[`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md)
 
 ## Examples
 

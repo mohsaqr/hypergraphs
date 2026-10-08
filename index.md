@@ -26,78 +26,78 @@ the sentence embeddings `sbert`, both optional.
 
 | Verb | Method | Reference |
 |----|----|----|
-| [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) | Higher-order network with rule extraction (BuildHON+) | Xu, Wickramarathne & Chawla (2016) |
-| [`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md) | Higher-order network embedding | Saebi, Ciampaglia, Kaplan & Chawla (2020) |
-| [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md) | Hypergeometric path anomaly detection | LaRock et al. (2020) |
-| [`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md) | Multi-order generative model | Scholtes (2017) |
-| [`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md) | PageRank / betweenness / closeness on the higher-order topology, projected to states | Scholtes, Wider & Garas (2016) |
-| [`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md) | Bootstrap CIs + rule support | Efron & Tibshirani (1993) |
-| [`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md) | Two-sample permutation comparison of rules | Good (2005) |
-| [`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md) | Permutation-based Markov order test | Anderson & Goodman (1957) |
-| [`hg_markov_stability()`](https://mohsaqr.github.io/hypergraphs/reference/hg_markov_stability.md) | Persistence, stationary flow and first-passage times per state | Kemeny & Snell (1976) |
-| [`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md) | Per-context order-k vs order-1 KL diagnostic | Cover & Thomas (2006) |
+| [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md) | Higher-order network with rule extraction (BuildHON+) | Xu, Wickramarathne & Chawla (2016) |
+| [`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md) | Higher-order network embedding | Saebi, Ciampaglia, Kaplan & Chawla (2020) |
+| [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md) | Hypergeometric path anomaly detection | LaRock et al. (2020) |
+| [`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md) | Multi-order generative model | Scholtes (2017) |
+| [`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md) | PageRank / betweenness / closeness on the higher-order topology, projected to states | Scholtes, Wider & Garas (2016) |
+| [`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md) | Bootstrap CIs + rule support | Efron & Tibshirani (1993) |
+| [`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md) | Two-sample permutation comparison of rules | Good (2005) |
+| [`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md) | Permutation-based Markov order test | Anderson & Goodman (1957) |
+| [`hg_markov_stability()`](https://pak.dynasite.org/hypergraphs/reference/hg_markov_stability.md) | Persistence, stationary flow and first-passage times per state | Kemeny & Snell (1976) |
+| [`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md) | Per-context order-k vs order-1 KL diagnostic | Cover & Thomas (2006) |
 
 ### Simplicial complexes
 
 | Verb | Method | Reference |
 |----|----|----|
-| [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md) | Clique, Vietoris-Rips, or pathway complex, verified against igraph’s cliques and Euler-Poincaré on construction | Hatcher (2002) |
-| [`hg_betti()`](https://mohsaqr.github.io/hypergraphs/reference/hg_betti.md), [`hg_euler()`](https://mohsaqr.github.io/hypergraphs/reference/hg_euler.md) | Homology ranks and the Euler characteristic | Hatcher (2002) |
-| [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md) | Betti curves and persistence diagrams over a filtration | Edelsbrunner & Harer (2010) |
-| [`hg_landscape()`](https://mohsaqr.github.io/hypergraphs/reference/hg_landscape.md), [`hg_bottleneck()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bottleneck.md), [`hg_wasserstein()`](https://mohsaqr.github.io/hypergraphs/reference/hg_wasserstein.md) | Comparable summaries of persistence diagrams | Bubenik (2015); Cohen-Steiner et al. (2007); Kerber et al. (2017) |
-| [`hg_degree()`](https://mohsaqr.github.io/hypergraphs/reference/hg_degree.md), [`hg_qanalysis()`](https://mohsaqr.github.io/hypergraphs/reference/hg_qanalysis.md) | Higher-order degree and q-connectivity | Atkin (1974) |
+| [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md) | Clique, Vietoris-Rips, or pathway complex, verified against igraph’s cliques and Euler-Poincaré on construction | Hatcher (2002) |
+| [`hg_betti()`](https://pak.dynasite.org/hypergraphs/reference/hg_betti.md), [`hg_euler()`](https://pak.dynasite.org/hypergraphs/reference/hg_euler.md) | Homology ranks and the Euler characteristic | Hatcher (2002) |
+| [`hg_homology()`](https://pak.dynasite.org/hypergraphs/reference/hg_homology.md) | Betti curves and persistence diagrams over a filtration | Edelsbrunner & Harer (2010) |
+| [`hg_landscape()`](https://pak.dynasite.org/hypergraphs/reference/hg_landscape.md), [`hg_bottleneck()`](https://pak.dynasite.org/hypergraphs/reference/hg_bottleneck.md), [`hg_wasserstein()`](https://pak.dynasite.org/hypergraphs/reference/hg_wasserstein.md) | Comparable summaries of persistence diagrams | Bubenik (2015); Cohen-Steiner et al. (2007); Kerber et al. (2017) |
+| [`hg_degree()`](https://pak.dynasite.org/hypergraphs/reference/hg_degree.md), [`hg_qanalysis()`](https://pak.dynasite.org/hypergraphs/reference/hg_qanalysis.md) | Higher-order degree and q-connectivity | Atkin (1974) |
 
 ### Hypergraphs
 
 | Verb | Method | Reference |
 |----|----|----|
-| [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md) | Hyperedges from a network’s cliques | Burgio et al. (2020) |
-| [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md) | Hyperedges from sliding windows over sequences | Ding et al. (2020) |
-| [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md) | Hyperedges from bipartite group membership | Perc et al. (2013) |
-| [`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md) | Tensor eigenvector centralities (clique, Z, H) and EDVW PageRank | Benson (2019); Chitra & Raphael (2019) |
-| [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md) | Structural measures (hyperdegree, overlap, density) | — |
-| [`hg_laplacian()`](https://mohsaqr.github.io/hypergraphs/reference/hg_laplacian.md), [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md), [`hg_joint_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_joint_cluster.md), [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md) | Weighted normalised Laplacian; RDC-Spec, RDC-SymNMF, J-NMF and JS-NMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
-| [`hg_pagerank()`](https://mohsaqr.github.io/hypergraphs/reference/hg_pagerank.md) | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
-| [`knn_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/knn_hypergraph.md), [`dual_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/dual_hypergraph.md) | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
-| [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md), [`hg_line_graph()`](https://mohsaqr.github.io/hypergraphs/reference/hg_line_graph.md) | Projections: the pairwise network (clique, association or citation weighting) as a network object, and the s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
-| [`temporal_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/temporal_hypergraph.md), [`hg_snapshot()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshot.md), [`hg_snapshots()`](https://mohsaqr.github.io/hypergraphs/reference/hg_snapshots.md) | Interval and contact hypergraphs in a standard vocabulary (`node`/`group` or `from`/`to`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
-| [`hg_edges()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edges.md), [`hg_edge_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_edge_centrality.md) | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
-| [`hg_motifs()`](https://mohsaqr.github.io/hypergraphs/reference/hg_motifs.md) | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
-| [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md), [`hg_community_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_community_quality.md) | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance (on a memory network: the map equation for memory networks) | Coupette, Hartung & Katz (2024); Rosvall et al. (2014) |
-| [`hg_embed()`](https://mohsaqr.github.io/hypergraphs/reference/hg_embed.md) | Spectral or symmetric-NMF node coordinates | Zhou et al. (2006); Hayashi et al. (2020) |
-| [`hg_null_test()`](https://mohsaqr.github.io/hypergraphs/reference/hg_null_test.md) | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
-| [`hg_neural()`](https://mohsaqr.github.io/hypergraphs/reference/hg_neural.md), [`text_hypergat()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergat.md), [`heterogeneous_hgat()`](https://mohsaqr.github.io/hypergraphs/reference/heterogeneous_hgat.md), [`hg_hypergcn()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hypergcn.md), [`hg_hnhn()`](https://mohsaqr.github.io/hypergraphs/reference/hg_hnhn.md), [`hg_allset()`](https://mohsaqr.github.io/hypergraphs/reference/hg_allset.md) | HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer in native torch | Feng et al. (2019); Linmei et al. (2019); Yadati et al. (2019); Ding et al. (2020); Dong et al. (2020); Chien et al. (2022) |
+| [`network_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/network_hypergraph.md) | Hyperedges from a network’s cliques | Burgio et al. (2020) |
+| [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md) | Hyperedges from sliding windows over sequences | Ding et al. (2020) |
+| [`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md) | Hyperedges from bipartite group membership | Perc et al. (2013) |
+| [`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md) | Tensor eigenvector centralities (clique, Z, H) and EDVW PageRank | Benson (2019); Chitra & Raphael (2019) |
+| [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md) | Structural measures (hyperdegree, overlap, density) | — |
+| [`hg_laplacian()`](https://pak.dynasite.org/hypergraphs/reference/hg_laplacian.md), [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md), [`hg_joint_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_joint_cluster.md), [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md) | Weighted normalised Laplacian; RDC-Spec, RDC-SymNMF, J-NMF and JS-NMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| [`hg_pagerank()`](https://pak.dynasite.org/hypergraphs/reference/hg_pagerank.md) | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
+| [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md), [`dual_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/dual_hypergraph.md) | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
+| [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md), [`hg_line_graph()`](https://pak.dynasite.org/hypergraphs/reference/hg_line_graph.md) | Projections: the pairwise network (clique, association or citation weighting) as a network object, and the s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
+| [`temporal_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/temporal_hypergraph.md), [`hg_snapshot()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshot.md), [`hg_snapshots()`](https://pak.dynasite.org/hypergraphs/reference/hg_snapshots.md) | Interval and contact hypergraphs in a standard vocabulary (`node`/`group` or `from`/`to`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
+| [`hg_edges()`](https://pak.dynasite.org/hypergraphs/reference/hg_edges.md), [`hg_edge_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_edge_centrality.md) | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
+| [`hg_motifs()`](https://pak.dynasite.org/hypergraphs/reference/hg_motifs.md) | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
+| [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md), [`hg_community_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_community_quality.md) | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance (on a memory network: the map equation for memory networks) | Coupette, Hartung & Katz (2024); Rosvall et al. (2014) |
+| [`hg_embed()`](https://pak.dynasite.org/hypergraphs/reference/hg_embed.md) | Spectral or symmetric-NMF node coordinates | Zhou et al. (2006); Hayashi et al. (2020) |
+| [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md) | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
+| [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md), [`text_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md), [`heterogeneous_hgat()`](https://pak.dynasite.org/hypergraphs/reference/heterogeneous_hgat.md), [`hg_hypergcn()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergcn.md), [`hg_hnhn()`](https://pak.dynasite.org/hypergraphs/reference/hg_hnhn.md), [`hg_allset()`](https://pak.dynasite.org/hypergraphs/reference/hg_allset.md) | HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer in native torch | Feng et al. (2019); Linmei et al. (2019); Yadati et al. (2019); Ding et al. (2020); Dong et al. (2020); Chien et al. (2022) |
 
 ### Text hypergraphs
 
 | Verb | Method | Reference |
 |----|----|----|
-| [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md) | Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, or embedding kNN | Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan & Schütze (2008) |
-| [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md), [`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md) | Structural measures and tensor centralities as tidy tables | Benson (2019) |
-| [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md), [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md) | Spectral or symmetric-NMF topic clustering and per-cluster keywords | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
-| [`hg_stability()`](https://mohsaqr.github.io/hypergraphs/reference/hg_stability.md), [`hg_agreement()`](https://mohsaqr.github.io/hypergraphs/reference/hg_agreement.md), [`hg_seeds()`](https://mohsaqr.github.io/hypergraphs/reference/hg_seeds.md) | Subsampling cluster stability (per-cluster Jaccard) with the eigengap, partition agreement (ARI/AMI/NMI), seed selection | Hennig (2007); von Luxburg (2007); Hubert & Arabie (1985); Vinh et al. (2010) |
-| [`hg_topic_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_quality.md) | Topic coherence (UMass, NPMI) and FREX exclusivity, as in stm; scores external topic word lists too | Mimno et al. (2011); Lau, Newman & Baldwin (2014); Roberts, Stewart & Tingley (2019) |
-| [`hg_cocluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cocluster.md) | Spectral co-clustering of documents and words together | Dhillon (2001) |
-| [`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md) | Few-label transductive classification, with class-mass normalization | Zhou et al. (2006); Zhu, Ghahramani & Lafferty (2003) |
+| [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md) | Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, or embedding kNN | Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan & Schütze (2008) |
+| [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md), [`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md) | Structural measures and tensor centralities as tidy tables | Benson (2019) |
+| [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md), [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md) | Spectral or symmetric-NMF topic clustering and per-cluster keywords | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| [`hg_stability()`](https://pak.dynasite.org/hypergraphs/reference/hg_stability.md), [`hg_agreement()`](https://pak.dynasite.org/hypergraphs/reference/hg_agreement.md), [`hg_seeds()`](https://pak.dynasite.org/hypergraphs/reference/hg_seeds.md) | Subsampling cluster stability (per-cluster Jaccard) with the eigengap, partition agreement (ARI/AMI/NMI), seed selection | Hennig (2007); von Luxburg (2007); Hubert & Arabie (1985); Vinh et al. (2010) |
+| [`hg_topic_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_quality.md) | Topic coherence (UMass, NPMI) and FREX exclusivity, as in stm; scores external topic word lists too | Mimno et al. (2011); Lau, Newman & Baldwin (2014); Roberts, Stewart & Tingley (2019) |
+| [`hg_cocluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cocluster.md) | Spectral co-clustering of documents and words together | Dhillon (2001) |
+| [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md) | Few-label transductive classification, with class-mass normalization | Zhou et al. (2006); Zhu, Ghahramani & Lafferty (2003) |
 
 A `text_hypergraph` *is* a `net_hg`, so every hypergraph verb takes it.
 Constructors are nouns
-([`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-[`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-[`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md),
+([`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+[`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+[`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md),
 `<source>_hypergraph()`); every other verb is `hg_*()`. Bundled data:
 `covid_abstracts` (165 abstracts) and `covid_embeddings`.
 
 ### Research sources
 
 The source repository includes an indexed [research paper
-library](https://mohsaqr.github.io/hypergraphs/papers/) and
+library](https://github.com/mohsaqr/hypergraphs/tree/main/papers) and
 [method/repository reference
-notes](https://mohsaqr.github.io/hypergraphs/repos/). For the projection
-tier, see the local [*Legal hypergraphs*
-paper](https://mohsaqr.github.io/hypergraphs/papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf)
+notes](https://github.com/mohsaqr/hypergraphs/tree/main/repos). For the
+projection tier, see the local [*Legal hypergraphs*
+paper](https://github.com/mohsaqr/hypergraphs/blob/main/papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf)
 and its [method mapping and reproducibility
-links](https://mohsaqr.github.io/hypergraphs/repos/legal-hypergraphs.md).
+links](https://github.com/mohsaqr/hypergraphs/blob/main/repos/legal-hypergraphs.md).
 
 ## The taxonomy
 
@@ -105,33 +105,32 @@ The same naming rules hold in every family, so a verb from one reads
 like a verb from another:
 
 - **Constructors are nouns**:
-  [`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-  [`honem()`](https://mohsaqr.github.io/hypergraphs/reference/honem.md),
-  [`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md),
-  [`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md),
-  [`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md),
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md),
-  [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
+  [`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+  [`honem()`](https://pak.dynasite.org/hypergraphs/reference/honem.md),
+  [`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md),
+  [`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md),
+  [`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md),
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md),
+  [`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md),
   … Where a family admits several construction routes, they are selected
   with `type =`.
 - **Everything else is `hg_*()`**. Measures
-  ([`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md),
-  [`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
-  [`hg_degree()`](https://mohsaqr.github.io/hypergraphs/reference/hg_degree.md))
+  ([`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md),
+  [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md),
+  [`hg_degree()`](https://pak.dynasite.org/hypergraphs/reference/hg_degree.md))
   return a tidy `data.frame`, one row per node or per structure;
   inference
-  ([`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md),
-  [`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md),
-  [`hg_null_test()`](https://mohsaqr.github.io/hypergraphs/reference/hg_null_test.md))
+  ([`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md),
+  [`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md),
+  [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md))
   returns a result carrying estimates, intervals and p-values. One verb
   names one idea and dispatches on its input:
-  [`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md),
-  [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
-  and
-  [`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md)
+  [`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md),
+  [`hg_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_communities.md)
+  and [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md)
   take a memory network or a hypergraph.
-- **[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
+- **[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   is the one reader.** Every object hands over its tables through
   `hg_get(x, what = )` — reaching into a result with `$` is never
   required. `what =` selects a secondary table; filters, `sort_by` and
@@ -183,7 +182,7 @@ hg_keywords(thg, topics, n = 5, type = "ctfidf", collapse = TRUE)  # BERTopic's 
 hg_keywords(thg, topics, n = 5, type = "centrality", collapse = TRUE)
 ```
 
-[`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md)
+[`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md)
 projects a hypergraph back to a pairwise network that any first-order
 tool accepts; `hg_get(net, what = "pathways")` hands sequence-derived
 path strings from the memory family to the other two.
@@ -195,25 +194,25 @@ research abstracts and their sentence embeddings).
 ## Vignettes
 
 The package ships one vignette,
-[`vignette("hypergraphs")`](https://mohsaqr.github.io/hypergraphs/articles/hypergraphs.md).
+[`vignette("hypergraphs")`](https://pak.dynasite.org/hypergraphs/articles/hypergraphs.md).
 The other walkthroughs are articles on the [package
-website](https://mohsaqr.github.io/hypergraphs/): [hypergraph analysis
-of a text
-corpus](https://mohsaqr.github.io/hypergraphs/articles/text-hypergraphs.html),
+website](https://pak.dynasite.org/hypergraphs/): [hypergraph analysis of
+a text
+corpus](https://pak.dynasite.org/hypergraphs/articles/text-hypergraphs.html),
 the [constructions of a text
-hypergraph](https://mohsaqr.github.io/hypergraphs/articles/text-constructions.html),
+hypergraph](https://pak.dynasite.org/hypergraphs/articles/text-constructions.html),
 [document
-classification](https://mohsaqr.github.io/hypergraphs/articles/hypergat-classification.html),
+classification](https://pak.dynasite.org/hypergraphs/articles/hypergat-classification.html),
 the [topic
-structure](https://mohsaqr.github.io/hypergraphs/articles/covid-topics.html)
+structure](https://pak.dynasite.org/hypergraphs/articles/covid-topics.html)
 and [mixed-membership
-topics](https://mohsaqr.github.io/hypergraphs/articles/topic-mixtures.html)
+topics](https://pak.dynasite.org/hypergraphs/articles/topic-mixtures.html)
 of the COVID-19 education literature, [legal
-hypergraphs](https://mohsaqr.github.io/hypergraphs/articles/legal-hypergraphs.html),
+hypergraphs](https://pak.dynasite.org/hypergraphs/articles/legal-hypergraphs.html),
 the [Argentina tribunals
-example](https://mohsaqr.github.io/hypergraphs/articles/argentina-tribunals.html)
+example](https://pak.dynasite.org/hypergraphs/articles/argentina-tribunals.html)
 and the
-[benchmarks](https://mohsaqr.github.io/hypergraphs/articles/benchmarks.html).
+[benchmarks](https://pak.dynasite.org/hypergraphs/articles/benchmarks.html).
 
 ## Provenance
 

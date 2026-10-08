@@ -2,21 +2,21 @@
 
 Turns document-level topic assignments into the canonical long sequence
 table the memory family consumes. Each document of a
-[`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+[`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
 carries whatever metadata came with the corpus (an author, a turn, a
 timestamp);
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 gives each document a topic. `hg_sequences()` joins the two, orders the
 documents within each actor and returns one row per document as `actor`
 / `time` / `action` – the long event table every memory-network verb
 reads through its `action` / `actor` / `time` arguments
-([`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md),
-[`mogen()`](https://mohsaqr.github.io/hypergraphs/reference/mogen.md),
-[`hypa()`](https://mohsaqr.github.io/hypergraphs/reference/hypa.md),
-[`markov_order()`](https://mohsaqr.github.io/hypergraphs/reference/markov_order.md),
-[`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md),
-[`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md),
-[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)):
+([`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md),
+[`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md),
+[`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md),
+[`markov_order()`](https://pak.dynasite.org/hypergraphs/reference/markov_order.md),
+[`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md),
+[`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md),
+[`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)):
 
 ## Usage
 
@@ -29,14 +29,14 @@ hg_sequences(hg, clusters = NULL, actor, order_by, state = NULL, topics = NULL)
 - hg:
 
   A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   – more generally, any `net_hg` carrying a documents table, the one
   reached with `hg_get(hg, what = "documents")`.
 
 - clusters:
 
   A partition of the documents, as returned by
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md):
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md):
   a data.frame with one row per node, a `node` column holding document
   identifiers and a state column (`cluster` by default, or the column
   named by `state`). `NULL` (the default) takes the state from the
@@ -65,7 +65,7 @@ hg_sequences(hg, clusters = NULL, actor, order_by, state = NULL, topics = NULL)
 - topics:
 
   A mixed-membership topic model of `hg` fitted by
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md).
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md).
   Each document's state is then its main topic, the topic with its
   largest share (`hg_get(topics, what = "documents")`). Give `topics`
   instead of `clusters` and `state`.
@@ -103,7 +103,7 @@ would give the wrong model.
 This closes the one missing edge in the cross-family design:
 `hg_get(x, what = "pathways")` bridges the memory family to the others
 and
-[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+[`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
 bridges sequences to hypergraphs, but until now the text family
 dead-ended at clustering and the caller had to assemble the sequence
 table themselves.
@@ -130,12 +130,12 @@ Information Processing Systems*, 19, 1601-1608.
 
 ## See also
 
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 for the partition,
-[`hon()`](https://mohsaqr.github.io/hypergraphs/reference/hon.md) and
-[`hg_bootstrap()`](https://mohsaqr.github.io/hypergraphs/reference/hg_bootstrap.md)
+[`hon()`](https://pak.dynasite.org/hypergraphs/reference/hon.md) and
+[`hg_bootstrap()`](https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.md)
 for what to do with the sequences,
-[`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md)
+[`window_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/window_hypergraph.md)
 to read them back into a hypergraph.
 
 ## Examples

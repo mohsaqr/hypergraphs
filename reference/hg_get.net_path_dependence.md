@@ -22,7 +22,7 @@ hg_get(
 - x:
 
   A `net_path_dependence` object from
-  [`memory()`](https://mohsaqr.github.io/hypergraphs/reference/memory.md).
+  [`memory()`](https://pak.dynasite.org/hypergraphs/reference/memory.md).
 
 - what:
 

@@ -15,12 +15,12 @@ hg_qanalysis(sc)
 - sc:
 
   A `simplicial_complex` from
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md).
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md).
 
 ## Value
 
 A `q_analysis` object. Read it with
-[`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md):
+[`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md):
 the components per level (`what = "q_levels"`, the default) or each
 node's highest level (`"nodes"`).
 
@@ -31,7 +31,7 @@ Heinemann.
 
 ## See also
 
-[`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+[`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
 
 ## Examples
 

@@ -14,11 +14,11 @@ mixed-membership model show how close a corpus comes to that case.
 
 `covid_sample` holds a random sample of 1,000 abstracts of research on
 COVID-19 and education published from 2020 to 2024.
-[`clean_text()`](https://mohsaqr.github.io/hypergraphs/reference/clean_text.md)
+[`clean_text()`](https://pak.dynasite.org/hypergraphs/reference/clean_text.md)
 removes what a bibliographic export adds to an abstract, such as HTML,
 citation numbers in brackets, URLs and copyright notices. The stop list
 is
-[`stop_words_en()`](https://mohsaqr.github.io/hypergraphs/reference/stop_words_en.md)
+[`stop_words_en()`](https://pak.dynasite.org/hypergraphs/reference/stop_words_en.md)
 together with the words that name the subject of every abstract, since a
 word that occurs in every document separates none of them.
 
@@ -84,7 +84,7 @@ is worth considering when no other number gives both a higher coherence
 and a higher exclusivity, and these numbers form the frontier of the two
 measures (Roberts et al. 2014).
 
-[`hg_topic_search()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_search.md)
+[`hg_topic_search()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_search.md)
 fits the topic model of the next section for 4, 8, 12, 16 and 20 topics,
 each from two random starts, and reports the mean coherence and the mean
 exclusivity of the ten most probable words of the topics.
@@ -117,7 +117,7 @@ is the number of the published structural topic model of this literature
 
 ## A mixed-membership model of 16 topics
 
-[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+[`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md)
 approximates the matrix of word counts, with one row per abstract and
 one column per word, by the product of two non-negative matrices. The
 first gives every abstract a weight on every topic, and the second gives
@@ -237,7 +237,7 @@ about.
 
 ## Topic quality
 
-[`hg_topic_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topic_quality.md)
+[`hg_topic_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_quality.md)
 scores every topic by the same coherence and exclusivity. The size of a
 topic is its expected number of abstracts.
 
@@ -295,7 +295,7 @@ form a set. A network of topics keeps only the pairs of such a set. A
 hypergraph keeps the whole set, with every topic as a node and every
 combination of topics that occurs in the abstracts as a hyperedge.
 
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md)
 builds this hypergraph from the topic model. A topic counts as present
 in an abstract when its share is at least a threshold, as in the topic
 networks of Abuhay et al. (2017) and Cassi et al. (2017), and the set of
@@ -358,7 +358,7 @@ hg_get(sets_by_year, what = "sets")
 
 ## The network of topics
 
-[`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
+[`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md)
 reduces the combinations to pairs. With the same threshold, the weight
 of two topics is the number of abstracts in which both are present. The
 pairs above the upper quartile of the weights are drawn, with the width
@@ -379,7 +379,7 @@ cograph::splot(network_view, minimum = strong_pair,
 ![](topic-mixtures_files/figure-html/topic-network-1.png)
 
 Without a threshold,
-[`topic_network()`](https://mohsaqr.github.io/hypergraphs/reference/topic_network.md)
+[`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md)
 relates two topics by the correlation of their shares over the
 abstracts, the simple topic correlation of the stm package (Roberts et
 al. 2019).
@@ -389,7 +389,7 @@ al. 2019).
 A partition is appropriate when the abstracts are each about one topic.
 It is useful when they have to be drawn or compared as groups, and the
 hypergraph can then be divided directly.
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 places the abstracts by the eigenvectors of the 16 smallest eigenvalues
 of the hypergraph Laplacian of Zhou et al. (2006) and divides them by
 k-means.

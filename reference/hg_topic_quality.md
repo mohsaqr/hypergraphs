@@ -31,13 +31,13 @@ plot(x, ...)
 - hg:
 
   The document hypergraph the topics describe: a bag-of-words
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/text_hypergraph.md)
+  [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
   with documents as nodes (the default construction).
 
 - clusters:
 
   The tidy table returned by
-  [`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+  [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   (columns `node`, `cluster`), or a named vector of cluster labels.
   `NULL` when only `words` are scored.
 
@@ -45,7 +45,7 @@ plot(x, ...)
 
   `NULL` (default); a data.frame of topic words with columns `word` and
   `topic` (or `cluster`, so
-  [`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+  [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
   output is passed as it is) and optionally `rank` (the order within a
   topic; row order otherwise); or a character matrix with one column per
   topic and rows in rank order, as `topicmodels::terms()` returns it
@@ -82,7 +82,7 @@ plot(x, ...)
 - topics:
 
   A mixed-membership topic model of `hg` fitted by
-  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md).
+  [`hg_topics()`](https://pak.dynasite.org/hypergraphs/reference/hg_topics.md).
   Its topics are scored on their most probable words, and FREX is
   computed from its word distributions \\P(w \mid z)\\, as `stm`
   computes it from an STM's. `size` is then the topic's expected number
@@ -115,7 +115,7 @@ hypergraph whose nodes are not documents.
 ## Details
 
 **Topics.** A topic is either a cluster of documents (`clusters`, from
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md)
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
 or any labelling) or a list of words (`words`, e.g. the top terms of a
 fitted LDA or STM model), or both. For a cluster, the word distribution
 is the plug-in estimate \\\beta\_{kw} = c\_{kw} / \sum_v c\_{kv}\\,
@@ -125,7 +125,7 @@ words are the `n` most probable (`sort_by = "probability"`, ties in
 vocabulary order, as `stm` ranks \\\beta\\) or the `n` with the largest
 share of their corpus count in the cluster (`sort_by = "share"`, the
 ranking of
-[`hg_keywords()`](https://mohsaqr.github.io/hypergraphs/reference/hg_keywords.md)
+[`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md)
 with `sort_by = "share"`), keeping words found in at least `min_docs` of
 the cluster's documents. Given `words`, those words are scored in their
 given order.

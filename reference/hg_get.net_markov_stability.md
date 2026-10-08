@@ -23,7 +23,7 @@ hg_get(
 - x:
 
   A `net_markov_stability` object from
-  [`hg_markov_stability()`](https://mohsaqr.github.io/hypergraphs/reference/hg_markov_stability.md).
+  [`hg_markov_stability()`](https://pak.dynasite.org/hypergraphs/reference/hg_markov_stability.md).
 
 - what:
 

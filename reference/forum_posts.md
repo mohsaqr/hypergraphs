@@ -46,7 +46,7 @@ Simulated with seed 11 by `data-raw/forum_posts.R`.
 
 ## See also
 
-[`hg_sequences()`](https://mohsaqr.github.io/hypergraphs/reference/hg_sequences.md),
+[`hg_sequences()`](https://pak.dynasite.org/hypergraphs/reference/hg_sequences.md),
 which turns a clustering of these posts into one sequence of topics per
 student.
 

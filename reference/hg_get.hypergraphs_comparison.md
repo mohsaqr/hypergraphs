@@ -14,7 +14,7 @@ hg_get(x, what = "edges", ..., significant = FALSE, sort_by = NULL, top = NULL)
 - x:
 
   A `hypergraphs_comparison` object from
-  [`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md).
+  [`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md).
 
 - what:
 
@@ -44,5 +44,5 @@ hg_get(x, what = "edges", ..., significant = FALSE, sort_by = NULL, top = NULL)
 ## Value
 
 A data.frame, one row per pooled rule edge (see
-[`hg_compare()`](https://mohsaqr.github.io/hypergraphs/reference/hg_compare.md)
+[`hg_compare()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare.md)
 for the columns).

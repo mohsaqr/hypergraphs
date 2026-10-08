@@ -14,7 +14,7 @@ hg_get(x, what = "landscape", ..., k = NULL, top = NULL)
 - x:
 
   A `persistence_landscape` object from
-  [`hg_landscape()`](https://mohsaqr.github.io/hypergraphs/reference/hg_landscape.md).
+  [`hg_landscape()`](https://pak.dynasite.org/hypergraphs/reference/hg_landscape.md).
 
 - what:
 

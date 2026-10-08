@@ -32,14 +32,14 @@ knn_hypergraph(embeddings, k, weight = c("cosine", "binary"))
 ## Value
 
 A `net_hg` (from
-[`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md))
+[`group_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.md))
 with one hyperedge per item, each of size `k + 1`, plus a `knn` field
 recording `k` and the weighting. Accepted by
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md),
-[`hg_centrality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_centrality.md),
-[`hg_cluster()`](https://mohsaqr.github.io/hypergraphs/reference/hg_cluster.md),
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md),
+[`hg_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_centrality.md),
+[`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md),
 and
-[`hg_classify()`](https://mohsaqr.github.io/hypergraphs/reference/hg_classify.md).
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md).
 
 ## Details
 

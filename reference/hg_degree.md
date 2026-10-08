@@ -13,7 +13,7 @@ hg_degree(sc, normalized = FALSE)
 - sc:
 
   A `simplicial_complex` from
-  [`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md).
+  [`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md).
 
 - normalized:
 
@@ -36,7 +36,7 @@ complexes: Applications of topological data analysis to network science.
 
 ## See also
 
-[`simplicial()`](https://mohsaqr.github.io/hypergraphs/reference/simplicial.md)
+[`simplicial()`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
 
 ## Examples
 

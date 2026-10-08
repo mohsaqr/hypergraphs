@@ -29,7 +29,9 @@ hg_community_quality(
 
   An
   [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
-  result, a tidy node/label table, or a named label vector.
+  result, a tidy node/label table, or a named label vector. Every
+  projected node needs one non-missing label; a node repeated with
+  different labels raises `hypergraphs_bad_input`.
 
 - method:
 

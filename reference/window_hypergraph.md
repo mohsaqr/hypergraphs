@@ -41,7 +41,8 @@ window_hypergraph(
   [sequence-input](https://mohsaqr.github.io/hypergraphs/reference/sequence-input.md):
   a long event table, a wide data.frame or character matrix (one
   sequence per row, trailing `NA`s stripped), or a list of character
-  vectors.
+  vectors. A list's names, when it has them, identify its sequences and
+  must be unique and non-empty (`hypergraphs_bad_input` otherwise).
 
 - window:
 

@@ -17,7 +17,7 @@ higher-order groups directly."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -109,13 +109,17 @@ e.g. <code>sort_by = "clique", n = 10</code> for the ten most central nodes.</p>
 
 
 <dt id="arg-max-iter">max_iter<a class="anchor" aria-label="anchor" href="#arg-max-iter"></a></dt>
-<dd><p>Maximum number of power-iteration steps. Default
-<code>1000</code>.</p></dd>
+<dd><p>Maximum number of power-iteration steps of the <code>"Z"</code>
+and <code>"H"</code> tensor centralities. Default <code>1000</code>. The <code>"clique"</code>
+centrality is solved directly (the Perron vector of each connected
+component) and does not iterate.</p></dd>
 
 
 <dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
-<dd><p>Convergence tolerance on the L1 change between successive
-iterates. Default <code>1e-8</code>.</p></dd>
+<dd><p>Convergence tolerance of the <code>"Z"</code> and <code>"H"</code> iterations, on
+the L1 change between successive iterates. Default <code>1e-8</code>. An
+iteration that does not reach it within <code>max_iter</code> steps warns with
+class <code>hypergraphs_no_converge</code>.</p></dd>
 
 
 <dt id="arg-normalize">normalize<a class="anchor" aria-label="anchor" href="#arg-normalize"></a></dt>

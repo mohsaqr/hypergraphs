@@ -23,7 +23,7 @@ format:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -117,7 +117,9 @@ alias table when neither is given and <code>node</code>/<code>hyperedge</code> a
 <dd><p>Column names of membership data: the node, and the
 grouping whose shared values bind nodes into one hyperedge. Naming
 either selects the membership format; the other is then detected by
-alias if not given.</p></dd>
+alias if not given. When no column is named and no edge list is
+detected, both are detected by alias (<code>node</code>, <code>actor</code>, <code>person</code>, ...
+and <code>hyperedge</code>, <code>group</code>, <code>event</code>, ...), as <code><a href="group_hypergraph.html">group_hypergraph()</a></code> does.</p></dd>
 
 
 <dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>

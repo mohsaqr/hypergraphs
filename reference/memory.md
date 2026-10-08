@@ -1,10 +1,10 @@
 # Per-context path dependence
 
-For every context of `order - 1` states, compares the observed
-next-state distribution with the first-order prediction from the most
-recent state alone: the Kullback-Leibler divergence and entropy drop say
-how much the longer history adds, and `flips` marks the contexts where
-it changes the most likely next state.
+For every context of `order` states (the `order` most recent states),
+compares the observed next-state distribution with the first-order
+prediction from the most recent state alone: the Kullback-Leibler
+divergence and entropy drop say how much the longer history adds, and
+`flips` marks the contexts where it changes the most likely next state.
 
 ## Usage
 
@@ -34,8 +34,10 @@ memory(
 
 - order:
 
-  Integer \>= 2. Length of the conditioning context plus one: `2`
-  compares two-step memory with one-step. Default `2`.
+  Integer \>= 2. The number of states in the conditioning context: `2`
+  conditions on the last two states (contexts such as `"a -> b"`) and
+  compares that two-step memory with one-step, `3` on the last three.
+  Default `2`.
 
 - min_count:
 
@@ -77,6 +79,7 @@ Cover, T. M., & Thomas, J. A. (2006). *Elements of Information Theory*
 ``` r
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
+# order = 2: two-state contexts ("a -> b")
 pd <- memory(seqs, order = 2, min_count = 1)
 hg_get(pd)
 #>   context count entropy_first_order entropy_order_k entropy_drop kl
@@ -93,4 +96,20 @@ hg_get(pd)
 #> 4               x           x FALSE
 #> 5               b           b FALSE
 #> 6               b           b FALSE
+# order = 3: three-state contexts ("a -> b -> c")
+hg_get(memory(seqs, order = 3, min_count = 1))
+#>       context count entropy_first_order entropy_order_k entropy_drop kl
+#> 1 c -> a -> b     2                   1               0            1  1
+#> 2 d -> x -> b     2                   1               0            1  1
+#> 3 a -> b -> c     2                   0               0            0  0
+#> 4 b -> c -> a     2                   0               0            0  0
+#> 5 b -> d -> x     2                   0               0            0  0
+#> 6 x -> b -> d     2                   0               0            0  0
+#>   top_first_order top_order_k flips
+#> 1               c           c FALSE
+#> 2               c           d  TRUE
+#> 3               a           a FALSE
+#> 4               b           b FALSE
+#> 5               b           b FALSE
+#> 6               x           x FALSE
 ```

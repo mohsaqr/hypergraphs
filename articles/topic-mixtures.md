@@ -222,11 +222,11 @@ example_shares
 
 example_abstract <- subset(abstracts, doc == "2-s2.0-85101300775")
 with(example_abstract, writeLines(strwrap(abstract, 78)))
-#> As COVID- necessitated student removal from clinical environments, a virtual
-#> curriculum involving existing and novel clerkship elements was developed that
-#> utilized near peers for both teaching and feedback. Shelf scores, engagement,
-#> and satisfaction demonstrated success of these new curricular elements, many
-#> of which will be incorporated for future students.
+#> As COVID-19 necessitated student removal from clinical environments, a
+#> virtual curriculum involving existing and novel clerkship elements was
+#> developed that utilized near peers for both teaching and feedback. Shelf
+#> scores, engagement, and satisfaction demonstrated success of these new
+#> curricular elements, many of which will be incorporated for future students.
 ```
 
 The abstract describes near-peer teaching in a medical course moved

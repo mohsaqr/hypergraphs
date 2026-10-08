@@ -62,8 +62,9 @@ pairwise_network(
   The node each hyperedge comes from: the name of a column of the
   hyperedge attributes, a vector of length `n_hyperedges`, a named
   vector keyed by hyperedge, or a data frame with columns `edge` and
-  `source`. `NULL` uses an attribute column named `source`. Used with
-  `self_association = TRUE` and `type = "citation"`.
+  `source` (a hyperedge named twice with different sources raises
+  `hypergraphs_bad_input`). `NULL` uses an attribute column named
+  `source`. Used with `self_association = TRUE` and `type = "citation"`.
 
 - directed:
 
@@ -117,6 +118,7 @@ Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 
 Zhou, D., Huang, J., & Schoelkopf, B. (2006). Learning with hypergraphs:
 clustering, classification, and embedding. *NeurIPS 19*, 1601-1608.
+[doi:10.7551/mitpress/7503.003.0205](https://doi.org/10.7551/mitpress/7503.003.0205)
 
 ## See also
 

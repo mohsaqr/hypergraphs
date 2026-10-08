@@ -53,12 +53,17 @@ hg_centrality(
 
 - max_iter:
 
-  Maximum number of power-iteration steps. Default `1000`.
+  Maximum number of power-iteration steps of the `"Z"` and `"H"` tensor
+  centralities. Default `1000`. The `"clique"` centrality is solved
+  directly (the Perron vector of each connected component) and does not
+  iterate.
 
 - tol:
 
-  Convergence tolerance on the L1 change between successive iterates.
-  Default `1e-8`.
+  Convergence tolerance of the `"Z"` and `"H"` iterations, on the L1
+  change between successive iterates. Default `1e-8`. An iteration that
+  does not reach it within `max_iter` steps warns with class
+  `hypergraphs_no_converge`.
 
 - normalize:
 

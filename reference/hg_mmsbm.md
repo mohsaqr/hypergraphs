@@ -31,7 +31,9 @@ hg_mmsbm(
   u_prior = 0,
   max_size = NULL,
   edge_weights = NULL,
-  seed = NULL
+  seed = NULL,
+  parallel = FALSE,
+  n_cores = 2L
 )
 
 # S3 method for class 'net_hg_mmsbm'
@@ -127,6 +129,18 @@ plot(x, type = c("membership", "affinity", "restarts"), labels = NULL, ...)
   `NULL` (default: the current random stream) or a whole number for the
   random starts; the caller's stream is restored on exit.
 
+- parallel:
+
+  Logical. Fit the `nstart` starts with
+  [`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html)
+  (not on Windows, where they run serially). Default `FALSE`. All
+  starting values are drawn first, in order, from one stream, so the
+  result equals the serial one.
+
+- n_cores:
+
+  Integer. Cores when `parallel = TRUE` (default 2).
+
 - x:
 
   A `net_hg_mmsbm` object.
@@ -217,6 +231,16 @@ subnormal remnants) by the multiplicative EM updates; any row whose
 total is below the precision of the largest row is treated as having no
 membership (`NA`) and reported with a `hypergraphs_collapsed_membership`
 warning, rather than normalising remnants into spurious exact mixtures.
+This is a property of the model, not of the fit: \\\lambda_e\\ sums over
+the pairs of a hyperedge, so in a hyperedge of three or more nodes the
+pairs that avoid node \\i\\ can explain it on their own, and \\u_i = 0\\
+then costs the likelihood nothing while removing its share of the
+\\-C\sum\_{i\<j}\\ term. Documents bound by word hyperedges, nearly all
+of size three or more, are the common case: on a 6,630-document legal
+corpus about a third of the documents collapse for `k = 3`, with or
+without stop words and with `max_size = 25`. For the topic mixture of
+every document of a corpus use
+[`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md).
 
 The membership of node \\i\\ in community \\k\\ is \\u\_{ik} / \sum_q
 u\_{iq}\\; the hard `community` is its largest entry. The size of

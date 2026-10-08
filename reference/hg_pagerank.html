@@ -23,7 +23,7 @@ hypergraph walk, otherwise it teleports."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,15 +102,17 @@ hypergraph walk, otherwise it teleports.</p>
 <dt id="arg-damping">damping<a class="anchor" aria-label="anchor" href="#arg-damping"></a></dt>
 <dd><p>Probability of following the hypergraph walk (default
 <code>0.85</code>); <code>1 - damping</code> is the teleport probability. Must be in
-<code>(0, 1]</code>; <code>damping = 1</code> gives the pure stationary distribution and
-requires a connected hypergraph to converge.</p></dd>
+<code>(0, 1]</code>; <code>damping = 1</code> gives the pure stationary distribution, which
+is unique only on a connected hypergraph: a disconnected one raises
+<code>hypergraphs_hypergraph_disconnected</code>.</p></dd>
 
 
 <dt id="arg-personalized">personalized<a class="anchor" aria-label="anchor" href="#arg-personalized"></a></dt>
 <dd><p>Optional restart preference: a character vector of
-vertex names (uniform teleport over exactly those vertices), or a
-named non-negative vector of teleport weights over (a subset of) the
-vertex names; unnamed vertices get teleport probability 0. <code>NULL</code>
+vertex names (uniform teleport over exactly those vertices; a name
+given twice counts once), or a named vector of finite non-negative
+teleport weights over (a subset of) the vertex names, each name at
+most once; unnamed vertices get teleport probability 0. <code>NULL</code>
 (default) teleports uniformly.</p></dd>
 
 
@@ -129,11 +131,13 @@ descending (ties broken by vertex name).</p></dd>
 
 
 <dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
-<dd><p>Return only the first <code>n</code> rows after sorting (default all).</p></dd>
+<dd><p>Return only the first <code>n</code> rows after sorting: a whole number
+of at least 1, or <code>Inf</code> (default) for all.</p></dd>
 
 
 <dt id="arg-max-iter-tol">max_iter, tol<a class="anchor" aria-label="anchor" href="#arg-max-iter-tol"></a></dt>
-<dd><p>Power-iteration cap and L1 convergence tolerance.</p></dd>
+<dd><p>Power-iteration cap (a whole number of at least 1) and L1
+convergence tolerance (a positive number).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -156,9 +160,11 @@ with uniform teleportation it equals
     </div>
     <div class="section level2">
     <h2 id="conditions">Conditions<a class="anchor" aria-label="anchor" href="#conditions"></a></h2>
-    <p>Raises <code>hypergraphs_bad_input</code> for broken contracts and
-warns with <code>hypergraphs_no_converge</code> (returning the last iterate) when
-<code>max_iter</code> is reached before <code>tol</code>.</p>
+    <p>Raises <code>hypergraphs_bad_input</code> for broken contracts
+(including a non-finite, duplicated or unknown <code>personalized</code> entry),
+<code>hypergraphs_hypergraph_disconnected</code> for <code>damping = 1</code> on a
+disconnected hypergraph, and warns with <code>hypergraphs_no_converge</code>
+(returning the last iterate) when <code>max_iter</code> is reached before <code>tol</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

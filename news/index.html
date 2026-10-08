@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,103 @@
       <small>Source: <a href="https://github.com/mohsaqr/hypergraphs/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.1" id="hypergraphs-071">hypergraphs 0.7.1<a class="anchor" aria-label="anchor" href="#hypergraphs-071"></a></h2>
+<p>Corrections from a function-by-function audit. Results change only where they were wrong; valid input that was handled correctly gives identical output.</p>
+<div class="section level3">
+<h3 id="speed-0-7-1">Speed<a class="anchor" aria-label="anchor" href="#speed-0-7-1"></a></h3>
+<ul><li>
+<code><a href="../reference/hg_communities.html">hg_communities()</a></code> is faster with identical results. IRMM builds each reweighting pass’s clique reduction as a sparse matrix (about 3 times faster on <code>icsid_tribunals</code>), and the AMI between runs computes the expected mutual information in one vectorised pass. New <code>parallel</code> and <code>n_cores</code> arguments run the independent seeded runs with <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code> (not on Windows); the fit is identical to the serial one. On <code>icsid_tribunals</code> (441 arbitrators, 742 cases), 8 cores: Infomap 34 s to 11 s, IRMM 27 s to 3 s.</li>
+<li>
+<code><a href="../reference/hg_mmsbm.html">hg_mmsbm()</a></code> gains <code>parallel</code> and <code>n_cores</code>: every start’s initial values are drawn first, in order, from one stream, then the EM fits run with <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code>. Fits and the caller’s random stream are identical to the serial run. <code><a href="../reference/hg_topics.html">hg_topics()</a></code> runs its parallel starts through the same helper, so a failed worker raises <code>hypergraphs_parallel_failed</code> instead of returning an error object as a start.</li>
+<li>
+<code><a href="../reference/hg_topics.html">hg_topics()</a></code> and <code><a href="../reference/hg_topic_search.html">hg_topic_search()</a></code> no longer exhaust memory on a large corpus. The expected counts are gathered in blocks of about 80 MB (identical values); a 6,630-document, 91,755-word corpus at <code>k = 52</code> allocated about 8 GB per step before. Topic quality keeps the document x word presence sparse and densifies only the top words (it was a dense 4.9 GB matrix on that corpus), and matching topics across starts is computed for all pairs at once (0.53 s to 0.005 s per comparison at <code>k = 52</code>, identical values).</li>
+<li>
+<code>hg_cluster(algorithm = "symnmf")</code> and <code>hg_embed(method = "symnmf")</code> run on a sparse hypergraph instead of refusing it with <code>hypergraphs_dense_required</code>: the dense similarity is built from the sparse Laplacian (up to 15,000 nodes; beyond that <code>hypergraphs_sparse_too_large</code>). On the corpus above, SymNMF graded memberships for <code>k = 16</code> take about a minute per start.</li>
+<li>
+<code><a href="../reference/hg_topics.html">hg_topics()</a></code> computes its expected counts in C (the package’s first compiled code), with values identical to the R expression it replaces: one step on the 6,630-document corpus at <code>k = 52</code> takes 0.78 s instead of 1.55 s.</li>
+<li>
+<code>hg_cluster(algorithm = "symnmf")</code> gains <code>parallel</code> and <code>n_cores</code>: every start’s initial factor is drawn first, so parallel starts give the serial result.</li>
+<li>k-means in <code><a href="../reference/hg_cluster.html">hg_cluster()</a></code> (spectral) and <code><a href="../reference/hg_cocluster.html">hg_cocluster()</a></code> finishes a Hartigan-Wong start that stopped early (“Quick-TRANSfer stage steps exceeded” or the iteration limit) from the centres it reached, instead of comparing it unfinished and warning; when every start finishes the result is identical to <code><a href="https://rdrr.io/r/stats/kmeans.html" class="external-link">stats::kmeans()</a></code>.</li>
+<li>
+<code><a href="../reference/text_hypergraph.html">text_hypergraph()</a></code> keeps a data column named <code>doc</code>, <code>n_tokens</code> or <code>n_types</code> as metadata <code>input_doc</code>, <code>input_n_tokens</code>, <code>input_n_types</code>, with a <code>hypergraphs_renamed_column</code> warning, instead of refusing the table.</li>
+<li>Parallel runs on macOS: a forked worker the system kills (Apple’s Accelerate BLAS is not fork-safe) is rerun serially with a <code>hypergraphs_parallel_fallback</code> warning, and the result is unchanged.</li>
+<li>
+<code><a href="../reference/hg_mmsbm.html">hg_mmsbm()</a></code> explains a collapsed membership: the rate of a hyperedge sums over its node pairs, so in hyperedges of three or more nodes the other members can explain it and a node’s activity goes to zero. The warning and the documentation say so, and point to <code><a href="../reference/hg_topics.html">hg_topics()</a></code> for document mixtures, instead of suggesting more starts.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="package-0-7-1">Package<a class="anchor" aria-label="anchor" href="#package-0-7-1"></a></h3>
+<ul><li>The package ships one vignette, <code><a href="../articles/hypergraphs.html">vignette("hypergraphs")</a></code>. The text hypergraph guide, the COVID-19 topic walkthroughs, the text constructions and the document classification guide are articles on the package website, which keeps the source package small and its check short; the saved classification results moved with their article. <code><a href="../reference/hg_hypergat.html">hg_hypergat()</a></code>, <code><a href="../reference/hg_neural.html">hg_neural()</a></code> and the classification reader have runnable examples on the bundled <code>forum_posts</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="construction-and-temporal-hypergraphs-0-7-1">Construction and temporal hypergraphs<a class="anchor" aria-label="anchor" href="#construction-and-temporal-hypergraphs-0-7-1"></a></h3>
+<ul><li>Hyperedges are identified by their members. Two actor/session pairs whose pasted labels coincide (<code>a.b</code> + <code>c</code>, <code>a</code> + <code>b.c</code>), a node named <code>a + b</code> beside the pair <code>{a, b}</code>, and two sequences sharing a list name were merged into one hyperedge. Sequence lists now need unique, non-empty names, and missing actor or session identifiers raise <code>hypergraphs_bad_input</code>.</li>
+<li>Metadata columns named like a structural column (<code>edge</code>, <code>node</code>, <code>start</code>, <code>weight</code>, …) no longer replace the selected structure; they are kept under a suffixed name. Edge attributes with missing values take the first non-missing value of the edge whatever the row order.</li>
+<li>Membership weights must be finite, non-negative numbers; negative, infinite, factor and character weights raise <code>hypergraphs_bad_input</code>.</li>
+<li>
+<code><a href="../reference/network_hypergraph.html">network_hypergraph()</a></code> reorders a matrix whose column names are a permutation of its row names, and refuses differing, duplicated or missing labels. Column labels were previously overwritten, which moved edges.</li>
+<li>
+<code><a href="../reference/temporal_hypergraph.html">temporal_hypergraph()</a></code> refuses clocks that fail to parse, infinite clocks and per-membership intervals that end before they start. ISO 8601 offsets (<code>Z</code>, <code>+0200</code>, <code>+02:00</code>) and fractional seconds are honoured, and trailing text is an error (<code>hypergraphs_unparsed_time</code>). An all-missing <code>end</code> column means every membership is open. Open and closed memberships of one hyperedge are filtered by their own spells, so snapshots no longer depend on row order.</li>
+<li>
+<code><a href="../reference/hg_growth.html">hg_growth()</a></code> and <code><a href="../reference/hg_snapshot.html">hg_snapshot()</a></code> share one window boundary, the temporal <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> counts distinct members, and <code><a href="../reference/hg_edges.html">hg_edges()</a></code> and the readers of an empty snapshot return typed zero-row tables.</li>
+<li>The canonical <code>node</code> and <code>hyperedge</code> columns are detected without being named. <code><a href="../reference/knn_hypergraph.html">knn_hypergraph()</a></code> requires a whole <code>k</code> and finite embeddings.</li>
+<li>
+<code><a href="../reference/dual_hypergraph.html">dual_hypergraph()</a></code> is the transpose of the full incidence, isolated vertices and empty hyperedges included, and a sparse dual is a complete <code>net_hg</code>. <code><a href="../reference/hg_subset.html">hg_subset()</a></code> keeps planted SBM blocks aligned with the kept nodes. <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code><a href="../reference/hg_laplacian.html">hg_laplacian()</a></code> accept sparse hypergraphs.</li>
+<li>
+<code>plot(pieces = "row")</code> places isolated nodes.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="measures-random-models-and-null-tests-0-7-1">Measures, random models and null tests<a class="anchor" aria-label="anchor" href="#measures-random-models-and-null-tests-0-7-1"></a></h3>
+<ul><li>Sparse <code><a href="../reference/hg_measures.html">hg_measures()</a></code> equals the dense result (pairwise participation, isolate edge sizes, uniform density). <code>hg_null_test(statistic = "density")</code> uses the same density as <code><a href="../reference/hg_measures.html">hg_measures()</a></code>.</li>
+<li>
+<code>random_hypergraph(type = "sbm")</code> and the configuration null drew from <code>1:x</code> when a candidate pool held one node, producing wrong edge sizes and invented memberships. Draws from larger pools are unchanged.</li>
+<li>
+<code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> requires a whole <code>n</code>, and a statistic undefined on the input (<code>avg_jaccard</code> with fewer than two hyperedges) is <code>NA</code> with a <code>hypergraphs_undefined_statistic</code> warning.</li>
+<li>Clique eigenvector centrality is the Perron vector of each connected component; power iteration oscillated on bipartite clique expansions. Z- and H-eigenvector iterations that reach <code>max_iter</code> warn with <code>hypergraphs_no_converge</code>. Subhypergraph centrality is computed per node in log space, so isolated nodes are 0 rather than <code>-Inf</code>. A hypergraph of singleton hyperedges has zero clique, Z and H centrality.</li>
+<li>Empty hyperedges contribute nothing to Laplacians, random walks and PageRank (they produced NaN). <code><a href="../reference/hg_pagerank.html">hg_pagerank()</a></code> refuses non-finite or conflicting <code>personalized</code> weights and, at <code>damping = 1</code>, disconnected input (<code>hypergraphs_hypergraph_disconnected</code>).</li>
+<li>Assortativity is computed on centred scores, so near-regular hypergraphs of high degree are no longer reported as undefined.</li>
+<li>
+<code><a href="../reference/hg_compare_communities.html">hg_compare_communities()</a></code> reports <code>NA</code> agreement for fits sharing fewer than two nodes and scores each medoid on the projection its fit saved. Directed citation fits have an <code>NA</code> quality row. <code>edge_source</code> is deprecated there. Duplicated node or source assignments raise <code>hypergraphs_bad_input</code> in every partition reader.</li>
+<li>
+<code><a href="../reference/hg_mmsbm.html">hg_mmsbm()</a></code> does not declare convergence while memberships collapse.</li>
+<li>The cluster plot supports more than nine clusters (Okabe-Ito colours recycle with distinct shapes), and the agreement heatmap shows negative AMI and ARI on a diverging scale.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="memory-networks-and-simplicial-complexes-0-7-1">Memory networks and simplicial complexes<a class="anchor" aria-label="anchor" href="#memory-networks-and-simplicial-complexes-0-7-1"></a></h3>
+<ul><li>Missing actions split a trajectory into contiguous runs. No transition crosses a gap and no state <code>NA</code> is created; <code><a href="../reference/hon.html">hon()</a></code>, <code><a href="../reference/mogen.html">mogen()</a></code>, <code><a href="../reference/markov_order.html">markov_order()</a></code> and <code><a href="../reference/hypa.html">hypa()</a></code> accept sequences with gaps, and <code><a href="../reference/hg_bootstrap.html">hg_bootstrap()</a></code> resamples whole trajectories. A real state spelled <code>"NA"</code> is kept.</li>
+<li>State labels containing <code>-&gt;</code> or the internal separators raise <code>hypergraphs_bad_input</code>, since higher-order node names are built from them.</li>
+<li>
+<code><a href="../reference/hg_compare.html">hg_compare()</a></code> averages over the rules whose context both groups observe and reports their number; with none the statistic and p-value are <code>NA</code> (<code>hypergraphs_undefined_statistic</code>). The global statistic of partially overlapping groups changes accordingly.</li>
+<li>Window persistence (<code><a href="../reference/hg_homology.html">hg_homology()</a></code> on <code>simplicial(type = "window")</code>) keeps essential classes essential, and every Betti row comes from the same Z/2 intervals. <code><a href="../reference/hg_wasserstein.html">hg_wasserstein()</a></code> treats a finite death at 0 as finite outside clique mode and computes large orders without overflow.</li>
+<li>
+<code>simplicial(validate = TRUE)</code> refuses an automatic shuffle count above 100,000 and asks for an explicit <code>n_null</code>.</li>
+<li>
+<code><a href="../reference/hg_bootstrap.html">hg_bootstrap()</a></code> with no rule above <code>min_freq</code> raises <code>hypergraphs_empty_result</code>. HONEM variance and Infomap savings are 0 on zero spectra and zero code lengths.</li>
+<li>
+<code><a href="../reference/memory.html">?memory</a></code> states that <code>order</code> is the number of conditioning states; <code><a href="../reference/hg_betti.html">?hg_betti</a></code> states that Betti numbers are computed over the rationals and differ from <code><a href="../reference/hg_homology.html">hg_homology()</a></code> on torsion.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="text-hypergraphs-and-neural-classifiers-0-7-1">Text hypergraphs and neural classifiers<a class="anchor" aria-label="anchor" href="#text-hypergraphs-and-neural-classifiers-0-7-1"></a></h3>
+<ul><li>
+<code><a href="../reference/clean_text.html">clean_text()</a></code> keeps alphanumeric tokens (<code>covid19</code>, <code>p53</code>, <code>covid-19</code>) intact and replaces invalid numeric entities with U+FFFD.</li>
+<li>
+<code><a href="../reference/hg_keywords.html">hg_keywords()</a></code> and <code><a href="../reference/hg_topic_quality.html">hg_topic_quality()</a></code> handle clusters without eligible words and one-word vocabularies; external keyword scores count distinct documents.</li>
+<li>
+<code><a href="../reference/text_hypergraph.html">text_hypergraph()</a></code> refuses metadata columns named <code>doc</code>, <code>n_tokens</code> or <code>n_types</code>.</li>
+<li>
+<code><a href="../reference/hg_cocluster.html">hg_cocluster()</a></code> checks <code>k</code> against the singular vectors available. <code><a href="../reference/topic_network.html">topic_network()</a></code> keeps isolated topics and treats constant topics as isolates (<code>hypergraphs_constant_topics</code>).</li>
+<li>A topic model is checked against the documents, words and counts it was fitted on (<code>net_hg_topics</code> gains <code>$corpus</code>). KL-NMF ignores explicit sparse zeros. <code><a href="../reference/hg_membership.html">hg_membership()</a></code> sums to one at coincident centres. <code><a href="../reference/hg_topic_sizes.html">hg_topic_sizes()</a></code> refuses negative weights.</li>
+<li>Label inputs of every classifier and topic reader refuse conflicting duplicates; an <code>NA</code> label marks a node as unlabelled. Embedding and feature row names must be unique.</li>
+<li>
+<code>hg_hypergat(min_count =)</code> counts token occurrences, as documented, rather than sentences.</li>
+<li>
+<code><a href="../reference/hg_neural.html">hg_neural()</a></code> restores an absent random seed, HNHN operators are normalised in log space, and the confusion table keeps a class named <code>(unscored)</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="arguments-0-7-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-0-7-1"></a></h3>
+<ul><li>Counts (<code>n</code>, <code>k</code>, <code>nstart</code>, <code>max_iter</code>, <code>n_boot</code>, <code>n_perm</code>, <code>top</code>, <code>dimension</code>, …) must be whole numbers in range; fractions, <code>-Inf</code> and values beyond the integer range raise <code>hypergraphs_bad_input</code> instead of being truncated.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.10" id="hypergraphs-0610">hypergraphs 0.6.10<a class="anchor" aria-label="anchor" href="#hypergraphs-0610"></a></h2>
 <ul><li>The result classes of the memory family drop the <code>hon</code> prefix left over from the package’s former name: <code>net_hon_boot</code> is now <code>hypergraphs_bootstrap</code>, <code>net_hon_boot_group</code> <code>hypergraphs_bootstrap_group</code>, <code>net_hon_compare</code> <code>hypergraphs_comparison</code>, <code>net_hon_communities</code> <code>hypergraphs_memory_communities</code> and <code>net_hon_group</code> <code>hypergraphs_memory_group</code>. Code that tests these classes with <code><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits()</a></code> needs the new names. <code><a href="../reference/hon.html">hon()</a></code> and <code><a href="../reference/honem.html">honem()</a></code> keep their names (the published BuildHON and HONEM methods), and <code>net_hon</code> remains the Nestimate class that <code><a href="../reference/hon.html">hon()</a></code> returns. Printed headers read “Memory-network bootstrap” and “Memory-network comparison”.</li>

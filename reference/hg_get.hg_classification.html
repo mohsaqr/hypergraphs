@@ -15,7 +15,7 @@ diagnostic attention of the trained network, computed on request."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -198,14 +198,35 @@ less: Hypergraph attention networks for inductive text classification.
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="co"># articles contains text and existing subject labels.</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_hypergat.html">hg_hypergat</a></span><span class="op">(</span><span class="va">articles</span>, column <span class="op">=</span> <span class="st">"text"</span>, labels <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
-<span class="r-in"><span>                   holdout <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">forum_posts</span>, <span class="fl">60</span><span class="op">)</span>, column <span class="op">=</span> <span class="st">"text"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_classify.html">hg_classify</a></span><span class="op">(</span><span class="va">hg</span>, labels <span class="op">=</span> <span class="st">"topic"</span>, holdout <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Classification (hg_classify): 60 documents, 15 held out (25% of the labelled)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Held-out accuracy 0.933, balanced accuracy 0.917 (chance 0.333)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      class n_test correct recall precision</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  astronomy      6       6   1.00 0.8571429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    cooking      4       3   0.75 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  gardening      5       5   1.00 1.0000000</span>
 <span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"classes"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"documents"</span>, split <span class="op">=</span> <span class="st">"test"</span>, correct <span class="op">=</span> <span class="cn">FALSE</span>, top <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       class n_test correct recall precision</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 astronomy      6       6   1.00 0.8571429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   cooking      4       3   0.75 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 gardening      5       5   1.00 1.0000000</span>
+<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"confusion"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       label predicted n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 astronomy astronomy 6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   cooking astronomy 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 gardening astronomy 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 astronomy   cooking 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   cooking   cooking 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 gardening   cooking 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7 astronomy gardening 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8   cooking gardening 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9 gardening gardening 5</span>
+<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"test"</span>, correct <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    node   label predicted     score      margin split correct</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 doc_3 cooking astronomy 0.2279617 0.001093425  test   FALSE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

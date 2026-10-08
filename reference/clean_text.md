@@ -45,7 +45,10 @@ clean_text(
 - html:
 
   Decode HTML entities (`&amp;`, `&nbsp;`, `&#8217;`, ...) and strip
-  tags (default `TRUE`).
+  tags (default `TRUE`). A numeric entity that names no character (zero,
+  a UTF-16 surrogate in U+D800-U+DFFF, or a value above U+10FFFF)
+  becomes the replacement character U+FFFD, as the HTML standard decodes
+  it.
 
 - encoding:
 
@@ -92,9 +95,11 @@ clean_text(
 
 - numbers:
 
-  Remove bare numbers, percentages and years (default `TRUE`). Numbers
-  never enter a text hypergraph's vocabulary anyway (the tokeniser keeps
-  alphabetic tokens), so this matters for display and for `min_content`.
+  Remove bare numbers, percentages and years (default `TRUE`); a number
+  joined to letters, such as `covid19`, `p53` or `covid-19`, is a word
+  and is kept whole. Numbers never enter a text hypergraph's vocabulary
+  anyway (the tokeniser keeps alphabetic tokens), so this matters for
+  display and for `min_content`.
 
 - remove:
 

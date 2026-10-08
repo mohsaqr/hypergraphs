@@ -6,7 +6,8 @@ edge_weights), each topic's centre is the mean position of its
 documents, and the membership of a document in a topic is the fuzzy
 c-means weight with fuzziness 2: the inverse squared distance to that
 centre, normalised over the topics. A document at a centre has
-membership 1 there; a document halfway between two centres has 0.5 in
+membership 1 there (shared equally when several centres coincide); a
+document halfway between two centres has 0.5 in
 each. The values sum to one over the topics, so their level depends on
 the number of topics k: the uniform value is 1 / k, and with many
 topics even a clearly assigned document has a modest membership. Read
@@ -19,7 +20,8 @@ edge_weights), each topic's centre is the mean position of its
 documents, and the membership of a document in a topic is the fuzzy
 c-means weight with fuzziness 2: the inverse squared distance to that
 centre, normalised over the topics. A document at a centre has
-membership 1 there; a document halfway between two centres has 0.5 in
+membership 1 there (shared equally when several centres coincide); a
+document halfway between two centres has 0.5 in
 each. The values sum to one over the topics, so their level depends on
 the number of topics k: the uniform value is 1 / k, and with many
 topics even a clearly assigned document has a modest membership. Read
@@ -33,7 +35,7 @@ belonging."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,7 +84,8 @@ hypergraph Laplacian that <code><a href="hg_cluster.html">hg_cluster()</a></code
 documents, and the membership of a document in a topic is the fuzzy
 c-means weight with fuzziness 2: the inverse squared distance to that
 centre, normalised over the topics. A document at a centre has
-membership 1 there; a document halfway between two centres has 0.5 in
+membership 1 there (shared equally when several centres coincide); a
+document halfway between two centres has 0.5 in
 each. The values sum to one over the topics, so their level depends on
 the number of topics <code>k</code>: the uniform value is <code>1 / k</code>, and with many
 topics even a clearly assigned document has a modest membership. Read

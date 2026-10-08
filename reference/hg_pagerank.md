@@ -38,15 +38,17 @@ hg_pagerank(
 
   Probability of following the hypergraph walk (default `0.85`);
   `1 - damping` is the teleport probability. Must be in `(0, 1]`;
-  `damping = 1` gives the pure stationary distribution and requires a
-  connected hypergraph to converge.
+  `damping = 1` gives the pure stationary distribution, which is unique
+  only on a connected hypergraph: a disconnected one raises
+  `hypergraphs_hypergraph_disconnected`.
 
 - personalized:
 
   Optional restart preference: a character vector of vertex names
-  (uniform teleport over exactly those vertices), or a named
-  non-negative vector of teleport weights over (a subset of) the vertex
-  names; unnamed vertices get teleport probability 0. `NULL` (default)
+  (uniform teleport over exactly those vertices; a name given twice
+  counts once), or a named vector of finite non-negative teleport
+  weights over (a subset of) the vertex names, each name at most once;
+  unnamed vertices get teleport probability 0. `NULL` (default)
   teleports uniformly.
 
 - edge_weights:
@@ -64,11 +66,13 @@ hg_pagerank(
 
 - n:
 
-  Return only the first `n` rows after sorting (default all).
+  Return only the first `n` rows after sorting: a whole number of at
+  least 1, or `Inf` (default) for all.
 
 - max_iter, tol:
 
-  Power-iteration cap and L1 convergence tolerance.
+  Power-iteration cap (a whole number of at least 1) and L1 convergence
+  tolerance (a positive number).
 
 ## Value
 
@@ -92,9 +96,11 @@ and with uniform teleportation it equals
 
 ## Conditions
 
-Raises `hypergraphs_bad_input` for broken contracts and warns with
-`hypergraphs_no_converge` (returning the last iterate) when `max_iter`
-is reached before `tol`.
+Raises `hypergraphs_bad_input` for broken contracts (including a
+non-finite, duplicated or unknown `personalized` entry),
+`hypergraphs_hypergraph_disconnected` for `damping = 1` on a
+disconnected hypergraph, and warns with `hypergraphs_no_converge`
+(returning the last iterate) when `max_iter` is reached before `tol`.
 
 ## References
 

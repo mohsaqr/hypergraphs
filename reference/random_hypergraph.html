@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -153,8 +153,10 @@ chosen type does not take is an error.</p>
     <h2 id="conditions">Conditions<a class="anchor" aria-label="anchor" href="#conditions"></a></h2>
 
 
-<p><code>hypergraphs_bad_input</code> for an argument the chosen type does not take, or
-an argument given without a name.</p>
+<p><code>hypergraphs_bad_input</code> for an argument the chosen type does not take, an
+argument given without a name, or a count (<code>n</code>, <code>m</code>, <code>k</code>, <code>impurity</code>,
+<code>seed</code>) that is not one whole number in range – fractions, <code>NA</code>, <code>Inf</code>
+and values beyond the integer range are refused, never truncated.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

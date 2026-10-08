@@ -193,14 +193,18 @@ A `simplicial_complex` object. Read it with
 one row per simplex (`what = "simplices"`, the default), the face counts
 (`"f_vector"`), the per-node simplicial degree (`"degree"`) or, for a
 validated window complex, one row per tested set of actions
-(`"validation"`), and the Betti numbers (`"betti"`).
+(`"validation"`), and the Betti numbers (`"betti"`, with rational
+coefficients as in
+[`hg_betti()`](https://mohsaqr.github.io/hypergraphs/reference/hg_betti.md)).
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 maximal simplices, those no larger simplex contains, as regions around
 their nodes
 ([`cograph::plot_simplicial()`](https://sonsoles.me/cograph/reference/plot_simplicial.html);
-its arguments pass through `...`): the most significant first for a
+its arguments pass through `...`): the largest simplices first and,
+among simplices of one size, the largest validation z-score first for a
 validated window complex, the most frequent first for a window complex,
-the closest first for a Vietoris-Rips complex. With `type = "summary"`,
+the closest first for a Vietoris-Rips complex, and by node names
+otherwise. With `type = "summary"`,
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 summary of the complex instead: the face counts by dimension, the Betti
 numbers, the simplicial degree of each node and its degree by dimension.

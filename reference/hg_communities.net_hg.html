@@ -13,7 +13,7 @@ paper uses 50 seeds and 100 Infomap trials per seed, which are the defaults."></
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,6 +78,8 @@ paper uses 50 seeds and 100 Infomap trials per seed, which are the defaults.</p>
 <span>  delta <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">50L</span>,</span>
 <span>  edge_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  parallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  n_cores <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -152,6 +154,17 @@ table and raises one <code>hypergraphs_no_converge</code> warning.</p></dd>
 <dd><p>For <code>type = "irmm"</code>: initial positive hyperedge
 weights (one per hyperedge, or one value recycled). <code>NULL</code> uses the
 window counts of a <code><a href="window_hypergraph.html">window_hypergraph()</a></code>, else unit weights.</p></dd>
+
+
+<dt id="arg-parallel">parallel<a class="anchor" aria-label="anchor" href="#arg-parallel"></a></dt>
+<dd><p>Logical. Run the <code>n_runs</code> independent runs with
+<code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply</a></code> (not on Windows, where they run serially).
+Default <code>FALSE</code>. Every run is seeded by its own entry of <code>seeds</code>, so
+the result is identical to the serial one.</p></dd>
+
+
+<dt id="arg-n-cores">n_cores<a class="anchor" aria-label="anchor" href="#arg-n-cores"></a></dt>
+<dd><p>Integer. Cores when <code>parallel = TRUE</code> (default 2).</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

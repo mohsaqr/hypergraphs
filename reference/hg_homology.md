@@ -28,7 +28,10 @@ hg_homology(x, n_steps = 20L, max_dim = 3L, type = "clique", max_scale = NULL)
   faces, so a class is born at the count where it appears and dies at a
   lower count; `birth`, `death` and the Betti-curve `threshold` are
   counts, and `n_steps` is not used (every observed count is a
-  threshold).
+  threshold). A class that never dies (essential) has `death = 0` and
+  `persistence = birth`, as in clique mode, and every row of the Betti
+  curve, the last included, counts the Z/2 classes alive at that count
+  in the complex truncated at `max_dim`.
 
 - n_steps:
 

@@ -1,7 +1,8 @@
 # Betti numbers of a simplicial complex
 
-The ranks of the homology groups over Z/2: \\\beta_0\\ counts connected
-components, \\\beta_1\\ independent loops, \\\beta_2\\ voids, and so on.
+The ranks of the homology groups with rational coefficients: \\\beta_0\\
+counts connected components, \\\beta_1\\ independent loops, \\\beta_2\\
+voids, and so on.
 
 ## Usage
 
@@ -19,6 +20,17 @@ hg_betti(sc)
 ## Value
 
 A named integer vector `c(b0 = , b1 = , ...)`.
+
+## Details
+
+The coefficients are rational, not Z/2. The two agree on most complexes
+but not on one with torsion: on the six-vertex real projective plane
+(RP2) `hg_betti()` gives `(1, 0, 0)`, while
+[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md),
+which reduces over Z/2 as the persistence literature does, ends its
+Betti curve at `(1, 1, 1)`. Use
+[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+when Z/2 Betti numbers are meant.
 
 ## References
 

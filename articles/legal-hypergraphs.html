@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -192,7 +192,7 @@ matrix.</p>
 <span><span class="co">#&gt;   n_nodes n_hyperedges n_event_times first_time last_time n_memberships</span></span>
 <span><span class="co">#&gt; 1    3618        46257          2026          0     25762         77284</span></span>
 <span><span class="co">#&gt;   mean_edge_size median_edge_size mean_duration  format time_unit</span></span>
-<span><span class="co">#&gt; 1       1.670753                1            NA contact      days</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       1.670644                1            NA contact      days</span></span></code></pre></div>
 <p>The median block cites 1 decision and the mean block 1.67. These two
 summaries are Table 1 of Coupette, Hartung and Katz (2024).</p>
 </div>
@@ -730,14 +730,19 @@ the binary representations with
 <span>                                  seeds <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, self_association <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                  edge_source <span class="op">=</span> <span class="st">"citing"</span><span class="op">)</span></span></code></pre></div>
 <p>The eight partitions are set side by side. With <code>hg</code>, each
-medoid is also scored on the graph it was computed on.</p>
+medoid is also scored on the graph it was computed on. The quality
+measures are defined on undirected graphs, so the two directed citation
+fits (<code>bg</code>, <code>mg</code>) get no score and the comparison
+warns about them.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_compare_communities.html">hg_compare_communities</a></span><span class="op">(</span></span>
 <span>  bg <span class="op">=</span> <span class="va">communities_bg</span>, bgu <span class="op">=</span> <span class="va">communities_bgu</span>, mg <span class="op">=</span> <span class="va">communities_mg</span>,</span>
 <span>  mgu <span class="op">=</span> <span class="va">communities_mgu</span>, bh <span class="op">=</span> <span class="va">communities_bh</span>, bhs <span class="op">=</span> <span class="va">communities_bhs</span>,</span>
 <span>  mh <span class="op">=</span> <span class="va">communities_mh</span>, mhs <span class="op">=</span> <span class="va">communities_mhs</span>,</span>
-<span>  hg <span class="op">=</span> <span class="va">backward_all</span>, edge_source <span class="op">=</span> <span class="st">"citing"</span></span>
+<span>  hg <span class="op">=</span> <span class="va">backward_all</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: fit(s) `bg`, `mg` ran on a directed citation graph; the quality scores</span></span>
+<span><span class="co">#&gt; are defined on undirected projections, so their quality row is NA.</span></span>
 <span><span class="va">comparison</span></span>
 <span><span class="co">#&gt; Community comparison across 8 representations: bg, bgu, mg, mgu, bh, bhs, mh, mhs</span></span>
 <span><span class="co">#&gt;  model medoid_seed n_runs n_communities n_singletons n_nontrivial largest_size</span></span>
@@ -790,18 +795,18 @@ of a community.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">comparison</span>, what <span class="op">=</span> <span class="st">"quality"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   model  coverage weighted_coverage performance modularity conductance</span></span>
-<span><span class="co">#&gt; 1    bg 0.3889722         0.3889722   0.9805861  0.3523059   1.0000000</span></span>
+<span><span class="co">#&gt; 1    bg        NA                NA          NA         NA          NA</span></span>
 <span><span class="co">#&gt; 2   bgu 0.4713374         0.4713374   0.9725865  0.4197613   0.8881988</span></span>
-<span><span class="co">#&gt; 3    mg 0.3087170         0.4933214   0.9882521  0.4716520   1.0000000</span></span>
+<span><span class="co">#&gt; 3    mg        NA                NA          NA         NA          NA</span></span>
 <span><span class="co">#&gt; 4   mgu 0.3582378         0.5497558   0.9874580  0.5251639   0.8372881</span></span>
 <span><span class="co">#&gt; 5    bh 0.4344190         0.5914135   0.9924775  0.5680416   0.7711864</span></span>
 <span><span class="co">#&gt; 6   bhs 0.3167942         0.5720922   0.9879647  0.5521826   0.8374632</span></span>
 <span><span class="co">#&gt; 7    mh 0.3769212         0.6147573   0.9937396  0.5950959   0.8333333</span></span>
 <span><span class="co">#&gt; 8   mhs 0.2904028         0.6090068   0.9887366  0.5882855   0.8590284</span></span>
 <span><span class="co">#&gt;   n_communities</span></span>
-<span><span class="co">#&gt; 1           362</span></span>
+<span><span class="co">#&gt; 1            NA</span></span>
 <span><span class="co">#&gt; 2           330</span></span>
-<span><span class="co">#&gt; 3           416</span></span>
+<span><span class="co">#&gt; 3            NA</span></span>
 <span><span class="co">#&gt; 4           404</span></span>
 <span><span class="co">#&gt; 5           874</span></span>
 <span><span class="co">#&gt; 6           421</span></span>
@@ -809,8 +814,8 @@ of a community.</p>
 <span><span class="co">#&gt; 8           450</span></span></code></pre></div>
 <p>The medoids of the hypergraph representations reach a graph
 modularity between 0.55 and 0.60 on their own graphs, and those of the
-citation graphs between 0.35 and 0.53. Each score is computed on a
-different graph, so the comparison describes how clearly each
+undirected citation graphs between 0.42 and 0.53. Each score is computed
+on a different graph, so the comparison describes how clearly each
 representation divides into communities and does not rank the partitions
 on a common scale.</p>
 </div>

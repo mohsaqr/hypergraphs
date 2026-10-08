@@ -32,7 +32,8 @@ hg_joint_cluster(
 
 - hg:
 
-  A connected `net_hg`.
+  A connected, dense `net_hg` (a sparse one raises
+  `hypergraphs_sparse_unsupported`: the factorization is dense).
 
 - relations:
 
@@ -67,7 +68,7 @@ hg_joint_cluster(
 
 - nstart:
 
-  Number of random initializations.
+  Number of random initializations, a whole number \>= 1.
 
 - seed:
 
@@ -75,11 +76,12 @@ hg_joint_cluster(
 
 - max_iter:
 
-  Maximum multiplicative-update iterations.
+  Maximum multiplicative-update iterations, a whole number \>= 1.
 
 - tol:
 
-  Relative objective tolerance.
+  Relative objective tolerance, a positive number. A count or tolerance
+  outside these ranges (including `Inf`) raises `hypergraphs_bad_input`.
 
 ## Value
 

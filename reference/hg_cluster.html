@@ -5,6 +5,10 @@ eigenvectors and applies k-means. algorithm = &quot;symnmf&quot; (RDC-Sym)
 computes a rank-k non-negative factorization T ~= U U' of the
 normalized similarity T = I - L, then assigns each vertex to the
 largest entry in its row of U, exactly as Algorithm 2 specifies.
+T is dense whatever the incidence, so on a sparse hypergraph it is
+built from the sparse Laplacian and factorised dense (8 n^2 bytes:
+350 MB for 6,630 documents); beyond 15,000 nodes this raises
+hypergraphs_sparse_too_large.
 With type = &quot;random_walk&quot; and a weighted
 incidence (e.g. from group_hypergraph() with weight =), the
 edge-dependent vertex weights genuinely change the partition - with
@@ -15,6 +19,10 @@ eigenvectors and applies k-means. algorithm = &quot;symnmf&quot; (RDC-Sym)
 computes a rank-k non-negative factorization T ~= U U' of the
 normalized similarity T = I - L, then assigns each vertex to the
 largest entry in its row of U, exactly as Algorithm 2 specifies.
+T is dense whatever the incidence, so on a sparse hypergraph it is
+built from the sparse Laplacian and factorised dense (8 n^2 bytes:
+350 MB for 6,630 documents); beyond 15,000 nodes this raises
+hypergraphs_sparse_too_large.
 With type = &quot;random_walk&quot; and a weighted
 incidence (e.g. from group_hypergraph() with weight =), the
 edge-dependent vertex weights genuinely change the partition - with
@@ -27,7 +35,7 @@ edge-independent weights the walk collapses to a graph random walk
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,6 +83,10 @@ eigenvectors and applies k-means. <code>algorithm = "symnmf"</code> (RDC-Sym)
 computes a rank-<code>k</code> non-negative factorization <code>T ~= U U'</code> of the
 normalized similarity <code>T = I - L</code>, then assigns each vertex to the
 largest entry in its row of <code>U</code>, exactly as Algorithm 2 specifies.
+<code>T</code> is dense whatever the incidence, so on a sparse hypergraph it is
+built from the sparse Laplacian and factorised dense (8 n^2 bytes:
+350 MB for 6,630 documents); beyond 15,000 nodes this raises
+<code>hypergraphs_sparse_too_large</code>.
 With <code>type = "random_walk"</code> and a weighted
 incidence (e.g. from <code><a href="group_hypergraph.html">group_hypergraph()</a></code> with <code>weight =</code>), the
 edge-dependent vertex weights genuinely change the partition - with
@@ -95,7 +107,9 @@ edge-independent weights the walk collapses to a graph random walk
 <span>  n <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  algorithm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spectral"</span>, <span class="st">"symnmf"</span><span class="op">)</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">500L</span>,</span>
-<span>  tol <span class="op">=</span> <span class="fl">1e-06</span></span>
+<span>  tol <span class="op">=</span> <span class="fl">1e-06</span>,</span>
+<span>  parallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  n_cores <span class="op">=</span> <span class="fl">2L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -170,6 +184,18 @@ groups the structure supports. Ignored for the other values of <code>what</code>
 
 <dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
 <dd><p>Relative objective tolerance for <code>algorithm = "symnmf"</code>.</p></dd>
+
+
+<dt id="arg-parallel">parallel<a class="anchor" aria-label="anchor" href="#arg-parallel"></a></dt>
+<dd><p>For <code>algorithm = "symnmf"</code>: run the <code>nstart</code> starts with
+<code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code> (not on Windows, where they run serially).
+Default <code>FALSE</code>. Every start's initial factor is drawn first, in order,
+so the result equals the serial one. Supplying it (or <code>n_cores</code>) with
+<code>algorithm = "spectral"</code> raises <code>hypergraphs_bad_input</code>.</p></dd>
+
+
+<dt id="arg-n-cores">n_cores<a class="anchor" aria-label="anchor" href="#arg-n-cores"></a></dt>
+<dd><p>Cores when <code>parallel = TRUE</code> (default 2).</p></dd>
 
 </dl></div>
     <div class="section level2">

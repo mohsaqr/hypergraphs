@@ -27,9 +27,14 @@ dual_hypergraph(hg)
 
 ## Value
 
-A hypergraph whose incidence is the transpose of `hg`'s: a
-`text_hypergraph` with flipped `nodes` for bag constructions, otherwise
-a `net_hg`. Accepted by all `hg_*` verbs.
+A hypergraph whose incidence is exactly the transpose of `hg`'s, sparse
+when `hg` is sparse, with every row and column kept: an isolated vertex
+of `hg` becomes an empty hyperedge of the dual and an empty hyperedge an
+isolated vertex, so the dual of the dual is `hg`'s incidence again. A
+`text_hypergraph` with flipped `nodes` for bag constructions (dense or
+sparse), otherwise a `net_hg`. Hyperedge metadata (`edge_data`, window
+counts) describes hyperedges that become vertices, so it is not carried
+over. Accepted by all `hg_*` verbs.
 
 ## References
 

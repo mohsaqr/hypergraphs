@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,7 +87,9 @@ applied after any filter and after <code>sort_by</code>, so <code>sort_by</code>
 node: <code>node</code> followed by one column per embedding dimension (<code>dim1</code>,
 <code>dim2</code>, ...). For <code>what = "variance"</code>, one row per dimension: <code>dimension</code>,
 <code>singular_value</code>, <code>proportion</code> (that dimension's share of the total
-squared singular value).</p>
+squared singular value; <code>0</code> for every dimension when all singular
+values are zero, as for a network without edges, whose embedding
+carries no variance).</p>
     </div>
 
     <div class="section level2">

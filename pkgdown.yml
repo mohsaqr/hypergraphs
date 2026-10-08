@@ -4,14 +4,14 @@ pkgdown_sha: ~
 articles:
   articles/argentina-tribunals: argentina-tribunals.html
   articles/benchmarks: benchmarks.html
-  covid-topics: covid-topics.html
-  hypergat-classification: hypergat-classification.html
+  articles/covid-topics: covid-topics.html
+  articles/hypergat-classification: hypergat-classification.html
   hypergraphs: hypergraphs.html
   articles/legal-hypergraphs: legal-hypergraphs.html
-  text-constructions: text-constructions.html
-  text-hypergraphs: text-hypergraphs.html
-  topic-mixtures: topic-mixtures.html
-last_built: 2026-10-06T15:52Z
+  articles/text-constructions: text-constructions.html
+  articles/text-hypergraphs: text-hypergraphs.html
+  articles/topic-mixtures: topic-mixtures.html
+last_built: 2026-10-08T10:05Z
 urls:
   reference: https://mohsaqr.github.io/hypergraphs/reference
   article: https://mohsaqr.github.io/hypergraphs/articles

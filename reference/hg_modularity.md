@@ -32,7 +32,9 @@ hg_modularity(
   (`community`, `cluster`, `label` or `predicted`), a named label
   vector, an unnamed vector in node order, or an
   [`hg_communities()`](https://mohsaqr.github.io/hypergraphs/reference/hg_communities.md)
-  fit (its AMI medoid is scored). Every node must be labelled.
+  fit (its AMI medoid is scored). Every node must be labelled, once: a
+  node listed twice with the same label counts once, with different
+  labels it raises `hypergraphs_bad_input`.
 
 - type:
 
@@ -61,8 +63,9 @@ For `what = "communities"`: one row per community with `community`,
 `n_nodes`, `volume` (summed weighted degree), `edge_contribution`,
 `degree_tax` and `modularity`, sorted by decreasing `modularity`. Raises
 `hypergraphs_bad_input` for a non-`net_hg` input, a partition that
-misses a node or has `NA` labels, or a hypergraph with no non-empty
-hyperedge; invalid `edge_weights` fail the shared weight check.
+misses a node, has `NA` labels or conflicting repeated nodes, or a
+hypergraph with no non-empty hyperedge; invalid `edge_weights` fail the
+shared weight check.
 
 ## Details
 

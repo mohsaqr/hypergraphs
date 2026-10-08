@@ -66,13 +66,16 @@ topic_network(
 For `what = "edges"`: a base `data.frame`, one row per pair of topics
 with a positive weight, columns `source`, `target`, `weight`, pairs in
 the topics' natural order. For `what = "network"`: a `cograph_network`
-with one node per topic (`label`, `name`, `size`) and one undirected
-weighted edge per pair; `size` is the number of documents of a cluster,
-the documents in which a topic is present, or (without `threshold`) a
-topic's expected number of documents. Raises `hypergraphs_bad_input` for
-unknown node names, for neither or both of `clusters` and `topics`, for
-a topic model not fitted on `hg`, for an invalid `threshold` or
-`cutoff`, and for a similarity measure on a correlation network.
+with one node per topic (`label`, `name`, `size`), a topic without any
+edge included, and one undirected weighted edge per pair; `size` is the
+number of documents of a cluster, the documents in which a topic is
+present, or (without `threshold`) a topic's expected number of
+documents. Raises `hypergraphs_bad_input` for unknown node names, for
+neither or both of `clusters` and `topics`, for a topic model not fitted
+on `hg`, for an invalid `threshold` or `cutoff`, and for a similarity
+measure on a correlation network. A topic whose share is the same in
+every document has no correlation with any other: it is kept without
+edges, with a `hypergraphs_constant_topics` warning.
 
 ## Details
 

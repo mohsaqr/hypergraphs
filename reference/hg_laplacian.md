@@ -25,8 +25,11 @@ hg_laplacian(hg, type = c("zhou", "random_walk"), edge_weights = NULL)
   A `net_hg` from
   [`network_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/network_hypergraph.md)
   or
-  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md).
-  Must be connected and have at least one hyperedge.
+  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md),
+  dense or sparse (`sparse = TRUE`). Must be connected and have at least
+  one hyperedge. Empty hyperedges (which
+  [`random_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/random_hypergraph.md)
+  can produce) contribute nothing.
 
 - type:
 
@@ -52,12 +55,18 @@ hg_laplacian(hg, type = c("zhou", "random_walk"), edge_weights = NULL)
 A symmetric `n_nodes` x `n_nodes` numeric matrix (node names as
 dimnames) with attributes `type` (the Laplacian type), `pi` (named
 stationary distribution of the underlying random walk) and
-`edge_weights` (the hyperedge weights actually used).
+`edge_weights` (the hyperedge weights, one per hyperedge; an empty
+hyperedge's default weight is 1 and unused). For a sparse hypergraph the
+matrix is a sparse symmetric `Matrix` (class `dsCMatrix`) with the same
+dimnames and attributes, and the random-walk stationary distribution is
+found by power iteration rather than a dense eigendecomposition. A
+disconnected hypergraph raises `hypergraphs_hypergraph_disconnected`.
 
 ## References
 
 Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 Clustering, classification, and embedding. *NeurIPS 19*.
+[doi:10.7551/mitpress/7503.003.0205](https://doi.org/10.7551/mitpress/7503.003.0205)
 
 Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
 random walks, Laplacians, and clustering. *CIKM 2020*, 495-504.

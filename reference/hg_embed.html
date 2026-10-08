@@ -11,7 +11,7 @@ assignments produced by hg_cluster()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,8 +81,9 @@ assignments produced by <code><a href="hg_cluster.html">hg_cluster()</a></code>.
 
 
 <dt id="arg-dimensions">dimensions<a class="anchor" aria-label="anchor" href="#arg-dimensions"></a></dt>
-<dd><p>Number of embedding coordinates, between 2 and
-<code>n_nodes - 1</code>.</p></dd>
+<dd><p>Number of embedding coordinates, one whole number
+between 2 and <code>n_nodes - 1</code>; anything else raises
+<code>hypergraphs_bad_input</code>.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -117,7 +118,7 @@ returned coordinates. For SymNMF it is the number of factor restarts.</p></dd>
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Zhou, D., Huang, J., &amp; Schölkopf, B. (2006). Learning with hypergraphs:
 clustering, classification, and embedding. <em>Advances in Neural
-Information Processing Systems 19</em>.</p>
+Information Processing Systems 19</em>. <a href="https://doi.org/10.7551/mitpress/7503.003.0205" class="external-link">doi:10.7551/mitpress/7503.003.0205</a></p>
 <p>Hayashi, K., Aksoy, S. G., Park, C. H., &amp; Park, H. (2020). Hypergraph
 random walks, Laplacians, and clustering. <em>Proceedings of the 29th ACM
 International Conference on Information and Knowledge Management</em>,

@@ -19,7 +19,9 @@ hg_wasserstein(d1, d2, dimension = NULL, order = 1, internal_p = Inf)
 
   `persistent_homology` objects from
   [`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md),
-  or data.frames with columns `dimension`, `birth`, `death`.
+  or data.frames with columns `dimension`, `birth`, `death` (finite
+  births; deaths finite or `Inf`). An invalid diagram raises
+  `hypergraphs_bad_input`.
 
 - dimension:
 
@@ -43,11 +45,18 @@ Named numeric vector, one value per requested dimension. Names are
 
 ## Details
 
-Finite points may match the diagonal. Essential classes (`death = Inf`
-in Vietoris–Rips mode or `death = 0` in clique mode) are matched only to
-essential classes. A dimension whose essential counts differ has
-distance `Inf`. The finite assignment is solved exactly with a native
-Hungarian algorithm, so no optional optimization package is required.
+Finite points may match the diagonal. Essential classes are matched only
+to essential classes, and a dimension whose essential counts differ has
+distance `Inf`. An
+[`hg_homology()`](https://mohsaqr.github.io/hypergraphs/reference/hg_homology.md)
+result marks its essential classes itself (`death = Inf` in
+Vietoris–Rips mode, `death = 0` in clique mode and for a window
+complex); in a data.frame an essential class is written with
+`death = Inf`, and `death = 0` is an ordinary finite death. The finite
+assignment is solved exactly with a native Hungarian algorithm, so no
+optional optimization package is required. Distances are computed on
+rescaled coordinates, so large orders and wide coordinate ranges do not
+overflow.
 
 ## References
 

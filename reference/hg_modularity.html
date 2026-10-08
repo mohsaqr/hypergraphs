@@ -19,7 +19,7 @@ and one weight per hyperedge count.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,7 +93,9 @@ and one weight per hyperedge count.</p>
 <dd><p>The partition to score: a data.frame with <code>node</code> and a
 label column (<code>community</code>, <code>cluster</code>, <code>label</code> or <code>predicted</code>), a named
 label vector, an unnamed vector in node order, or an <code><a href="hg_communities.html">hg_communities()</a></code>
-fit (its AMI medoid is scored). Every node must be labelled.</p></dd>
+fit (its AMI medoid is scored). Every node must be labelled, once: a
+node listed twice with the same label counts once, with different
+labels it raises <code>hypergraphs_bad_input</code>.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -122,7 +124,7 @@ For <code>what = "communities"</code>: one row per community with <code>communit
 <code>n_nodes</code>, <code>volume</code> (summed weighted degree), <code>edge_contribution</code>,
 <code>degree_tax</code> and <code>modularity</code>, sorted by decreasing <code>modularity</code>.
 Raises <code>hypergraphs_bad_input</code> for a non-<code>net_hg</code> input, a partition that
-misses a node or has <code>NA</code> labels, or a hypergraph with no non-empty
+misses a node, has <code>NA</code> labels or conflicting repeated nodes, or a hypergraph with no non-empty
 hyperedge; invalid <code>edge_weights</code> fail the shared weight check.</p>
     </div>
     <div class="section level2">

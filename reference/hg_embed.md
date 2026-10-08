@@ -28,7 +28,8 @@ hg_embed(
 
 - dimensions:
 
-  Number of embedding coordinates, between 2 and `n_nodes - 1`.
+  Number of embedding coordinates, one whole number between 2 and
+  `n_nodes - 1`; anything else raises `hypergraphs_bad_input`.
 
 - type:
 
@@ -63,6 +64,7 @@ A data frame with `node`, stationary mass `pi`, and `dim1` through
 Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
 clustering, classification, and embedding. *Advances in Neural
 Information Processing Systems 19*.
+[doi:10.7551/mitpress/7503.003.0205](https://doi.org/10.7551/mitpress/7503.003.0205)
 
 Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
 random walks, Laplacians, and clustering. *Proceedings of the 29th ACM

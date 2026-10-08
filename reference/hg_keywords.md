@@ -80,8 +80,10 @@ plot(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
 
 - scores:
 
-  An external score table (columns `node`, `word` and one numeric
-  column), summed per cluster and added as its own block.
+  An external score table (columns `node`, `word` and one numeric column
+  of finite values), summed per cluster and added as its own block.
+  Several rows for one document and word add their scores but count as
+  one document in `n_docs`.
 
 - collapse:
 
@@ -125,14 +127,17 @@ cluster's documents), `rank`, `word`, `score` (the selected score),
 `share` (`score` divided by the word's summed score over all clusters)
 and `n_docs` (the cluster's documents containing the word), ranked by
 `sort_by` within type and cluster; only words with a positive score and
-at least `min_docs` documents appear. With `collapse = TRUE`: one row
-per type and cluster, columns `type`, `cluster`, `size` and `words`. The
-print method shows the collapsed view, truncated to the console width;
-the returned table itself is the long form. Raises
-`hypergraphs_bad_input` for unknown node names, a `type` that needs the
-token layer on a hypergraph without one, a malformed `scores` table, or
-a bag-of-words `text_hypergraph(nodes = "word")`, whose hyperedges are
-documents rather than words.
+at least `min_docs` documents appear, so a cluster with no such word has
+no rows (and no row in the collapsed view), and a table in which no
+cluster has one has zero rows and the same columns. With
+`collapse = TRUE`: one row per type and cluster, columns `type`,
+`cluster`, `size` and `words`. The print method shows the collapsed
+view, truncated to the console width; the returned table itself is the
+long form. Raises `hypergraphs_bad_input` for unknown node names, a
+`type` that needs the token layer on a hypergraph without one, a
+malformed `scores` table, or a bag-of-words
+`text_hypergraph(nodes = "word")`, whose hyperedges are documents rather
+than words.
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) returns a
 ggplot: one panel per cluster (rows) and score type (columns), each with

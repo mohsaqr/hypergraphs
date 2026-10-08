@@ -17,7 +17,7 @@ then takes the \(q\)-th root. Point-to-point costs use an
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,7 +79,8 @@ then takes the \(q\)-th root. Point-to-point costs use an
 <dl><dt id="arg-d-d-">d1, d2<a class="anchor" aria-label="anchor" href="#arg-d-d-"></a></dt>
 <dd><p><code>persistent_homology</code> objects from
 <code><a href="hg_homology.html">hg_homology()</a></code>, or data.frames with columns
-<code>dimension</code>, <code>birth</code>, <code>death</code>.</p></dd>
+<code>dimension</code>, <code>birth</code>, <code>death</code> (finite births; deaths finite or <code>Inf</code>).
+An invalid diagram raises <code>hypergraphs_bad_input</code>.</p></dd>
 
 
 <dt id="arg-dimension">dimension<a class="anchor" aria-label="anchor" href="#arg-dimension"></a></dt>
@@ -104,11 +105,16 @@ one or <code>Inf</code> (the default).</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Finite points may match the diagonal. Essential classes (<code>death = Inf</code>
-in Vietoris–Rips mode or <code>death = 0</code> in clique mode) are matched only to
-essential classes. A dimension whose essential counts differ has distance
-<code>Inf</code>. The finite assignment is solved exactly with a native Hungarian
-algorithm, so no optional optimization package is required.</p>
+    <p>Finite points may match the diagonal. Essential classes are matched only
+to essential classes, and a dimension whose essential counts differ has
+distance <code>Inf</code>. An <code><a href="hg_homology.html">hg_homology()</a></code> result marks its essential classes
+itself (<code>death = Inf</code> in Vietoris–Rips mode, <code>death = 0</code> in clique mode
+and for a window complex); in a data.frame an essential class is written
+with <code>death = Inf</code>, and <code>death = 0</code> is an ordinary finite death. The
+finite assignment is solved exactly with a native Hungarian algorithm, so
+no optional optimization package is required. Distances are computed on
+rescaled coordinates, so large orders and wide coordinate ranges do not
+overflow.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

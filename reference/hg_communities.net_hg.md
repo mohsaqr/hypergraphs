@@ -26,6 +26,8 @@ hg_communities(
   delta = 0.01,
   max_iter = 50L,
   edge_weights = NULL,
+  parallel = FALSE,
+  n_cores = 2L,
   ...
 )
 ```
@@ -102,6 +104,18 @@ hg_communities(
   hyperedge, or one value recycled). `NULL` uses the window counts of a
   [`window_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/window_hypergraph.md),
   else unit weights.
+
+- parallel:
+
+  Logical. Run the `n_runs` independent runs with
+  [`parallel::mclapply`](https://rdrr.io/r/parallel/mclapply.html) (not
+  on Windows, where they run serially). Default `FALSE`. Every run is
+  seeded by its own entry of `seeds`, so the result is identical to the
+  serial one.
+
+- n_cores:
+
+  Integer. Cores when `parallel = TRUE` (default 2).
 
 - ...:
 

@@ -51,6 +51,11 @@ temporal_hypergraph(
   Column names of membership data: the node, and the grouping whose
   shared values bind nodes into one hyperedge. Naming either selects the
   membership format; the other is then detected by alias if not given.
+  When no column is named and no edge list is detected, both are
+  detected by alias (`node`, `actor`, `person`, ... and `hyperedge`,
+  `group`, `event`, ...), as
+  [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
+  does.
 
 - time:
 

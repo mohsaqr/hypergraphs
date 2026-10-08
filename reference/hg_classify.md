@@ -93,6 +93,7 @@ The result is one row per node with its given and predicted label.
 
 Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 Clustering, classification, and embedding. *NeurIPS 19*.
+[doi:10.7551/mitpress/7503.003.0205](https://doi.org/10.7551/mitpress/7503.003.0205)
 
 Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
 using Gaussian fields and harmonic functions. *ICML 20*.

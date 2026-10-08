@@ -118,7 +118,9 @@ text_hypergat(
 
 - min_count:
 
-  Minimum corpus frequency for a word to become a vertex.
+  Minimum corpus frequency for a word to become a vertex: its number of
+  occurrences (after stop-word removal) in the documents the vocabulary
+  is built from, every repeat counted.
 
 - lowercase:
 
@@ -244,13 +246,14 @@ Hypergraph attention networks for inductive text classification. *EMNLP
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-# articles has text and an existing subject-label column called label.
-fit <- hg_hypergat(articles, column = "text", labels = "label",
-                   holdout = 0.2)
+if (FALSE) { # requireNamespace("torch", quietly = TRUE) && torch::torch_is_installed()
+# a small, fast fit on 60 bundled forum posts; a real analysis trains
+# for more epochs on the whole corpus
+fit <- hg_hypergat(head(forum_posts, 60), column = "text",
+                   labels = "topic", holdout = 0.25, epochs = 5)
 fit
 plot(fit)
-hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
-predict(fit, newdata = new_articles)
-} # }
+hg_get(fit, what = "documents", split = "test", top = 3)
+predict(fit, newdata = tail(forum_posts, 3))
+}
 ```

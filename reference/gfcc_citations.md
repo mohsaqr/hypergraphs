@@ -71,5 +71,5 @@ summary(blocks)
 #>   n_nodes n_hyperedges n_event_times first_time last_time n_memberships
 #> 1    3618        46257          2026          0     25762         77284
 #>   mean_edge_size median_edge_size mean_duration  format time_unit
-#> 1       1.670753                1            NA contact      days
+#> 1       1.670644                1            NA contact      days
 ```

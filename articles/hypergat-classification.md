@@ -95,7 +95,7 @@ plot(x = fit, type = "history")
 ```
 
 ![Training loss of the fitted document
-classifier](../../../../../../tmp/RtmpBBTYOU/temp_libpath18ba3e3e96de/hypergraphs/extdata/hypergat-classification/history.png)
+classifier](hypergat-classification/history.png)
 
 ## Predict independent documents
 
@@ -135,7 +135,7 @@ plot(x = evaluation)
 ```
 
 ![Existing subject against predicted subject on the independent test
-set](../../../../../../tmp/RtmpBBTYOU/temp_libpath18ba3e3e96de/hypergraphs/extdata/hypergat-classification/confusion.png)
+set](hypergat-classification/confusion.png)
 
 ## Read the errors
 
@@ -296,7 +296,7 @@ plot(x = fit, type = "hyperedges", node = first_article, edge_labels = TRUE,
 ```
 
 ![Words joined by the sentence hyperedges of one training
-article](../../../../../../tmp/RtmpBBTYOU/temp_libpath18ba3e3e96de/hypergraphs/extdata/hypergat-classification/hyperedges.png)
+article](hypergat-classification/hyperedges.png)
 
 ``` r
 
@@ -315,8 +315,7 @@ plot(x = fit, type = "attention", node = first_article)
 ```
 
 ![Internal edge attention with its uniform normalization baseline for
-one training
-article](../../../../../../tmp/RtmpBBTYOU/temp_libpath18ba3e3e96de/hypergraphs/extdata/hypergat-classification/attention.png)
+one training article](hypergat-classification/attention.png)
 
 Crosses show the uniform normalization baseline and bars show the mean
 learned edge attention. These internal weights do not measure a

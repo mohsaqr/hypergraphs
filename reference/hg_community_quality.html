@@ -13,7 +13,7 @@ and conductance. Conductance is the maximum (worst) community conductance
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,7 +83,8 @@ and conductance. Conductance is the maximum (worst) community conductance
 
 <dt id="arg-partition">partition<a class="anchor" aria-label="anchor" href="#arg-partition"></a></dt>
 <dd><p>An <code><a href="hg_communities.html">hg_communities()</a></code> result, a tidy node/label table, or a
-named label vector.</p></dd>
+named label vector. Every projected node needs one non-missing label; a
+node repeated with different labels raises <code>hypergraphs_bad_input</code>.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>

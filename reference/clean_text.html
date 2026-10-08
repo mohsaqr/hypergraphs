@@ -21,7 +21,7 @@ warning, so nothing leaves the corpus silently."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,10 @@ warning, so nothing leaves the corpus silently.</p>
 
 <dt id="arg-html">html<a class="anchor" aria-label="anchor" href="#arg-html"></a></dt>
 <dd><p>Decode HTML entities (<code>&amp;amp;</code>, <code>&amp;nbsp;</code>, <code>&amp;#8217;</code>, ...) and
-strip tags (default <code>TRUE</code>).</p></dd>
+strip tags (default <code>TRUE</code>). A numeric entity that names no character
+(zero, a UTF-16 surrogate in U+D800-U+DFFF, or a value above
+U+10FFFF) becomes the replacement character U+FFFD, as the HTML
+standard decodes it.</p></dd>
 
 
 <dt id="arg-encoding">encoding<a class="anchor" aria-label="anchor" href="#arg-encoding"></a></dt>
@@ -156,7 +159,8 @@ abstracts with boilerplate learns the publisher and the year.</p></dd>
 
 <dt id="arg-numbers">numbers<a class="anchor" aria-label="anchor" href="#arg-numbers"></a></dt>
 <dd><p>Remove bare numbers, percentages and years (default
-<code>TRUE</code>). Numbers never enter a text hypergraph's vocabulary anyway (the
+<code>TRUE</code>); a number joined to letters, such as <code>covid19</code>, <code>p53</code> or
+<code>covid-19</code>, is a word and is kept whole. Numbers never enter a text hypergraph's vocabulary anyway (the
 tokeniser keeps alphabetic tokens), so this matters for display and for
 <code>min_content</code>.</p></dd>
 

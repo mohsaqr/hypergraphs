@@ -230,11 +230,14 @@ closes the gap it leaves in the sequence.
 ## Conditions
 
 Raises `hypergraphs_bad_input` (broken argument contract, including
-bag-only arguments passed to other constructions),
-`hypergraphs_empty_corpus` (no document survives tokenization and
-filtering), `hypergraphs_missing_embeddings` (`construction = "knn"`
-with neither `embeddings` nor the sbert package), and warns with
-`hypergraphs_dropped_documents` when some documents end up empty.
+bag-only arguments passed to other constructions, and a data.frame
+column other than `column` and `id` named like a column of the document
+table: `doc`, and for the token-based constructions also `n_tokens` or
+`n_types`), `hypergraphs_empty_corpus` (no document survives
+tokenization and filtering), `hypergraphs_missing_embeddings`
+(`construction = "knn"` with neither `embeddings` nor the sbert
+package), and warns with `hypergraphs_dropped_documents` when some
+documents end up empty.
 
 ## References
 

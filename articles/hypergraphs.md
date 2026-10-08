@@ -492,16 +492,18 @@ and the scores are more even.
 ``` r
 
 event_centrality <- hg_centrality(trial_hg, sort_by = "H")
+#> Warning: Z-eigenvector centrality did not converge in 1000 iterations (L1
+#> change > 1e-08); returning the last iterate.
 event_centrality
 #>         node       clique            Z         H
-#> 1       Task 0.4894640028 5.449472e-01 0.3479110
-#> 2    Attempt 0.4836827787 5.465657e-01 0.3474610
+#> 1       Task 0.4894640054 5.449472e-01 0.3479110
+#> 2    Attempt 0.4836827761 5.465657e-01 0.3474610
 #> 3  Incorrect 0.1376653411 3.935385e-01 0.3400583
-#> 4    Correct 0.4779506442 3.473878e-01 0.3071417
-#> 5  Completed 0.4772478189 3.480787e-01 0.3068320
+#> 4    Correct 0.4779506444 3.473878e-01 0.3071417
+#> 5  Completed 0.4772478186 3.480787e-01 0.3068320
 #> 6  Reattempt 0.1246067692 4.254999e-03 0.2921017
-#> 7   Guidance 0.0750977254 1.026613e-03 0.2579205
-#> 8   Question 0.0717345378 8.695176e-04 0.2544459
+#> 7   Guidance 0.0750977253 1.026613e-03 0.2579205
+#> 8   Question 0.0717345377 8.695176e-04 0.2544459
 #> 9      Begin 0.1555411439 8.699988e-02 0.2194756
 #> 10     Order 0.0267973779 1.707115e-04 0.1979402
 #> 11    GiveUp 0.0006139705 0.000000e+00 0.1875582

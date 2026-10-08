@@ -27,7 +27,7 @@ hg_classify()).'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,9 @@ family (<code><a href="hg_laplacian.html">hg_laplacian()</a></code>, <code><a hr
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>Sequences in any form described in <a href="sequence-input.html">sequence-input</a>: a long
 event table, a wide data.frame or character matrix (one sequence per
-row, trailing <code>NA</code>s stripped), or a list of character vectors.</p></dd>
+row, trailing <code>NA</code>s stripped), or a list of character vectors. A
+list's names, when it has them, identify its sequences and must be
+unique and non-empty (<code>hypergraphs_bad_input</code> otherwise).</p></dd>
 
 
 <dt id="arg-window">window<a class="anchor" aria-label="anchor" href="#arg-window"></a></dt>

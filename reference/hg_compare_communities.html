@@ -15,7 +15,7 @@ communities, singletons, the balance between the two largest clusters)."></head>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,14 +88,19 @@ communities, singletons, the balance between the two largest clusters).</p>
 
 <dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
 <dd><p>Optional: the static <code>net_hg</code> the fits were computed on.
-When given, every medoid is scored with <code><a href="hg_community_quality.html">hg_community_quality()</a></code> on the
-projection its own fit used, and the scores are available as
-<code>what = "quality"</code>.</p></dd>
+When given, every medoid is scored with the measures of
+<code><a href="hg_community_quality.html">hg_community_quality()</a></code> on the projection its own fit saved (for
+<code>type = "irmm"</code>, the final reweighted clique reduction), and the scores
+are available as <code>what = "quality"</code>. A fit run on a directed citation
+graph cannot be scored (the measures are defined on undirected graphs):
+its quality row is <code>NA</code> and a <code>hypergraphs_undefined_statistic</code> warning
+is raised.</p></dd>
 
 
 <dt id="arg-edge-source">edge_source<a class="anchor" aria-label="anchor" href="#arg-edge-source"></a></dt>
-<dd><p>Hyperedge sources for the citation and self-association
-projections when scoring, as in <code><a href="pairwise_network.html">pairwise_network()</a></code>.</p></dd>
+<dd><p>Deprecated and unused: the saved projections already
+carry the hyperedge sources. Supplying it warns with class
+<code>hypergraphs_deprecated</code>.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
@@ -118,14 +123,18 @@ its <code>"summary"</code> (default; one row per fit with <code>model</code>, <c
 <code>n_communities</code>, <code>n_singletons</code>, <code>n_nontrivial</code>, <code>largest_size</code>,
 <code>second_size</code> and <code>balance</code> = second / largest), <code>"similarity"</code> (one
 row per pair of
-fits with <code>model_a</code>, <code>model_b</code>, <code>ami</code>, <code>ari</code>, <code>nmi</code>, on the nodes the
-two medoids share), <code>"sizes"</code> (one row per community of every medoid
+fits with <code>model_a</code>, <code>model_b</code>, <code>n_nodes</code>, <code>ami</code>, <code>ari</code>, <code>nmi</code>, on
+the <code>n_nodes</code> nodes the two medoids share; with fewer than two shared
+nodes the three scores are <code>NA</code> and a <code>hypergraphs_undefined_statistic</code>
+warning is raised), <code>"sizes"</code> (one row per community of every medoid
 with <code>model</code>, <code>rank</code>, <code>n_nodes</code>) or, when <code>hg</code> was given, <code>"quality"</code>
 (one row per fit with the columns of <code><a href="hg_community_quality.html">hg_community_quality()</a></code>).
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws the cluster-size distributions (<code>what = "sizes"</code>, the
 number of communities at least as large as each size, on logarithmic
 axes) or the similarity matrix (<code>what = "similarity"</code>, AMI below and
-ARI above the diagonal, values printed in the cells).</p>
+ARI above the diagonal, values printed in the cells, on a diverging
+scale from -1 through 0 (white) to 1, since chance-corrected agreement
+can be negative; undefined cells are grey).</p>
 <p>For <code>plot</code>, a ggplot object.</p>
     </div>
     <div class="section level2">

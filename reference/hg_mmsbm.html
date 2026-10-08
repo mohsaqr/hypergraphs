@@ -33,7 +33,7 @@ $$\mathcal{L} = -C \sum_{i&amp;lt;j} u_i^\top w\, u_j + \sum_e A_e \log \lambda_
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,7 +106,9 @@ $$\mathcal{L} = -C \sum_{i&lt;j} u_i^\top w\, u_j + \sum_e A_e \log \lambda_e.$$
 <span>  u_prior <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  max_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  edge_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  parallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  n_cores <span class="op">=</span> <span class="fl">2L</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'net_hg_mmsbm'</span></span>
@@ -202,6 +204,17 @@ the stored cell weights (word counts, tf-idf) do not enter the model.</p></dd>
 for the random starts; the caller's stream is restored on exit.</p></dd>
 
 
+<dt id="arg-parallel">parallel<a class="anchor" aria-label="anchor" href="#arg-parallel"></a></dt>
+<dd><p>Logical. Fit the <code>nstart</code> starts with
+<code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code> (not on Windows, where they run serially).
+Default <code>FALSE</code>. All starting values are drawn first, in order, from
+one stream, so the result equals the serial one.</p></dd>
+
+
+<dt id="arg-n-cores">n_cores<a class="anchor" aria-label="anchor" href="#arg-n-cores"></a></dt>
+<dd><p>Integer. Cores when <code>parallel = TRUE</code> (default 2).</p></dd>
+
+
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>A <code>net_hg_mmsbm</code> object.</p></dd>
 
@@ -282,7 +295,16 @@ hyperedges can still have its memberships driven to zero (or to subnormal
 remnants) by the multiplicative EM updates; any row whose total is below
 the precision of the largest row is treated as having no membership
 (<code>NA</code>) and reported with a <code>hypergraphs_collapsed_membership</code> warning,
-rather than normalising remnants into spurious exact mixtures.</p>
+rather than normalising remnants into spurious exact mixtures. This is a
+property of the model, not of the fit: \(\lambda_e\) sums over the
+pairs of a hyperedge, so in a hyperedge of three or more nodes the pairs
+that avoid node \(i\) can explain it on their own, and \(u_i = 0\)
+then costs the likelihood nothing while removing its share of the
+\(-C\sum_{i&lt;j}\) term. Documents bound by word hyperedges, nearly all of
+size three or more, are the common case: on a 6,630-document legal
+corpus about a third of the documents collapse for <code>k = 3</code>, with or
+without stop words and with <code>max_size = 25</code>. For the topic mixture of
+every document of a corpus use <code><a href="hg_topics.html">hg_topics()</a></code>.</p>
 <p>The membership of node \(i\) in community \(k\) is
 \(u_{ik} / \sum_q u_{iq}\); the hard <code>community</code> is its largest entry.
 The size of \(u_i\) reflects how active the node is, its direction the

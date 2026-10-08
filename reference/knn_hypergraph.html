@@ -17,7 +17,7 @@ itself); weight = &quot;binary&quot; gives the unweighted membership hypergraph
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,12 +78,13 @@ itself); <code>weight = "binary"</code> gives the unweighted membership hypergra
 
 <dl><dt id="arg-embeddings">embeddings<a class="anchor" aria-label="anchor" href="#arg-embeddings"></a></dt>
 <dd><p>Numeric matrix, one row per item, with unique non-empty
-rownames (the item IDs). No missing values; no all-zero rows.</p></dd>
+rownames (the item IDs). Finite values only, none missing; no all-zero
+rows.</p></dd>
 
 
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
-<dd><p>Number of neighbors per hyperedge (between 1 and
-<code>nrow(embeddings) - 1</code>).</p></dd>
+<dd><p>Number of neighbors per hyperedge, one whole number between 1
+and <code>nrow(embeddings) - 1</code>; a fraction is refused, not truncated.</p></dd>
 
 
 <dt id="arg-weight">weight<a class="anchor" aria-label="anchor" href="#arg-weight"></a></dt>

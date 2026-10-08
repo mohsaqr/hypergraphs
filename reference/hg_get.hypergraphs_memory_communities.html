@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,8 +99,9 @@ in the best first-order partition, and its first-order <code>flow</code>.</p></d
 <dt><code>"codelength"</code></dt>
 <dd><p>one row per model (<code>memory</code>, <code>first_order</code>):
 <code>codelength</code>, <code>index_codelength</code>, <code>module_codelength</code>,
-<code>one_level_codelength</code>, <code>savings_bits</code>, <code>savings_pct</code>,
-<code>n_communities</code>.</p></dd>
+<code>one_level_codelength</code>, <code>savings_bits</code>, <code>savings_pct</code> (0 when the
+one-module codelength is 0, as for a single state: there is
+nothing to save), <code>n_communities</code>.</p></dd>
 
 
 </dl></dd>

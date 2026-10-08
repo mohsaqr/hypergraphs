@@ -7,8 +7,12 @@ size) and randomizes the memberships by checkerboard swaps (Gotelli
 2000) – a sequential MCMC with burn-in `10 * nnz` swap attempts and
 thinning `nnz` between samples, `nnz` being the number of memberships.
 Statistics are evaluated on the binarized hypergraph (weights carry no
-meaning under this null), through the same delegated measures as
-[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md).
+meaning under this null), with the definitions
+[`hg_measures()`](https://mohsaqr.github.io/hypergraphs/reference/hg_measures.md)
+uses: `"density"`, `"avg_edge_size"` and `"pairwise_participation"`
+equal the values of `hg_measures(hg, what = "summary")` (density is
+`m / choose(n, k)` for a `k`-uniform hypergraph, `sum(|e|) / (n * m)`
+otherwise).
 
 ## Usage
 
@@ -61,7 +65,7 @@ hg_null_test(
 
 - n:
 
-  Number of null samples (default `199L`).
+  Number of null samples: one whole number \>= 19 (default `199L`).
 
 - seed:
 
@@ -86,8 +90,14 @@ value, not the p-value alone.
 
 ## Conditions
 
-Raises `hypergraphs_bad_input` for broken contracts.
-`method = "configuration"` signals a
+Raises `hypergraphs_bad_input` for broken contracts, including an `n`
+that is not one whole number \>= 19. A statistic the hypergraph cannot
+define – `"avg_edge_size"` without hyperedges, `"avg_jaccard"` with
+fewer than two hyperedges – is undefined in every null draw as well (the
+nulls keep the vertex and hyperedge counts), so its row is `NA` in every
+column but `statistic`, `n` and `method`, with a
+`hypergraphs_undefined_statistic` warning; the other requested
+statistics are tested as usual. `method = "configuration"` signals a
 `hypergraphs_configuration_collapse` warning when stub matching
 collapses more than 1% of memberships on average, which happens whenever
 hyperedges are large relative to the vertex set – the usual case in the

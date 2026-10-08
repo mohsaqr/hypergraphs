@@ -57,7 +57,9 @@ hg_get(
 
   :   one row per model (`memory`, `first_order`): `codelength`,
       `index_codelength`, `module_codelength`, `one_level_codelength`,
-      `savings_bits`, `savings_pct`, `n_communities`.
+      `savings_bits`, `savings_pct` (0 when the one-module codelength is
+      0, as for a single state: there is nothing to save),
+      `n_communities`.
 
 - ...:
 

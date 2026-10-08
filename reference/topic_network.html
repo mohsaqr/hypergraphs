@@ -13,7 +13,7 @@ mixed-membership topic model."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -121,14 +121,17 @@ node table carries each topic's <code>size</code>.</p></dd>
     <p>For <code>what = "edges"</code>: a base <code>data.frame</code>, one row per pair of
 topics with a positive weight, columns <code>source</code>, <code>target</code>, <code>weight</code>,
 pairs in the topics' natural order. For <code>what = "network"</code>: a
-<code>cograph_network</code> with one node per topic (<code>label</code>, <code>name</code>, <code>size</code>)
-and one undirected weighted edge per pair; <code>size</code> is the number of
+<code>cograph_network</code> with one node per topic (<code>label</code>, <code>name</code>, <code>size</code>),
+a topic without any edge included, and one undirected weighted edge per
+pair; <code>size</code> is the number of
 documents of a cluster, the documents in which a topic is present, or
 (without <code>threshold</code>) a topic's expected number of documents. Raises
 <code>hypergraphs_bad_input</code> for unknown node names, for neither or both of
 <code>clusters</code> and <code>topics</code>, for a topic model not fitted on <code>hg</code>, for an
 invalid <code>threshold</code> or <code>cutoff</code>, and for a similarity measure on a
-correlation network.</p>
+correlation network. A topic whose share is the same in every
+document has no correlation with any other: it is kept without edges,
+with a <code>hypergraphs_constant_topics</code> warning.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

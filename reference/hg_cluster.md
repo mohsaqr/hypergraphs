@@ -6,8 +6,12 @@ Hayashi et al.'s (2020) representative-digraph algorithms.
 Laplacian eigenvectors and applies k-means. `algorithm = "symnmf"`
 (RDC-Sym) computes a rank-`k` non-negative factorization `T ~= U U'` of
 the normalized similarity `T = I - L`, then assigns each vertex to the
-largest entry in its row of `U`, exactly as Algorithm 2 specifies. With
-`type = "random_walk"` and a weighted incidence (e.g. from
+largest entry in its row of `U`, exactly as Algorithm 2 specifies. `T`
+is dense whatever the incidence, so on a sparse hypergraph it is built
+from the sparse Laplacian and factorised dense (8 n^2 bytes: 350 MB for
+6,630 documents); beyond 15,000 nodes this raises
+`hypergraphs_sparse_too_large`. With `type = "random_walk"` and a
+weighted incidence (e.g. from
 [`group_hypergraph()`](https://mohsaqr.github.io/hypergraphs/reference/group_hypergraph.md)
 with `weight =`), the edge-dependent vertex weights genuinely change the
 partition - with edge-independent weights the walk collapses to a graph
@@ -27,7 +31,9 @@ hg_cluster(
   n = Inf,
   algorithm = c("spectral", "symnmf"),
   max_iter = 500L,
-  tol = 1e-06
+  tol = 1e-06,
+  parallel = FALSE,
+  n_cores = 2L
 )
 ```
 
@@ -100,6 +106,19 @@ hg_cluster(
 - tol:
 
   Relative objective tolerance for `algorithm = "symnmf"`.
+
+- parallel:
+
+  For `algorithm = "symnmf"`: run the `nstart` starts with
+  [`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html)
+  (not on Windows, where they run serially). Default `FALSE`. Every
+  start's initial factor is drawn first, in order, so the result equals
+  the serial one. Supplying it (or `n_cores`) with
+  `algorithm = "spectral"` raises `hypergraphs_bad_input`.
+
+- n_cores:
+
+  Cores when `parallel = TRUE` (default 2).
 
 ## Value
 

@@ -64,9 +64,12 @@ A base `data.frame`, one row per node and then per hyperedge (filtered
 by `role`), with columns `node` (the node or hyperedge name), `role`
 (`"node"` or `"hyperedge"`) and `cluster` (`"Cluster 1"`, ..., numbered
 by first appearance in that row order); with `what = "embedding"` also
-`dim1..dimL`. Raises `hypergraphs_bad_input` for a `k` below 2 or above
-the number of rows, or an empty node or hyperedge (zero degree, where
-the scaling is undefined).
+`dim1..dimL`. Raises `hypergraphs_bad_input` for a `k` that is not a
+whole number from 2 to the number of rows, a `k` whose \\\ell + 1\\
+singular pairs the incidence does not have (\\\ell + 1 \> \min(m, n)\\
+for an \\m \times n\\ incidence, so \\k \le 2^{\min(m, n) - 1}\\), an
+embedding with fewer distinct rows than `k`, or an empty node or
+hyperedge (zero degree, where the scaling is undefined).
 
 ## Details
 
@@ -91,6 +94,7 @@ International Conference on Knowledge Discovery and Data Mining*,
 Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
 Clustering, classification, and embedding. *Advances in Neural
 Information Processing Systems 19*, 1601–1608.
+[doi:10.7551/mitpress/7503.003.0205](https://doi.org/10.7551/mitpress/7503.003.0205)
 
 ## Examples
 

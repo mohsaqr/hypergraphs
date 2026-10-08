@@ -46,7 +46,8 @@ hg_transitivity(
 
 - n:
 
-  Return only the first `n` node rows after sorting.
+  Return only the first `n` node rows after sorting: a whole number \>=
+  1, or `Inf` (default) for all.
 
 ## Value
 

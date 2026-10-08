@@ -19,7 +19,7 @@ differences weighted by pooled counts."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -118,14 +118,25 @@ row per pooled rule: <code>from</code>, <code>to</code>, <code>order</code>, <co
 counts and probabilities (columns named after the groups), <code>diff</code>
 (probability difference, first minus second), <code>p_value</code>, <code>p_adj</code> (BH),
 <code>significant</code>, <code>n_perm_used</code>), <code>global</code> (<code>statistic</code>, the
-pooled-count-weighted mean absolute difference, and <code>p_value</code>),
+pooled-count-weighted mean absolute difference over the comparable
+rules, <code>p_value</code>, <code>n_comparable</code> and <code>n_rules</code>, the comparable and
+pooled rules, and <code>n_perm_used</code>, the permutations with a defined
+statistic),
 <code>names</code>, <code>n_perm</code>, <code>alpha</code>, <code>max_order</code>, <code>min_freq</code>, <code>n_trajectories</code>
 (per group) and <code>seed</code>. Has <code>print</code>, <code>summary</code> and <code>plot</code> methods;
 <code><a href="hg_get.html">hg_get()</a></code> returns the rule table (<code>significant = TRUE</code> restricts it).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Per-sequence counts are precomputed once and every permutation is a
+    <p>A rule whose context one group never observes has no difference (<code>diff</code>
+is <code>NA</code>) and is not counted as zero. The global statistic is the
+pooled-count-weighted mean absolute difference over the comparable
+rules, those whose context both groups observe; in a permutation, a
+comparable rule whose context one permuted group lacks is left out of
+that permutation's mean. When no rule is comparable (the groups share no
+context), the statistic and its p-value are <code>NA</code> and the warning
+<code>hypergraphs_undefined_statistic</code> is raised.</p>
+<p>Per-sequence counts are precomputed once and every permutation is a
 weighted aggregation; permutations are drawn before any parallel work, so
 <code>parallel = TRUE</code> reproduces the serial result under the same <code>seed</code>.
 Rules whose context is unobserved in a group under some permutation
@@ -160,7 +171,7 @@ rate. <em>Journal of the Royal Statistical Society B</em>, 57(1), 289-300.
 <span class="r-in"><span><span class="va">comparison</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Memory-network comparison: first (6 sequences) vs second (6 sequences)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   12 pooled rule edges, 99 permutations</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Global weighted |diff|: 0.4814, p = 0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Global weighted |diff|: 0.4814, p = 0.01 (12 of 12 rules comparable)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Significant edges (BH, alpha = 0.05): 11</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    from to order count count_first count_second probability_first</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       a  a     1     7           7            0         0.3500000</span>

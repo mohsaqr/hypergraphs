@@ -30,7 +30,7 @@ plot(x, ...)
 - weights:
 
   `NULL` (default), or a numeric vector named by document giving each
-  document's weight.
+  document's weight: finite, non-negative, one per document.
 
 - x:
 
@@ -44,11 +44,13 @@ plot(x, ...)
 
 A base `data.frame` of class `hypergraphs_topic_sizes`, one row per
 topic in natural order: `topic`, `n`, `share`, and with `weights` also
-`weighted_n` and `weighted_share`.
+`weighted_n` and `weighted_share`. When every clustered document has
+weight zero the weighted shares are undefined and reported as `NA`.
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 shares as horizontal bars, weighted beside unweighted when both exist.
-Raises `hypergraphs_bad_input` for unknown node names or weights that do
-not name every clustered document.
+Raises `hypergraphs_bad_input` for unknown node names, a node given two
+different clusters, or weights that do not name every clustered document
+once with a finite non-negative value.
 
 ## Examples
 

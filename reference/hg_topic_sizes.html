@@ -13,7 +13,7 @@ and share as well."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@ column of the hypergraph's document table.</p></dd>
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
 <dd><p><code>NULL</code> (default), or a numeric vector named by document
-giving each document's weight.</p></dd>
+giving each document's weight: finite, non-negative, one per document.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
@@ -100,10 +100,13 @@ giving each document's weight.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A base <code>data.frame</code> of class <code>hypergraphs_topic_sizes</code>, one row per
 topic in natural order: <code>topic</code>, <code>n</code>, <code>share</code>, and with <code>weights</code>
-also <code>weighted_n</code> and <code>weighted_share</code>. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws the shares as
+also <code>weighted_n</code> and <code>weighted_share</code>. When every clustered document
+has weight zero the weighted shares are undefined and reported as
+<code>NA</code>. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws the shares as
 horizontal bars, weighted beside unweighted when both exist. Raises
-<code>hypergraphs_bad_input</code> for unknown node names or weights that do not name
-every clustered document.</p>
+<code>hypergraphs_bad_input</code> for unknown node names, a node given two
+different clusters, or weights that do not name every clustered
+document once with a finite non-negative value.</p>
     </div>
 
     <div class="section level2">

@@ -19,7 +19,7 @@ corpus bookkeeping does not transpose meaningfully)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,9 +86,14 @@ corpus bookkeeping does not transpose meaningfully).</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A hypergraph whose incidence is the transpose of <code>hg</code>'s: a
-<code>text_hypergraph</code> with flipped <code>nodes</code> for bag constructions, otherwise
-a <code>net_hg</code>. Accepted by all <code>hg_*</code> verbs.</p>
+    <p>A hypergraph whose incidence is exactly the transpose of <code>hg</code>'s,
+sparse when <code>hg</code> is sparse, with every row and column kept: an isolated
+vertex of <code>hg</code> becomes an empty hyperedge of the dual and an empty
+hyperedge an isolated vertex, so the dual of the dual is <code>hg</code>'s
+incidence again. A <code>text_hypergraph</code> with flipped <code>nodes</code> for bag
+constructions (dense or sparse), otherwise a <code>net_hg</code>. Hyperedge
+metadata (<code>edge_data</code>, window counts) describes hyperedges that become
+vertices, so it is not carried over. Accepted by all <code>hg_*</code> verbs.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

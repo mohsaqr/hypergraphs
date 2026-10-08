@@ -8,13 +8,13 @@ cuts (the same `type` and `edge_weights`), each topic's centre is the
 mean position of its documents, and the membership of a document in a
 topic is the fuzzy c-means weight with fuzziness 2: the inverse squared
 distance to that centre, normalised over the topics. A document at a
-centre has membership 1 there; a document halfway between two centres
-has 0.5 in each. The values sum to one over the topics, so their level
-depends on the number of topics `k`: the uniform value is `1 / k`, and
-with many topics even a clearly assigned document has a modest
-membership. Read them as ratios between topics (a document with 0.15 and
-0.11 in two topics is 1.4 times closer to the first), not as
-probabilities of belonging.
+centre has membership 1 there (shared equally when several centres
+coincide); a document halfway between two centres has 0.5 in each. The
+values sum to one over the topics, so their level depends on the number
+of topics `k`: the uniform value is `1 / k`, and with many topics even a
+clearly assigned document has a modest membership. Read them as ratios
+between topics (a document with 0.15 and 0.11 in two topics is 1.4 times
+closer to the first), not as probabilities of belonging.
 
 ## Usage
 

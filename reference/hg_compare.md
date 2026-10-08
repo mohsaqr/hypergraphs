@@ -57,13 +57,25 @@ row per pooled rule: `from`, `to`, `order`, `count`, the two groups'
 counts and probabilities (columns named after the groups), `diff`
 (probability difference, first minus second), `p_value`, `p_adj` (BH),
 `significant`, `n_perm_used`), `global` (`statistic`, the
-pooled-count-weighted mean absolute difference, and `p_value`), `names`,
-`n_perm`, `alpha`, `max_order`, `min_freq`, `n_trajectories` (per group)
-and `seed`. Has `print`, `summary` and `plot` methods;
+pooled-count-weighted mean absolute difference over the comparable
+rules, `p_value`, `n_comparable` and `n_rules`, the comparable and
+pooled rules, and `n_perm_used`, the permutations with a defined
+statistic), `names`, `n_perm`, `alpha`, `max_order`, `min_freq`,
+`n_trajectories` (per group) and `seed`. Has `print`, `summary` and
+`plot` methods;
 [`hg_get()`](https://mohsaqr.github.io/hypergraphs/reference/hg_get.md)
 returns the rule table (`significant = TRUE` restricts it).
 
 ## Details
+
+A rule whose context one group never observes has no difference (`diff`
+is `NA`) and is not counted as zero. The global statistic is the
+pooled-count-weighted mean absolute difference over the comparable
+rules, those whose context both groups observe; in a permutation, a
+comparable rule whose context one permuted group lacks is left out of
+that permutation's mean. When no rule is comparable (the groups share no
+context), the statistic and its p-value are `NA` and the warning
+`hypergraphs_undefined_statistic` is raised.
 
 Per-sequence counts are precomputed once and every permutation is a
 weighted aggregation; permutations are drawn before any parallel work,
@@ -105,7 +117,7 @@ comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
 comparison
 #> Memory-network comparison: first (6 sequences) vs second (6 sequences)
 #>   12 pooled rule edges, 99 permutations
-#>   Global weighted |diff|: 0.4814, p = 0.01
+#>   Global weighted |diff|: 0.4814, p = 0.01 (12 of 12 rules comparable)
 #>   Significant edges (BH, alpha = 0.05): 11
 #>    from to order count count_first count_second probability_first
 #>       a  a     1     7           7            0         0.3500000

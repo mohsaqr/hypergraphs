@@ -128,7 +128,7 @@ summary(blocks)
 #>   n_nodes n_hyperedges n_event_times first_time last_time n_memberships
 #> 1    3618        46257          2026          0     25762         77284
 #>   mean_edge_size median_edge_size mean_duration  format time_unit
-#> 1       1.670753                1            NA contact      days
+#> 1       1.670644                1            NA contact      days
 ```
 
 The median block cites 1 decision and the mean block 1.67. These two
@@ -768,7 +768,9 @@ communities_mhs <- hg_communities(backward_all, n_runs = 5, trials = 5,
 ```
 
 The eight partitions are set side by side. With `hg`, each medoid is
-also scored on the graph it was computed on.
+also scored on the graph it was computed on. The quality measures are
+defined on undirected graphs, so the two directed citation fits (`bg`,
+`mg`) get no score and the comparison warns about them.
 
 ``` r
 
@@ -776,8 +778,10 @@ comparison <- hg_compare_communities(
   bg = communities_bg, bgu = communities_bgu, mg = communities_mg,
   mgu = communities_mgu, bh = communities_bh, bhs = communities_bhs,
   mh = communities_mh, mhs = communities_mhs,
-  hg = backward_all, edge_source = "citing"
+  hg = backward_all
 )
+#> Warning: fit(s) `bg`, `mg` ran on a directed citation graph; the quality scores
+#> are defined on undirected projections, so their quality row is NA.
 comparison
 #> Community comparison across 8 representations: bg, bgu, mg, mgu, bh, bhs, mh, mhs
 #>  model medoid_seed n_runs n_communities n_singletons n_nontrivial largest_size
@@ -842,18 +846,18 @@ of a community.
 
 hg_get(comparison, what = "quality")
 #>   model  coverage weighted_coverage performance modularity conductance
-#> 1    bg 0.3889722         0.3889722   0.9805861  0.3523059   1.0000000
+#> 1    bg        NA                NA          NA         NA          NA
 #> 2   bgu 0.4713374         0.4713374   0.9725865  0.4197613   0.8881988
-#> 3    mg 0.3087170         0.4933214   0.9882521  0.4716520   1.0000000
+#> 3    mg        NA                NA          NA         NA          NA
 #> 4   mgu 0.3582378         0.5497558   0.9874580  0.5251639   0.8372881
 #> 5    bh 0.4344190         0.5914135   0.9924775  0.5680416   0.7711864
 #> 6   bhs 0.3167942         0.5720922   0.9879647  0.5521826   0.8374632
 #> 7    mh 0.3769212         0.6147573   0.9937396  0.5950959   0.8333333
 #> 8   mhs 0.2904028         0.6090068   0.9887366  0.5882855   0.8590284
 #>   n_communities
-#> 1           362
+#> 1            NA
 #> 2           330
-#> 3           416
+#> 3            NA
 #> 4           404
 #> 5           874
 #> 6           421
@@ -862,11 +866,11 @@ hg_get(comparison, what = "quality")
 ```
 
 The medoids of the hypergraph representations reach a graph modularity
-between 0.55 and 0.60 on their own graphs, and those of the citation
-graphs between 0.35 and 0.53. Each score is computed on a different
-graph, so the comparison describes how clearly each representation
-divides into communities and does not rank the partitions on a common
-scale.
+between 0.55 and 0.60 on their own graphs, and those of the undirected
+citation graphs between 0.42 and 0.53. Each score is computed on a
+different graph, so the comparison describes how clearly each
+representation divides into communities and does not rank the partitions
+on a common scale.
 
 ## Interpretation
 

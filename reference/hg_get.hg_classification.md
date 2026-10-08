@@ -150,12 +150,33 @@ Hypergraph attention networks for inductive text classification. *EMNLP
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-# articles contains text and existing subject labels.
-fit <- hg_hypergat(articles, column = "text", labels = "subject",
-                   holdout = 0.2)
+hg <- text_hypergraph(head(forum_posts, 60), column = "text")
+fit <- hg_classify(hg, labels = "topic", holdout = 0.25)
 fit
+#> Classification (hg_classify): 60 documents, 15 held out (25% of the labelled)
+#> Held-out accuracy 0.933, balanced accuracy 0.917 (chance 0.333)
+#> 
+#>      class n_test correct recall precision
+#>  astronomy      6       6   1.00 0.8571429
+#>    cooking      4       3   0.75 1.0000000
+#>  gardening      5       5   1.00 1.0000000
 hg_get(fit, what = "classes")
-hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
-} # }
+#>       class n_test correct recall precision
+#> 1 astronomy      6       6   1.00 0.8571429
+#> 2   cooking      4       3   0.75 1.0000000
+#> 3 gardening      5       5   1.00 1.0000000
+hg_get(fit, what = "confusion")
+#>       label predicted n
+#> 1 astronomy astronomy 6
+#> 2   cooking astronomy 1
+#> 3 gardening astronomy 0
+#> 4 astronomy   cooking 0
+#> 5   cooking   cooking 3
+#> 6 gardening   cooking 0
+#> 7 astronomy gardening 0
+#> 8   cooking gardening 0
+#> 9 gardening gardening 5
+hg_get(fit, split = "test", correct = FALSE)
+#>    node   label predicted     score      margin split correct
+#> 1 doc_3 cooking astronomy 0.2279617 0.001093425  test   FALSE
 ```

@@ -31,7 +31,7 @@ hyperedge, and k-means on the rows of \(Z\) gives the k co-clusters
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -139,8 +139,12 @@ document hypergraph, the documents) or <code>"hyperedge"</code> (the words).</p>
 <code>role</code> (<code>"node"</code> or <code>"hyperedge"</code>) and <code>cluster</code> (<code>"Cluster 1"</code>, ...,
 numbered by first appearance in that row order); with
 <code>what = "embedding"</code> also <code>dim1..dimL</code>. Raises <code>hypergraphs_bad_input</code> for
-a <code>k</code> below 2 or above the number of rows, or an empty node or
-hyperedge (zero degree, where the scaling is undefined).</p>
+a <code>k</code> that is not a whole number from 2 to the number of rows, a <code>k</code>
+whose \(\ell + 1\) singular pairs the incidence does not have
+(\(\ell + 1 &gt; \min(m, n)\) for an \(m \times n\) incidence, so
+\(k \le 2^{\min(m, n) - 1}\)), an embedding with fewer distinct rows
+than <code>k</code>, or an empty node or hyperedge (zero degree, where the scaling
+is undefined).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -160,7 +164,8 @@ International Conference on Knowledge Discovery and Data Mining</em>,
 269–274. <a href="https://doi.org/10.1145/502512.502550" class="external-link">doi:10.1145/502512.502550</a></p>
 <p>Zhou, D., Huang, J., &amp; Schölkopf, B. (2006). Learning with hypergraphs:
 Clustering, classification, and embedding. <em>Advances in Neural Information
-Processing Systems 19</em>, 1601–1608.</p>
+Processing Systems 19</em>, 1601–1608.
+<a href="https://doi.org/10.7551/mitpress/7503.003.0205" class="external-link">doi:10.7551/mitpress/7503.003.0205</a></p>
     </div>
 
     <div class="section level2">

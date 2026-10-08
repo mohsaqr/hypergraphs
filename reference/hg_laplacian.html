@@ -25,7 +25,7 @@ weights they coincide.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,8 +90,9 @@ weights they coincide.</p>
 
 <dl><dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
 <dd><p>A <code>net_hg</code> from <code><a href="network_hypergraph.html">network_hypergraph()</a></code> or
-<code><a href="group_hypergraph.html">group_hypergraph()</a></code>. Must be connected and have at least one
-hyperedge.</p></dd>
+<code><a href="group_hypergraph.html">group_hypergraph()</a></code>, dense or sparse (<code>sparse = TRUE</code>). Must be
+connected and have at least one hyperedge. Empty hyperedges (which
+<code><a href="random_hypergraph.html">random_hypergraph()</a></code> can produce) contribute nothing.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -117,12 +118,19 @@ incidence.</p></dd>
     <p>A symmetric <code>n_nodes</code> x <code>n_nodes</code> numeric matrix (node names as
 dimnames) with attributes <code>type</code> (the Laplacian type),
 <code>pi</code> (named stationary distribution of the underlying random walk)
-and <code>edge_weights</code> (the hyperedge weights actually used).</p>
+and <code>edge_weights</code> (the hyperedge weights, one per hyperedge; an empty
+hyperedge's default weight is 1 and unused). For a sparse hypergraph
+the matrix is a sparse symmetric <code>Matrix</code> (class <code>dsCMatrix</code>) with the
+same dimnames and attributes, and the random-walk stationary
+distribution is found by power iteration rather than a dense
+eigendecomposition. A disconnected hypergraph raises
+<code>hypergraphs_hypergraph_disconnected</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Zhou, D., Huang, J., &amp; Scholkopf, B. (2006). Learning with hypergraphs:
-Clustering, classification, and embedding. <em>NeurIPS 19</em>.</p>
+Clustering, classification, and embedding. <em>NeurIPS 19</em>.
+<a href="https://doi.org/10.7551/mitpress/7503.003.0205" class="external-link">doi:10.7551/mitpress/7503.003.0205</a></p>
 <p>Hayashi, K., Aksoy, S. G., Park, C. H., &amp; Park, H. (2020). Hypergraph
 random walks, Laplacians, and clustering. <em>CIKM 2020</em>, 495-504.
 <a href="https://doi.org/10.1145/3340531.3412034" class="external-link">doi:10.1145/3340531.3412034</a></p>

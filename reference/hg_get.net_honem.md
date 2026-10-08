@@ -37,7 +37,9 @@ A data.frame. For `what = "embeddings"`, one row per higher-order node:
 `node` followed by one column per embedding dimension (`dim1`, `dim2`,
 ...). For `what = "variance"`, one row per dimension: `dimension`,
 `singular_value`, `proportion` (that dimension's share of the total
-squared singular value).
+squared singular value; `0` for every dimension when all singular values
+are zero, as for a network without edges, whose embedding carries no
+variance).
 
 ## Examples
 

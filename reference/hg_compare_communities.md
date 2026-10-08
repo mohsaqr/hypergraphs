@@ -32,16 +32,19 @@ plot(x, what = c("sizes", "similarity"), ...)
 - hg:
 
   Optional: the static `net_hg` the fits were computed on. When given,
-  every medoid is scored with
+  every medoid is scored with the measures of
   [`hg_community_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_community_quality.md)
-  on the projection its own fit used, and the scores are available as
-  `what = "quality"`.
+  on the projection its own fit saved (for `type = "irmm"`, the final
+  reweighted clique reduction), and the scores are available as
+  `what = "quality"`. A fit run on a directed citation graph cannot be
+  scored (the measures are defined on undirected graphs): its quality
+  row is `NA` and a `hypergraphs_undefined_statistic` warning is raised.
 
 - edge_source:
 
-  Hyperedge sources for the citation and self-association projections
-  when scoring, as in
-  [`pairwise_network()`](https://mohsaqr.github.io/hypergraphs/reference/pairwise_network.md).
+  Deprecated and unused: the saved projections already carry the
+  hyperedge sources. Supplying it warns with class
+  `hypergraphs_deprecated`.
 
 - x:
 
@@ -64,15 +67,19 @@ returns its `"summary"` (default; one row per fit with `model`,
 `medoid_seed`, `n_communities`, `n_singletons`, `n_nontrivial`,
 `largest_size`, `second_size` and `balance` = second / largest),
 `"similarity"` (one row per pair of fits with `model_a`, `model_b`,
-`ami`, `ari`, `nmi`, on the nodes the two medoids share), `"sizes"` (one
-row per community of every medoid with `model`, `rank`, `n_nodes`) or,
-when `hg` was given, `"quality"` (one row per fit with the columns of
+`n_nodes`, `ami`, `ari`, `nmi`, on the `n_nodes` nodes the two medoids
+share; with fewer than two shared nodes the three scores are `NA` and a
+`hypergraphs_undefined_statistic` warning is raised), `"sizes"` (one row
+per community of every medoid with `model`, `rank`, `n_nodes`) or, when
+`hg` was given, `"quality"` (one row per fit with the columns of
 [`hg_community_quality()`](https://mohsaqr.github.io/hypergraphs/reference/hg_community_quality.md)).
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 cluster-size distributions (`what = "sizes"`, the number of communities
 at least as large as each size, on logarithmic axes) or the similarity
 matrix (`what = "similarity"`, AMI below and ARI above the diagonal,
-values printed in the cells).
+values printed in the cells, on a diverging scale from -1 through 0
+(white) to 1, since chance-corrected agreement can be negative;
+undefined cells are grey).
 
 For `plot`, a ggplot object.
 

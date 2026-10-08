@@ -126,6 +126,7 @@ e1600028.
 Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 clustering, classification, and embedding. *Advances in Neural
 Information Processing Systems*, 19, 1601-1608.
+[doi:10.7551/mitpress/7503.003.0205](https://doi.org/10.7551/mitpress/7503.003.0205)
 
 ## See also
 

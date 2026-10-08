@@ -37,7 +37,7 @@ lda_keywords reproduces that choice."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -199,7 +199,8 @@ optional id column, as in <code><a href="text_hypergraph.html">text_hypergraph()
 
 <dt id="arg-min-count">min_count<a class="anchor" aria-label="anchor" href="#arg-min-count"></a></dt>
 <dd><p>Minimum corpus frequency for a word to become a
-vertex.</p></dd>
+vertex: its number of occurrences (after stop-word removal) in the
+documents the vocabulary is built from, every repeat counted.</p></dd>
 
 
 <dt id="arg-lowercase">lowercase<a class="anchor" aria-label="anchor" href="#arg-lowercase"></a></dt>
@@ -322,15 +323,16 @@ less: Hypergraph attention networks for inductive text classification.
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="co"># articles has text and an existing subject-label column called label.</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">hg_hypergat</span><span class="op">(</span><span class="va">articles</span>, column <span class="op">=</span> <span class="st">"text"</span>, labels <span class="op">=</span> <span class="st">"label"</span>,</span></span>
-<span class="r-in"><span>                   holdout <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># requireNamespace("torch", quietly = TRUE) &amp;&amp; torch::torch_is_installed()</span></span></span>
+<span class="r-in"><span><span class="co"># a small, fast fit on 60 bundled forum posts; a real analysis trains</span></span></span>
+<span class="r-in"><span><span class="co"># for more epochs on the whole corpus</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">hg_hypergat</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">forum_posts</span>, <span class="fl">60</span><span class="op">)</span>, column <span class="op">=</span> <span class="st">"text"</span>,</span></span>
+<span class="r-in"><span>                   labels <span class="op">=</span> <span class="st">"topic"</span>, holdout <span class="op">=</span> <span class="fl">0.25</span>, epochs <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"documents"</span>, split <span class="op">=</span> <span class="st">"test"</span>, correct <span class="op">=</span> <span class="cn">FALSE</span>, top <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">new_articles</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">fit</span>, what <span class="op">=</span> <span class="st">"documents"</span>, split <span class="op">=</span> <span class="st">"test"</span>, top <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">forum_posts</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

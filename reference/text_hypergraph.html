@@ -11,7 +11,7 @@ three constructions:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -272,7 +272,10 @@ leaves in the sequence.</p>
     <div class="section level2">
     <h2 id="conditions">Conditions<a class="anchor" aria-label="anchor" href="#conditions"></a></h2>
     <p>Raises <code>hypergraphs_bad_input</code> (broken argument contract,
-including bag-only arguments passed to other constructions),
+including bag-only arguments passed to other constructions, and a
+data.frame column other than <code>column</code> and <code>id</code> named like a column of
+the document table: <code>doc</code>, and for the token-based constructions also
+<code>n_tokens</code> or <code>n_types</code>),
 <code>hypergraphs_empty_corpus</code> (no document survives tokenization and filtering),
 <code>hypergraphs_missing_embeddings</code> (<code>construction = "knn"</code> with neither
 <code>embeddings</code> nor the sbert package), and warns with

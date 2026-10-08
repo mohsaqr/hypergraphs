@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,6 +90,16 @@ trailing <code>NA</code>s end a sequence.</p></dd>
 
 </dl><p>These are the conventions of the tna family of packages, and the same
 call builds the same sequences there.</p>
+<p>A missing state anywhere but at the end of a wide row is a gap. The
+memory verbs (<code><a href="hon.html">hon()</a></code>, <code><a href="mogen.html">mogen()</a></code>, <code><a href="hypa.html">hypa()</a></code>, <code><a href="markov_order.html">markov_order()</a></code>,
+<code><a href="memory.html">memory()</a></code>, <code><a href="hg_bootstrap.html">hg_bootstrap()</a></code>, <code><a href="hg_compare.html">hg_compare()</a></code>) split a sequence at every
+gap into its runs of observed states: no transition is counted across or
+into a gap and no state <code>"NA"</code> is created (a state spelled <code>"NA"</code> is an
+ordinary state). <code><a href="hg_bootstrap.html">hg_bootstrap()</a></code> and <code><a href="hg_compare.html">hg_compare()</a></code> still resample the
+original sequences, each with all its runs. Repeats are collapsed within
+a run. State labels containing <code>" -&gt; "</code> (the notation of memory nodes) are
+refused with <code>hypergraphs_bad_input</code> by the verbs whose results name
+paths.</p>
 <p>A data.frame with columns named like an event table (<code>code</code>, <code>state</code>,
 <code>user</code>, <code>timestamp</code>, ...) that is passed without <code>action =</code> and has no
 <code>action</code> column raises <code>hypergraphs_long_format</code> (a

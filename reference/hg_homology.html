@@ -17,7 +17,7 @@ boundary-matrix reduction over Z/2.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,7 +86,11 @@ the count filtration (Petri et al. 2013): the complex at count <code>t</code> ho
 the sets of actions observed in at least <code>t</code> windows and their faces, so
 a class is born at the count where it appears and dies at a lower count;
 <code>birth</code>, <code>death</code> and the Betti-curve <code>threshold</code> are counts, and
-<code>n_steps</code> is not used (every observed count is a threshold).</p></dd>
+<code>n_steps</code> is not used (every observed count is a threshold). A class
+that never dies (essential) has <code>death = 0</code> and <code>persistence = birth</code>,
+as in clique mode, and every row of the Betti curve, the last
+included, counts the Z/2 classes alive at that count in the complex
+truncated at <code>max_dim</code>.</p></dd>
 
 
 <dt id="arg-n-steps">n_steps<a class="anchor" aria-label="anchor" href="#arg-n-steps"></a></dt>

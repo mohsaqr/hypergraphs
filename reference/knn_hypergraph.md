@@ -18,12 +18,12 @@ knn_hypergraph(embeddings, k, weight = c("cosine", "binary"))
 - embeddings:
 
   Numeric matrix, one row per item, with unique non-empty rownames (the
-  item IDs). No missing values; no all-zero rows.
+  item IDs). Finite values only, none missing; no all-zero rows.
 
 - k:
 
-  Number of neighbors per hyperedge (between 1 and
-  `nrow(embeddings) - 1`).
+  Number of neighbors per hyperedge, one whole number between 1 and
+  `nrow(embeddings) - 1`; a fraction is refused, not truncated.
 
 - weight:
 

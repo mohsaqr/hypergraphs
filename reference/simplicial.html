@@ -17,7 +17,7 @@ is included.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -249,12 +249,14 @@ order described under Value. <code>NULL</code> (default) draws all of them.</p><
 per simplex (<code>what = "simplices"</code>, the default), the face counts
 (<code>"f_vector"</code>), the per-node simplicial degree (<code>"degree"</code>) or, for a
 validated window complex, one row per tested set of actions
-(<code>"validation"</code>), and the Betti numbers (<code>"betti"</code>). <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws
+(<code>"validation"</code>), and the Betti numbers (<code>"betti"</code>, with rational
+coefficients as in <code><a href="hg_betti.html">hg_betti()</a></code>). <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws
 the maximal simplices, those no larger simplex contains, as regions
 around their nodes (<code><a href="https://sonsoles.me/cograph/reference/plot_simplicial.html" class="external-link">cograph::plot_simplicial()</a></code>; its arguments pass
-through <code>...</code>): the most significant first for a validated window
+through <code>...</code>): the largest simplices first and, among simplices of
+one size, the largest validation z-score first for a validated window
 complex, the most frequent first for a window complex, the closest
-first for a Vietoris-Rips complex. With <code>type = "summary"</code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>
+first for a Vietoris-Rips complex, and by node names otherwise. With <code>type = "summary"</code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>
 draws the summary of the complex instead: the face counts by dimension,
 the Betti numbers, the simplicial degree of each node and its degree by
 dimension. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> returns the figure. For the <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method, <code>x</code> is

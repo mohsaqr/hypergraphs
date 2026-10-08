@@ -194,14 +194,26 @@ research abstracts and their sentence embeddings).
 
 ## Vignettes
 
-The package ships
-[`vignette("text-hypergraphs")`](https://mohsaqr.github.io/hypergraphs/articles/text-hypergraphs.md)
-and
-[`vignette("text-constructions")`](https://mohsaqr.github.io/hypergraphs/articles/text-constructions.md),
-plus a benchmark article (`vignettes/articles/benchmarks.Rmd`,
-R8/R52/MR/Ohsumed/20NG). Family-level worked analyses, including the
-Legal hypergraphs paper workflow, are hand-knit reports kept outside the
-repository. Longer tutorials live in `Tutorial_docs/`.
+The package ships one vignette,
+[`vignette("hypergraphs")`](https://mohsaqr.github.io/hypergraphs/articles/hypergraphs.md).
+The other walkthroughs are articles on the [package
+website](https://mohsaqr.github.io/hypergraphs/): [hypergraph analysis
+of a text
+corpus](https://mohsaqr.github.io/hypergraphs/articles/text-hypergraphs.html),
+the [constructions of a text
+hypergraph](https://mohsaqr.github.io/hypergraphs/articles/text-constructions.html),
+[document
+classification](https://mohsaqr.github.io/hypergraphs/articles/hypergat-classification.html),
+the [topic
+structure](https://mohsaqr.github.io/hypergraphs/articles/covid-topics.html)
+and [mixed-membership
+topics](https://mohsaqr.github.io/hypergraphs/articles/topic-mixtures.html)
+of the COVID-19 education literature, [legal
+hypergraphs](https://mohsaqr.github.io/hypergraphs/articles/legal-hypergraphs.html),
+the [Argentina tribunals
+example](https://mohsaqr.github.io/hypergraphs/articles/argentina-tribunals.html)
+and the
+[benchmarks](https://mohsaqr.github.io/hypergraphs/articles/benchmarks.html).
 
 ## Provenance
 
@@ -231,8 +243,12 @@ NOT_CRAN=true HYPERNETS_EQUIV_TESTS=true Rscript -e \
 
 ``` r
 
-# development version
-devtools::install_github("mohsaqr/hypergraphs")
+# from CRAN
+install.packages("hypergraphs")
+
+# development version, from r-universe
+install.packages("hypergraphs",
+                 repos = c("https://mohsaqr.r-universe.dev", "https://cloud.r-project.org"))
 ```
 
 ## References

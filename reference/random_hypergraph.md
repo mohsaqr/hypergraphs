@@ -110,7 +110,9 @@ chosen type does not take is an error.
 ## Conditions
 
 `hypergraphs_bad_input` for an argument the chosen type does not take,
-or an argument given without a name.
+an argument given without a name, or a count (`n`, `m`, `k`, `impurity`,
+`seed`) that is not one whole number in range – fractions, `NA`, `Inf`
+and values beyond the integer range are refused, never truncated.
 
 ## References
 

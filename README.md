@@ -88,10 +88,10 @@ and `covid_embeddings`.
 
 ### Research sources
 
-The source repository includes an indexed [research paper library](papers/)
-and [method/repository reference notes](repos/). For the projection tier, see
-the local [*Legal hypergraphs* paper](papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf)
-and its [method mapping and reproducibility links](repos/legal-hypergraphs.md).
+The source repository includes an indexed [research paper library](https://github.com/mohsaqr/hypergraphs/tree/main/papers)
+and [method/repository reference notes](https://github.com/mohsaqr/hypergraphs/tree/main/repos). For the projection tier, see
+the local [*Legal hypergraphs* paper](https://github.com/mohsaqr/hypergraphs/blob/main/papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf)
+and its [method mapping and reproducibility links](https://github.com/mohsaqr/hypergraphs/blob/main/repos/legal-hypergraphs.md).
 
 ## The taxonomy
 
@@ -169,15 +169,15 @@ research abstracts and their sentence embeddings).
 
 The package ships one vignette, `vignette("hypergraphs")`. The other
 walkthroughs are articles on the
-[package website](https://mohsaqr.github.io/hypergraphs/):
-[hypergraph analysis of a text corpus](https://mohsaqr.github.io/hypergraphs/articles/text-hypergraphs.html), the
-[constructions of a text hypergraph](https://mohsaqr.github.io/hypergraphs/articles/text-constructions.html),
-[document classification](https://mohsaqr.github.io/hypergraphs/articles/hypergat-classification.html), the
-[topic structure](https://mohsaqr.github.io/hypergraphs/articles/covid-topics.html) and
-[mixed-membership topics](https://mohsaqr.github.io/hypergraphs/articles/topic-mixtures.html) of the COVID-19
-education literature, [legal hypergraphs](https://mohsaqr.github.io/hypergraphs/articles/legal-hypergraphs.html),
-the [Argentina tribunals example](https://mohsaqr.github.io/hypergraphs/articles/argentina-tribunals.html) and the
-[benchmarks](https://mohsaqr.github.io/hypergraphs/articles/benchmarks.html).
+[package website](https://pak.dynasite.org/hypergraphs/):
+[hypergraph analysis of a text corpus](https://pak.dynasite.org/hypergraphs/articles/text-hypergraphs.html), the
+[constructions of a text hypergraph](https://pak.dynasite.org/hypergraphs/articles/text-constructions.html),
+[document classification](https://pak.dynasite.org/hypergraphs/articles/hypergat-classification.html), the
+[topic structure](https://pak.dynasite.org/hypergraphs/articles/covid-topics.html) and
+[mixed-membership topics](https://pak.dynasite.org/hypergraphs/articles/topic-mixtures.html) of the COVID-19
+education literature, [legal hypergraphs](https://pak.dynasite.org/hypergraphs/articles/legal-hypergraphs.html),
+the [Argentina tribunals example](https://pak.dynasite.org/hypergraphs/articles/argentina-tribunals.html) and the
+[benchmarks](https://pak.dynasite.org/hypergraphs/articles/benchmarks.html).
 
 ## Provenance
 

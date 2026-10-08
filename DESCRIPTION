@@ -1,6 +1,6 @@
 Package: hypergraphs
 Title: Higher-Order Network Analysis
-Version: 0.7.2
+Version: 0.7.3
 Authors@R: c(
     person("Mohammed", "Saqr", email = "saqr@saqr.me", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5881-3109"))
@@ -50,7 +50,7 @@ Description: Build and analyze higher-order networks, in which a relation
     embedding nearest neighbours), analysed with tidy verbs for clustering,
     keyword extraction, few-label classification, and null testing.
 License: MIT + file LICENSE
-URL: https://github.com/mohsaqr/hypergraphs, https://mohsaqr.github.io/hypergraphs/
+URL: https://github.com/mohsaqr/hypergraphs, https://pak.dynasite.org/hypergraphs/
 BugReports: https://github.com/mohsaqr/hypergraphs/issues
 Language: en-US
 Encoding: UTF-8

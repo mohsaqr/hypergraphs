@@ -128,7 +128,7 @@ Bianconi, G. (2021). \emph{Higher-Order Networks}. Cambridge University Press.
 Useful links:
 \itemize{
   \item \url{https://github.com/mohsaqr/hypergraphs}
-  \item \url{https://mohsaqr.github.io/hypergraphs/}
+  \item \url{https://pak.dynasite.org/hypergraphs/}
   \item Report bugs at \url{https://github.com/mohsaqr/hypergraphs/issues}
 }
 

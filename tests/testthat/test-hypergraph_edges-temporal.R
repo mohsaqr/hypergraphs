@@ -53,3 +53,25 @@ test_that("several thresholds give one block each, and distributions carry time"
   expect_s3_class(distribution_plot, "ggplot")
   expect_error(hg_edges(snap, s = 0), class = "hypergraphs_bad_input")
 })
+
+test_that("empty snapshots give typed zero-row edge tables (R21)", {
+  thg <- temporal_hypergraph(data.frame(from = "a", to = "b", time = 1),
+                             from = "from", to = "to", time = "time",
+                             observation_start = 0, observation_end = 2)
+  nonempty <- hg_edges(thg, at = 1)
+  empty <- hg_edges(thg, at = 0)
+  expect_identical(nrow(empty), 0L)
+  expect_identical(names(empty), names(nonempty))
+  expect_identical(vapply(empty, class, character(1L)),
+                   vapply(nonempty, class, character(1L)))
+  expect_identical(nrow(hg_edges(thg, at = 0, s = c(1, 2))), 0L)
+  expect_identical(nrow(hg_edges(thg, at = 0, what = "distribution")), 0L)
+  summary_empty <- hg_edges(thg, at = 0, what = "summary")
+  expect_identical(summary_empty$n_edges, 0L)
+  expect_true(is.na(summary_empty$mean))
+  # a mix of empty and non-empty snapshots keeps the non-empty rows
+  mixed <- hg_edges(thg, at = c(0, 1))
+  expect_identical(nrow(mixed), 1L)
+  expect_equal(mixed$time, 1)
+  expect_no_warning(hg_edges(thg, at = c(0, 1), what = "summary"))
+})

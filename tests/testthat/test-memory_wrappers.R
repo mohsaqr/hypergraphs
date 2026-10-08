@@ -313,3 +313,58 @@ test_that("a state with no outgoing transition is refused by class", {
   expect_s3_class(err, "hypergraphs_not_ergodic")
   expect_match(conditionMessage(err), "no outgoing transition from: C")
 })
+
+# ---- Missing states are gaps (M01) ----------------------------------------
+# Each estimator sees a sequence with a gap as its runs of observed states.
+
+test_that("mogen(), hypa() and markov_order() read a gap as a break", {
+  gap <- list(c(NA, "a", "b", NA, "c", "d", "a", "b"),
+              c("b", "c", NA, NA, "d", "a", "b", NA),
+              c("a", "b", "c", "d", "a"))
+  runs <- list(c("a", "b"), c("c", "d", "a", "b"), c("b", "c"),
+               c("d", "a", "b"), c("a", "b", "c", "d", "a"))
+  expect_identical(mogen(gap, max_order = 2L), mogen(runs, max_order = 2L))
+  expect_identical(hg_get(hypa(gap, order = 2L, min_count = 1L),
+                          what = "scores"),
+                   hg_get(hypa(runs, order = 2L, min_count = 1L),
+                          what = "scores"))
+  expect_identical(markov_order(gap, max_order = 2L, n_perm = 10L, seed = 1L),
+                   markov_order(runs, max_order = 2L, n_perm = 10L,
+                                seed = 1L))
+  scores <- hg_get(hypa(gap, order = 2L, min_count = 1L), what = "scores")
+  expect_false(any(grepl("NA", scores$path, fixed = TRUE)))
+})
+
+test_that("memory() already ends a context at a gap and counts none across", {
+  gap <- list(c("a", "b", NA, "c", "a", "b", "c"), c("a", "b", "c", NA))
+  runs <- list(c("a", "b"), c("c", "a", "b", "c"), c("a", "b", "c"))
+  expect_identical(hg_get(memory(gap, order = 2L, min_count = 1L)),
+                   hg_get(memory(runs, order = 2L, min_count = 1L)))
+})
+
+# ---- Labels that collide with the memory-node notation (M07) ---------------
+
+test_that("path-naming estimators refuse state labels holding the arrow", {
+  seqs <- rep(list(c("a -> b", "c", "a -> b", "c")), 2L)
+  expect_error(mogen(seqs, max_order = 1L), class = "hypergraphs_bad_input")
+  expect_error(hypa(seqs, order = 1L, min_count = 1L),
+               class = "hypergraphs_bad_input")
+  expect_error(memory(seqs, order = 2L, min_count = 1L),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_bootstrap(seqs, n_boot = 3L, max_order = 1L),
+               class = "hypergraphs_bad_input")
+  # the order test names no path, so such labels are harmless there
+  expect_s3_class(markov_order(seqs, max_order = 1L, n_perm = 5L, seed = 1L),
+                  "net_markov_order")
+})
+
+# ---- memory(): order is the number of conditioning states (M16) ------------
+
+test_that("memory(order = k) conditions on k states", {
+  seqs <- list(c("a", "b", "c", "a", "b", "c", "a", "b", "c"))
+  states_in <- \(context) lengths(strsplit(context, " -> ", fixed = TRUE))
+  two <- hg_get(memory(seqs, order = 2L, min_count = 1L))
+  three <- hg_get(memory(seqs, order = 3L, min_count = 1L))
+  expect_true(all(states_in(two$context) == 2L))
+  expect_true(all(states_in(three$context) == 3L))
+})

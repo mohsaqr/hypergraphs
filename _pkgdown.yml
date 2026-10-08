@@ -158,11 +158,11 @@ articles:
 - title: Text hypergraphs
   navbar: ~
   contents:
-  - covid-topics
-  - topic-mixtures
-  - text-hypergraphs
-  - text-constructions
-  - hypergat-classification
+  - articles/covid-topics
+  - articles/topic-mixtures
+  - articles/text-hypergraphs
+  - articles/text-constructions
+  - articles/hypergat-classification
 - title: Legal hypergraphs
   navbar: ~
   contents:

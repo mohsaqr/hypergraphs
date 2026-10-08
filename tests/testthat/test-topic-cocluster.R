@@ -81,3 +81,37 @@ test_that("hg_cocluster raises classed errors", {
   expect_error(hg_cocluster(empty, k = 2), class = "hypergraphs_bad_input")
   expect_error(hg_cocluster(list(), k = 2), class = "hypergraphs_bad_input")
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("hg_cocluster refuses a k its singular vectors cannot embed (TXT-05)", {
+  one_word <- text_hypergraph(c(a = "apple", b = "apple", c = "apple"))
+  expect_error(hg_cocluster(one_word, k = 2, seed = 1),
+               class = "hypergraphs_bad_input")
+  one_doc <- group_hypergraph(data.frame(node = "a", hyperedge = c("x", "y", "z")),
+                              node = "node", hyperedge = "hyperedge")
+  expect_error(hg_cocluster(one_doc, k = 2, seed = 1),
+               class = "hypergraphs_bad_input")
+  # 3 documents x 2 words: one non-trivial pair, so k = 2 at most
+  small <- text_hypergraph(c(a = "apple apple pear", b = "apple pear pear",
+                             c = "pear"))
+  expect_identical(dim(small$incidence), c(3L, 2L))
+  two <- hg_cocluster(small, k = 2, seed = 1)
+  expect_identical(nrow(two), 5L)
+  expect_setequal(unique(two$cluster), c("Cluster 1", "Cluster 2"))
+  expect_error(hg_cocluster(small, k = 3, seed = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_cocluster(small, k = 4, seed = 1),
+               class = "hypergraphs_bad_input")
+  sparse_small <- text_hypergraph(c(a = "apple apple pear",
+                                    b = "apple pear pear", c = "pear"),
+                                  sparse = TRUE)
+  expect_identical(hg_cocluster(sparse_small, k = 2, seed = 1), two)
+  expect_error(hg_cocluster(sparse_small, k = 3, seed = 1),
+               class = "hypergraphs_bad_input")
+  hg <- text_hypergraph(.cc_docs, stop_words = .cc_stops)
+  expect_error(hg_cocluster(hg, k = 2.5, seed = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_cocluster(hg, k = 2, nstart = 0.5, seed = 1),
+               class = "hypergraphs_bad_input")
+})

@@ -118,14 +118,36 @@ hypergraph.data.frame <- function(data, ...) {
     .thg_bad_input(paste0("event data need a `session` or an `actor` whose ",
                           "actions form a hyperedge, or `window` for windows"))
   }
-  unit <- if (!is.null(actor) && !is.null(session)) {
-    paste(data[[actor]], data[[session]], sep = ".")
-  } else {
-    as.character(data[[session %||% actor]])
+  keys <- c(actor, session)
+  if (anyNA(data[keys])) {
+    .thg_bad_input(sprintf(paste0(
+      "missing values in %s: every event needs an identifier; drop or ",
+      "relabel these rows first"), paste0("`", keys, "`", collapse = ", ")))
   }
   hyperedge <- session %||% actor
-  data[[hyperedge]] <- unit
+  data[[hyperedge]] <- if (is.null(actor) || is.null(session)) {
+    as.character(data[[hyperedge]])
+  } else {
+    .hgm_unit_labels(data[[actor]], data[[session]])
+  }
   group_hypergraph(data, node = action, hyperedge = hyperedge, ...)
+}
+
+# One label per hyperedge unit. With a session within its actor, the unit is
+# the (actor, session) tuple: tuples are told apart by their integer codes,
+# never by the pasted label, so `a.b` + `c` and `a` + `b.c` stay two units.
+# The label is `actor.session`; two tuples whose labels coincide get distinct
+# labels from make.unique(), in order of first appearance.
+.hgm_unit_labels <- function(actor, session) {
+  actor <- as.character(actor)
+  session <- as.character(session)
+  code <- match(actor, unique(actor)) * (length(session) + 1) +
+    match(session, unique(session))
+  tuple <- match(code, unique(code))
+  first <- match(seq_len(max(tuple, 0L)), tuple)
+  labels <- make.unique(paste(actor[first], session[first], sep = "."),
+                        sep = "#")
+  labels[tuple]
 }
 
 #' @export

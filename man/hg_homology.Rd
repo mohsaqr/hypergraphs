@@ -16,7 +16,11 @@ the count filtration (Petri et al. 2013): the complex at count \code{t} holds
 the sets of actions observed in at least \code{t} windows and their faces, so
 a class is born at the count where it appears and dies at a lower count;
 \code{birth}, \code{death} and the Betti-curve \code{threshold} are counts, and
-\code{n_steps} is not used (every observed count is a threshold).}
+\code{n_steps} is not used (every observed count is a threshold). A class
+that never dies (essential) has \code{death = 0} and \code{persistence = birth},
+as in clique mode, and every row of the Betti curve, the last
+included, counts the Z/2 classes alive at that count in the complex
+truncated at \code{max_dim}.}
 
 \item{n_steps}{Grid points of the reported Betti curve. Default \code{20}; the
 persistence diagram itself is exact.}

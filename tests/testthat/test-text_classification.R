@@ -156,3 +156,43 @@ test_that("plot() draws topic prevalence by a document column", {
                   "ggplot")
   expect_error(plot(topics, group = "theme"), class = "hypergraphs_bad_input")
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("the confusion table's no-prediction column never takes a class name (TXT-19)", {
+  predictions <- data.frame(
+    node = c("a", "b", "c", "d", "e", "f"),
+    predicted = c("(unscored)", "x", "x", NA, "(unscored)", "x"),
+    score = 1, margin = 1, stringsAsFactors = FALSE)
+  labels <- c(a = "(unscored)", b = "x", c = "(unscored)", d = "x",
+              e = "(unscored)", f = "x")
+  hidden <- labels[c("a", "c", "d", "f")]
+  result <- .thg_classification(predictions, labels, hidden,
+                                method = "hg_classify", holdout = 0.5)
+  confusion <- hg_get(result, what = "confusion")
+  expect_identical(sum(confusion$n), 4L)
+  expect_setequal(unique(confusion$label), c("(unscored)", "x"))
+  expect_setequal(unique(confusion$predicted),
+                  c("(unscored)", "x", "(unscored).1"))
+  missing_row <- subset(confusion, label == "x" & predicted == "(unscored).1")
+  expect_identical(missing_row$n, 1L)
+  real_row <- subset(confusion, label == "(unscored)" & predicted == "(unscored)")
+  expect_identical(real_row$n, 1L)
+  # without a colliding class the column keeps its plain name
+  plain_labels <- c(a = "y", b = "x", c = "y", d = "x", e = "y", f = "x")
+  plain <- .thg_classification(transform(predictions, predicted = c("y", "x", "x", NA, "y", "x")),
+                               plain_labels, plain_labels[c("a", "c", "d", "f")],
+                               method = "hg_classify", holdout = 0.5)
+  expect_true("(unscored)" %in% hg_get(plain, what = "confusion")$predicted)
+})
+
+test_that("hg_classify refuses conflicting labels before the held-out draw (TXT-07)", {
+  hg <- text_hypergraph(c(a = "apple pear night", b = "apple peach",
+                          c = "star moon night", d = "star sky"))
+  conflict <- c(a = "food", a = "space", b = "food", c = "space", d = "space")
+  expect_error(hg_classify(hg, conflict, holdout = 0.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_classify(hg, data.frame(node = c("a", "a", "c"),
+                                          label = c("food", "space", "space"))),
+               class = "hypergraphs_bad_input")
+})

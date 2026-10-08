@@ -17,7 +17,7 @@
 # Shared input parsing (wide / list / model objects / long format)
 # ---------------------------------------------------------------------------
 
-#' Parse inference input into a list of character trajectories
+#' Parse inference input into a list of trajectories, each a list of runs
 #'
 #' Every input route goes through the package's one sequence-input helper
 #' (.ho_sequence_input): long format becomes one trajectory per actor (and
@@ -25,12 +25,20 @@
 #' parsed by the package input contract (.coerce_sequence_input +
 #' .hon_parse_input).
 #'
+#' A missing state is a gap: each trajectory is split into its contiguous
+#' runs of observed states (.hon_gap_runs), repeats are collapsed within a
+#' run, and runs without a transition are dropped. A trajectory stays one
+#' resampling unit with all its runs, so the bootstrap and the permutations
+#' resample the original sequences. Without a gap a trajectory is the one
+#' run it always was.
+#'
 #' @param data Sequence data (wide data.frame, list, tna, netobject, or
 #'   long data.frame with `action`).
 #' @param action,actor,time,session,time_threshold,timezone Long-format
 #'   arguments or NULL.
 #' @param collapse_repeats Logical, as in hon().
-#' @return List of character trajectories (length >= 1).
+#' @return List of trajectories (length >= 1); each is a list of character
+#'   runs with at least one transition.
 #' @noRd
 .hi_parse <- function(data, action = NULL, actor = NULL, time = NULL,
                       session = NULL, time_threshold = 900,
@@ -41,13 +49,13 @@
                              timezone = timezone)
   data <- .coerce_sequence_input(data)
   trajectories <- .hon_parse_input(data, collapse_repeats = FALSE)
-  if (isTRUE(collapse_repeats)) {
-    trajectories <- lapply(trajectories, function(traj) {
-      if (length(traj) <= 1L) return(traj)
-      traj[c(TRUE, traj[-1L] != traj[-length(traj)])]
-    })
-  }
-  trajectories <- trajectories[lengths(trajectories) >= 2L]
+  .hon_check_states(unlist(trajectories, use.names = FALSE))
+  trajectories <- lapply(trajectories, \(traj) {
+    runs <- .hon_gap_runs(traj)
+    if (isTRUE(collapse_repeats)) runs <- lapply(runs, .hon_collapse_run)
+    runs[lengths(runs) >= 2L]
+  })
+  trajectories <- trajectories[lengths(trajectories) > 0L]
   if (length(trajectories) == 0L) {
     stop("No valid trajectories (each must have at least 2 states).",
          call. = FALSE)
@@ -61,20 +69,25 @@
 
 #' Precompute per-sequence observation counts as a tidy triplet table
 #'
-#' @param trajectories List of character trajectories.
+#' @param trajectories List of character trajectories (runs without NA).
 #' @param max_order Integer.
-#' @return data.frame: seq (integer), source_key (encoded context),
+#' @param unit Integer, one per trajectory: the resampling unit (original
+#'   sequence) it belongs to, 1..n. The counts of a unit are those of all
+#'   its runs. Default: every trajectory is its own unit.
+#' @return data.frame: seq (integer unit), source_key (encoded context),
 #'   target (state), n (integer count).
 #' @noRd
-.hi_seq_counts <- function(trajectories, max_order) {
-  per <- lapply(seq_along(trajectories), function(i) {
-    env <- .hon_build_observations(trajectories[i], max_order)
+.hi_seq_counts <- function(trajectories, max_order,
+                           unit = seq_along(trajectories)) {
+  members <- split(seq_along(trajectories), unit)
+  per <- lapply(seq_along(members), function(i) {
+    env <- .hon_build_observations(trajectories[members[[i]]], max_order)
     keys <- ls(env)
     if (length(keys) == 0L) return(NULL)
     counts <- lapply(keys, function(k) env[[k]])
     lens <- vapply(counts, length, integer(1L))
     data.frame(
-      seq        = rep(i, sum(lens)),
+      seq        = rep(as.integer(names(members)[i]), sum(lens)),
       source_key = rep(keys, lens),
       target     = unlist(lapply(counts, names), use.names = FALSE),
       n          = unlist(counts, use.names = FALSE),
@@ -139,9 +152,29 @@
     )
   })
   out <- do.call(rbind, rows)
+  if (is.null(out)) {
+    # no rule survived min_freq: the same columns, no rows
+    out <- data.frame(source_key = character(0L), from = character(0L),
+                      to = character(0L), order = integer(0L),
+                      count = integer(0L), probability = numeric(0L),
+                      stringsAsFactors = FALSE)
+  }
   out <- out[order(out$order, out$from, out$to), , drop = FALSE]
   rownames(out) <- NULL
   out
+}
+
+#' Refuse inference when the observed fit has no rule
+#' @param rules Rule table from .hi_rule_table().
+#' @param min_freq The min_freq used.
+#' @noRd
+.hi_require_rules <- function(rules, min_freq) {
+  if (nrow(rules) > 0L) return(invisible(NULL))
+  stop(errorCondition(sprintf(paste0(
+    "no transition is observed at least `min_freq` = %d times, so there is ",
+    "no rule to infer; lower `min_freq`"), as.integer(min_freq)),
+    class = c("hypergraphs_empty_result", "hypergraphs_bad_input"),
+    call = NULL))
 }
 
 #' Conditional probabilities of fixed (context, target) pairs under a
@@ -264,18 +297,13 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
     return(structure(fits, class = c("hypergraphs_bootstrap_group", "list")))
   }
   stopifnot(
-    "`n_boot` must be a single integer >= 2" =
-      is.numeric(n_boot) && length(n_boot) == 1L && is.finite(n_boot) &&
-      n_boot >= 2,
     "`level` must be a single number in (0, 1)" =
       is.numeric(level) && length(level) == 1L && is.finite(level) &&
-      level > 0 && level < 1,
-    "`max_order` must be >= 1" = is.numeric(max_order) && max_order >= 1,
-    "`min_freq` must be >= 1" = is.numeric(min_freq) && min_freq >= 1
+      level > 0 && level < 1
   )
-  n_boot <- as.integer(n_boot)
-  max_order <- as.integer(max_order)
-  min_freq <- as.integer(min_freq)
+  n_boot <- .ho_check_count(n_boot, "n_boot", min = 2)
+  max_order <- .ho_check_count(max_order, "max_order")
+  min_freq <- .ho_check_count(min_freq, "min_freq")
 
   trajectories <- .hi_parse(data, action = action, actor = actor,
                             time = time, session = session,
@@ -288,12 +316,14 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
          call. = FALSE)
   }
 
-  sc <- .hi_seq_counts(trajectories, max_order)
+  sc <- .hi_seq_counts(unlist(trajectories, recursive = FALSE), max_order,
+                       unit = rep(seq_len(n_seq), lengths(trajectories)))
 
   # Observed fit from the same counts functional the replicates use
   observed <- .hi_rule_table(
     .hon_extract_rules_count(.hi_count_env(sc, rep(1L, n_seq)),
                              max_order, min_freq))
+  .hi_require_rules(observed, min_freq)
 
   # All randomness up front (serial), so parallel == serial under a seed
   if (!is.null(seed)) set.seed(as.integer(seed))
@@ -364,21 +394,16 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
                        session = NULL, time_threshold = 900,
                        timezone = "UTC") {
   stopifnot(
-    "`n_perm` must be a single integer >= 2" =
-      is.numeric(n_perm) && length(n_perm) == 1L && is.finite(n_perm) &&
-      n_perm >= 2,
     "`alpha` must be a single number in (0, 1)" =
       is.numeric(alpha) && length(alpha) == 1L && is.finite(alpha) &&
       alpha > 0 && alpha < 1,
     "`names` must be two distinct cohort labels" =
       is.character(names) && length(names) == 2L && !anyNA(names) &&
-      names[1L] != names[2L],
-    "`max_order` must be >= 1" = is.numeric(max_order) && max_order >= 1,
-    "`min_freq` must be >= 1" = is.numeric(min_freq) && min_freq >= 1
+      names[1L] != names[2L]
   )
-  n_perm <- as.integer(n_perm)
-  max_order <- as.integer(max_order)
-  min_freq <- as.integer(min_freq)
+  n_perm <- .ho_check_count(n_perm, "n_perm", min = 2)
+  max_order <- .ho_check_count(max_order, "max_order")
+  min_freq <- .ho_check_count(min_freq, "min_freq")
 
   tr_x <- .hi_parse(x, action = action, actor = actor, time = time,
                     session = session, time_threshold = time_threshold,
@@ -396,12 +421,14 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   n_seq <- n_x + n_y
   is_x_obs <- c(rep(TRUE, n_x), rep(FALSE, n_y))
 
-  sc <- .hi_seq_counts(trajectories, max_order)
+  sc <- .hi_seq_counts(unlist(trajectories, recursive = FALSE), max_order,
+                       unit = rep(seq_len(n_seq), lengths(trajectories)))
 
   # Pooled rule set defines the edges under test
   pooled <- .hi_rule_table(
     .hon_extract_rules_count(.hi_count_env(sc, rep(1L, n_seq)),
                              max_order, min_freq))
+  .hi_require_rules(pooled, min_freq)
 
   probs_for <- function(is_x) {
     distr_x <- .hon_build_distributions(
@@ -414,8 +441,27 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
 
   obs_probs <- probs_for(is_x_obs)
   obs_diff <- obs_probs[, 1L] - obs_probs[, 2L]
-  w_edge <- pooled$count / sum(pooled$count)
-  obs_global <- sum(w_edge * abs(obs_diff), na.rm = TRUE)
+  # The global statistic is the pooled-count-weighted mean |diff| over the
+  # comparable rules: those whose context both groups observe. A rule one
+  # group never reaches has no difference, and counting it as zero would
+  # pull the statistic towards "no difference". The comparable set is fixed
+  # by the observed groups; in a permutation, a comparable rule whose
+  # context one permuted group lacks is left out of that permutation's mean
+  # (the weights are renormalised over the rules evaluated).
+  comparable <- !is.na(obs_diff)
+  global_of <- function(diff) {
+    defined <- comparable & !is.na(diff)
+    if (!any(defined)) return(NA_real_)
+    w <- pooled$count[defined] / sum(pooled$count[defined])
+    sum(w * abs(diff[defined]))
+  }
+  obs_global <- global_of(obs_diff)
+  if (!any(comparable)) {
+    warning(warningCondition(paste0(
+      "no rule context is observed in both groups, so the groups share ",
+      "nothing to compare; the global statistic and its p-value are NA"),
+      class = "hypergraphs_undefined_statistic", call = NULL))
+  }
 
   count_x_env <- .hi_count_env(sc, as.integer(is_x_obs))
   count_y_env <- .hi_count_env(sc, as.integer(!is_x_obs))
@@ -435,7 +481,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   one_perm <- function(p) {
     pp <- probs_for(perms[, p])
     list(diff = abs(pp[, 1L] - pp[, 2L]),
-         global = sum(w_edge * abs(pp[, 1L] - pp[, 2L]), na.rm = TRUE))
+         global = global_of(pp[, 1L] - pp[, 2L]))
   }
   reps <- .hi_apply(n_perm, one_perm, parallel, n_cores)
 
@@ -447,7 +493,13 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   p_edge <- ifelse(is.na(obs_diff), NA_real_,
                    (exceed + 1) / (n_valid + 1))
   p_adj <- stats::p.adjust(p_edge, method = "BH")
-  p_global <- (sum(global_null >= obs_global - 1e-12) + 1) / (n_perm + 1)
+  global_used <- sum(!is.na(global_null))
+  p_global <- if (is.na(obs_global)) {
+    NA_real_
+  } else {
+    (sum(global_null >= obs_global - 1e-12, na.rm = TRUE) + 1) /
+      (global_used + 1)
+  }
 
   edges <- data.frame(
     from  = pooled$from,
@@ -469,7 +521,10 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   structure(
     list(
       edges = edges,
-      global = list(statistic = obs_global, p_value = p_global),
+      global = list(statistic = obs_global, p_value = p_global,
+                    n_comparable = sum(comparable),
+                    n_rules = nrow(pooled),
+                    n_perm_used = as.integer(global_used)),
       names = names,
       n_perm = n_perm,
       alpha = alpha,
@@ -664,8 +719,9 @@ print.hypergraphs_comparison <- function(x, n = 10L, ...) {
               x$names[2L], x$n_trajectories[2L]))
   cat(sprintf("  %d pooled rule edges, %d permutations\n",
               nrow(e), x$n_perm))
-  cat(sprintf("  Global weighted |diff|: %.4f, p = %.4g\n",
-              x$global$statistic, x$global$p_value))
+  cat(sprintf("  Global weighted |diff|: %.4f, p = %.4g (%d of %d rules comparable)\n",
+              x$global$statistic, x$global$p_value,
+              x$global$n_comparable %||% nrow(e), nrow(e)))
   cat(sprintf("  Significant edges (BH, alpha = %.2f): %d\n",
               x$alpha, sum(e$significant)))
   .ho_print_table(x, n)
@@ -679,7 +735,8 @@ summary.hypergraphs_comparison <- function(object, ...) {
   by_order <- do.call(rbind, lapply(split(e, e$order), function(d) {
     data.frame(order = d$order[1L], n_edges = nrow(d),
                n_significant = sum(d$significant),
-               max_abs_diff = max(abs(d$diff), na.rm = TRUE),
+               max_abs_diff = if (all(is.na(d$diff))) NA_real_ else
+                 max(abs(d$diff), na.rm = TRUE),
                stringsAsFactors = FALSE)
   }))
   rownames(by_order) <- NULL

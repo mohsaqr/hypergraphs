@@ -19,12 +19,17 @@ hg_compare_communities(..., hg = NULL, edge_source = NULL)
 \item{...}{For \code{plot}, unused.}
 
 \item{hg}{Optional: the static \code{net_hg} the fits were computed on.
-When given, every medoid is scored with \code{\link[=hg_community_quality]{hg_community_quality()}} on the
-projection its own fit used, and the scores are available as
-\code{what = "quality"}.}
+When given, every medoid is scored with the measures of
+\code{\link[=hg_community_quality]{hg_community_quality()}} on the projection its own fit saved (for
+\code{type = "irmm"}, the final reweighted clique reduction), and the scores
+are available as \code{what = "quality"}. A fit run on a directed citation
+graph cannot be scored (the measures are defined on undirected graphs):
+its quality row is \code{NA} and a \code{hypergraphs_undefined_statistic} warning
+is raised.}
 
-\item{edge_source}{Hyperedge sources for the citation and self-association
-projections when scoring, as in \code{\link[=pairwise_network]{pairwise_network()}}.}
+\item{edge_source}{Deprecated and unused: the saved projections already
+carry the hyperedge sources. Supplying it warns with class
+\code{hypergraphs_deprecated}.}
 
 \item{x}{A \code{hypergraphs_community_comparison} object.}
 
@@ -39,14 +44,18 @@ its \code{"summary"} (default; one row per fit with \code{model}, \code{medoid_s
 \code{n_communities}, \code{n_singletons}, \code{n_nontrivial}, \code{largest_size},
 \code{second_size} and \code{balance} = second / largest), \code{"similarity"} (one
 row per pair of
-fits with \code{model_a}, \code{model_b}, \code{ami}, \code{ari}, \code{nmi}, on the nodes the
-two medoids share), \code{"sizes"} (one row per community of every medoid
+fits with \code{model_a}, \code{model_b}, \code{n_nodes}, \code{ami}, \code{ari}, \code{nmi}, on
+the \code{n_nodes} nodes the two medoids share; with fewer than two shared
+nodes the three scores are \code{NA} and a \code{hypergraphs_undefined_statistic}
+warning is raised), \code{"sizes"} (one row per community of every medoid
 with \code{model}, \code{rank}, \code{n_nodes}) or, when \code{hg} was given, \code{"quality"}
 (one row per fit with the columns of \code{\link[=hg_community_quality]{hg_community_quality()}}).
 \code{plot()} draws the cluster-size distributions (\code{what = "sizes"}, the
 number of communities at least as large as each size, on logarithmic
 axes) or the similarity matrix (\code{what = "similarity"}, AMI below and
-ARI above the diagonal, values printed in the cells).
+ARI above the diagonal, values printed in the cells, on a diverging
+scale from -1 through 0 (white) to 1, since chance-corrected agreement
+can be negative; undefined cells are grey).
 
 For \code{plot}, a ggplot object.
 }

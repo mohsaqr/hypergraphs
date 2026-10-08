@@ -1776,15 +1776,22 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
 # in its own unit frame, exactly as it would be drawn alone, and piece i is
 # shifted 1.4 (i - 1) to the right. Pieces are ordered by their earliest
 # hyperedge in `precedence`; a piece of one node sits at (0.5, 0.5) of its
-# frame. NULL for a connected hypergraph, which needs no row.
+# frame. A node in no hyperedge is a piece of its own, placed after the
+# pieces of hyperedges in node order. NULL when the hyperedges form one
+# piece, which needs no row.
 .thg_row_layout <- function(hg, seed, center, padding, precedence) {
   inc <- as.matrix(hg$incidence != 0)
+  if (!ncol(inc)) return(NULL)
   piece <- .thg_components(crossprod(inc) * 1)
   if (max(piece) == 1L) return(NULL)
+  isolates <- which(rowSums(inc) == 0)
   earliest <- vapply(seq_len(max(piece)), function(k) {
     min(match(which(piece == k), precedence))
   }, integer(1L))
-  do.call(rbind, lapply(seq_along(earliest), function(i) {
+  lone <- data.frame(node = hg$nodes[isolates],
+                     x = 0.5 + (length(earliest) + seq_along(isolates) - 1L) * 1.4,
+                     y = rep(0.5, length(isolates)), stringsAsFactors = FALSE)
+  pieces <- do.call(rbind, lapply(seq_along(earliest), function(i) {
     edges <- which(piece == order(earliest)[i])
     rows <- which(rowSums(inc[, edges, drop = FALSE]) > 0)
     shift <- (i - 1L) * 1.4
@@ -1798,6 +1805,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     data.frame(node = at$node, x = at$x + shift, y = at$y,
                stringsAsFactors = FALSE)
   }))
+  rbind(pieces, lone)
 }
 
 # The distinct member sets of a hypergraph whose hyperedges repeat, as the

@@ -123,3 +123,50 @@ test_that(".thg_general_triplet keeps every cell of packed Matrix storage", {
   rect <- Matrix::sparseMatrix(i = c(1, 2), j = c(2, 1), x = c(7, 8), dims = c(2, 3))
   expect_identical(dense_back(.thg_general_triplet(rect)), as.matrix(rect) + 0)
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("hg_neural removes a random seed it created (TXT-18)", {
+  skip_if_not_installed("torch")
+  hg <- text_hypergraph(neural_corpus, stop_words = neural_stop)
+  labels <- c(cooking_1 = "cooking", space_1 = "space")
+  had <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  saved <- if (had) get(".Random.seed", envir = globalenv())
+  on.exit(.thg_rng_restore(had, saved), add = TRUE)
+  # no seed before the call: none after it, on success and on failure
+  .thg_rng_restore(FALSE, NULL)
+  hg_neural(hg, labels = labels, hidden = 4, epochs = 1, validation = 0)
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+  expect_error(hg_neural(hg, labels = labels, hidden = 4, epochs = 1,
+                         validation = 0, lr = "fast"))
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+  # an existing seed is restored exactly
+  set.seed(42)
+  before <- get(".Random.seed", envir = globalenv())
+  hg_neural(hg, labels = labels, hidden = 4, epochs = 1, validation = 0)
+  expect_identical(get(".Random.seed", envir = globalenv()), before)
+})
+
+test_that("hg_neural refuses ambiguous labels and feature rows (TXT-07, TXT-15)", {
+  skip_if_not_installed("torch")
+  hg <- text_hypergraph(neural_corpus, stop_words = neural_stop)
+  expect_error(hg_neural(hg, labels = c(cooking_1 = "cooking",
+                                        cooking_1 = "space",
+                                        space_1 = "space"),
+                         hidden = 4, epochs = 1, validation = 0),
+               class = "hypergraphs_bad_input")
+  features <- as.matrix(hg$incidence)
+  duplicated_rows <- rbind(features, features[1L, , drop = FALSE] * 100)
+  expect_error(hg_neural(hg, labels = c(cooking_1 = "cooking",
+                                        space_1 = "space"),
+                         features = duplicated_rows, hidden = 4, epochs = 1,
+                         validation = 0),
+               class = "hypergraphs_bad_input")
+  # a missing label is an unlabelled node, not a training target
+  with_na <- hg_neural(hg, labels = c(cooking_1 = "cooking", space_1 = "space",
+                                      space_2 = NA),
+                       hidden = 4, epochs = 2, validation = 0)
+  without <- hg_neural(hg, labels = c(cooking_1 = "cooking", space_1 = "space"),
+                       hidden = 4, epochs = 2, validation = 0)
+  expect_identical(with_na, without)
+})

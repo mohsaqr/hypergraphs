@@ -149,9 +149,12 @@
                                  lowercase, vocabulary = NULL, warn = TRUE) {
   text[is.na(text)] <- ""
   raw <- lapply(strsplit(text, "[.!?;]+"), trimws)
+  # stop words removed but repeats kept: `min_count` is a corpus frequency,
+  # every occurrence counted, as documented; a sentence binds each of its
+  # words once through intersect() below
   tokens <- lapply(raw, \(sents) {
     toks <- .thg_tokenize(sents, lowercase)
-    lapply(toks, \(s) setdiff(s, stop_words))
+    lapply(toks, \(s) s[!s %in% stop_words])
   })
   counts <- table(unlist(tokens))
   vocab <- vocabulary %||% sort(names(counts)[counts >= min_count])
@@ -336,7 +339,8 @@
 #' @param stop_words Words removed before building sentences (default
 #'   [stop_words_en()]).
 #' @param min_count Minimum corpus frequency for a word to become a
-#'   vertex.
+#'   vertex: its number of occurrences (after stop-word removal) in the
+#'   documents the vocabulary is built from, every repeat counted.
 #' @param lowercase Lowercase the text first.
 #' @param semantic `"none"` (default) for sentence hyperedges only, or
 #'   `"lda"` to append the paper's semantic topic hyperedges.
@@ -396,16 +400,15 @@
 #' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with
 #' less: Hypergraph attention networks for inductive text classification.
 #' \emph{EMNLP 2020}.
-#' @examples
-#' \dontrun{
-#' # articles has text and an existing subject-label column called label.
-#' fit <- hg_hypergat(articles, column = "text", labels = "label",
-#'                    holdout = 0.2)
+#' @examplesIf requireNamespace("torch", quietly = TRUE) && torch::torch_is_installed()
+#' # a small, fast fit on 60 bundled forum posts; a real analysis trains
+#' # for more epochs on the whole corpus
+#' fit <- hg_hypergat(head(forum_posts, 60), column = "text",
+#'                    labels = "topic", holdout = 0.25, epochs = 5)
 #' fit
 #' plot(fit)
-#' hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
-#' predict(fit, newdata = new_articles)
-#' }
+#' hg_get(fit, what = "documents", split = "test", top = 3)
+#' predict(fit, newdata = tail(forum_posts, 3))
 #' @export
 hg_hypergat <- function(x, labels, column = NULL, id = NULL,
                         stop_words = stop_words_en(), min_count = 1L,

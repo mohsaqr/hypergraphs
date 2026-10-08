@@ -36,9 +36,9 @@
                "conversation", "parent", "postid", "root"),
   session  = c("session", "period", "wave", "phase", "cohort", "course"),
   group    = c("group", "event", "context", "room", "class", "meeting",
-               "venue", "team", "channel"),
+               "venue", "team", "channel", "hyperedge"),
   actor    = c("actor", "person", "member", "student", "participant", "user",
-               "id", "name"),
+               "id", "name", "node"),
   weight   = c("weight", "weights", "strength")
 )
 
@@ -79,13 +79,105 @@
 # ---------------------------------------------------------------------------
 
 .thg_time_formats <- c(
-  "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d",
+  "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M",
+  "%Y-%m-%dT%H:%M", "%Y-%m-%d",
   "%Y/%m/%d %H:%M:%S", "%Y/%m/%d %H:%M", "%Y/%m/%d",
   "%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M", "%d/%m/%Y",
   "%m/%d/%Y %H:%M:%S", "%m/%d/%Y %H:%M", "%m/%d/%Y",
   "%d-%m-%Y %H:%M:%S", "%d-%m-%Y %H:%M", "%d-%m-%Y",
   "%d %b %Y %H:%M", "%d %B %Y %H:%M", "%d %b %Y", "%d %B %Y"
 )
+
+# The whole-string pattern of a format: strptime() reads a prefix and
+# ignores what follows, so a string is accepted only when it matches this
+# pattern from end to end.
+.thg_format_pattern <- function(fmt) {
+  tokens <- c("%Y" = "[0-9]{4}", "%m" = "[0-9]{1,2}", "%d" = "[0-9]{1,2}",
+              "%H" = "[0-9]{1,2}", "%M" = "[0-9]{1,2}", "%S" = "[0-9]{1,2}",
+              "%b" = "[[:alpha:]]+", "%B" = "[[:alpha:]]+")
+  pattern <- Reduce(function(p, token) gsub(token, tokens[[token]], p, fixed = TRUE),
+                    names(tokens), fmt)
+  paste0("^", pattern, "$")
+}
+
+# The date part of a format: formats that share it read one way of writing a
+# date, with or without a time of day.
+.thg_format_family <- function(fmt) sub("[ T]%H.*$", "", fmt)
+
+# An ISO 8601 ending of a date-time: fractional seconds and a UTC designator
+# (`Z`) or offset (`+0200`, `+02:00`, `-05`... in hours and minutes). Returns
+# the string without them and the seconds to add to its reading as UTC.
+.thg_iso_suffix <- function(x) {
+  parts <- regmatches(x, regexec(
+    "^(.*?[0-9]:[0-9]{2}(?::[0-9]{2})?)([.][0-9]+)?(Z|[+-][0-9]{2}:?[0-9]{2})?$",
+    x, perl = TRUE))
+  shift <- vapply(parts, function(p) {
+    if (!length(p)) return(0)
+    fraction <- if (nzchar(p[[3L]])) as.numeric(p[[3L]]) else 0
+    zone <- p[[4L]]
+    offset <- if (!nzchar(zone) || identical(zone, "Z")) 0 else {
+      digits <- gsub(":", "", substring(zone, 2L), fixed = TRUE)
+      (if (startsWith(zone, "-")) -1 else 1) *
+        (as.numeric(substr(digits, 1L, 2L)) * 3600 +
+           as.numeric(substr(digits, 3L, 4L)) * 60)
+    }
+    fraction - offset
+  }, numeric(1L))
+  # a fraction belongs to the seconds: after hours and minutes alone it is
+  # left in place, and the string then fails to parse
+  bare <- vapply(parts, function(p) {
+    if (!length(p)) return(NA_character_)
+    if (nzchar(p[[3L]]) && !grepl(":[0-9]{2}:[0-9]{2}$", p[[2L]])) {
+      return(NA_character_)
+    }
+    p[[2L]]
+  }, character(1L))
+  matched <- !is.na(bare)
+  list(base = ifelse(matched, bare, x), shift = ifelse(matched, shift, 0))
+}
+
+# Character date-times on one reading. Every non-missing string must be read
+# completely, by the formats of one date family (the family that reads the
+# most strings, the earlier one on a tie): a string read only in part, or by
+# no format of that family, is an error, never a missing time. Strings
+# without an offset are UTC; an ISO offset or `Z` is honoured.
+.thg_parse_datetime_strings <- function(x) {
+  present <- !is.na(x)
+  text <- trimws(x)
+  iso <- .thg_iso_suffix(text)
+  families <- .thg_format_family(.thg_time_formats)
+  read <- lapply(.thg_time_formats, function(fmt) {
+    whole <- present & grepl(.thg_format_pattern(fmt), iso$base)
+    out <- rep(as.POSIXct(NA_real_, tz = "UTC"), length(x))
+    if (any(whole)) {
+      out[whole] <- as.POSIXct(iso$base[whole], format = fmt, tz = "UTC")
+    }
+    out
+  })
+  family_names <- unique(families)
+  n_ok <- vapply(family_names, function(f) {
+    ok <- Reduce(`|`, lapply(read[families == f], \(p) !is.na(p)),
+                 rep(FALSE, length(x)))
+    sum(ok)
+  }, integer(1L))
+  best <- family_names[which.max(n_ok)]
+  # within the family, the first format that reads a string reads it
+  out <- Reduce(function(acc, p) {
+    fill <- is.na(acc) & !is.na(p)
+    acc[fill] <- p[fill]
+    acc
+  }, read[families == best], rep(as.POSIXct(NA_real_, tz = "UTC"), length(x)))
+  failed <- present & is.na(out)
+  if (any(failed)) {
+    .thg_bad_input(
+      sprintf(paste0("could not read %d time string(s) such as '%s' as a date ",
+                     "or date-time; supply numeric, Date or POSIXct times"),
+              sum(failed), x[failed][1L]),
+      class = "hypergraphs_unparsed_time"
+    )
+  }
+  out + iso$shift
+}
 
 .thg_unit_seconds <- function(time_unit) {
   switch(time_unit, seconds = 1, minutes = 60, hours = 3600, days = 86400,
@@ -100,23 +192,6 @@
   else "days"
 }
 
-.thg_parse_datetime_strings <- function(x) {
-  present <- !is.na(x)
-  trial <- lapply(.thg_time_formats, function(fmt) {
-    as.POSIXct(x, format = fmt, tz = "UTC")
-  })
-  n_ok <- vapply(trial, function(p) sum(!is.na(p[present])), integer(1L))
-  best <- which.max(n_ok)
-  if (n_ok[best] == 0L) {
-    .thg_bad_input(
-      sprintf("could not parse time strings such as '%s'; supply numeric, Date or POSIXct times",
-              x[present][1L]),
-      class = "hypergraphs_unparsed_time"
-    )
-  }
-  trial[[best]]
-}
-
 # Parse one or more time vectors on a shared clock. `columns` is a named
 # list; NA entries are allowed (an open end, a node without an entry time)
 # and stay NA. Returns the parsed columns plus `unit` and `origin`.
@@ -126,6 +201,16 @@
     .thg_bad_input("`time_unit` must be \"auto\", \"seconds\", \"minutes\", \"hours\", \"days\" or \"weeks\"")
   }
   columns <- lapply(columns, function(x) if (is.factor(x)) as.character(x) else x)
+  # a column with no value at all (an `end` column of open intervals, read
+  # by data.frame() as logical NA) takes the clock of the others
+  empty <- vapply(columns, function(x) all(is.na(x)), logical(1L))
+  if (all(empty)) .thg_bad_input("no time value could be read")
+  if (any(empty)) {
+    read <- .thg_parse_clock(columns[!empty], time_unit)
+    blank <- lapply(columns[empty], function(x) rep(NA_real_, length(x)))
+    return(c(read[names(columns)[!empty]], blank,
+             read[c("unit", "origin")])[c(names(columns), "unit", "origin")])
+  }
   kinds <- vapply(columns, function(x) {
     if (is.numeric(x)) "numeric"
     else if (inherits(x, "POSIXct") || inherits(x, "Date")) "calendar"
@@ -139,6 +224,14 @@
       bad, paste(class(columns[[bad]]), collapse = "/")))
   }
   if (all(kinds == "numeric")) {
+    # NA is a missing time (an open end); NaN and infinite values are not
+    # times at all
+    bad <- vapply(columns, function(x) any(is.nan(x) | is.infinite(x)), logical(1L))
+    if (any(bad)) {
+      .thg_bad_input(sprintf(
+        "the %s times hold NaN or infinite values; times must be finite",
+        sub("_", " ", names(columns)[bad][1L], fixed = TRUE)))
+    }
     return(c(lapply(columns, as.numeric), list(unit = "step", origin = 0)))
   }
   if (any(kinds == "numeric")) {
@@ -283,7 +376,9 @@
 #' @param node,hyperedge Column names of membership data: the node, and the
 #'   grouping whose shared values bind nodes into one hyperedge. Naming
 #'   either selects the membership format; the other is then detected by
-#'   alias if not given.
+#'   alias if not given. When no column is named and no edge list is
+#'   detected, both are detected by alias (`node`, `actor`, `person`, ...
+#'   and `hyperedge`, `group`, `event`, ...), as [group_hypergraph()] does.
 #' @param time Column with the instant of a contact hyperedge.
 #' @param start,end Columns with the interval on which a hyperedge is active.
 #'   `start` without an `end` column is read as a contact clock.
@@ -377,7 +472,9 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   format <- roles$format
 
   # One row per membership. An edge list is unpivoted to its two ends; the
-  # remaining columns ride along as candidate hyperedge attributes.
+  # remaining columns ride along as candidate hyperedge attributes, kept in a
+  # table of their own so that a column named `node`, `start` or `weight`
+  # never replaces the structural column of that name.
   used <- c(from, to, node, hyperedge, clock, end, weight)
   candidates <- setdiff(names(data), used)
   if (edge_list) {
@@ -396,17 +493,25 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
     )
     rows <- seq_len(nrow(data))
   }
+  if (!is.null(weight) && (!is.numeric(data[[weight]]) || is.factor(data[[weight]]))) {
+    .thg_bad_input("membership weights must be numbers (a factor's codes are not weights)")
+  }
+  if (is.numeric(data[[clock]]) && any(is.nan(data[[clock]]))) {
+    .thg_bad_input(sprintf("time column `%s` holds NaN; times must be finite", clock))
+  }
   memberships$start <- data[[clock]][rows]
   memberships$end <- if (is.null(end)) rep(NA, length(rows)) else data[[end]][rows]
   memberships$weight <- if (is.null(weight)) rep(1, length(rows)) else
     as.numeric(data[[weight]][rows])
-  for (column in candidates) memberships[[column]] <- data[[column]][rows]
+  metadata <- data[rows, candidates, drop = FALSE]
 
   keep <- !is.na(memberships$node) & nzchar(memberships$node) &
     !is.na(memberships$edge) & nzchar(memberships$edge) &
     !is.na(memberships$start) & !is.na(memberships$weight)
   memberships <- memberships[keep, , drop = FALSE]
+  metadata <- metadata[keep, , drop = FALSE]
   rownames(memberships) <- NULL
+  rownames(metadata) <- NULL
   if (nrow(memberships) == 0L) {
     .thg_bad_input("no complete memberships remain after dropping missing rows")
   }
@@ -422,15 +527,24 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   if (!is.null(end)) clock_columns$end <- memberships$end
   if (!all(is.na(node_data$start))) clock_columns$node_start <- node_data$start
   parsed <- .thg_parse_clock(clock_columns, time_unit)
+  timed <- unlist(parsed[setdiff(names(clock_columns), "unit")], use.names = FALSE)
+  if (any(is.infinite(timed))) {
+    .thg_bad_input("times must be finite; an infinite time is not on the clock")
+  }
   memberships$start <- parsed$start
   memberships$end <- if (is.null(end)) rep(NA_real_, nrow(memberships)) else parsed$end
   node_data$start <- if (is.null(parsed$node_start)) rep(NA_real_, nrow(node_data)) else
     parsed$node_start
+  # every membership spell on its own, before any hyperedge envelope can hide
+  # a reversed one behind a valid one
+  if (any(!is.na(memberships$end) & memberships$end < memberships$start)) {
+    .thg_bad_input("every interval must satisfy `end >= start`")
+  }
 
   # Times must not depend on which membership row carried them; attribute
   # columns that vary within a hyperedge are not hyperedge attributes.
-  constant_within_edge <- function(column, allow_na = FALSE) {
-    by_edge <- split(memberships[[column]], memberships$edge)
+  constant_within_edge <- function(values, allow_na = FALSE) {
+    by_edge <- split(values, memberships$edge)
     !any(vapply(by_edge, function(x) {
       x <- if (allow_na) x[!is.na(x)] else x
       length(unique(x)) > 1L
@@ -442,19 +556,29 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   # times (a session read as a sequence, a log with one row per attendance)
   # the hyperedge spans its first to its last membership and each membership
   # is present on its own spell only; a contact is present at its instant.
-  membership_times <- !constant_within_edge("start") ||
-    (!is.null(end) && !constant_within_edge("end", allow_na = TRUE))
+  # An open end (NA) is an end of its own: a membership still active is not
+  # one that ended, so open and finite ends within a hyperedge differ.
+  membership_times <- !constant_within_edge(memberships$start) ||
+    (!is.null(end) && !constant_within_edge(memberships$end))
   if (membership_times && identical(format, "contact")) {
     memberships$end <- memberships$start
     format <- "interval"
   }
-  attributes <- Filter(function(column) constant_within_edge(column, allow_na = TRUE),
-                       candidates)
+  attributes <- Filter(function(column) {
+    constant_within_edge(metadata[[column]], allow_na = TRUE)
+  }, candidates)
 
   edge_names <- sort(unique(memberships$edge))
   first <- match(edge_names, memberships$edge)
-  edge_data <- memberships[first, c("edge", "start", "end", attributes), drop = FALSE]
-  rownames(edge_data) <- NULL
+  edge_data <- .thg_edge_attributes(metadata[attributes], memberships$edge,
+                                    edge_names,
+                                    reserved = c("edge", "start", "end"))
+  edge_data$start <- memberships$start[first]
+  edge_data$end <- memberships$end[first]
+  edge_data <- edge_data[, c("edge", "start", "end",
+                             setdiff(names(edge_data), c("edge", "start", "end"))),
+                         drop = FALSE]
+  attributes <- setdiff(names(edge_data), c("edge", "start", "end"))
   if (membership_times) {
     by_edge <- factor(memberships$edge, levels = edge_names)
     edge_data$start <- as.numeric(tapply(memberships$start, by_edge, min))
@@ -563,12 +687,27 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
     }
     claimed <- c(actor, group)
   } else {
+    named <- !is.null(from) || !is.null(to)
     from <- .thg_resolve_column(data, from, "from", arg = "from")
     to <- .thg_resolve_column(data, to, "to", exclude = from, arg = "to")
-    if (is.null(from) || is.null(to)) {
+    if (!named && (is.null(from) || is.null(to))) {
+      # nothing named and no edge list detected: membership columns, by the
+      # alias table, as group_hypergraph() detects them
+      actor <- .thg_match_column(data, "actor")
+      group <- .thg_match_column(data, "group", exclude = actor)
+      if (is.null(actor) || is.null(group)) {
+        actor <- NULL
+        group <- NULL
+      } else {
+        from <- NULL
+        to <- NULL
+        claimed <- c(actor, group)
+      }
+    }
+    if (is.null(actor) && (is.null(from) || is.null(to))) {
       .thg_bad_input("name `from` and `to` for an edge list, or `node` and `hyperedge` for membership data")
     }
-    claimed <- c(from, to)
+    if (is.null(actor)) claimed <- c(from, to)
   }
   if (!is.null(start) && !is.null(time)) {
     .thg_bad_input("supply only one of `start` and `time`")
@@ -640,6 +779,8 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 }
 
 .thg_empty_hypergraph <- function(nodes = character(), sparse = FALSE) {
+  # a snapshot without a node universe has no nodes: character(0), not NULL
+  nodes <- as.character(nodes %||% character())
   n <- length(nodes)
   incidence <- if (sparse) {
     Matrix::Matrix(0, n, 0L, sparse = TRUE, dimnames = list(nodes, NULL))
@@ -748,6 +889,15 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   list(times = times, window = window, closed = whole)
 }
 
+# Has a spell begun by the end of the window from `t`? A point (window 0) and
+# the closed whole-period window include their end; a positive window
+# [t, t + window) excludes it. The one boundary rule for hyperedges,
+# memberships and node entries alike, so growth counts and snapshots agree.
+.thg_begun <- function(start, t, window, closed = FALSE) {
+  upper <- t + window
+  if (window > 0 && !closed) start < upper else start <= upper
+}
+
 # Logical over the edge metadata: which hyperedges a window from `t`
 # measures. A point (window 0) is closed: an interval ending exactly at `t`
 # is still active, a contact at `t` is present. A positive window covers
@@ -756,8 +906,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 # -- closed on the right for a point or a closed grid -- or, cumulatively,
 # have begun by its end.
 .thg_spells_in_window <- function(start, end, t, window, mode, closed = FALSE) {
-  upper <- t + window
-  begun <- if (window > 0 && !closed) start < upper else start <= upper
+  begun <- .thg_begun(start, t, window, closed)
   if (identical(mode, "cumulative")) return(begun)
   begun & (is.na(end) | end >= t)
 }
@@ -765,9 +914,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 .thg_edges_in_window <- function(x, t, window, mode, closed = FALSE) {
   ed <- x$edge_data
   if (identical(x$format, "contact") && !identical(mode, "cumulative")) {
-    upper <- t + window
-    begun <- if (window > 0 && !closed) ed$start < upper else ed$start <= upper
-    return(begun & ed$start >= t)
+    return(.thg_begun(ed$start, t, window, closed) & ed$start >= t)
   }
   .thg_spells_in_window(ed$start, ed$end, t, window, mode, closed)
 }
@@ -788,11 +935,12 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 # of the active hyperedges. With one, every node is kept; when nodes carry
 # entry times, only nodes entered by the end of the window plus any active
 # member are kept.
-.thg_snapshot_nodes <- function(x, t_end, active_members) {
+.thg_snapshot_nodes <- function(x, t, window, closed, active_members) {
   if (!isTRUE(x$params$nodes_given)) return(NULL)
   node_data <- x$node_data
   if (all(is.na(node_data$start))) return(node_data$node)
-  entered <- !is.na(node_data$start) & node_data$start <= t_end
+  entered <- !is.na(node_data$start) &
+    .thg_begun(node_data$start, t, window, closed)
   sort(union(node_data$node[entered], unique(active_members)))
 }
 
@@ -800,7 +948,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   ed <- x$edge_data
   d <- x$memberships[.thg_memberships_in_window(x, t, window, mode, closed), , drop = FALSE]
   sparse <- isTRUE(x$params$sparse)
-  universe <- .thg_snapshot_nodes(x, t + window, d$node)
+  universe <- .thg_snapshot_nodes(x, t, window, closed, d$node)
   if (nrow(d) == 0L) {
     hg <- .thg_empty_hypergraph(universe, sparse)
   } else {
@@ -952,7 +1100,10 @@ print.net_temporal_hypergraph <- function(x, n = 10L, ...) {
 
 #' @export
 summary.net_temporal_hypergraph <- function(object, ...) {
-  memberships_per_edge <- table(object$memberships$edge)
+  # an edge's size counts its distinct members: a member recorded twice (a
+  # repeated contact, a second spell) is one member
+  distinct <- unique(object$memberships[c("edge", "node")])
+  memberships_per_edge <- table(distinct$edge)
   duration <- if (all(is.na(object$edge_data$end))) NA_real_ else
     as.numeric(object$edge_data$end - object$edge_data$start)
   data.frame(

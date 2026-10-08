@@ -70,8 +70,12 @@
   }
   if (is.list(data)) {
     trajectories <- lapply(data, as.character)
+    # the names identify the sequences: windows are keyed by them, so two
+    # sequences sharing a name would merge their windows
     if (is.null(names(trajectories))) {
       names(trajectories) <- paste0("sequence_", seq_along(trajectories))
+    } else {
+      .ho_check_ids(names(trajectories), "data")
     }
     return(trajectories)
   }
@@ -131,7 +135,9 @@
 #'
 #' @param data Sequences in any form described in [sequence-input]: a long
 #'   event table, a wide data.frame or character matrix (one sequence per
-#'   row, trailing `NA`s stripped), or a list of character vectors.
+#'   row, trailing `NA`s stripped), or a list of character vectors. A
+#'   list's names, when it has them, identify its sequences and must be
+#'   unique and non-empty (`hypergraphs_bad_input` otherwise).
 #' @param window Integer >= 2. Window size in sequence positions.
 #' @param step Integer >= 1. Offset between consecutive window starts:
 #'   `1` slides, `window` tumbles.

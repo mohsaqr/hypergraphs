@@ -44,16 +44,14 @@ hg_edge_centrality <- function(hg, s = 1L,
   measure <- match.arg(measure, several.ok = TRUE)
   snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_edge_centrality", "snapshot_mode")
   if (!is.numeric(s) || length(s) < 1L || any(!is.finite(s)) ||
-      any(s < 1) || any(abs(s - round(s)) > sqrt(.Machine$double.eps))) {
+      any(s < 1) || any(s > .Machine$integer.max) ||
+      any(abs(s - round(s)) > sqrt(.Machine$double.eps))) {
     .thg_bad_input("`s` must contain positive whole numbers")
   }
   if (!is.logical(normalized) || length(normalized) != 1L || is.na(normalized)) {
     .thg_bad_input("`normalized` must be TRUE or FALSE")
   }
-  if (!is.null(top) && (length(top) != 1L || !is.finite(top) || top < 1 ||
-                       abs(top - round(top)) > sqrt(.Machine$double.eps))) {
-    .thg_bad_input("`top` must be NULL or one positive whole number")
-  }
+  if (!is.null(top)) top <- .ho_check_count(top, "top", min = 1)
 
   if (inherits(hg, "net_temporal_hypergraph")) {
     snaps <- hg_snapshots(hg, start = start, end = end, step = step,

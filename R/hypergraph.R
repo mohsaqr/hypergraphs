@@ -200,7 +200,7 @@ network_hypergraph <- function(net,
   }
 
   if (inherits(net, "netobject") || inherits(net, "cograph_network")) {
-    w <- net$weights
+    w <- .hg_aligned_matrix(net$weights)
     nm <- if (!is.null(net$nodes$name)) {
       net$nodes$name
     } else if (!is.null(net$nodes$label)) {
@@ -210,14 +210,22 @@ network_hypergraph <- function(net,
     } else if (!is.null(rownames(w))) {
       rownames(w)
     } else {
-      paste0("V", seq_len(nrow(w)))
+      sprintf("V%d", seq_len(nrow(w)))
     }
+    nm <- as.character(nm)
+    if (length(nm) != nrow(w)) {
+      .thg_bad_input(sprintf(
+        "the network names %d nodes but its weight matrix has %d rows",
+        length(nm), nrow(w)))
+    }
+    nm <- .ho_check_ids(nm, "node names")
     rownames(w) <- colnames(w) <- nm
     return(list(adj = w, nodes = nm))
   }
 
   if (is.matrix(net) && (is.numeric(net) || is.logical(net))) {
-    nm <- rownames(net) %||% paste0("V", seq_len(nrow(net)))
+    net <- .hg_aligned_matrix(net)
+    nm <- rownames(net) %||% sprintf("V%d", seq_len(nrow(net)))
     storage.mode(net) <- "double"
     rownames(net) <- colnames(net) <- nm
     return(list(adj = net, nodes = nm))
@@ -225,6 +233,40 @@ network_hypergraph <- function(net,
 
   stop("`net` must be a netobject, cograph_network, simplicial_complex, ",
        "or numeric matrix.", call. = FALSE)
+}
+
+# A square adjacency whose row and column labels name the same nodes in the
+# same order. Labels are identities: columns labelled as a permutation of the
+# rows are reordered to match them, never relabelled, and labels that are
+# missing, empty, repeated or name different nodes on the two sides are
+# refused. One side labelled lends its labels to the other. Values must be
+# finite (or logical).
+.hg_aligned_matrix <- function(w) {
+  if (!is.matrix(w) && !methods::is(w, "Matrix")) {
+    .thg_bad_input("a network's weights must be a matrix")
+  }
+  w <- as.matrix(w)
+  if (nrow(w) != ncol(w)) {
+    .thg_bad_input(sprintf("the adjacency matrix must be square, not %d x %d",
+                           nrow(w), ncol(w)))
+  }
+  if (is.numeric(w) && any(!is.finite(w))) {
+    .thg_bad_input("the adjacency matrix must hold finite values")
+  }
+  rows <- rownames(w)
+  cols <- colnames(w)
+  if (!is.null(rows)) rows <- .ho_check_ids(rows, "row names")
+  if (!is.null(cols)) cols <- .ho_check_ids(cols, "column names")
+  if (!is.null(rows) && !is.null(cols) && !identical(rows, cols)) {
+    if (!setequal(rows, cols)) {
+      .thg_bad_input(paste0("the row and column names of the adjacency ",
+                            "matrix name different nodes"))
+    }
+    w <- w[, match(rows, cols), drop = FALSE]
+  }
+  labels <- rows %||% cols
+  if (!is.null(labels)) dimnames(w) <- list(labels, labels)
+  w
 }
 
 # ---- S3 methods ---------------------------------------------------------
@@ -377,7 +419,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
   }
   if (identical(what, "memberships")) {
     nodes <- x$nodes %||% rownames(x$incidence) %||%
-      paste0("n", seq_len(x$n_nodes))
+      sprintf("n%d", seq_len(x$n_nodes))
     hyperedges <- colnames(x$incidence) %||%
       sprintf("h%d", seq_len(x$n_hyperedges))
     cells <- Matrix::which(x$incidence != 0, arr.ind = TRUE)
@@ -396,8 +438,10 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
     return(.ho_top(out, top))
   }
   if (identical(what, "nodes")) {
+    # sprintf(), not paste0(): paste0("n", integer(0)) is "n", a node that an
+    # empty hypergraph does not have
     nodes <- x$nodes %||% rownames(x$incidence) %||%
-      paste0("n", seq_len(x$n_nodes))
+      sprintf("n%d", seq_len(x$n_nodes))
     degree <- if (x$n_hyperedges > 0L) {
       as.integer(Matrix::rowSums(x$incidence > 0))
     } else {
@@ -455,9 +499,9 @@ summary.net_hg <- function(object, ...) {
 
   nodes <- if (!is.null(object$nodes)) object$nodes else
     rownames(object$incidence)
-  if (is.null(nodes)) nodes <- paste0("n", seq_len(object$n_nodes))
+  if (is.null(nodes)) nodes <- sprintf("n%d", seq_len(object$n_nodes))
   if (object$n_hyperedges > 0L) {
-    deg <- as.integer(rowSums(object$incidence > 0))
+    deg <- as.integer(Matrix::rowSums(object$incidence > 0))
   } else {
     deg <- rep(0L, object$n_nodes)
   }

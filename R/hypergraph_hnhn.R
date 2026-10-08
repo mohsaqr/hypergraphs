@@ -14,14 +14,29 @@
   edge_degree <- as.numeric(Matrix::colSums(H))
   stopifnot("every vertex and hyperedge must have positive degree" =
               all(vertex_degree > 0) && all(edge_degree > 0))
-  vertex_weight <- vertex_degree^beta
-  edge_weight <- edge_degree^alpha
-  v_to_e_den <- as.numeric(Matrix::t(H) %*% vertex_weight)
-  e_to_v_den <- as.numeric(H %*% edge_weight)
-  v_to_e <- Matrix::Diagonal(x = 1 / v_to_e_den) %*%
-    Matrix::t(H) %*% Matrix::Diagonal(x = vertex_weight)
-  e_to_v <- Matrix::Diagonal(x = 1 / e_to_v_den) %*%
-    H %*% Matrix::Diagonal(x = edge_weight)
+  # Each operator entry is a member's weight d^exponent over the summed
+  # weights of the receiving hyperedge (or vertex). The weights are formed
+  # in log space and shifted by the largest log weight of each receiving
+  # neighbourhood before exponentiating (log-sum-exp), so a large finite
+  # exponent cannot overflow d^exponent to Inf or underflow every weight of
+  # a neighbourhood to zero; the ratios are unchanged.
+  cells <- Matrix::summary(H)
+  normalise <- function(log_weight, receiver) {
+    shift <- vapply(split(log_weight, receiver), max, numeric(1L))
+    weight <- exp(log_weight - shift[as.character(receiver)])
+    total <- vapply(split(weight, receiver), sum, numeric(1L))
+    weight / total[as.character(receiver)]
+  }
+  v_to_e <- Matrix::sparseMatrix(
+    i = cells$j, j = cells$i,
+    x = normalise(beta * log(vertex_degree[cells$i]), cells$j),
+    dims = c(ncol(H), nrow(H))
+  )
+  e_to_v <- Matrix::sparseMatrix(
+    i = cells$i, j = cells$j,
+    x = normalise(alpha * log(edge_degree[cells$j]), cells$i),
+    dims = dim(H)
+  )
   list(v_to_e = v_to_e, e_to_v = e_to_v,
        vertex_degree = vertex_degree, edge_degree = edge_degree,
        alpha = alpha, beta = beta)

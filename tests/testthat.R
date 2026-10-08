@@ -6,6 +6,9 @@
 # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
 # * https://testthat.r-lib.org/articles/special-files.html
 
+# CRAN allows at most two threads; cap OpenMP/BLAS before anything loads
+Sys.setenv(OMP_THREAD_LIMIT = 2)
+
 library(testthat)
 library(hypergraphs)
 

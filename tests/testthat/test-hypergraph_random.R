@@ -76,3 +76,70 @@ test_that("random_hypergraph() records its model and prints it", {
   expect_identical(h$params$model, "regular")
   expect_output(print(h), "random regular model")
 })
+
+# Members of hyperedge j (as node indices) of a generated hypergraph.
+.sbm_members <- function(h) lapply(seq_len(h$n_hyperedges),
+                                   \(j) which(h$incidence[, j] > 0))
+
+test_that("REGRESSION A02: a single eligible added node keeps the size exact", {
+  # one block of three, d = 3: every pair has exactly one eligible third node
+  for (seed in 1:15) {
+    h <- random_hypergraph("sbm", P = matrix(1, 1, 1), block_sizes = 3,
+                           d = 3, seed = seed)
+    expect_identical(as.integer(colSums(h$incidence)), rep(3L, 3L),
+                     info = seed)
+  }
+})
+
+test_that("REGRESSION A02: a single removable node keeps size and purity", {
+  # three blocks, within-block pairs only; d = 3 adds one node, which the
+  # impurity of 1 replaces by a node from another block
+  P <- diag(3)
+  for (seed in 1:15) {
+    h <- random_hypergraph("sbm", P = P, block_sizes = c(3, 3, 3), d = 3,
+                           impurity = 1L, seed = seed)
+    members <- .sbm_members(h)
+    expect_true(all(lengths(members) == 3L), info = seed)
+    outside <- vapply(members, \(v) {
+      block_count <- table(h$blocks[v])
+      as.integer(sum(block_count) - max(block_count))
+    }, integer(1))
+    expect_true(all(outside == 1L), info = seed)
+  }
+})
+
+test_that("REGRESSION A02: a single outside-block candidate is the one drawn", {
+  # pairs only inside block 1 (size 3); block 2 holds one node, V4, the only
+  # candidate for the impurity replacement
+  P <- matrix(c(1, 0, 0, 0), 2, 2)
+  for (seed in 1:15) {
+    h <- random_hypergraph("sbm", P = P, block_sizes = c(3, 1), d = 3,
+                           impurity = 1L, seed = seed)
+    members <- .sbm_members(h)
+    expect_true(all(lengths(members) == 3L), info = seed)
+    expect_true(all(vapply(members, \(v) 4L %in% v, logical(1))), info = seed)
+    expect_true(all(vapply(members, \(v) sum(v <= 3L) == 2L, logical(1))),
+                info = seed)
+  }
+})
+
+test_that("random generator counts refuse overflow and fractions by class", {
+  bad <- list(
+    list("uniform", n = 3e9, m = 1, k = 1),
+    list("uniform", n = 2.5, m = 1, k = 1),
+    list("uniform", n = 4, m = NA_real_, k = 1),
+    list("regular", n = 4, m = 2, k = Inf),
+    list("gnp", n = 4, m = 3e9, p = 0.5),
+    list("uniform", n = 4, m = 1, k = 1, seed = 3e9),
+    list("sbm", P = diag(1), block_sizes = 3e9, d = 2),
+    list("sbm", P = diag(1), block_sizes = 4, d = 3e9),
+    list("sbm", P = diag(1), block_sizes = 4, d = 2, impurity = 0.5)
+  )
+  for (args in bad) {
+    expect_error(do.call(random_hypergraph, args),
+                 class = "hypergraphs_bad_input",
+                 info = paste(names(args), args, collapse = " "))
+  }
+  expect_error(random_hypergraph("sbm", P = diag(2), block_sizes = c(2, 2),
+                                 d = 3), class = "hypergraphs_bad_input")
+})

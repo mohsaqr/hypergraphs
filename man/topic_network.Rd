@@ -43,14 +43,17 @@ node table carries each topic's \code{size}.}
 For \code{what = "edges"}: a base \code{data.frame}, one row per pair of
 topics with a positive weight, columns \code{source}, \code{target}, \code{weight},
 pairs in the topics' natural order. For \code{what = "network"}: a
-\code{cograph_network} with one node per topic (\code{label}, \code{name}, \code{size})
-and one undirected weighted edge per pair; \code{size} is the number of
+\code{cograph_network} with one node per topic (\code{label}, \code{name}, \code{size}),
+a topic without any edge included, and one undirected weighted edge per
+pair; \code{size} is the number of
 documents of a cluster, the documents in which a topic is present, or
 (without \code{threshold}) a topic's expected number of documents. Raises
 \code{hypergraphs_bad_input} for unknown node names, for neither or both of
 \code{clusters} and \code{topics}, for a topic model not fitted on \code{hg}, for an
 invalid \code{threshold} or \code{cutoff}, and for a similarity measure on a
-correlation network.
+correlation network. A topic whose share is the same in every
+document has no correlation with any other: it is kept without edges,
+with a \code{hypergraphs_constant_topics} warning.
 }
 \description{
 Builds the topic-by-topic network of a document hypergraph, one node per

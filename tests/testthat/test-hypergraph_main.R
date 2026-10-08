@@ -100,3 +100,32 @@ test_that("event data with a window go to window_hypergraph()", {
                    window_hypergraph(visits, action = "page", actor = "user",
                                      time = "at", window = 2))
 })
+
+test_that("actor/session tuples are told apart by value, not by pasted label (R01)", {
+  events <- data.frame(action = c("x", "y"), actor = c("a.b", "a"),
+                       session = c("c", "b.c"))
+  hg <- hypergraph(events, action = "action", actor = "actor",
+                   session = "session")
+  # `a.b` + `c` and `a` + `b.c` paste to the same label but are two units
+  expect_identical(hg$n_hyperedges, 2L)
+  expect_identical(sort(hg_get(hg)$members), c("x", "y"))
+  expect_false(anyDuplicated(hg_get(hg)$hyperedge) > 0L)
+  # punctuation in either component, without a clash, keeps the plain label
+  plain <- data.frame(action = c("x", "y", "z"), actor = c("u.1", "u.1", "v"),
+                      session = c("s:1", "s:1", "s:1"))
+  expect_setequal(hg_get(hypergraph(plain, action = "action", actor = "actor",
+                                    session = "session"))$hyperedge,
+                  c("u.1.s:1", "v.s:1"))
+  # a literal "NA" is a label; a missing identifier is refused
+  literal <- data.frame(action = c("x", "y"), actor = c("NA", "a"),
+                        session = c("s", "s"))
+  expect_identical(hypergraph(literal, action = "action", actor = "actor",
+                              session = "session")$n_hyperedges, 2L)
+  missing <- data.frame(action = c("x", "y"), actor = c(NA, "a"),
+                        session = c("s", "s"))
+  expect_error(hypergraph(missing, action = "action", actor = "actor",
+                          session = "session"),
+               class = "hypergraphs_bad_input")
+  expect_error(hypergraph(missing, action = "action", actor = "actor"),
+               class = "hypergraphs_bad_input")
+})

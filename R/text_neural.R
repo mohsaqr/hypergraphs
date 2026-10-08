@@ -101,19 +101,15 @@ utils::globalVariables("self")
 #' @references
 #' Feng, Y., You, H., Zhang, Z., Ji, R., & Gao, Y. (2019). Hypergraph
 #' neural networks. \emph{AAAI 33}.
-#' @examples
-#' \donttest{
-#' if (requireNamespace("torch", quietly = TRUE)) {
-#'   hg <- text_hypergraph(c(
-#'     cooking_1 = "simmer the soup with onions and carrots",
-#'     cooking_2 = "this soup recipe needs salt on a cold night",
-#'     space_1 = "the telescope revealed a distant galaxy and stars",
-#'     space_2 = "astronomers aimed the telescope at the stars all night"
-#'   ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
-#'   hg_neural(hg, labels = c(cooking_1 = "cooking", space_1 = "space"),
-#'             hidden = 8, epochs = 50, validation = 0)
-#' }
-#' }
+#' @examplesIf requireNamespace("torch", quietly = TRUE) && torch::torch_is_installed()
+#' hg <- text_hypergraph(c(
+#'   cooking_1 = "simmer the soup with onions and carrots",
+#'   cooking_2 = "this soup recipe needs salt on a cold night",
+#'   space_1 = "the telescope revealed a distant galaxy and stars",
+#'   space_2 = "astronomers aimed the telescope at the stars all night"
+#' ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
+#' hg_neural(hg, labels = c(cooking_1 = "cooking", space_1 = "space"),
+#'           hidden = 8, epochs = 50, validation = 0)
 #' @export
 hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
                       epochs = 600L, lr = 0.01, weight_decay = 5e-4,
@@ -126,7 +122,7 @@ hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
       class = "hypergraphs_missing_torch", call = NULL
     ))
   }
-  labels <- .thg_labels_input(labels)
+  labels <- .thg_check_assignment(.thg_labels_input(labels))
   stopifnot(
     "`labels` must be a named character vector" =
       is.character(labels) && !is.null(names(labels)),
@@ -162,17 +158,17 @@ hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
       "`features` needs rownames matching the hypergraph nodes" =
         !is.null(rownames(features)) && all(nodes %in% rownames(features))
     )
+    .ho_check_ids(rownames(features), "rownames(features)")
     features[match(nodes, rownames(features)), , drop = FALSE]
   }
 
   factor_parts <- .thg_hgnn_factor(hg, edge_weights)
 
-  old_seed <- if (exists(".Random.seed", envir = globalenv())) {
-    get(".Random.seed", envir = globalenv())
-  }
-  on.exit(if (!is.null(old_seed)) {
-    assign(".Random.seed", old_seed, envir = globalenv())
-  }, add = TRUE, after = FALSE)
+  # the caller's stream is restored on exit, and a seed that did not exist
+  # before the call is removed again
+  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  saved_seed <- if (had_seed) get(".Random.seed", envir = globalenv())
+  on.exit(.thg_rng_restore(had_seed, saved_seed), add = TRUE, after = FALSE)
   set.seed(seed)
   torch::torch_manual_seed(seed)
 

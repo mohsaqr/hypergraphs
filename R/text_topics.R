@@ -9,7 +9,7 @@
 # document -> cluster assignment as a factor in natural order, over hg$nodes
 .thg_topic_groups <- function(hg, clusters) {
   .thg_check_hg(hg)
-  assignment <- .thg_resolve_labels(hg, clusters)
+  assignment <- .thg_resolve_labels(hg, clusters, arg = "clusters")
   stopifnot(
     "`clusters` must be a data.frame or a named vector" =
       !is.null(names(assignment))
@@ -32,13 +32,16 @@
 #'   `node`, `cluster`), a named vector of cluster labels, or the name of a
 #'   column of the hypergraph's document table.
 #' @param weights `NULL` (default), or a numeric vector named by document
-#'   giving each document's weight.
+#'   giving each document's weight: finite, non-negative, one per document.
 #' @return A base `data.frame` of class `hypergraphs_topic_sizes`, one row per
 #'   topic in natural order: `topic`, `n`, `share`, and with `weights`
-#'   also `weighted_n` and `weighted_share`. `plot()` draws the shares as
+#'   also `weighted_n` and `weighted_share`. When every clustered document
+#'   has weight zero the weighted shares are undefined and reported as
+#'   `NA`. `plot()` draws the shares as
 #'   horizontal bars, weighted beside unweighted when both exist. Raises
-#'   `hypergraphs_bad_input` for unknown node names or weights that do not name
-#'   every clustered document.
+#'   `hypergraphs_bad_input` for unknown node names, a node given two
+#'   different clusters, or weights that do not name every clustered
+#'   document once with a finite non-negative value.
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -62,17 +65,20 @@ hg_topic_sizes <- function(hg, clusters, weights = NULL) {
   if (!is.null(weights)) {
     assigned <- hg$nodes[!is.na(groups)]
     ok <- is.numeric(weights) && !is.null(names(weights)) &&
-      all(assigned %in% names(weights)) && !anyNA(weights[assigned])
+      all(assigned %in% names(weights))
     if (!ok) {
       stop(errorCondition(
         "`weights` must be a numeric vector named by every clustered document",
         class = "hypergraphs_bad_input", call = NULL
       ))
     }
-    weighted <- tapply(as.numeric(weights[assigned]), groups[!is.na(groups)],
-                       sum)
+    .ho_check_ids(names(weights), "names(weights)")
+    assigned_weights <- .ho_check_weights(weights[assigned], "weights")
+    weighted <- tapply(assigned_weights, groups[!is.na(groups)], sum)
     out$weighted_n <- as.numeric(weighted[out$topic])
-    out$weighted_share <- out$weighted_n / sum(out$weighted_n)
+    total <- sum(out$weighted_n)
+    out$weighted_share <- if (total > 0) out$weighted_n / total else
+      rep(NA_real_, nrow(out))
   }
   rownames(out) <- NULL
   class(out) <- c("hypergraphs_topic_sizes", "data.frame")
@@ -268,9 +274,8 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   coherence <- match.arg(coherence)
   exclusivity <- match.arg(exclusivity)
   sort_by <- match.arg(sort_by)
+  n <- .ho_check_count(n, "n", allow_inf = TRUE)
   stopifnot(
-    "`n` must be a single number >= 1" =
-      length(n) == 1L && is.numeric(n) && !is.na(n) && n >= 1,
     "`min_docs` must be a single number >= 1" =
       length(min_docs) == 1L && is.numeric(min_docs) && !is.na(min_docs) &&
         min_docs >= 1
@@ -319,9 +324,9 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
       NA_real_
     } else {
       switch(coherence,
-             umass = .thg_umass(present[, top_words, drop = FALSE]),
-             npmi = .thg_npmi(present[, top_words, drop = FALSE]),
-             npmi_cluster = .thg_npmi(present[docs, top_words, drop = FALSE]))
+             umass = .thg_umass(.thg_present_words(present, top_words)),
+             npmi = .thg_npmi(.thg_present_words(present, top_words)),
+             npmi_cluster = .thg_npmi(.thg_present_words(present, top_words)[docs, , drop = FALSE]))
     }
     exclusivity_value <- if (length(top_words) == 0L) {
       NA_real_
@@ -363,12 +368,9 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
       "probability: `coherence = \"npmi_cluster\"`, `sort_by = \"share\"` ",
       "and `min_docs` apply to `clusters` only"))
   }
+  .tm_check_fitted_on(topics, hg)
   present <- .thg_presence(hg$incidence)
   table <- topics$words
-  unknown <- setdiff(unique(table$word), colnames(present))
-  if (length(unknown) > 0L || !identical(nrow(present), topics$n_documents)) {
-    .thg_bad_input("`topics` was not fitted on `hg`")
-  }
   labels <- topics$topics$topic
   vocabulary <- unique(table$word)
   probability <- matrix(0, length(labels), length(vocabulary),
@@ -386,8 +388,8 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
       NA_real_
     } else {
       switch(coherence,
-             umass = .thg_umass(present[, top_words, drop = FALSE]),
-             npmi = .thg_npmi(present[, top_words, drop = FALSE]))
+             umass = .thg_umass(.thg_present_words(present, top_words)),
+             npmi = .thg_npmi(.thg_present_words(present, top_words)))
     }
     exclusivity_value <- switch(
       exclusivity,
@@ -409,11 +411,20 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   out
 }
 
-# document x word presence (0/1) of an incidence matrix, dense
+# document x word presence (0/1) of an incidence matrix, kept sparse: a
+# corpus vocabulary runs to tens of thousands of words, and quality reads
+# only each topic's top words, which .thg_present_words() densifies.
 .thg_presence <- function(incidence) {
-  present <- as.matrix(incidence != 0) * 1
+  present <- methods::as(methods::as(methods::as(
+    Matrix::Matrix(incidence, sparse = TRUE) != 0, "dMatrix"),
+    "generalMatrix"), "CsparseMatrix")
   dimnames(present) <- dimnames(incidence)
   present
+}
+
+# the dense document x word presence of the given words
+.thg_present_words <- function(present, words) {
+  as.matrix(present[, words, drop = FALSE])
 }
 
 # cluster x word token counts over the words that occur in some clustered
@@ -431,7 +442,9 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   support <- .thg_kw_aggregate(groups, present[, colnames(counts),
                                                drop = FALSE])
   lapply(stats::setNames(rownames(counts), rownames(counts)), \(cl) {
-    row <- counts[cl, ]
+    # drop = FALSE and renamed: one vocabulary word would lose its name
+    row <- stats::setNames(as.numeric(counts[cl, , drop = FALSE]),
+                           colnames(counts))
     ord <- order(-row, seq_along(row))
     eligible <- row[ord] > 0 & support[cl, ord] >= min_docs
     names(row)[utils::head(ord[eligible], n)]
@@ -504,9 +517,9 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   beta <- counts / rowSums(counts)
   share <- sweep(beta, 2L, colSums(beta), `/`)
   n_vocab <- ncol(beta)
-  ex <- rank(share[topic, ]) / n_vocab
-  fr <- rank(beta[topic, ]) / n_vocab
-  frex <- 1 / (frexw / ex + (1 - frexw) / fr)
+  ex <- rank(share[topic, , drop = FALSE]) / n_vocab
+  fr <- rank(beta[topic, , drop = FALSE]) / n_vocab
+  frex <- stats::setNames(1 / (frexw / ex + (1 - frexw) / fr), colnames(beta))
   sum(frex[top_words])
 }
 
@@ -579,7 +592,8 @@ plot.hypergraphs_topic_quality <- function(x, ...) {
 #' documents, and the membership of a document in a topic is the fuzzy
 #' c-means weight with fuzziness 2: the inverse squared distance to that
 #' centre, normalised over the topics. A document at a centre has
-#' membership 1 there; a document halfway between two centres has 0.5 in
+#' membership 1 there (shared equally when several centres coincide); a
+#' document halfway between two centres has 0.5 in
 #' each. The values sum to one over the topics, so their level depends on
 #' the number of topics `k`: the uniform value is `1 / k`, and with many
 #' topics even a clearly assigned document has a modest membership. Read
@@ -636,7 +650,11 @@ hg_membership <- function(hg, clusters, type = c("zhou", "random_walk"),
   at_centre <- d2 < .Machine$double.eps
   inv <- 1 / pmax(d2, .Machine$double.eps)
   membership <- inv / rowSums(inv)
-  membership[rowSums(at_centre) > 0, ] <- at_centre[rowSums(at_centre) > 0, ] * 1
+  # a document at a centre belongs to it alone; at several coincident
+  # centres it is shared equally among them, so every row sums to one
+  on_centre <- rowSums(at_centre) > 0
+  membership[on_centre, ] <- at_centre[on_centre, , drop = FALSE] /
+    rowSums(at_centre[on_centre, , drop = FALSE])
   out <- data.frame(
     node = rep(rownames(x), times = ncol(membership)),
     cluster = rep(as.character(group_of), times = ncol(membership)),
@@ -707,8 +725,12 @@ plot.hypergraphs_membership <- function(x, ...) {
 #'   `role` (`"node"` or `"hyperedge"`) and `cluster` (`"Cluster 1"`, ...,
 #'   numbered by first appearance in that row order); with
 #'   `what = "embedding"` also `dim1..dimL`. Raises `hypergraphs_bad_input` for
-#'   a `k` below 2 or above the number of rows, or an empty node or
-#'   hyperedge (zero degree, where the scaling is undefined).
+#'   a `k` that is not a whole number from 2 to the number of rows, a `k`
+#'   whose \eqn{\ell + 1} singular pairs the incidence does not have
+#'   (\eqn{\ell + 1 > \min(m, n)} for an \eqn{m \times n} incidence, so
+#'   \eqn{k \le 2^{\min(m, n) - 1}}), an embedding with fewer distinct rows
+#'   than `k`, or an empty node or hyperedge (zero degree, where the scaling
+#'   is undefined).
 #' @references
 #' Dhillon, I. S. (2001). Co-clustering documents and words using bipartite
 #' spectral graph partitioning. *Proceedings of the Seventh ACM SIGKDD
@@ -718,6 +740,7 @@ plot.hypergraphs_membership <- function(x, ...) {
 #' Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
 #' Clustering, classification, and embedding. *Advances in Neural Information
 #' Processing Systems 19*, 1601--1608.
+#' \doi{10.7551/mitpress/7503.003.0205}
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -736,20 +759,25 @@ hg_cocluster <- function(hg, k, seed = NULL, nstart = 25L,
   role <- match.arg(role)
   incidence <- hg$incidence
   n_rows <- nrow(incidence) + ncol(incidence)
-  if (!is.numeric(k) || length(k) != 1L || is.na(k) || k < 2 || k > n_rows) {
-    .thg_bad_input(sprintf(
-      "`k` must be a single number between 2 and %d (nodes plus hyperedges)",
-      n_rows))
+  k <- .ho_check_count(k, "k", min = 2, max = max(2, n_rows))
+  nstart <- .ho_check_count(nstart, "nstart")
+  # Multipartition needs ceiling(log2(k)) singular pairs beyond the trivial
+  # one, and an m x n incidence has only min(m, n) pairs in all
+  n_vectors <- as.integer(ceiling(log2(k)))
+  if (k > n_rows || n_vectors + 1L > min(dim(incidence))) {
+    .thg_bad_input(sprintf(paste0(
+      "`k` = %d co-clusters need %d non-trivial singular vectors, but a ",
+      "%d x %d incidence has %d; the largest supported `k` is %d"),
+      k, n_vectors, nrow(incidence), ncol(incidence),
+      max(min(dim(incidence)) - 1L, 0L),
+      min(n_rows, 2^max(min(dim(incidence)) - 1L, 0L))))
   }
-  stopifnot("`nstart` must be a single number >= 1" =
-              length(nstart) == 1L && is.numeric(nstart) && nstart >= 1)
   row_sum <- as.numeric(Matrix::rowSums(incidence))
   col_sum <- as.numeric(Matrix::colSums(incidence))
   if (any(row_sum <= 0) || any(col_sum <= 0)) {
     .thg_bad_input(paste0("co-clustering needs every node and hyperedge to ",
                           "carry positive weight; drop empty ones first"))
   }
-  n_vectors <- as.integer(ceiling(log2(k)))
   scaled <- Matrix::Diagonal(x = 1 / sqrt(row_sum)) %*% incidence %*%
     Matrix::Diagonal(x = 1 / sqrt(col_sum))
   decomposition <- if (methods::is(incidence, "sparseMatrix") &&
@@ -771,13 +799,18 @@ hg_cocluster <- function(hg, k, seed = NULL, nstart = 25L,
   names_out <- c(hg$nodes,
                  colnames(incidence) %||% paste0("e", seq_len(ncol(incidence))))
 
+  if (nrow(unique(z)) < k) {
+    .thg_bad_input(sprintf(paste0(
+      "the embedding has fewer distinct rows than `k` = %d co-clusters; ",
+      "lower `k`"), k))
+  }
   if (!is.null(seed)) {
     had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
     saved_seed <- if (had_seed) get(".Random.seed", envir = globalenv())
     on.exit(.thg_rng_restore(had_seed, saved_seed), add = TRUE)
     set.seed(seed)
   }
-  fit <- stats::kmeans(z, centers = k, nstart = nstart, iter.max = 100L)
+  fit <- .ho_kmeans(z, k, nstart = nstart, iter.max = 100L)
   # deterministic labels: "Cluster 1" is the first row's cluster, and so on
   relabel <- match(fit$cluster, unique(fit$cluster))
   out <- data.frame(

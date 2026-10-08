@@ -31,6 +31,18 @@ test_that("embedding verb validates dimensions", {
                edge = rep(c("e1", "e2"), each = 2)),
     "node", "edge"
   )
-  expect_error(hg_embed(h, dimensions = 1.5), "whole number")
-  expect_error(hg_embed(h, dimensions = 1), "between 2")
+  expect_error(hg_embed(h, dimensions = 1.5), class = "hypergraphs_bad_input")
+  expect_error(hg_embed(h, dimensions = 1), class = "hypergraphs_bad_input")
+})
+
+test_that("embedding dimensions beyond the integer range are refused, not NA", {
+  h <- group_hypergraph(
+    data.frame(node = c("a", "b", "b", "c"),
+               edge = rep(c("e1", "e2"), each = 2)),
+    "node", "edge"
+  )
+  for (bad in list(3e9, NA_real_, Inf, -Inf, c(2, 2), "2")) {
+    expect_error(hg_embed(h, dimensions = bad),
+                 class = "hypergraphs_bad_input")
+  }
 })

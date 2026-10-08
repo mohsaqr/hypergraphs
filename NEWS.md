@@ -1,3 +1,203 @@
+# hypergraphs 0.7.1
+
+Corrections from a function-by-function audit. Results change only where
+they were wrong; valid input that was handled correctly gives identical
+output.
+
+## Speed
+
+* `hg_communities()` is faster with identical results. IRMM builds each
+  reweighting pass's clique reduction as a sparse matrix (about 3 times
+  faster on `icsid_tribunals`), and the AMI between runs computes the
+  expected mutual information in one vectorised pass. New `parallel` and
+  `n_cores` arguments run the independent seeded runs with
+  `parallel::mclapply()` (not on Windows); the fit is identical to the
+  serial one. On `icsid_tribunals` (441 arbitrators, 742 cases), 8 cores:
+  Infomap 34 s to 11 s, IRMM 27 s to 3 s.
+* `hg_mmsbm()` gains `parallel` and `n_cores`: every start's initial
+  values are drawn first, in order, from one stream, then the EM fits run
+  with `parallel::mclapply()`. Fits and the caller's random stream are
+  identical to the serial run. `hg_topics()` runs its parallel starts
+  through the same helper, so a failed worker raises
+  `hypergraphs_parallel_failed` instead of returning an error object as a
+  start.
+* `hg_topics()` and `hg_topic_search()` no longer exhaust memory on a large
+  corpus. The expected counts are gathered in blocks of about 80 MB
+  (identical values); a 6,630-document, 91,755-word corpus at `k = 52`
+  allocated about 8 GB per step before. Topic quality keeps the document x
+  word presence sparse and densifies only the top words (it was a dense
+  4.9 GB matrix on that corpus), and matching topics across starts is
+  computed for all pairs at once (0.53 s to 0.005 s per comparison at
+  `k = 52`, identical values).
+* `hg_cluster(algorithm = "symnmf")` and `hg_embed(method = "symnmf")` run
+  on a sparse hypergraph instead of refusing it with
+  `hypergraphs_dense_required`: the dense similarity is built from the
+  sparse Laplacian (up to 15,000 nodes; beyond that
+  `hypergraphs_sparse_too_large`). On the corpus above, SymNMF graded
+  memberships for `k = 16` take about a minute per start.
+* `hg_topics()` computes its expected counts in C (the package's first
+  compiled code), with values identical to the R expression it replaces:
+  one step on the 6,630-document corpus at `k = 52` takes 0.78 s instead
+  of 1.55 s.
+* `hg_cluster(algorithm = "symnmf")` gains `parallel` and `n_cores`: every
+  start's initial factor is drawn first, so parallel starts give the serial
+  result.
+* k-means in `hg_cluster()` (spectral) and `hg_cocluster()` finishes a
+  Hartigan-Wong start that stopped early ("Quick-TRANSfer stage steps
+  exceeded" or the iteration limit) from the centres it reached, instead
+  of comparing it unfinished and warning; when every start finishes the
+  result is identical to `stats::kmeans()`.
+* `text_hypergraph()` keeps a data column named `doc`, `n_tokens` or
+  `n_types` as metadata `input_doc`, `input_n_tokens`, `input_n_types`,
+  with a `hypergraphs_renamed_column` warning, instead of refusing the
+  table.
+* Parallel runs on macOS: a forked worker the system kills (Apple's
+  Accelerate BLAS is not fork-safe) is rerun serially with a
+  `hypergraphs_parallel_fallback` warning, and the result is unchanged.
+* `hg_mmsbm()` explains a collapsed membership: the rate of a hyperedge sums
+  over its node pairs, so in hyperedges of three or more nodes the other
+  members can explain it and a node's activity goes to zero. The warning
+  and the documentation say so, and point to `hg_topics()` for document
+  mixtures, instead of suggesting more starts.
+
+## Package
+
+* The package ships one vignette, `vignette("hypergraphs")`. The text
+  hypergraph guide, the COVID-19 topic walkthroughs, the text constructions
+  and the document classification guide are articles on the package
+  website, which keeps the source package small and its check
+  short; the saved classification results moved with their article. `hg_hypergat()`,
+  `hg_neural()` and the classification reader have runnable examples on
+  the bundled `forum_posts`.
+
+## Construction and temporal hypergraphs
+
+* Hyperedges are identified by their members. Two actor/session pairs
+  whose pasted labels coincide (`a.b` + `c`, `a` + `b.c`), a node named
+  `a + b` beside the pair `{a, b}`, and two sequences sharing a list name
+  were merged into one hyperedge. Sequence lists now need unique, non-empty
+  names, and missing actor or session identifiers raise
+  `hypergraphs_bad_input`.
+* Metadata columns named like a structural column (`edge`, `node`,
+  `start`, `weight`, ...) no longer replace the selected structure; they
+  are kept under a suffixed name. Edge attributes with missing values take
+  the first non-missing value of the edge whatever the row order.
+* Membership weights must be finite, non-negative numbers; negative,
+  infinite, factor and character weights raise `hypergraphs_bad_input`.
+* `network_hypergraph()` reorders a matrix whose column names are a
+  permutation of its row names, and refuses differing, duplicated or
+  missing labels. Column labels were previously overwritten, which moved
+  edges.
+* `temporal_hypergraph()` refuses clocks that fail to parse, infinite
+  clocks and per-membership intervals that end before they start. ISO 8601
+  offsets (`Z`, `+0200`, `+02:00`) and fractional seconds are honoured,
+  and trailing text is an error (`hypergraphs_unparsed_time`). An all-missing
+  `end` column means every membership is open. Open and closed memberships
+  of one hyperedge are filtered by their own spells, so snapshots no longer
+  depend on row order.
+* `hg_growth()` and `hg_snapshot()` share one window boundary, the
+  temporal `summary()` counts distinct members, and `hg_edges()` and the
+  readers of an empty snapshot return typed zero-row tables.
+* The canonical `node` and `hyperedge` columns are detected without being
+  named. `knn_hypergraph()` requires a whole `k` and finite embeddings.
+* `dual_hypergraph()` is the transpose of the full incidence, isolated
+  vertices and empty hyperedges included, and a sparse dual is a complete
+  `net_hg`. `hg_subset()` keeps planted SBM blocks aligned with the kept
+  nodes. `summary()` and `hg_laplacian()` accept sparse hypergraphs.
+* `plot(pieces = "row")` places isolated nodes.
+
+## Measures, random models and null tests
+
+* Sparse `hg_measures()` equals the dense result (pairwise participation,
+  isolate edge sizes, uniform density). `hg_null_test(statistic =
+  "density")` uses the same density as `hg_measures()`.
+* `random_hypergraph(type = "sbm")` and the configuration null drew from
+  `1:x` when a candidate pool held one node, producing wrong edge sizes and
+  invented memberships. Draws from larger pools are unchanged.
+* `hg_null_test()` requires a whole `n`, and a statistic undefined on the
+  input (`avg_jaccard` with fewer than two hyperedges) is `NA` with a
+  `hypergraphs_undefined_statistic` warning.
+* Clique eigenvector centrality is the Perron vector of each connected
+  component; power iteration oscillated on bipartite clique expansions. Z-
+  and H-eigenvector iterations that reach `max_iter` warn with
+  `hypergraphs_no_converge`. Subhypergraph centrality is computed per node
+  in log space, so isolated nodes are 0 rather than `-Inf`. A hypergraph of
+  singleton hyperedges has zero clique, Z and H centrality.
+* Empty hyperedges contribute nothing to Laplacians, random walks and
+  PageRank (they produced NaN). `hg_pagerank()` refuses non-finite or
+  conflicting `personalized` weights and, at `damping = 1`, disconnected
+  input (`hypergraphs_hypergraph_disconnected`).
+* Assortativity is computed on centred scores, so near-regular hypergraphs
+  of high degree are no longer reported as undefined.
+* `hg_compare_communities()` reports `NA` agreement for fits sharing fewer
+  than two nodes and scores each medoid on the projection its fit saved.
+  Directed citation fits have an `NA` quality row. `edge_source` is
+  deprecated there. Duplicated node or source assignments raise
+  `hypergraphs_bad_input` in every partition reader.
+* `hg_mmsbm()` does not declare convergence while memberships collapse.
+* The cluster plot supports more than nine clusters (Okabe-Ito colours
+  recycle with distinct shapes), and the agreement heatmap shows negative
+  AMI and ARI on a diverging scale.
+
+## Memory networks and simplicial complexes
+
+* Missing actions split a trajectory into contiguous runs. No transition
+  crosses a gap and no state `NA` is created; `hon()`, `mogen()`,
+  `markov_order()` and `hypa()` accept sequences with gaps, and
+  `hg_bootstrap()` resamples whole trajectories. A real state spelled
+  `"NA"` is kept.
+* State labels containing ` -> ` or the internal separators raise
+  `hypergraphs_bad_input`, since higher-order node names are built from
+  them.
+* `hg_compare()` averages over the rules whose context both groups
+  observe and reports their number; with none the statistic and p-value
+  are `NA` (`hypergraphs_undefined_statistic`). The global statistic of
+  partially overlapping groups changes accordingly.
+* Window persistence (`hg_homology()` on `simplicial(type = "window")`)
+  keeps essential classes essential, and every Betti row comes from the
+  same Z/2 intervals. `hg_wasserstein()` treats a finite death at 0 as
+  finite outside clique mode and computes large orders without overflow.
+* `simplicial(validate = TRUE)` refuses an automatic shuffle count above
+  100,000 and asks for an explicit `n_null`.
+* `hg_bootstrap()` with no rule above `min_freq` raises
+  `hypergraphs_empty_result`. HONEM variance and Infomap savings are 0 on
+  zero spectra and zero code lengths.
+* `?memory` states that `order` is the number of conditioning states;
+  `?hg_betti` states that Betti numbers are computed over the rationals and
+  differ from `hg_homology()` on torsion.
+
+## Text hypergraphs and neural classifiers
+
+* `clean_text()` keeps alphanumeric tokens (`covid19`, `p53`, `covid-19`)
+  intact and replaces invalid numeric entities with U+FFFD.
+* `hg_keywords()` and `hg_topic_quality()` handle clusters without
+  eligible words and one-word vocabularies; external keyword scores count
+  distinct documents.
+* `text_hypergraph()` refuses metadata columns named `doc`, `n_tokens` or
+  `n_types`.
+* `hg_cocluster()` checks `k` against the singular vectors available.
+  `topic_network()` keeps isolated topics and treats constant topics as
+  isolates (`hypergraphs_constant_topics`).
+* A topic model is checked against the documents, words and counts it was
+  fitted on (`net_hg_topics` gains `$corpus`). KL-NMF ignores explicit
+  sparse zeros. `hg_membership()` sums to one at coincident centres.
+  `hg_topic_sizes()` refuses negative weights.
+* Label inputs of every classifier and topic reader refuse conflicting
+  duplicates; an `NA` label marks a node as unlabelled. Embedding and
+  feature row names must be unique.
+* `hg_hypergat(min_count =)` counts token occurrences, as documented,
+  rather than sentences.
+* `hg_neural()` restores an absent random seed, HNHN operators are
+  normalised in log space, and the confusion table keeps a class named
+  `(unscored)`.
+
+## Arguments
+
+* Counts (`n`, `k`, `nstart`, `max_iter`, `n_boot`, `n_perm`, `top`,
+  `dimension`, ...) must be whole numbers in range; fractions, `-Inf` and
+  values beyond the integer range raise `hypergraphs_bad_input` instead of
+  being truncated.
+
 # hypergraphs 0.6.10
 
 * The result classes of the memory family drop the `hon` prefix left over

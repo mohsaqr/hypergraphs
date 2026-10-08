@@ -298,3 +298,38 @@ test_that("network_hypergraph() refuses a Vietoris-Rips type by class", {
   expect_error(network_hypergraph(m, type = "rips"),
                class = "hypergraphs_bad_input")
 })
+
+test_that("summary() reads a sparse incidence like a dense one (R09)", {
+  d <- data.frame(node = c("a", "b", "b", "c"), edge = c("x", "x", "y", "y"))
+  nodes <- c("a", "b", "c", "z")
+  dense <- group_hypergraph(d, node = "node", hyperedge = "edge", nodes = nodes)
+  sparse <- group_hypergraph(d, node = "node", hyperedge = "edge", nodes = nodes,
+                             sparse = TRUE)
+  expect_output(dense_degrees <- summary(dense))
+  expect_output(sparse_degrees <- summary(sparse))
+  expect_identical(sparse_degrees, dense_degrees)
+  expect_identical(dense_degrees$degree, c(1L, 2L, 1L, 0L))
+  no_edges <- .thg_empty_hypergraph(c("a", "b"), sparse = TRUE)
+  expect_output(empty_degrees <- summary(no_edges))
+  expect_identical(empty_degrees$degree, rep(0L, no_edges$n_nodes))
+})
+
+test_that("matrix labels are identities: reordered, never overwritten (R19)", {
+  m <- matrix(c(0, 1, 1, 0), 2, dimnames = list(c("a", "b"), c("b", "a")))
+  # under the original labels the 1s are a-a and b-b: no edge between a and b
+  expect_identical(network_hypergraph(m)$n_hyperedges, 0L)
+  aligned <- m[, c("a", "b")]
+  expect_identical(network_hypergraph(m), network_hypergraph(aligned))
+  tri <- .hg_triangle_adj()
+  perm <- tri[, rev(colnames(tri))]
+  expect_identical(network_hypergraph(perm), network_hypergraph(tri))
+  disjoint <- matrix(0, 2, 2, dimnames = list(c("a", "b"), c("c", "d")))
+  expect_error(network_hypergraph(disjoint), class = "hypergraphs_bad_input")
+  duplicated_names <- matrix(0, 2, 2, dimnames = list(c("a", "a"), c("a", "a")))
+  expect_error(network_hypergraph(duplicated_names), class = "hypergraphs_bad_input")
+  partial <- matrix(0, 2, 2, dimnames = list(c("a", NA), c("a", NA)))
+  expect_error(network_hypergraph(partial), class = "hypergraphs_bad_input")
+  expect_error(network_hypergraph(matrix(0, 2, 3)), class = "hypergraphs_bad_input")
+  expect_error(network_hypergraph(matrix(c(0, Inf, Inf, 0), 2)),
+               class = "hypergraphs_bad_input")
+})

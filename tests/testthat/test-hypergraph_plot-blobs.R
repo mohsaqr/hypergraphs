@@ -375,3 +375,18 @@ test_that("color_by = \"size\" lists only the sizes of drawn hyperedges", {
   p <- plot(hg, color_by = "size")
   expect_identical(levels(p$layers[[1L]]$data$value), c("2", "3"))
 })
+
+test_that("a row of pieces places isolated nodes too (R17)", {
+  d <- data.frame(node = c("a", "b", "c", "d"), edge = c("x", "x", "y", "y"))
+  hg <- group_hypergraph(d, node = "node", hyperedge = "edge",
+                         nodes = c(letters[1:4], "z", "w"))
+  row <- .thg_row_layout(hg, seed = 1, center = NULL, padding = 0.045,
+                         precedence = seq_len(hg$n_hyperedges))
+  expect_setequal(row$node, hg$nodes)
+  expect_false(anyDuplicated(row$node) > 0L)
+  # isolates come after the pieces of hyperedges, in node order
+  expect_identical(tail(row$node, 2L), c("w", "z"))
+  expect_true(all(tail(row$x, 2L) > max(head(row$x, 4L))))
+  expect_s3_class(plot(hg, pieces = "row"), "ggplot")
+  expect_s3_class(plot(hg), "ggplot")
+})

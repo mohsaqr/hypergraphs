@@ -105,3 +105,26 @@ test_that("hg_centrality(type = 'katz') delegates to the engine", {
                        n = 3)
   expect_identical(top$katz, sort(out$katz, decreasing = TRUE)[1:3])
 })
+
+test_that("A20: Katz returns the typed empty table on a zero-node hypergraph", {
+  lapply(c(FALSE, TRUE), \(sparse) {
+    path <- .kz_hg(list(X = c("a", "b"), Y = c("b", "c")), sparse = sparse)
+    empty <- hg_subset(path, nodes = character())
+    # engine level: the public hg_centrality(type = "katz") wrapper builds
+    # its own node column in text_verbs.R
+    out <- .hg_katz_fit(empty, alpha = 0.1)
+    expect_identical(out, data.frame(node = character(0L), katz = numeric(0L)))
+    # alpha is still validated on the empty graph
+    expect_error(.hg_katz_fit(empty, alpha = -1), class = "hypergraphs_bad_input")
+  })
+})
+
+test_that("A20: nodes with no pairwise contact score zero Katz", {
+  hg <- .kz_hg(list(X = c("a", "b"), Y = "c"))
+  out <- .hg_katz_fit(hg, alpha = 0.5)
+  expect_identical(out$katz[out$node == "c"], 0)
+  # two disconnected edges: each pair is K_2, alpha / (1 - alpha)
+  out2 <- .hg_katz_fit(.kz_hg(list(X = c("a", "b"), Y = c("c", "d"))),
+                       alpha = 0.5)
+  expect_equal(out2$katz, rep(1, 4), tolerance = 1e-14)
+})

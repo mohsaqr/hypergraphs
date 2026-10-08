@@ -35,7 +35,10 @@ row per pooled rule: \code{from}, \code{to}, \code{order}, \code{count}, the two
 counts and probabilities (columns named after the groups), \code{diff}
 (probability difference, first minus second), \code{p_value}, \code{p_adj} (BH),
 \code{significant}, \code{n_perm_used}), \code{global} (\code{statistic}, the
-pooled-count-weighted mean absolute difference, and \code{p_value}),
+pooled-count-weighted mean absolute difference over the comparable
+rules, \code{p_value}, \code{n_comparable} and \code{n_rules}, the comparable and
+pooled rules, and \code{n_perm_used}, the permutations with a defined
+statistic),
 \code{names}, \code{n_perm}, \code{alpha}, \code{max_order}, \code{min_freq}, \code{n_trajectories}
 (per group) and \code{seed}. Has \code{print}, \code{summary} and \code{plot} methods;
 \code{\link[=hg_get]{hg_get()}} returns the rule table (\code{significant = TRUE} restricts it).
@@ -50,6 +53,15 @@ are Benjamini-Hochberg adjusted; a global test aggregates the rule
 differences weighted by pooled counts.
 }
 \details{
+A rule whose context one group never observes has no difference (\code{diff}
+is \code{NA}) and is not counted as zero. The global statistic is the
+pooled-count-weighted mean absolute difference over the comparable
+rules, those whose context both groups observe; in a permutation, a
+comparable rule whose context one permuted group lacks is left out of
+that permutation's mean. When no rule is comparable (the groups share no
+context), the statistic and its p-value are \code{NA} and the warning
+\code{hypergraphs_undefined_statistic} is raised.
+
 Per-sequence counts are precomputed once and every permutation is a
 weighted aggregation; permutations are drawn before any parallel work, so
 \code{parallel = TRUE} reproduces the serial result under the same \code{seed}.

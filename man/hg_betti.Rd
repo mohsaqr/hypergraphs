@@ -13,9 +13,17 @@ hg_betti(sc)
 A named integer vector \code{c(b0 = , b1 = , ...)}.
 }
 \description{
-The ranks of the homology groups over Z/2: \eqn{\beta_0} counts connected
-components, \eqn{\beta_1} independent loops, \eqn{\beta_2} voids, and so
-on.
+The ranks of the homology groups with rational coefficients:
+\eqn{\beta_0} counts connected components, \eqn{\beta_1} independent
+loops, \eqn{\beta_2} voids, and so on.
+}
+\details{
+The coefficients are rational, not Z/2. The two agree on most complexes
+but not on one with torsion: on the six-vertex real projective plane
+(RP2) \code{hg_betti()} gives \verb{(1, 0, 0)}, while \code{\link[=hg_homology]{hg_homology()}}, which
+reduces over Z/2 as the persistence literature does, ends its Betti
+curve at \verb{(1, 1, 1)}. Use \code{\link[=hg_homology]{hg_homology()}} when Z/2 Betti numbers are
+meant.
 }
 \examples{
 adj <- matrix(c(0, 1, 1, 0,

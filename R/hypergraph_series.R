@@ -100,14 +100,18 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
       n_edges_distinct = length(unique(present_signature)),
       n_memberships = sum(present))
   }
-  window_end <- function(t) t + grid$window
+  # a node has entered once its start lies in or before the window, by the
+  # boundary rule hyperedges and snapshots use; a node with no start (an
+  # isolate of the universe without an entry time) never enters
+  entered <- function(t) {
+    sum(!is.na(node_start) & .thg_begun(node_start, t, grid$window, grid$closed))
+  }
 
   if (identical(mode, "cumulative")) {
     begun <- t(vapply(at, function(t) count(t, "cumulative"), numeric(4L)))
     counts <- data.frame(
       time = at,
-      n_nodes = vapply(at, function(t) sum(node_start <= window_end(t), na.rm = TRUE),
-                       numeric(1L)),
+      n_nodes = vapply(at, entered, integer(1L)),
       n_edges = begun[, "n_edges"],
       n_edges_distinct = begun[, "n_edges_distinct"],
       n_memberships = begun[, "n_memberships"]

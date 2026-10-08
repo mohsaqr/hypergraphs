@@ -21,7 +21,10 @@
 #' @param x A character vector, or a data.frame with a text column.
 #' @param column When `x` is a data.frame, the name of its text column.
 #' @param html Decode HTML entities (`&amp;`, `&nbsp;`, `&#8217;`, ...) and
-#'   strip tags (default `TRUE`).
+#'   strip tags (default `TRUE`). A numeric entity that names no character
+#'   (zero, a UTF-16 surrogate in U+D800-U+DFFF, or a value above
+#'   U+10FFFF) becomes the replacement character U+FFFD, as the HTML
+#'   standard decodes it.
 #' @param encoding Repair UTF-8-read-as-Latin-1 mojibake (the
 #'   three-character garble of a curly apostrophe, the four-character garble
 #'   of an emoji) and normalise typographic
@@ -49,7 +52,8 @@
 #'   the wording of their notices over time, so a classifier trained on
 #'   abstracts with boilerplate learns the publisher and the year.
 #' @param numbers Remove bare numbers, percentages and years (default
-#'   `TRUE`). Numbers never enter a text hypergraph's vocabulary anyway (the
+#'   `TRUE`); a number joined to letters, such as `covid19`, `p53` or
+#'   `covid-19`, is a word and is kept whole. Numbers never enter a text hypergraph's vocabulary anyway (the
 #'   tokeniser keeps alphabetic tokens), so this matters for display and for
 #'   `min_content`.
 #' @param remove Extra patterns to remove (Perl regular expressions,
@@ -187,8 +191,13 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   }
   decode <- function(m, base) {
     code <- strtoi(sub("^&#[xX]?", "", sub(";$", "", m)), base = base)
-    ok <- !is.na(code) & code > 0 & code < 1114112
-    out <- m
+    # a Unicode scalar value is in range and not a UTF-16 surrogate
+    # (U+D800-U+DFFF); any other code names no character and decodes to the
+    # replacement character U+FFFD, as the HTML standard's numeric character
+    # reference rule does
+    ok <- !is.na(code) & code > 0 & code < 1114112 &
+      !(code >= 55296 & code <= 57343)
+    out <- rep("\ufffd", length(m))
     out[ok] <- vapply(code[ok], intToUtf8, character(1))
     out
   }
@@ -345,8 +354,14 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
 }
 
 .thg_clean_numbers <- function(text) {
-  # standalone numbers, decimals, thousands, percentages, ordinals
-  gsub("(?<![[:alpha:]])[-+]?\\d+(?:[.,]\\d+)*(?:%|st|nd|rd|th)?(?![[:alpha:]])",
+  # standalone numbers, decimals, thousands, percentages, ordinals. The
+  # number is a whole token: no letter or digit on either side (a sign may
+  # follow a digit, as in "10-20"), not the tail of a hyphenated word
+  # ("covid-19"), and the atomic group stops the engine backtracking into a
+  # digit run, so covid19, p53, abc123def and 123abc are left intact rather
+  # than losing a numeric fragment
+  gsub(paste0("(?:(?<![[:alpha:]])[-+]|(?<![[:alnum:]])(?<![[:alpha:]]-))",
+              "(?>\\d+(?:[.,]\\d+)*)(?:%|st|nd|rd|th)?(?![[:alnum:]])"),
        " ", text, perl = TRUE)
 }
 

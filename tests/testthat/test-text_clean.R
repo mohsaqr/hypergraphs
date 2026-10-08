@@ -179,3 +179,36 @@ test_that("clean_text() repairs UTF-8 read as Windows-1252, emoji included", {
   expect_identical(clean_text("caf\u00c3\u00a9 it\u00e2\u20ac\u2122s open"),
                    "caf\u00e9 it's open")
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("number removal keeps alphanumeric words whole (TXT-03)", {
+  kept <- c("covid19", "p53", "abc123def", "123abc", "covid-19", "sars-cov-2",
+            "3.5abc", "5three")
+  expect_identical(clean_text(kept, citations = FALSE), kept)
+  removed <- clean_text(c("in 2020 we saw 45% of 1,000 students",
+                          "the 3rd and 21st cases", "values -5 and +3.5",
+                          "pages 10-20 here"), citations = FALSE)
+  expect_identical(removed, c("in we saw of students", "the and cases",
+                              "values and", "pages here"))
+  mixed <- clean_text("covid19 rose 12% in 2021 (p53)", citations = FALSE)
+  expect_identical(mixed, "covid19 rose in (p53)")
+  # cleaning is idempotent
+  again <- clean_text(c(kept, removed, mixed), citations = FALSE)
+  expect_identical(clean_text(again, citations = FALSE), again)
+})
+
+test_that("numeric entities that name no character decode to U+FFFD (TXT-09)", {
+  replacement <- intToUtf8(65533L)
+  out <- clean_text(c("safe &#55296; text", "hex &#xDFFF; tail",
+                      "valid &#233; and &#x1F600; and &#65;",
+                      "mix &#xD800; and &#8217;ok&#8217;"), numbers = FALSE)
+  expect_identical(out[[1L]], paste("safe", replacement, "text"))
+  expect_identical(out[[2L]], paste("hex", replacement, "tail"))
+  expect_identical(out[[3L]], paste("valid", intToUtf8(233L), "and",
+                                    intToUtf8(128512L), "and A"))
+  # the valid curly quotes decode, then normalise to straight quotes
+  expect_identical(out[[4L]], paste0("mix ", replacement, " and 'ok'"))
+  expect_false(anyNA(out))
+  expect_length(clean_text("safe &#55296; text"), 1L)
+})

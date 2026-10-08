@@ -9,7 +9,7 @@ if (length(args) != 1L) {
   stop("Usage: Rscript data-raw/hypergat-classification.R <R8 data directory>")
 }
 data_dir <- args[[1L]]
-out_dir <- file.path("inst", "extdata", "hypergat-classification")
+out_dir <- file.path("vignettes", "articles", "hypergat-classification")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 text <- enc2utf8(readLines(con = file.path(data_dir, "R8_corpus.txt"),

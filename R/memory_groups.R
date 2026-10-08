@@ -8,6 +8,19 @@
 # Split sequence data by a grouping: a column name of a data frame, or one
 # label per sequence (per row of a data frame, per element of a list).
 .hon_split_groups <- function(data, group) {
+  # one sequence per row: a character matrix and the sequence data of a
+  # model object are split as the wide data frame they are read as, so a
+  # label is given per sequence, not per cell
+  if (inherits(data, "netobject_group")) {
+    .thg_bad_input(paste0("a `netobject_group` is already grouped; pass ",
+                          "its sequences with `group =` instead"))
+  }
+  if (inherits(data, c("netobject", "tna", "cograph_network"))) {
+    data <- .coerce_sequence_input(data)
+  }
+  if (is.matrix(data) && !is.numeric(data)) {
+    data <- as.data.frame(data, stringsAsFactors = FALSE)
+  }
   if (is.data.frame(data) && is.character(group) && length(group) == 1L &&
       group %in% names(data)) {
     labels <- data[[group]]
@@ -98,6 +111,15 @@ hg_get.hypergraphs_memory_group <- function(x, ...) {
 #' are Benjamini-Hochberg adjusted; a global test aggregates the rule
 #' differences weighted by pooled counts.
 #'
+#' A rule whose context one group never observes has no difference (`diff`
+#' is `NA`) and is not counted as zero. The global statistic is the
+#' pooled-count-weighted mean absolute difference over the comparable
+#' rules, those whose context both groups observe; in a permutation, a
+#' comparable rule whose context one permuted group lacks is left out of
+#' that permutation's mean. When no rule is comparable (the groups share no
+#' context), the statistic and its p-value are `NA` and the warning
+#' `hypergraphs_undefined_statistic` is raised.
+#'
 #' Per-sequence counts are precomputed once and every permutation is a
 #' weighted aggregation; permutations are drawn before any parallel work, so
 #' `parallel = TRUE` reproduces the serial result under the same `seed`.
@@ -118,7 +140,10 @@ hg_get.hypergraphs_memory_group <- function(x, ...) {
 #'   counts and probabilities (columns named after the groups), `diff`
 #'   (probability difference, first minus second), `p_value`, `p_adj` (BH),
 #'   `significant`, `n_perm_used`), `global` (`statistic`, the
-#'   pooled-count-weighted mean absolute difference, and `p_value`),
+#'   pooled-count-weighted mean absolute difference over the comparable
+#'   rules, `p_value`, `n_comparable` and `n_rules`, the comparable and
+#'   pooled rules, and `n_perm_used`, the permutations with a defined
+#'   statistic),
 #'   `names`, `n_perm`, `alpha`, `max_order`, `min_freq`, `n_trajectories`
 #'   (per group) and `seed`. Has `print`, `summary` and `plot` methods;
 #'   [hg_get()] returns the rule table (`significant = TRUE` restricts it).

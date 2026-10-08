@@ -340,3 +340,85 @@ test_that("covid_sample holds 1,000 distinct abstracts", {
   expect_true(all(nchar(covid_sample$abstract) >= 400))
   expect_true(all(covid_sample$year >= 2020L & covid_sample$year <= 2024L))
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("metadata named like a document-table column is kept renamed (TXT-04)", {
+  text <- c("apple pear", "star moon")
+  for (column in c("doc", "n_tokens", "n_types")) {
+    x <- data.frame(text = text)
+    x[[column]] <- c("food", "space")
+    expect_warning(hg <- text_hypergraph(x, column = "text"),
+                   class = "hypergraphs_renamed_column")
+    expect_identical(.thg_resolve_labels(hg, paste0("input_", column)),
+                     c(doc_1 = "food", doc_2 = "space"))
+    expect_identical(anyDuplicated(names(hg_get(hg, what = "documents"))), 0L)
+    expect_warning(by_id <- text_hypergraph(cbind(x, id = c("a", "b")),
+                                            column = "text", id = "id"),
+                   class = "hypergraphs_renamed_column")
+    expect_identical(.thg_resolve_labels(by_id, paste0("input_", column)),
+                     c(a = "food", b = "space"))
+  }
+  # the computed table is untouched: n_tokens are counts, not the input
+  x <- data.frame(text = text, n_tokens = c("food", "space"))
+  hg <- suppressWarnings(text_hypergraph(x, column = "text"))
+  expect_identical(hg_get(hg, what = "documents")$n_tokens, c(2L, 2L))
+  # a renamed name that is itself taken is refused
+  expect_error(text_hypergraph(data.frame(text = text, doc = 1:2,
+                                          input_doc = 3:4), column = "text"),
+               class = "hypergraphs_bad_input")
+  emb <- matrix(c(1, 0.2, 0.3, 1), 2, 2, byrow = TRUE)
+  expect_warning(text_hypergraph(data.frame(text = text, doc = c("x", "y")),
+                                 column = "text", construction = "knn", k = 1,
+                                 embeddings = emb),
+                 class = "hypergraphs_renamed_column")
+  # the kNN document table has no token counts, so those names are free
+  knn <- text_hypergraph(data.frame(text = text, n_tokens = c("food", "space")),
+                         column = "text", construction = "knn", k = 1,
+                         embeddings = emb)
+  expect_identical(.thg_resolve_labels(knn, "n_tokens"),
+                   c(doc_1 = "food", doc_2 = "space"))
+  # an id column called doc is the id, not metadata
+  by_id <- text_hypergraph(data.frame(doc = c("a", "b"), text = text,
+                                      topic = c("food", "space")),
+                           column = "text", id = "doc")
+  expect_identical(.thg_resolve_labels(by_id, "topic"),
+                   c(a = "food", b = "space"))
+  expect_identical(anyDuplicated(names(hg_get(by_id, what = "documents"))), 0L)
+})
+
+test_that("kNN embeddings with duplicated row names are refused (TXT-15)", {
+  text <- c(a = "apple pear", b = "star moon")
+  dup <- matrix(c(1, 1, 1, 2, 100, 100), 3, 2, byrow = TRUE,
+                dimnames = list(c("a", "b", "a"), NULL))
+  expect_error(text_hypergraph(text, construction = "knn", k = 1,
+                               embeddings = dup),
+               class = "hypergraphs_bad_input")
+  # a permutation of unique ids aligns to the documents
+  emb <- matrix(c(1, 0.2, 0.3, 1), 2, 2, byrow = TRUE,
+                dimnames = list(c("a", "b"), NULL))
+  shuffled <- emb[c("b", "a"), , drop = FALSE]
+  expect_identical(
+    text_hypergraph(text, construction = "knn", k = 1, embeddings = shuffled)$incidence,
+    text_hypergraph(text, construction = "knn", k = 1, embeddings = emb)$incidence
+  )
+})
+
+test_that("text accessors validate and compose their filters (TXT-16)", {
+  h <- text_hypergraph(c(a = "apple pear", b = "apple peach", c = "star moon",
+                         d = "star sky"))
+  first <- hg_get(h, what = "documents", node = c("b", "a"), top = 1)
+  expect_identical(first$doc, "b")
+  expect_identical(hg_get(h, what = "documents", node = c("b", "a"))$doc,
+                   c("b", "a"))
+  expect_error(hg_get(h, what = "vocabulary", node = "a", sort_by = "count"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(h, what = "documents", node = "a", sort_by = "count"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(h, what = "weights", node = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(h, what = "sentences", sort_by = "count"),
+               class = "hypergraphs_bad_input")
+  sorted <- hg_get(h, what = "vocabulary", sort_by = "count", top = 2)
+  expect_identical(sorted$word, c("apple", "star"))
+})

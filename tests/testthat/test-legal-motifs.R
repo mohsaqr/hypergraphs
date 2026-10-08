@@ -52,3 +52,11 @@ test_that("motifs require a 3-uniform hypergraph", {
   h <- .legal_motif_hg(list(c(1, 2), c(1, 2, 3)))
   expect_error(hg_motifs(h, what = "counts"), class = "hypergraphs_bad_input")
 })
+
+test_that("the motif null sample count is validated by class, overflow included", {
+  h <- .legal_motif_hg(list(c(1, 2, 3), c(1, 2, 4), c(1, 3, 5), c(2, 4, 5)))
+  for (bad in list(1, 2.5, NA_real_, Inf, 3e9, c(5, 6))) {
+    expect_error(hg_motifs(h, n = bad, seed = 1),
+                 class = "hypergraphs_bad_input")
+  }
+})

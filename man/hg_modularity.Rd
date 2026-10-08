@@ -18,7 +18,9 @@ hg_modularity(
 \item{partition}{The partition to score: a data.frame with \code{node} and a
 label column (\code{community}, \code{cluster}, \code{label} or \code{predicted}), a named
 label vector, an unnamed vector in node order, or an \code{\link[=hg_communities]{hg_communities()}}
-fit (its AMI medoid is scored). Every node must be labelled.}
+fit (its AMI medoid is scored). Every node must be labelled, once: a
+node listed twice with the same label counts once, with different
+labels it raises \code{hypergraphs_bad_input}.}
 
 \item{type}{Hyperedge weighting \eqn{\omega(d, c)}: \code{"linear"} (default),
 \code{"majority"} or \code{"strict"}.}
@@ -39,7 +41,7 @@ For \code{what = "communities"}: one row per community with \code{community},
 \code{n_nodes}, \code{volume} (summed weighted degree), \code{edge_contribution},
 \code{degree_tax} and \code{modularity}, sorted by decreasing \code{modularity}.
 Raises \code{hypergraphs_bad_input} for a non-\code{net_hg} input, a partition that
-misses a node or has \code{NA} labels, or a hypergraph with no non-empty
+misses a node, has \code{NA} labels or conflicting repeated nodes, or a hypergraph with no non-empty
 hyperedge; invalid \code{edge_weights} fail the shared weight check.
 }
 \description{

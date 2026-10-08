@@ -92,7 +92,8 @@ optional id column, as in \code{\link[=text_hypergraph]{text_hypergraph()}}.}
 \code{\link[=stop_words_en]{stop_words_en()}}).}
 
 \item{min_count}{Minimum corpus frequency for a word to become a
-vertex.}
+vertex: its number of occurrences (after stop-word removal) in the
+documents the vocabulary is built from, every repeat counted.}
 
 \item{lowercase}{Lowercase the text first.}
 
@@ -188,15 +189,16 @@ document, test documents included; passing its topic words as
 \code{lda_keywords} reproduces that choice.
 }
 \examples{
-\dontrun{
-# articles has text and an existing subject-label column called label.
-fit <- hg_hypergat(articles, column = "text", labels = "label",
-                   holdout = 0.2)
+\dontshow{if (requireNamespace("torch", quietly = TRUE) && torch::torch_is_installed()) withAutoprint(\{ # examplesIf}
+# a small, fast fit on 60 bundled forum posts; a real analysis trains
+# for more epochs on the whole corpus
+fit <- hg_hypergat(head(forum_posts, 60), column = "text",
+                   labels = "topic", holdout = 0.25, epochs = 5)
 fit
 plot(fit)
-hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
-predict(fit, newdata = new_articles)
-}
+hg_get(fit, what = "documents", split = "test", top = 3)
+predict(fit, newdata = tail(forum_posts, 3))
+\dontshow{\}) # examplesIf}
 }
 \references{
 Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with

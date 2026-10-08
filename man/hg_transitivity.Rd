@@ -27,7 +27,8 @@ number of nodes where it is undefined).}
 \item{sort_by}{For \code{what = "nodes"}, optional \code{type} to sort by,
 descending (ties broken by node name, \code{NA} last).}
 
-\item{n}{Return only the first \code{n} node rows after sorting.}
+\item{n}{Return only the first \code{n} node rows after sorting: a whole
+number >= 1, or \code{Inf} (default) for all.}
 }
 \value{
 A base \code{data.frame}. For \code{what = "nodes"}: one row per node with

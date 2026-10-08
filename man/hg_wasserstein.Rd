@@ -9,7 +9,8 @@ hg_wasserstein(d1, d2, dimension = NULL, order = 1, internal_p = Inf)
 \arguments{
 \item{d1, d2}{\code{persistent_homology} objects from
 \code{\link[=hg_homology]{hg_homology()}}, or data.frames with columns
-\code{dimension}, \code{birth}, \code{death}.}
+\code{dimension}, \code{birth}, \code{death} (finite births; deaths finite or \code{Inf}).
+An invalid diagram raises \code{hypergraphs_bad_input}.}
 
 \item{dimension}{Integer vector of dimensions to compare. \code{NULL}
 (default) compares all dimensions appearing in either diagram.}
@@ -33,11 +34,16 @@ then takes the \eqn{q}-th root. Point-to-point costs use an
 \eqn{L_\infty} convention used by GUDHI.
 }
 \details{
-Finite points may match the diagonal. Essential classes (\code{death = Inf}
-in Vietoris--Rips mode or \code{death = 0} in clique mode) are matched only to
-essential classes. A dimension whose essential counts differ has distance
-\code{Inf}. The finite assignment is solved exactly with a native Hungarian
-algorithm, so no optional optimization package is required.
+Finite points may match the diagonal. Essential classes are matched only
+to essential classes, and a dimension whose essential counts differ has
+distance \code{Inf}. An \code{\link[=hg_homology]{hg_homology()}} result marks its essential classes
+itself (\code{death = Inf} in Vietoris--Rips mode, \code{death = 0} in clique mode
+and for a window complex); in a data.frame an essential class is written
+with \code{death = Inf}, and \code{death = 0} is an ordinary finite death. The
+finite assignment is solved exactly with a native Hungarian algorithm, so
+no optional optimization package is required. Distances are computed on
+rescaled coordinates, so large orders and wide coordinate ranges do not
+overflow.
 }
 \examples{
 d1 <- data.frame(dimension = 0L, birth = 0, death = 2)

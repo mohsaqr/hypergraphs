@@ -23,7 +23,9 @@ A data.frame. For \code{what = "embeddings"}, one row per higher-order
 node: \code{node} followed by one column per embedding dimension (\code{dim1},
 \code{dim2}, ...). For \code{what = "variance"}, one row per dimension: \code{dimension},
 \code{singular_value}, \code{proportion} (that dimension's share of the total
-squared singular value).
+squared singular value; \code{0} for every dimension when all singular
+values are zero, as for a network without edges, whose embedding
+carries no variance).
 }
 \description{
 Tables of a higher-order network embedding

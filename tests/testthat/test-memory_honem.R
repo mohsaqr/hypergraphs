@@ -304,3 +304,14 @@ test_that("honem with dim equal to n-1 works", {
   expect_equal(emb$dim, 2L)
   expect_equal(ncol(emb$embeddings), 2L)
 })
+
+# ---- Zero spectrum (M10) ---------------------------------------------------
+
+test_that("the variance table of a zero spectrum has no NaN", {
+  v <- hg_get(honem(matrix(0, 3, 3)), what = "variance")
+  expect_false(anyNA(v$proportion))
+  expect_true(all(v$proportion == 0))
+  seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
+  emb <- honem(hon(seqs, max_order = 2L), dim = 2L)
+  expect_equal(sum(hg_get(emb, what = "variance")$proportion), 1)
+})

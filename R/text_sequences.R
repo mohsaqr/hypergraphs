@@ -86,6 +86,7 @@
 #' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 #' clustering, classification, and embedding. \emph{Advances in Neural
 #' Information Processing Systems}, 19, 1601-1608.
+#' \doi{10.7551/mitpress/7503.003.0205}
 #'
 #' @seealso [hg_cluster()] for the partition, [hon()] and
 #'   [hg_bootstrap()] for what to do with the sequences,

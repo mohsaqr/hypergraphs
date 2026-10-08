@@ -27,7 +27,10 @@ clean_text(
 \item{column}{When \code{x} is a data.frame, the name of its text column.}
 
 \item{html}{Decode HTML entities (\verb{&amp;}, \verb{&nbsp;}, \verb{&#8217;}, ...) and
-strip tags (default \code{TRUE}).}
+strip tags (default \code{TRUE}). A numeric entity that names no character
+(zero, a UTF-16 surrogate in U+D800-U+DFFF, or a value above
+U+10FFFF) becomes the replacement character U+FFFD, as the HTML
+standard decodes it.}
 
 \item{encoding}{Repair UTF-8-read-as-Latin-1 mojibake (the
 three-character garble of a curly apostrophe, the four-character garble
@@ -62,7 +65,8 @@ the wording of their notices over time, so a classifier trained on
 abstracts with boilerplate learns the publisher and the year.}
 
 \item{numbers}{Remove bare numbers, percentages and years (default
-\code{TRUE}). Numbers never enter a text hypergraph's vocabulary anyway (the
+\code{TRUE}); a number joined to letters, such as \code{covid19}, \code{p53} or
+\code{covid-19}, is a word and is kept whole. Numbers never enter a text hypergraph's vocabulary anyway (the
 tokeniser keeps alphabetic tokens), so this matters for display and for
 \code{min_content}.}
 

@@ -17,7 +17,8 @@ hg_community_quality(
 \item{hg}{A static \code{net_hg}.}
 
 \item{partition}{An \code{\link[=hg_communities]{hg_communities()}} result, a tidy node/label table, or a
-named label vector.}
+named label vector. Every projected node needs one non-missing label; a
+node repeated with different labels raises \code{hypergraphs_bad_input}.}
 
 \item{method}{The projection the partition is scored on: the
 \code{"association"} graph (default) or the undirected \code{"citation"} graph.}

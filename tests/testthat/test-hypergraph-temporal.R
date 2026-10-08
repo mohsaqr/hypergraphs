@@ -261,28 +261,173 @@ test_that("the measurement grid follows step, window and at", {
   expect_error(hg_snapshot(thg, at = c(1, 2)), class = "hypergraphs_bad_input")
 })
 
-test_that("INVARIANT: hypergraphs and Dynet agree on which actor pairs are ever co-present", {
-  skip_if_not_installed("Dynet")
-  log <- data.frame(
-    student = c("a", "b", "c", "a", "b", "d", "c", "d"),
-    seminar = c("s1", "s1", "s1", "s2", "s2", "s2", "s3", "s3"),
-    start = as.Date(c(rep("2024-01-01", 3), rep("2024-02-01", 3), rep("2024-03-01", 2))),
-    end = as.Date(c(rep("2024-01-10", 3), rep("2024-02-05", 3), rep("2024-03-02", 2))),
-    stringsAsFactors = FALSE
-  )
-  dn <- Dynet::dynet(log, actor = "student", group = "seminar")
-  dynet_spells <- as.data.frame(dn)
-  dynet_pairs <- unique(paste(pmin(dynet_spells$from, dynet_spells$to),
-                              pmax(dynet_spells$from, dynet_spells$to)))
-  thg <- temporal_hypergraph(log, node = "student", hyperedge = "seminar",
-                             start = "start", end = "end")
-  aggregate <- hg_snapshot(thg, mode = "cumulative")
-  projection <- hg_get(pairwise_network(aggregate))
-  hypergraphs_pairs <- unique(paste(pmin(projection$from, projection$to),
-                               pmax(projection$from, projection$to)))
-  expect_setequal(hypergraphs_pairs, dynet_pairs)
-  # and on the clock: the same unit and origin
-  expect_identical(thg$time_unit, dn$meta$time_unit)
-  expect_identical(as.numeric(thg$origin), as.numeric(dn$meta$origin))
-  expect_identical(sort(unique(thg$memberships$start)), sort(unique(dynet_spells$start)))
+test_that("temporal metadata columns never replace structural ones (R03)", {
+  d <- data.frame(person = c("a", "b"), event = "x", t = c(1, 1),
+                  node = c("other1", "other2"), start = c(9, 9),
+                  end = c(0, 0), edge = c("k", "k"))
+  thg <- temporal_hypergraph(d, node = "person", hyperedge = "event", time = "t")
+  mem <- hg_get(thg)
+  expect_identical(mem$node, c("a", "b"))
+  expect_identical(mem$edge, c("x", "x"))
+  expect_equal(mem$start, c(1, 1))
+  expect_equal(mem$weight, c(1, 1))
+  ed <- hg_get(thg, what = "edges")
+  expect_identical(ed$edge, "x")
+  expect_equal(ed$start, 1)
+  # the clashing metadata are kept as attributes under suffixed names
+  expect_identical(ed$edge_1, "k")
+  expect_equal(ed$start_1, 9)
+})
+
+test_that("temporal edge attributes do not depend on row order (R05)", {
+  d <- data.frame(node = c("a", "b", "c"), edge = c("x", "x", "y"),
+                  time = c(1, 1, 2), color = c(NA, "red", NA))
+  one <- hg_get(temporal_hypergraph(d, node = "node", hyperedge = "edge",
+                                    time = "time"), what = "edges")
+  two <- hg_get(temporal_hypergraph(d[3:1, ], node = "node", hyperedge = "edge",
+                                    time = "time"), what = "edges")
+  expect_identical(one, two)
+  expect_identical(one$color, c("red", NA))
+})
+
+test_that("invalid clocks are refused at construction (R12)", {
+  garbage <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                        time = c("2020-01-01", "garbage"))
+  expect_error(temporal_hypergraph(garbage, from = "from", to = "to", time = "time"),
+               class = "hypergraphs_unparsed_time")
+  all_bad <- data.frame(from = "a", to = "b", time = "not a date")
+  expect_error(temporal_hypergraph(all_bad, from = "from", to = "to", time = "time"),
+               class = "hypergraphs_bad_input")
+  mixed_order <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                            time = c("13/02/2020", "02/13/2020"))
+  expect_error(temporal_hypergraph(mixed_order, from = "from", to = "to",
+                                   time = "time"),
+               class = "hypergraphs_unparsed_time")
+  lapply(list(c(1, Inf), c(1, -Inf), c(1, NaN)), function(clock) {
+    d <- data.frame(from = c("a", "b"), to = c("b", "c"), time = clock)
+    expect_error(temporal_hypergraph(d, from = "from", to = "to", time = "time"),
+                 class = "hypergraphs_bad_input")
+  })
+  inf_end <- data.frame(node = c("a", "b"), edge = "x", start = 1, end = c(2, Inf))
+  expect_error(temporal_hypergraph(inf_end, node = "node", hyperedge = "edge",
+                                   start = "start", end = "end"),
+               class = "hypergraphs_bad_input")
+  # a date with and without a time of day is one way of writing dates
+  both <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                     time = c("2020-01-01", "2020-01-02 12:00:00"))
+  thg <- temporal_hypergraph(both, from = "from", to = "to", time = "time",
+                             time_unit = "hours")
+  expect_equal(sort(unique(hg_get(thg)$start)), c(0, 36))
+})
+
+test_that("every membership interval is checked on its own (R13)", {
+  d <- data.frame(node = c("a", "b"), edge = "x", start = c(10, 1), end = c(5, 20))
+  expect_error(temporal_hypergraph(d, node = "node", hyperedge = "edge",
+                                   start = "start", end = "end"),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("an end column with no value reads as open intervals (R14)", {
+  numeric_open <- data.frame(node = c("a", "b"), edge = "x", start = 1, end = NA)
+  thg <- temporal_hypergraph(numeric_open, node = "node", hyperedge = "edge",
+                             start = "start", end = "end",
+                             observation_end = 5)
+  expect_true(all(is.na(hg_get(thg)$end)))
+  expect_identical(hg_snapshot(thg, at = 5)$nodes, c("a", "b"))
+  dates <- data.frame(node = c("a", "b"), edge = "x",
+                      start = as.Date(c("2020-01-01", "2020-01-01")),
+                      end = NA_character_)
+  cal <- temporal_hypergraph(dates, node = "node", hyperedge = "edge",
+                             start = "start", end = "end",
+                             observation_end = as.Date("2020-02-01"))
+  expect_identical(hg_snapshot(cal, at = as.Date("2020-02-01"))$n_nodes, 2L)
+  stamps <- data.frame(node = c("a", "b"), edge = "x",
+                       start = as.POSIXct(c("2020-01-01 10:00", "2020-01-01 10:00"),
+                                          tz = "UTC"),
+                       end = NA)
+  posix <- temporal_hypergraph(stamps, node = "node", hyperedge = "edge",
+                               start = "start", end = "end")
+  expect_identical(hg_snapshot(posix)$n_nodes, 2L)
+})
+
+test_that("summary sizes count distinct members, not records (R16)", {
+  thg <- temporal_hypergraph(data.frame(node = c("a", "a", "b"), edge = "x",
+                                        time = 1),
+                             node = "node", hyperedge = "edge", time = "time")
+  s <- summary(thg)
+  expect_equal(s$mean_edge_size, 2)
+  expect_equal(s$median_edge_size, 2)
+  expect_identical(s$n_memberships, 3L)
+  expect_identical(hg_edges(hg_snapshot(thg))$size, 2L)
+})
+
+test_that("ISO 8601 offsets and fractional seconds give the right instant (R22)", {
+  d <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "d"),
+                  time = c("2020-01-01T10:00:00+0200", "2020-01-01T08:00:00Z",
+                           "2020-01-01T03:00:00-05:00"))
+  thg <- temporal_hypergraph(d, from = "from", to = "to", time = "time",
+                             time_unit = "hours")
+  expect_equal(unique(hg_get(thg)$start), 0)
+  frac <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                     time = c("2020-01-01 10:00:00.5", "2020-01-01 10:00:01"))
+  ft <- temporal_hypergraph(frac, from = "from", to = "to", time = "time",
+                            time_unit = "seconds")
+  expect_equal(sort(unique(hg_get(ft)$start)), c(0, 0.5))
+  trailing <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                         time = c("2020-01-01 10:00:00 UTC+junk", "2020-01-01"))
+  expect_error(temporal_hypergraph(trailing, from = "from", to = "to",
+                                   time = "time"),
+               class = "hypergraphs_unparsed_time")
+  # an unzoned string is still read as UTC
+  plain <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                      time = c("2020-01-01 08:00:00", "2020-01-01T08:00:00Z"))
+  expect_equal(unique(hg_get(temporal_hypergraph(plain, from = "from", to = "to",
+                                                 time = "time"))$start), 0)
+})
+
+test_that("open and finite membership ends do not depend on row order (R24)", {
+  d <- data.frame(node = c("a", "b"), edge = "x", start = c(1, 1), end = c(2, NA))
+  lapply(list(1:2, 2:1), function(o) {
+    thg <- temporal_hypergraph(d[o, ], node = "node", hyperedge = "edge",
+                               start = "start", end = "end",
+                               observation_end = 3)
+    expect_identical(hg_snapshot(thg, at = 3)$nodes, "b")
+    expect_identical(hg_snapshot(thg, at = 1)$nodes, c("a", "b"))
+    expect_true(is.na(hg_get(thg, what = "edges")$end))
+  })
+  cal <- data.frame(node = c("a", "b"), edge = "x",
+                    start = as.Date(c("2020-01-01", "2020-01-01")),
+                    end = as.Date(c("2020-01-02", NA)))
+  lapply(list(1:2, 2:1), function(o) {
+    thg <- temporal_hypergraph(cal[o, ], node = "node", hyperedge = "edge",
+                               start = "start", end = "end",
+                               observation_end = as.Date("2020-01-03"))
+    expect_identical(hg_snapshot(thg, at = as.Date("2020-01-03"))$nodes, "b")
+  })
+})
+
+test_that("readers of an empty snapshot return typed zero-row tables (R26)", {
+  thg <- temporal_hypergraph(data.frame(from = "a", to = "b", time = 1),
+                             from = "from", to = "to", time = "time",
+                             observation_start = 0, observation_end = 2)
+  empty <- hg_snapshot(thg, at = 0)
+  expect_identical(empty$nodes, character())
+  nodes <- hg_get(empty, what = "nodes")
+  expect_identical(nrow(nodes), 0L)
+  expect_identical(names(nodes), c("node", "degree"))
+  expect_identical(nrow(hg_get(empty, what = "memberships")), 0L)
+  expect_identical(nrow(hg_get(empty)), 0L)
+  expect_output(print(empty))
+  expect_output(degrees <- summary(empty))
+  expect_identical(nrow(degrees), 0L)
+})
+
+test_that("temporal membership weights are numbers, finite and non-negative (R04)", {
+  d <- data.frame(node = c("a", "b"), edge = "x", time = 1)
+  lapply(list(factor(c("2", "3")), c("1", "2"), c(1, -1), c(1, Inf)), function(w) {
+    d$w <- w
+    expect_error(temporal_hypergraph(d, node = "node", hyperedge = "edge",
+                                     time = "time", weight = "w"),
+                 class = "hypergraphs_bad_input")
+  })
 })

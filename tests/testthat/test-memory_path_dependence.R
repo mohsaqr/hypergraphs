@@ -41,3 +41,9 @@ test_that("hg_get(flips =) filters contexts that change the prediction", {
   expect_identical(nrow(flipped) + nrow(kept), nrow(everything))
   expect_error(hg_get(pd, flips = NA))
 })
+
+test_that("hg_get() refuses a fractional min_count", {
+  seqs <- list(c("a", "b", "c", "a", "b", "c"), c("a", "b", "d", "a", "b", "c"))
+  pd <- memory(seqs, order = 2L, min_count = 1L)
+  expect_error(hg_get(pd, min_count = 1.5), class = "hypergraphs_bad_input")
+})

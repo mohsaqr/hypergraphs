@@ -313,3 +313,131 @@ test_that("scalar edge_weights recycles across the Laplacian family too", {
     .hg_centrality_fit(hg, type = "pagerank", edge_weights = -1),
     "edge_weights")
 })
+
+# ---- Audit regressions (2026-10-06) ---------------------------------------
+
+# unit-L2, positive-sum principal eigenvector of a symmetric matrix: the
+# independent oracle for the clique variant
+.hc_eigen_oracle <- function(adjacency) {
+  v <- eigen(adjacency, symmetric = TRUE)$vectors[, 1L]
+  v <- if (sum(v) < 0) -v else v
+  v / sqrt(sum(v^2))
+}
+
+.hc_clique_adjacency <- function(hg) {
+  w <- tcrossprod((hg$incidence > 0) * 1)
+  diag(w) <- 0
+  w
+}
+
+test_that("A01: clique centrality is the Perron vector on bipartite expansions", {
+  path <- group_hypergraph(
+    data.frame(node = c("a", "b", "b", "c"), hyperedge = c("X", "X", "Y", "Y")),
+    node = "node", hyperedge = "hyperedge"
+  )
+  # a non-regular bipartite star pair: hubs h1, h2 joined through leaf l0
+  stars <- group_hypergraph(
+    data.frame(node = c("h1", "l1", "h1", "l2", "h1", "l3", "h1", "l0",
+                        "h2", "l0", "h2", "l4"),
+               hyperedge = sprintf("e%d", rep(1:6, each = 2))),
+    node = "node", hyperedge = "hyperedge"
+  )
+  lapply(list(path, stars), \(hg) {
+    w <- .hc_clique_adjacency(hg)
+    oracle <- .hc_eigen_oracle(w)
+    got <- hg_centrality(hg, type = "clique")$clique
+    expect_equal(got, oracle, tolerance = 1e-10)
+    lambda <- max(eigen(w, symmetric = TRUE, only.values = TRUE)$values)
+    expect_lt(max(abs(w %*% got - lambda * got)), 1e-10)
+    # max_iter no longer changes the answer (old even/odd caps disagreed)
+    expect_identical(hg_centrality(hg, type = "clique", max_iter = 999)$clique,
+                     hg_centrality(hg, type = "clique", max_iter = 1000)$clique)
+  })
+  expect_equal(hg_centrality(path, type = "clique")$clique,
+               c(0.5, sqrt(0.5), 0.5), tolerance = 1e-12)
+})
+
+test_that("A01: equal disconnected components keep the uniform-start limit", {
+  # two disjoint triangles share the leading eigenvalue: power iteration from
+  # a uniform start gives every node 1 / sqrt(6); a smaller third component
+  # (one edge) scores zero
+  hg <- group_hypergraph(
+    data.frame(node = c("a", "b", "c", "d", "e", "f", "g", "h"),
+               hyperedge = c("X", "X", "X", "Y", "Y", "Y", "Z", "Z")),
+    node = "node", hyperedge = "hyperedge"
+  )
+  got <- hg_centrality(hg, type = "clique")
+  expect_equal(got$clique, c(rep(1 / sqrt(6), 6), 0, 0), tolerance = 1e-12)
+})
+
+test_that("A01: Z and H iterations that exhaust max_iter warn", {
+  hg <- random_hypergraph("uniform", n = 15, m = 20, k = 3, seed = 1)
+  lapply(c("Z", "H"), \(ty) {
+    expect_warning(hg_centrality(hg, type = ty, max_iter = 2L),
+                   class = "hypergraphs_no_converge")
+  })
+  expect_no_warning(hg_centrality(hg, type = c("clique", "Z", "H")))
+})
+
+test_that("iteration controls are validated with a classed error", {
+  hg <- .hc_two_overlapping()
+  lapply(list(Inf, 2.5, 0, NA, -1, c(1, 2)), \(bad) {
+    expect_error(.hg_centrality_fit(hg, max_iter = bad),
+                 class = "hypergraphs_bad_input")
+  })
+  lapply(list(0, -1, Inf, NA_real_), \(bad) {
+    expect_error(.hg_centrality_fit(hg, tol = bad),
+                 class = "hypergraphs_bad_input")
+  })
+})
+
+test_that("A06: subhypergraph centrality is log diag expm, row by row", {
+  # 1000 parallel {a, b} hyperedges and a singleton {c}: the old global
+  # shift returned c = -Inf
+  hg <- group_hypergraph(
+    data.frame(node = c(rep(c("a", "b"), 1000), "c"),
+               hyperedge = c(rep(sprintf("e%d", 1:1000), each = 2), "s")),
+    node = "node", hyperedge = "hyperedge"
+  )
+  got <- hg_centrality(hg, type = "subhypergraph")
+  expect_true(all(is.finite(got$subhypergraph)))
+  expect_identical(got$subhypergraph[got$node == "c"], 0)
+  # exact: [[0, 1000], [1000, 0]] has exp-diagonal cosh(1000)
+  expect_equal(got$subhypergraph[1:2], rep(1000 - log(2), 2),
+               tolerance = 1e-12)
+})
+
+test_that("A06: subhypergraph matches log(diag(expm)) on small graphs", {
+  # independent oracle: the matrix exponential by eigendecomposition of the
+  # whole matrix, on graphs whose spectra keep it in floating range
+  lapply(list(
+    .hc_two_overlapping(),
+    random_hypergraph("uniform", n = 12, m = 10, k = 3, seed = 3),
+    group_hypergraph(
+      data.frame(node = c("a", "b", "c", "d", "e", "f", "g"),
+                 hyperedge = c("X", "X", "X", "Y", "Y", "Z", "W")),
+      node = "node", hyperedge = "hyperedge")
+  ), \(hg) {
+    w <- .hc_clique_adjacency(hg)
+    eig <- eigen(w, symmetric = TRUE)
+    oracle <- log(diag(eig$vectors %*% diag(exp(eig$values),
+                                            length(eig$values)) %*%
+                         t(eig$vectors)))
+    expect_equal(hg_centrality(hg, type = "subhypergraph")$subhypergraph,
+                 unname(oracle), tolerance = 1e-10)
+  })
+})
+
+test_that("singleton-only hyperedges give the zero-adjacency result", {
+  hg <- group_hypergraph(
+    data.frame(node = c("a", "b"), hyperedge = c("X", "Y")),
+    node = "node", hyperedge = "hyperedge"
+  )
+  got <- hg_centrality(hg, type = c("clique", "Z", "H", "subhypergraph"))
+  expect_identical(got$clique, c(0, 0))
+  expect_identical(got$Z, c(0, 0))
+  expect_identical(got$H, c(0, 0))
+  expect_identical(got$subhypergraph, c(0, 0))
+  # same convention as a hypergraph with no hyperedges at all
+  expect_no_warning(hg_centrality(hg, type = c("Z", "H"), max_iter = 1L))
+})

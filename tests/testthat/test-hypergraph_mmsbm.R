@@ -332,3 +332,62 @@ test_that("community-labelled tables feed hg_agreement(); NA labels are dropped"
   expect_identical(out$n, 3L)
   expect_equal(out$ari, 1)
 })
+
+test_that("A18: a membership that collapses or revives blocks convergence", {
+  hard <- matrix(c(1, 0, 1, 1), 2, byrow = TRUE)
+  collapsed <- matrix(c(0, 0, 1, 1), 2, byrow = TRUE)
+  # defined -> collapsed and collapsed -> defined both count as movement
+  expect_false(.mmsbm_settled(collapsed, diag(2), hard, diag(2), 1e-5,
+                              "membership"))
+  expect_false(.mmsbm_settled(hard, diag(2), collapsed, diag(2), 1e-5,
+                              "membership"))
+  # nothing defined at either check: nothing has settled
+  expect_false(.mmsbm_settled(matrix(0, 2, 2), diag(2), matrix(0, 2, 2),
+                              diag(2), 1e-5, "membership"))
+  # a row undefined at both checks (an isolate) does not block convergence
+  expect_true(.mmsbm_settled(collapsed, diag(2), collapsed * 3, diag(2), 1e-5,
+                             "membership"))
+  # and a real change in a defined row is still caught
+  expect_false(.mmsbm_settled(rbind(c(0, 0), c(1, 2)), diag(2),
+                              rbind(c(0, 0), c(1, 1)), diag(2), 1e-5,
+                              "membership"))
+})
+
+test_that("A18: a fit with an isolated node still converges", {
+  hg <- .mm_hg(list(c("a", "b", "c"), c("a", "b"), c("b", "c"), "z"))
+  expect_warning(fit <- hg_mmsbm(hg, k = 2, nstart = 2L, seed = 1),
+                 class = "hypergraphs_isolated_nodes")
+  expect_true(all(fit$restarts$converged))
+})
+
+test_that("parallel starts reproduce the serial fit and the caller's stream", {
+  skip_on_os("windows")
+  h <- group_hypergraph(utils::head(icsid_tribunals, 300),
+                        node = "arbitrator", hyperedge = "case")
+  quiet <- function(e) withCallingHandlers(
+    e, hypergraphs_collapsed_membership = \(w) invokeRestart("muffleWarning"),
+    hypergraphs_no_converge = \(w) invokeRestart("muffleWarning"))
+  serial <- quiet(hg_mmsbm(h, k = 3, nstart = 4, max_iter = 200, seed = 5))
+  forked <- quiet(hg_mmsbm(h, k = 3, nstart = 4, max_iter = 200, seed = 5,
+                           parallel = TRUE, n_cores = 2))
+  expect_identical(forked, serial)
+  # without `seed` the starts come from the caller's stream, which must
+  # advance by the same draws either way
+  set.seed(3)
+  serial <- quiet(hg_mmsbm(h, k = 2, nstart = 3, max_iter = 100))
+  serial_stream <- .Random.seed
+  set.seed(3)
+  forked <- quiet(hg_mmsbm(h, k = 2, nstart = 3, max_iter = 100,
+                           parallel = TRUE, n_cores = 2))
+  expect_identical(forked, serial)
+  expect_identical(.Random.seed, serial_stream)
+})
+
+test_that("hg_mmsbm validates parallel and n_cores", {
+  h <- group_hypergraph(utils::head(icsid_tribunals, 60),
+                        node = "arbitrator", hyperedge = "case")
+  expect_error(hg_mmsbm(h, k = 2, nstart = 1, parallel = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_mmsbm(h, k = 2, nstart = 1, parallel = TRUE, n_cores = 1.5),
+               class = "hypergraphs_bad_input")
+})

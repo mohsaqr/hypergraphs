@@ -36,8 +36,12 @@ A base \code{data.frame}, one row per node and then per hyperedge
 \code{role} (\code{"node"} or \code{"hyperedge"}) and \code{cluster} (\code{"Cluster 1"}, ...,
 numbered by first appearance in that row order); with
 \code{what = "embedding"} also \code{dim1..dimL}. Raises \code{hypergraphs_bad_input} for
-a \code{k} below 2 or above the number of rows, or an empty node or
-hyperedge (zero degree, where the scaling is undefined).
+a \code{k} that is not a whole number from 2 to the number of rows, a \code{k}
+whose \eqn{\ell + 1} singular pairs the incidence does not have
+(\eqn{\ell + 1 > \min(m, n)} for an \eqn{m \times n} incidence, so
+\eqn{k \le 2^{\min(m, n) - 1}}), an embedding with fewer distinct rows
+than \code{k}, or an empty node or hyperedge (zero degree, where the scaling
+is undefined).
 }
 \description{
 Clusters the nodes and the hyperedges of a hypergraph together, so that
@@ -82,4 +86,5 @@ International Conference on Knowledge Discovery and Data Mining},
 Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
 Clustering, classification, and embedding. \emph{Advances in Neural Information
 Processing Systems 19}, 1601--1608.
+\doi{10.7551/mitpress/7503.003.0205}
 }

@@ -240,3 +240,145 @@ test_that("hon(group =) builds one network per group; hg_compare reads it", {
   expect_error(hon(long, actor = "id", action = "code", time = "t",
                    group = c("a", "b")), class = "hypergraphs_bad_input")
 })
+
+# ---- Missing states are gaps (M01) ----------------------------------------
+
+test_that("hg_bootstrap() counts no transition across a gap", {
+  gap <- list(c(NA, "a", "b", NA, NA, "c", "d", "a"),
+              c("b", "c", NA, "d", "a", "b", NA))
+  runs <- list(c("a", "b"), c("c", "d", "a"), c("b", "c"),
+               c("d", "a", "b"))
+  bs <- hg_bootstrap(gap, n_boot = 5L, max_order = 2L, seed = 1L)
+  tab <- hg_get(bs)
+  expect_false(anyNA(c(tab$from, tab$to)))
+  expect_false(any(c(tab$from, tab$to) == "NA"))
+  # the observed rules are those of the runs
+  ref <- hg_get(hon(runs, max_order = 2L, method = "hon"))
+  expect_identical(tab[c("from", "to", "count", "probability")],
+                   ref[c("from", "to", "count", "probability")])
+  # the resampling unit is the original sequence, not the run
+  expect_identical(bs$n_trajectories, 2L)
+  expect_identical(.hi_parse(gap), list(runs[1:2], runs[3:4]))
+})
+
+test_that("hg_bootstrap() keeps a real state spelled \"NA\"", {
+  tab <- hg_get(hg_bootstrap(list(c("a", "NA", "b"), c("a", "NA", "b")),
+                             n_boot = 3L, max_order = 1L, seed = 1L))
+  expect_false(anyNA(c(tab$from, tab$to)))
+  expect_setequal(paste(tab$from, tab$to), c("a NA", "NA b"))
+})
+
+test_that("hg_bootstrap() collapses repeats within runs only", {
+  seqs <- list(c("a", "a", NA, "a", "b", "b"), c("a", "b", NA, "b", "b", "a"))
+  tab <- hg_get(hg_bootstrap(seqs, n_boot = 3L, max_order = 1L,
+                             collapse_repeats = TRUE, seed = 1L))
+  expect_identical(paste(tab$from, tab$to), c("a b", "b a"))
+  expect_identical(tab$count, c(2L, 1L))
+})
+
+test_that("hg_compare() counts no transition across a gap", {
+  seqs <- list(c("a", "b", NA, "c", "a"), c("a", "b", "a", NA, "b"),
+               c("c", NA, "a", "b", "c"), c("b", "c", NA, NA, "a"))
+  g <- hon(seqs, group = c("x", "x", "y", "y"), max_order = 1L)
+  cmp <- hg_compare(g, n_perm = 9L, seed = 1L)
+  tab <- hg_get(cmp)
+  expect_false(anyNA(c(tab$from, tab$to)))
+  expect_false(any(c(tab$from, tab$to) == "NA"))
+})
+
+# ---- No rule survives min_freq (M05) ---------------------------------------
+
+test_that("inference with no rule above min_freq raises a classed error", {
+  seqs <- rep(list(c("a", "b")), 2L)
+  expect_error(hg_bootstrap(seqs, n_boot = 3L, min_freq = 100L,
+                            max_order = 1L),
+               class = "hypergraphs_empty_result")
+  g <- hon(rep(list(c("a", "b"), c("b", "a")), 2L),
+           group = c("x", "y", "x", "y"), max_order = 1L, min_freq = 100L)
+  expect_error(hg_compare(g, n_perm = 3L), class = "hypergraphs_empty_result")
+  # the rule table of an empty extraction keeps its columns
+  empty <- .hi_rule_table(list(rules = new.env(), count = new.env()))
+  expect_identical(nrow(empty), 0L)
+  expect_identical(names(empty), c("source_key", "from", "to", "order",
+                                   "count", "probability"))
+})
+
+test_that("hg_bootstrap() survives replicates whose extraction is empty", {
+  # one sequence carries the only frequent transition; a replicate that
+  # never draws it often extracts no rule at all
+  seqs <- list(rep(c("a", "b"), 3L), c("c", "d"), c("e", "f"), c("g", "h"))
+  bs <- hg_bootstrap(seqs, n_boot = 30L, min_freq = 3L, max_order = 1L,
+                     seed = 1L)
+  tab <- hg_get(bs)
+  expect_true(nrow(tab) > 0L)
+  expect_true(all(tab$support < 1))
+  expect_s3_class(summary(bs), "hypergraphs_summary")
+})
+
+# ---- Comparisons without a comparable rule (M06) ---------------------------
+
+test_that("hg_compare() reports no global test when the groups share nothing", {
+  g <- hon(list(c("a", "b", "a"), c("a", "b", "a"),
+                c("c", "d", "c"), c("c", "d", "c")),
+           group = c("x", "x", "y", "y"), max_order = 1L)
+  expect_warning(cmp <- hg_compare(g, n_perm = 3L, seed = 1L),
+                 class = "hypergraphs_undefined_statistic")
+  expect_true(is.na(cmp$global$statistic))
+  expect_true(is.na(cmp$global$p_value))
+  expect_identical(cmp$global$n_comparable, 0L)
+  expect_true(all(is.na(hg_get(cmp)$diff)))
+  expect_true(is.na(summary(cmp)$by_order$max_abs_diff))
+})
+
+test_that("hg_compare() averages over the comparable rules only", {
+  # a -> b and b -> a are seen in both groups; c -> d only in y
+  seqs <- list(c("a", "b", "a"), c("a", "b", "b"),
+               c("a", "b", "a", "c", "d"), c("a", "a", "b", "c", "d"))
+  g <- hon(seqs, group = c("x", "x", "y", "y"), max_order = 1L)
+  cmp <- hg_compare(g, n_perm = 19L, seed = 1L)
+  tab <- cmp$edges
+  comparable <- !is.na(tab$diff)
+  expect_true(any(!comparable))
+  expect_identical(cmp$global$n_comparable, sum(comparable))
+  expect_identical(cmp$global$n_rules, nrow(tab))
+  w <- tab$count[comparable] / sum(tab$count[comparable])
+  expect_equal(cmp$global$statistic, sum(w * abs(tab$diff[comparable])))
+  expect_true(cmp$global$n_perm_used <= 19L)
+})
+
+# ---- Grouped wide-matrix input (M08) ---------------------------------------
+
+test_that("hon(group =) reads a character matrix one sequence per row", {
+  rows <- list(c("a", "b", "a", "b"), c("a", "b", "a", "b"),
+               c("c", "d", "c", "d"), c("c", "d", "c", "d"))
+  m <- do.call(rbind, rows)
+  labels <- c("x", "x", "y", "y")
+  from_matrix <- hon(m, group = labels, max_order = 1L)
+  from_frame <- hon(as.data.frame(m, stringsAsFactors = FALSE),
+                    group = labels, max_order = 1L)
+  from_list <- hon(rows, group = labels, max_order = 1L)
+  expect_identical(from_matrix, from_frame)
+  expect_identical(hg_get(from_matrix), hg_get(from_list))
+  expect_identical(
+    hg_get(hg_bootstrap(from_matrix, n_boot = 5L, seed = 1L)),
+    hg_get(hg_bootstrap(from_list, n_boot = 5L, seed = 1L)))
+  expect_error(hon(m, group = rep(c("x", "y"), 4L), max_order = 1L),
+               class = "hypergraphs_bad_input")
+})
+
+# ---- Count controls (M13) --------------------------------------------------
+
+test_that("inference refuses fractional, vector and missing counts", {
+  seqs <- .hi_det_seqs()
+  bad <- list(list(n_boot = 2.5), list(n_boot = NA), list(max_order = 1.5),
+              list(max_order = c(1, 2)), list(min_freq = c(1, 2)),
+              list(min_freq = Inf))
+  invisible(lapply(bad, \(arg) {
+    expect_error(do.call(hg_bootstrap, c(list(seqs, seed = 1L), arg)),
+                 class = "hypergraphs_bad_input")
+  }))
+  g <- hon(c(seqs, rev(seqs)), group = rep(c("x", "y"), each = 6L),
+           max_order = 1L)
+  expect_error(hg_compare(g, n_perm = 9.5), class = "hypergraphs_bad_input")
+  expect_error(hg_compare(g, n_perm = 1L), class = "hypergraphs_bad_input")
+})

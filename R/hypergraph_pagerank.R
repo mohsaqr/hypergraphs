@@ -12,35 +12,33 @@
 # stochastic by construction.
 .thg_transition <- function(hg, edge_weights = NULL) {
   incidence <- hg$incidence
-  membership <- (incidence > 0) * 1
   # Package-wide default (.hl_build, .hl_rw_transition): explicit weights,
-  # else a window hypergraph's window counts, else the heuristic below.
+  # else a window hypergraph's window counts, else the Hayashi et al.
+  # (2020) heuristic, the HyperNetX default: population SD of the edge's
+  # non-zero vertex weights, plus one (unit weights on a binary incidence).
   edge_weights <- edge_weights %||% hg$window_counts
   if (is.null(edge_weights)) {
-    # Hayashi et al. (2020) heuristic, the HyperNetX default:
-    # population SD of the edge's non-zero vertex weights, plus one.
-    # Reduces to unit weights on a binary incidence.
-    edge_weights <- apply(incidence, 2, \(col) {
-      x <- col[col > 0]
-      sqrt(mean((x - mean(x))^2)) + 1
-    })
-  } else {
-    stopifnot(
-      "`edge_weights` must be positive and one per hyperedge" =
-        is.numeric(edge_weights) &&
-        length(edge_weights) == ncol(incidence) &&
-        all(is.finite(edge_weights)) && all(edge_weights > 0)
-    )
+    edge_weights <- .hl_default_edge_weights(incidence)
+  } else if (!(is.numeric(edge_weights) &&
+               length(edge_weights) == ncol(incidence) &&
+               all(is.finite(edge_weights)) && all(edge_weights > 0))) {
+    .ho_input_error("`edge_weights` must be positive and one per hyperedge")
   }
+  # Empty hyperedges (allowed by the random generators) can never be picked
+  # by the walk: leave them out rather than divide by their zero size.
+  keep <- .hl_nonempty(incidence)
+  incidence <- incidence[, keep, drop = FALSE]
+  membership <- (incidence > 0) * 1
+  w_keep <- edge_weights[keep]
   delta <- colSums(incidence)
-  vertex_degree <- as.numeric(membership %*% edge_weights)
+  vertex_degree <- as.numeric(membership %*% w_keep)
   if (any(vertex_degree <= 0)) {
     stop(errorCondition(
       "every vertex must belong to at least one hyperedge",
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  transition <- (membership %*% (t(incidence) * (edge_weights / delta))) /
+  transition <- (membership %*% (t(incidence) * (w_keep / delta))) /
     vertex_degree
   list(transition = transition, edge_weights = edge_weights)
 }
@@ -72,12 +70,14 @@
 #'   `net_hg` (connected when `damping = 1`).
 #' @param damping Probability of following the hypergraph walk (default
 #'   `0.85`); `1 - damping` is the teleport probability. Must be in
-#'   `(0, 1]`; `damping = 1` gives the pure stationary distribution and
-#'   requires a connected hypergraph to converge.
+#'   `(0, 1]`; `damping = 1` gives the pure stationary distribution, which
+#'   is unique only on a connected hypergraph: a disconnected one raises
+#'   `hypergraphs_hypergraph_disconnected`.
 #' @param personalized Optional restart preference: a character vector of
-#'   vertex names (uniform teleport over exactly those vertices), or a
-#'   named non-negative vector of teleport weights over (a subset of) the
-#'   vertex names; unnamed vertices get teleport probability 0. `NULL`
+#'   vertex names (uniform teleport over exactly those vertices; a name
+#'   given twice counts once), or a named vector of finite non-negative
+#'   teleport weights over (a subset of) the vertex names, each name at
+#'   most once; unnamed vertices get teleport probability 0. `NULL`
 #'   (default) teleports uniformly.
 #' @param edge_weights Positive hyperedge weights (one per hyperedge), or
 #'   `NULL` (default): a window hypergraph's window counts when present,
@@ -87,15 +87,19 @@
 #'   incidence).
 #' @param sort_by `NULL` (default, vertex order) or `"pagerank"` to sort
 #'   descending (ties broken by vertex name).
-#' @param n Return only the first `n` rows after sorting (default all).
-#' @param max_iter,tol Power-iteration cap and L1 convergence tolerance.
+#' @param n Return only the first `n` rows after sorting: a whole number
+#'   of at least 1, or `Inf` (default) for all.
+#' @param max_iter,tol Power-iteration cap (a whole number of at least 1) and L1
+#'   convergence tolerance (a positive number).
 #'
 #' @return A base `data.frame`, one row per vertex, with columns `node` and
 #'   `pagerank` (non-negative, summing to 1).
 #'
-#' @section Conditions: Raises `hypergraphs_bad_input` for broken contracts and
-#'   warns with `hypergraphs_no_converge` (returning the last iterate) when
-#'   `max_iter` is reached before `tol`.
+#' @section Conditions: Raises `hypergraphs_bad_input` for broken contracts
+#'   (including a non-finite, duplicated or unknown `personalized` entry),
+#'   `hypergraphs_hypergraph_disconnected` for `damping = 1` on a
+#'   disconnected hypergraph, and warns with `hypergraphs_no_converge`
+#'   (returning the last iterate) when `max_iter` is reached before `tol`.
 #'
 #' @references
 #' Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
@@ -123,17 +127,22 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
                         edge_weights = NULL, sort_by = NULL, n = Inf,
                         max_iter = 1000L, tol = 1e-12) {
   .thg_check_hg(hg)
-  stopifnot(
-    "`damping` must be a single value in (0, 1]" =
-      length(damping) == 1L && is.finite(damping) &&
-      damping > 0 && damping <= 1,
-    "`n` must be a single count >= 1" =
-      length(n) == 1L && (is.infinite(n) || (is.finite(n) && n >= 1)),
-    "`max_iter` must be a single count >= 1" =
-      length(max_iter) == 1L && is.finite(max_iter) && max_iter >= 1,
-    "`tol` must be a single positive value" =
-      length(tol) == 1L && is.finite(tol) && tol > 0
-  )
+  damping <- .ho_check_number(damping, "damping", min = 0, max = 1)
+  if (!(damping > 0)) .ho_input_error("`damping` must be in (0, 1]")
+  n <- .ho_check_count(n, "n", allow_inf = TRUE)
+  max_iter <- .ho_check_count(max_iter, "max_iter")
+  tol <- .hg_check_tol(tol)
+  # Undamped, the walk's stationary distribution is unique only on a
+  # connected hypergraph; on a disconnected one the answer would depend on
+  # where the iteration started.
+  if (damping >= 1 && !.hl_connected(hg)) {
+    stop(errorCondition(
+      paste0("`damping = 1` needs a connected hypergraph: the walk has no ",
+             "unique stationary distribution. Use `damping < 1` or analyze ",
+             "components separately."),
+      class = "hypergraphs_hypergraph_disconnected", call = NULL
+    ))
+  }
 
   if (.thg_is_sparse(hg)) {
     ops <- .thg_walk_operators(hg, edge_weights = edge_weights)
@@ -144,27 +153,7 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
     step <- function(v) as.numeric(v %*% walk$transition)
     ids <- rownames(walk$transition)
   }
-
-  if (is.character(personalized)) {
-    personalized <- stats::setNames(rep(1, length(personalized)),
-                                    personalized)
-  }
-  if (is.null(personalized)) {
-    teleport <- rep(1 / length(ids), length(ids))
-  } else {
-    if (is.null(names(personalized)) || anyNA(personalized) ||
-        !is.numeric(personalized) || any(personalized < 0) ||
-        sum(personalized) <= 0 ||
-        !all(names(personalized) %in% ids)) {
-      stop(errorCondition(
-        "`personalized` must be a named non-negative vector with a positive sum, over vertex names of `hg`",
-        class = "hypergraphs_bad_input", call = NULL
-      ))
-    }
-    teleport <- rep(0, length(ids))
-    teleport[match(names(personalized), ids)] <- personalized
-    teleport <- teleport / sum(teleport)
-  }
+  teleport <- .thg_teleport(personalized, ids)
 
   rank <- teleport
   converged <- FALSE
@@ -200,4 +189,37 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
     out <- out[seq_len(n), , drop = FALSE]
   }
   out
+}
+
+# Teleport distribution of hg_pagerank() over the vertex ids. NULL is
+# uniform; a character vector is a set of vertices (uniform over them); a
+# named numeric vector gives finite non-negative weights, one per vertex.
+# Weights are divided by their maximum before summing, so finite weights
+# near the double limit cannot overflow the normalizing sum.
+.thg_teleport <- function(personalized, ids) {
+  if (is.null(personalized)) return(rep(1 / length(ids), length(ids)))
+  if (is.character(personalized)) {
+    given <- .ho_check_ids(unique(personalized), "personalized")
+    personalized <- stats::setNames(rep(1, length(given)), given)
+  }
+  if (!is.numeric(personalized) || is.factor(personalized) ||
+      is.null(names(personalized)) || anyNA(personalized) ||
+      any(!is.finite(personalized)) || any(personalized < 0) ||
+      !any(personalized > 0)) {
+    .ho_input_error(paste0(
+      "`personalized` must be a named vector of finite non-negative ",
+      "weights with a positive sum, over vertex names of `hg`"
+    ))
+  }
+  given <- .ho_check_ids(names(personalized), "personalized")
+  unknown <- setdiff(given, ids)
+  if (length(unknown)) {
+    .ho_input_error(sprintf(
+      "`personalized` names vertices not in `hg`: %s",
+      paste(utils::head(unknown, 5L), collapse = ", ")
+    ))
+  }
+  teleport <- rep(0, length(ids))
+  teleport[match(given, ids)] <- personalized / max(personalized)
+  teleport / sum(teleport)
 }

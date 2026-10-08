@@ -4,12 +4,42 @@
 # columns as an `hg_classification`, a data.frame whose print shows the
 # evaluation and whose tables are read with hg_get().
 
+# The one contract for a node -> label assignment (the labels of a
+# classifier, the clusters of a topic summary, the groups of a prevalence
+# table). Its names are node ids: present, non-empty, and naming each node
+# once -- a node named twice with the same label is kept once, a node named
+# twice with different labels is ambiguous and refused. A missing label
+# marks the node as unlabelled, as a missing value in a document column
+# does, and the entry is dropped. An unnamed vector passes through for the
+# callers that take one label per node by position.
+.thg_check_assignment <- function(assignment, arg = "labels") {
+  ids <- names(assignment)
+  if (is.null(ids)) return(assignment)
+  if (anyNA(ids) || any(!nzchar(ids))) {
+    .thg_bad_input(sprintf("`%s` must not name a node with a missing or empty id",
+                           arg))
+  }
+  if (anyDuplicated(ids) > 0L) {
+    value <- ifelse(is.na(assignment), "\r<NA>", as.character(assignment))
+    distinct <- !duplicated(paste(ids, value, sep = "\r"))
+    conflict <- unique(ids[distinct][duplicated(ids[distinct])])
+    if (length(conflict) > 0L) {
+      .thg_bad_input(sprintf(
+        "`%s` gives node(s) more than one label: %s", arg,
+        paste(utils::head(conflict, 5L), collapse = ", ")))
+    }
+    assignment <- assignment[!duplicated(ids)]
+  }
+  assignment[!is.na(assignment)]
+}
+
 # Labels given as the name of a column of the hypergraph's document table
 # (a text hypergraph carries the input's other columns there) become a named
-# vector over the documents; any other `labels` passes through unchanged.
-.thg_resolve_labels <- function(hg, labels) {
+# vector over the documents; any other `labels` is read as a table or a named
+# vector. Either way the assignment contract above is enforced.
+.thg_resolve_labels <- function(hg, labels, arg = "labels") {
   if (!(is.character(labels) && length(labels) == 1L && is.null(names(labels)))) {
-    return(.thg_labels_input(labels))
+    return(.thg_check_assignment(.thg_labels_input(labels), arg))
   }
   documents <- if (is.list(hg$text)) hg$text$documents else NULL
   if (is.null(documents) || !labels %in% names(documents)) {
@@ -18,21 +48,23 @@
   }
   values <- as.character(documents[[labels]])
   keep <- !is.na(values) & documents$doc %in% hg$nodes
-  stats::setNames(values[keep], documents$doc[keep])
+  .thg_check_assignment(stats::setNames(values[keep], documents$doc[keep]),
+                        arg)
 }
 
 # Labels given as the name of a column of a data.frame `x` (the input of
 # hg_hypergat()), over the document ids `ids`.
 .thg_resolve_text_labels <- function(x, labels, ids) {
   if (!(is.character(labels) && length(labels) == 1L && is.null(names(labels)))) {
-    return(.thg_labels_input(labels))
+    return(.thg_check_assignment(.thg_labels_input(labels)))
   }
   if (!is.data.frame(x) || !labels %in% names(x)) {
     .thg_bad_input(sprintf("`labels` = \"%s\" must name a column of `x`",
                            labels))
   }
   values <- as.character(x[[labels]])
-  stats::setNames(values[!is.na(values)], ids[!is.na(values)])
+  .thg_check_assignment(stats::setNames(values[!is.na(values)],
+                                        ids[!is.na(values)]))
 }
 
 # A stratified held-out share of the known labels: within each class,
@@ -147,14 +179,12 @@
 #' less: Hypergraph attention networks for inductive text classification.
 #' \emph{EMNLP 2020}, 4927-4936.
 #' @examples
-#' \dontrun{
-#' # articles contains text and existing subject labels.
-#' fit <- hg_hypergat(articles, column = "text", labels = "subject",
-#'                    holdout = 0.2)
+#' hg <- text_hypergraph(head(forum_posts, 60), column = "text")
+#' fit <- hg_classify(hg, labels = "topic", holdout = 0.25)
 #' fit
 #' hg_get(fit, what = "classes")
-#' hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
-#' }
+#' hg_get(fit, what = "confusion")
+#' hg_get(fit, split = "test", correct = FALSE)
 #' @export
 hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
                                                  "classes", "confusion",
@@ -194,8 +224,11 @@ hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
   classes <- attr(x, "classes") %||%
     sort(unique(stats::na.omit(plain$label)))
   if (identical(what, "confusion")) {
-    predicted_classes <- c(classes, if (anyNA(test$predicted)) "(unscored)")
-    predicted <- ifelse(is.na(test$predicted), "(unscored)", test$predicted)
+    # the column of documents without a prediction; renamed "(unscored).1"
+    # if a real class already carries the name
+    unscored <- utils::tail(make.unique(c(classes, "(unscored)")), 1L)
+    predicted_classes <- c(classes, if (anyNA(test$predicted)) unscored)
+    predicted <- ifelse(is.na(test$predicted), unscored, test$predicted)
     grid <- expand.grid(label = classes, predicted = predicted_classes,
                         stringsAsFactors = FALSE)
     counts <- table(factor(test$label, classes),

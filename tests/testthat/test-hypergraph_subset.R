@@ -168,3 +168,29 @@ test_that("hg_subset() cuts the text layer of a text hypergraph", {
                  class = "hypergraphs_dropped_documents")
   expect_setequal(unique(kw$cluster), c("food", "sky"))
 })
+
+test_that("REGRESSION R10: subsetting keeps the planted SBM blocks aligned", {
+  P <- matrix(c(0.9, 0.1, 0.1, 0.9), 2, 2)
+  sbm <- random_hypergraph("sbm", P = P, block_sizes = c(3, 3), d = 2,
+                           seed = 1)
+  original <- hg_get(sbm, what = "nodes")
+  check <- function(sub) {
+    expect_identical(length(sub$blocks), sub$n_nodes)
+    expect_identical(names(sub$blocks), sub$nodes)
+    nodes <- hg_get(sub, what = "nodes")
+    expect_identical(nodes$block,
+                     original$block[match(nodes$node, original$node)])
+  }
+  one_edge <- hg_subset(sbm, edges = colnames(sbm$incidence)[1])
+  check(one_edge)
+  expect_identical(one_edge$n_nodes, 2L)
+  by_nodes <- hg_subset(sbm, nodes = c("V2", "V5", "V6"))
+  check(by_nodes)
+  kept_isolates <- hg_subset(sbm, edges = colnames(sbm$incidence)[1],
+                             drop_isolated = FALSE)
+  check(kept_isolates)
+  expect_identical(kept_isolates$blocks, sbm$blocks)
+  # a subset of a subset still reads
+  check(hg_subset(by_nodes, nodes = c("V5", "V6")))
+  check(hg_subset(sbm, component = "largest"))
+})

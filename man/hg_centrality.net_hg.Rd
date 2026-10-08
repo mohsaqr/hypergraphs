@@ -30,11 +30,15 @@ by node name); default keeps node order.}
 \item{n}{Return only the first \code{n} rows after sorting (default all) --
 e.g. \verb{sort_by = "clique", n = 10} for the ten most central nodes.}
 
-\item{max_iter}{Maximum number of power-iteration steps. Default
-\code{1000}.}
+\item{max_iter}{Maximum number of power-iteration steps of the \code{"Z"}
+and \code{"H"} tensor centralities. Default \code{1000}. The \code{"clique"}
+centrality is solved directly (the Perron vector of each connected
+component) and does not iterate.}
 
-\item{tol}{Convergence tolerance on the L1 change between successive
-iterates. Default \code{1e-8}.}
+\item{tol}{Convergence tolerance of the \code{"Z"} and \code{"H"} iterations, on
+the L1 change between successive iterates. Default \code{1e-8}. An
+iteration that does not reach it within \code{max_iter} steps warns with
+class \code{hypergraphs_no_converge}.}
 
 \item{normalize}{Logical. If \code{TRUE} (default), each returned
 centrality vector is L2-normalized to unit norm (compatible with

@@ -490,3 +490,13 @@ test_that("an unknown `what` is refused with hypergraphs_bad_input", {
   expect_identical(hg_get(hg, what = "mem"), hg_get(hg, what = "memberships"))
   expect_error(hg_measures(hg, what = "nope"), class = "hypergraphs_bad_input")
 })
+
+# ---- top = refuses values it cannot honour (M13) ---------------------------
+
+test_that("top = refuses fractions, NA and values beyond the integer range", {
+  net <- hon(rep(list(c("a", "b", "c", "a")), 2L), max_order = 1L)
+  expect_error(hg_get(net, top = 1.5), class = "hypergraphs_bad_input")
+  expect_error(hg_get(net, top = NA), class = "hypergraphs_bad_input")
+  expect_error(hg_get(net, top = 1e12), class = "hypergraphs_bad_input")
+  expect_identical(nrow(hg_get(net, top = 2)), 2L)
+})

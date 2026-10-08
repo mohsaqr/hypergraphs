@@ -75,18 +75,16 @@ between layers and a cross-entropy loss on the labeled vertices.
 Needs the suggested \pkg{torch} package.
 }
 \examples{
-\donttest{
-if (requireNamespace("torch", quietly = TRUE)) {
-  hg <- text_hypergraph(c(
-    cooking_1 = "simmer the soup with onions and carrots",
-    cooking_2 = "this soup recipe needs salt on a cold night",
-    space_1 = "the telescope revealed a distant galaxy and stars",
-    space_2 = "astronomers aimed the telescope at the stars all night"
-  ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
-  hg_neural(hg, labels = c(cooking_1 = "cooking", space_1 = "space"),
-            hidden = 8, epochs = 50, validation = 0)
-}
-}
+\dontshow{if (requireNamespace("torch", quietly = TRUE) && torch::torch_is_installed()) withAutoprint(\{ # examplesIf}
+hg <- text_hypergraph(c(
+  cooking_1 = "simmer the soup with onions and carrots",
+  cooking_2 = "this soup recipe needs salt on a cold night",
+  space_1 = "the telescope revealed a distant galaxy and stars",
+  space_2 = "astronomers aimed the telescope at the stars all night"
+), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
+hg_neural(hg, labels = c(cooking_1 = "cooking", space_1 = "space"),
+          hidden = 8, epochs = 50, validation = 0)
+\dontshow{\}) # examplesIf}
 }
 \references{
 Feng, Y., You, H., Zhang, Z., Ji, R., & Gao, Y. (2019). Hypergraph

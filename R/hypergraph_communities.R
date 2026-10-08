@@ -19,10 +19,35 @@
     }
     names(partition) <- nodes
   }
+  partition <- .thg_unique_assignment(partition, "partition")
   if (length(setdiff(nodes, names(partition)))) {
     .thg_bad_input("the partition does not cover every projected node")
   }
-  as.character(partition[nodes])
+  labels <- as.character(partition[nodes])
+  if (anyNA(labels)) .thg_bad_input("the partition labels contain NA")
+  labels
+}
+
+# One value per key of a named assignment (node -> community, hyperedge ->
+# source). Keys must be present and non-empty; a key repeated with the same
+# value is one assignment, a key repeated with different values is refused,
+# because which of them wins would depend on row order.
+.thg_unique_assignment <- function(values, arg) {
+  keys <- names(values)
+  if (anyNA(keys) || any(!nzchar(keys))) {
+    .thg_bad_input(sprintf("`%s` has missing or empty names", arg))
+  }
+  pairs <- !duplicated(data.frame(key = keys, value = as.character(values),
+                                  stringsAsFactors = FALSE))
+  values <- values[pairs]
+  conflicting <- unique(names(values)[duplicated(names(values))])
+  if (length(conflicting)) {
+    .thg_bad_input(sprintf(
+      "`%s` assigns different values to the same name: %s", arg,
+      paste(utils::head(conflicting, 5L), collapse = ", ")
+    ))
+  }
+  values
 }
 
 #' Stable Infomap communities of a hypergraph projection
@@ -67,6 +92,11 @@
 #' @param edge_weights For `type = "irmm"`: initial positive hyperedge
 #'   weights (one per hyperedge, or one value recycled). `NULL` uses the
 #'   window counts of a [window_hypergraph()], else unit weights.
+#' @param parallel Logical. Run the `n_runs` independent runs with
+#'   `parallel::mclapply` (not on Windows, where they run serially).
+#'   Default `FALSE`. Every run is seeded by its own entry of `seeds`, so
+#'   the result is identical to the serial one.
+#' @param n_cores Integer. Cores when `parallel = TRUE` (default 2).
 #' @return An `hg_communities` object containing `medoid` (a tidy node/community
 #'   table), all `partitions`, AMI/ARI/NMI similarity matrices, run metadata,
 #'   community sizes, and the graph `projection` Infomap ran on. For
@@ -112,7 +142,8 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
                                   self_association = FALSE,
                                   edge_source = NULL, directed = FALSE,
                                   type = c("infomap", "irmm"), delta = 0.01,
-                                  max_iter = 50L, edge_weights = NULL, ...) {
+                                  max_iter = 50L, edge_weights = NULL,
+                                  parallel = FALSE, n_cores = 2L, ...) {
   .ho_no_dots(..., .for = "a hypergraph")
   hg <- x
   .thg_check_hg(hg)
@@ -130,7 +161,8 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
   if (identical(type, "irmm")) {
     return(.hg_irmm_communities(hg, n_runs = n_runs, seeds = seeds,
                                 delta = delta, max_iter = max_iter,
-                                edge_weights = edge_weights))
+                                edge_weights = edge_weights,
+                                parallel = parallel, n_cores = n_cores))
   }
   method <- match.arg(method)
   duplicate_edges <- match.arg(duplicate_edges)
@@ -177,14 +209,13 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
   }
   projection <- as.matrix(projection)
   nodes <- rownames(projection)
-  partitions <- vector("list", n_runs)
-  metadata <- vector("list", n_runs)
-
   if (length(nodes) == 0L) {
     .thg_bad_input("community detection requires at least one projected node")
   }
   edgeless <- !any(projection != 0)
-  for (i in seq_len(n_runs)) {
+  # Each run seeds itself (cograph restores the caller's RNG), so the runs
+  # are independent and `parallel = TRUE` reproduces the serial result.
+  fits <- .ho_apply(seq_len(n_runs), function(i) {
     if (edgeless) {
       tab <- data.frame(node = nodes, community = seq_along(nodes),
                         stringsAsFactors = FALSE)
@@ -201,31 +232,17 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
     }
     tab$run <- i
     tab$seed <- seeds[i]
-    partitions[[i]] <- tab
-    metadata[[i]] <- data.frame(
+    list(partition = tab, metadata = data.frame(
       run = i, seed = seeds[i], n_communities = length(unique(tab$community)),
       codelength = as.numeric(codelength), stringsAsFactors = FALSE
-    )
-  }
+    ))
+  }, parallel = parallel, n_cores = n_cores)
+  partitions <- lapply(fits, `[[`, "partition")
+  metadata <- lapply(fits, `[[`, "metadata")
 
-  similarities <- lapply(c("ami", "ari", "nmi"), function(metric) {
-    m <- diag(1, n_runs, n_runs)
-    dimnames(m) <- list(paste0("run_", seq_len(n_runs)),
-                        paste0("run_", seq_len(n_runs)))
-    if (n_runs > 1L) {
-      for (i in seq_len(n_runs - 1L)) {
-        for (j in (i + 1L):n_runs) {
-          a <- partitions[[i]]$community
-          b <- partitions[[j]]$community
-          m[i, j] <- m[j, i] <- switch(metric,
-            ami = .thg_ami(a, b), ari = .thg_ari(a, b), nmi = .thg_nmi(a, b)
-          )
-        }
-      }
-    }
-    m
-  })
-  names(similarities) <- c("ami", "ari", "nmi")
+  similarities <- .hg_run_similarity(
+    lapply(partitions, `[[`, "community")
+  )
   medoid_run <- unname(which.max(rowSums(similarities$ami))[1L])
   medoid <- partitions[[medoid_run]][, c("node", "community"), drop = FALSE]
   sizes <- as.data.frame(table(medoid$community), stringsAsFactors = FALSE)
@@ -258,24 +275,33 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #' @param ... Named `hg_communities` fits, or one named list of them. The
 #'   names label the representations (`bh`, `mhs`, `bgu`, ...).
 #' @param hg Optional: the static `net_hg` the fits were computed on.
-#'   When given, every medoid is scored with [hg_community_quality()] on the
-#'   projection its own fit used, and the scores are available as
-#'   `what = "quality"`.
-#' @param edge_source Hyperedge sources for the citation and self-association
-#'   projections when scoring, as in [pairwise_network()].
+#'   When given, every medoid is scored with the measures of
+#'   [hg_community_quality()] on the projection its own fit saved (for
+#'   `type = "irmm"`, the final reweighted clique reduction), and the scores
+#'   are available as `what = "quality"`. A fit run on a directed citation
+#'   graph cannot be scored (the measures are defined on undirected graphs):
+#'   its quality row is `NA` and a `hypergraphs_undefined_statistic` warning
+#'   is raised.
+#' @param edge_source Deprecated and unused: the saved projections already
+#'   carry the hyperedge sources. Supplying it warns with class
+#'   `hypergraphs_deprecated`.
 #' @return A `hypergraphs_community_comparison` object. `hg_get()` returns
 #'   its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
 #'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest_size`,
 #'   `second_size` and `balance` = second / largest), `"similarity"` (one
 #'   row per pair of
-#'   fits with `model_a`, `model_b`, `ami`, `ari`, `nmi`, on the nodes the
-#'   two medoids share), `"sizes"` (one row per community of every medoid
+#'   fits with `model_a`, `model_b`, `n_nodes`, `ami`, `ari`, `nmi`, on
+#'   the `n_nodes` nodes the two medoids share; with fewer than two shared
+#'   nodes the three scores are `NA` and a `hypergraphs_undefined_statistic`
+#'   warning is raised), `"sizes"` (one row per community of every medoid
 #'   with `model`, `rank`, `n_nodes`) or, when `hg` was given, `"quality"`
 #'   (one row per fit with the columns of [hg_community_quality()]).
 #'   `plot()` draws the cluster-size distributions (`what = "sizes"`, the
 #'   number of communities at least as large as each size, on logarithmic
 #'   axes) or the similarity matrix (`what = "similarity"`, AMI below and
-#'   ARI above the diagonal, values printed in the cells).
+#'   ARI above the diagonal, values printed in the cells, on a diverging
+#'   scale from -1 through 0 (white) to 1, since chance-corrected agreement
+#'   can be negative; undefined cells are grey).
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #'   hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
@@ -330,28 +356,68 @@ hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
     a <- fits[[pairs[1L, k]]]$medoid
     b <- fits[[pairs[2L, k]]]$medoid
     joined <- merge(a, b, by = "node", suffixes = c("_a", "_b"))
+    # Agreement compares how two partitions group the same nodes; with
+    # fewer than two shared nodes there is no pair of nodes to agree on, so
+    # the scores are undefined, not perfect.
+    defined <- nrow(joined) >= 2L
+    agreement <- function(metric) {
+      if (defined) metric(joined$community_a, joined$community_b) else NA_real_
+    }
     data.frame(
       model_a = pairs[1L, k], model_b = pairs[2L, k], n_nodes = nrow(joined),
-      ami = .thg_ami(joined$community_a, joined$community_b),
-      ari = .thg_ari(joined$community_a, joined$community_b),
-      nmi = .thg_nmi(joined$community_a, joined$community_b),
+      ami = agreement(.thg_ami), ari = agreement(.thg_ari),
+      nmi = agreement(.thg_nmi),
       stringsAsFactors = FALSE
     )
   })
+  similarity <- do.call(rbind, similarity_rows)
+  undefined <- similarity$n_nodes < 2L
+  if (any(undefined)) {
+    warning(warningCondition(
+      sprintf(paste0("%d pair(s) of fits share fewer than two nodes (%s); ",
+                     "their AMI, ARI and NMI are NA."),
+              sum(undefined),
+              paste(sprintf("%s-%s", similarity$model_a[undefined],
+                            similarity$model_b[undefined]),
+                    collapse = ", ")),
+      class = "hypergraphs_undefined_statistic"
+    ))
+  }
+  if (!is.null(edge_source)) {
+    warning(warningCondition(
+      paste0("`edge_source` is no longer used: each medoid is scored on the ",
+             "projection its own fit saved."),
+      class = "hypergraphs_deprecated"
+    ))
+  }
+  directed <- vapply(fits, \(fit) isTRUE(fit$params$directed), logical(1L))
+  if (!is.null(hg) && any(directed)) {
+    warning(warningCondition(
+      sprintf(paste0("fit(s) %s ran on a directed citation graph; the quality ",
+                     "scores are defined on undirected projections, so their ",
+                     "quality row is NA."),
+              paste(sprintf("`%s`", models[directed]), collapse = ", ")),
+      class = "hypergraphs_undefined_statistic"
+    ))
+  }
   quality <- if (is.null(hg)) NULL else do.call(rbind, lapply(models, function(model) {
-    p <- fits[[model]]$params
-    q <- hg_community_quality(
-      hg, fits[[model]], method = p$method %||% "association",
-      duplicate_edges = p$duplicate_edges,
-      self_association = isTRUE(p$self_association), edge_source = edge_source
-    )
+    fit <- fits[[model]]
+    if (directed[[model]]) {
+      # Score the symmetrised projection only to obtain the column layout;
+      # every value is then blanked, never reported.
+      projection <- as.matrix(fit$projection)
+      q <- .thg_projection_quality(projection + t(projection), fit)
+      q[] <- lapply(q, \(column) column[NA_integer_])
+    } else {
+      q <- .thg_projection_quality(fit$projection, fit)
+    }
     data.frame(model = model, q, stringsAsFactors = FALSE)
   }))
   structure(list(
     models = models,
     summary = do.call(rbind, summary_rows),
     sizes = do.call(rbind, size_rows),
-    similarity = do.call(rbind, similarity_rows),
+    similarity = similarity,
     quality = quality
   ), class = "hypergraphs_community_comparison")
 }
@@ -432,9 +498,13 @@ plot.hypergraphs_community_comparison <- function(x, what = c("sizes", "similari
   }
   # AMI below the diagonal, ARI above it, as in the paper's Figure 8c;
   # cograph draws the matrix.
+  # AMI and ARI are chance-corrected and can be negative (agreement below
+  # chance): a diverging scale over [-1, 1] with a white zero, and a grey
+  # that no agreement value maps to for undefined cells.
   cograph::plot_heatmap(
-    .thg_similarity_matrix(x), show_values = TRUE, limits = c(0, 1),
-    colors = .thg_okabe_ito_ramp(), na_color = "white", show_diagonal = FALSE,
+    .thg_similarity_matrix(x), show_values = TRUE, limits = c(-1, 1),
+    midpoint = 0, colors = c("#D33F6A", "#FFFFFF", "#4A6FE3"),
+    na_color = "#999999", show_diagonal = FALSE,
     legend_title = "AMI (below)\nARI (above)", axis_text_angle = 0,
     value_size = 3
   )
@@ -571,7 +641,8 @@ plot.hg_communities <- function(x, ...) {
 #'
 #' @param hg A static `net_hg`.
 #' @param partition An [hg_communities()] result, a tidy node/label table, or a
-#'   named label vector.
+#'   named label vector. Every projected node needs one non-missing label; a
+#'   node repeated with different labels raises `hypergraphs_bad_input`.
 #' @param method The projection the partition is scored on: the
 #'   `"association"` graph (default) or the undirected `"citation"` graph.
 #' @inheritParams hg_communities.net_hg
@@ -607,6 +678,13 @@ hg_community_quality <- function(hg, partition,
       duplicate_edges = duplicate_edges, edge_source = edge_source
     )
   }
+  .thg_projection_quality(projection, partition)
+}
+
+# The quality measures of hg_community_quality() on a given undirected
+# projection matrix: hg_community_quality() builds the projection from the
+# hypergraph, hg_compare_communities() passes the one each fit saved.
+.thg_projection_quality <- function(projection, partition) {
   projection <- as.matrix(projection)
   nodes <- rownames(projection)
   labels <- .thg_partition_vector(partition, nodes)

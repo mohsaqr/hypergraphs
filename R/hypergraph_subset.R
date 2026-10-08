@@ -5,17 +5,19 @@
 # (dense or sparse), keeping edge-level metadata aligned with the columns.
 .thg_rebuild <- function(hg, incidence, keep_edges) {
   edge_names <- colnames(incidence)
+  old_nodes <- hg$nodes
   hg$incidence <- incidence
   hg$nodes <- rownames(incidence)
   hg$n_nodes <- nrow(incidence)
   hg$n_hyperedges <- ncol(incidence)
   hg$hyperedges <- .thg_edge_members(incidence)
-  sizes <- lengths(hg$hyperedges)
-  hg$size_distribution <- if (length(sizes)) {
-    size_tab <- table(sizes)
-    stats::setNames(as.integer(size_tab), paste0("size_", names(size_tab)))
-  } else {
-    integer(0L)
+  hg$size_distribution <- .thg_size_distribution(hg$hyperedges)
+  # node-aligned fields follow the kept rows by name: the planted blocks of a
+  # random_hypergraph(type = "sbm") must describe the surviving nodes only
+  if (!is.null(hg$blocks)) {
+    hg$blocks <- stats::setNames(
+      unname(hg$blocks)[match(hg$nodes, old_nodes)], hg$nodes
+    )
   }
   if (!is.null(hg$edge_multiplicity)) {
     hg$edge_multiplicity <- hg$edge_multiplicity[keep_edges]
@@ -31,6 +33,34 @@
     rownames(hg$edge_data) <- NULL
   }
   hg
+}
+
+# Size distribution of a hyperedge member list, named "size_<k>" as every
+# constructor names it; integer(0) when there are no hyperedges.
+.thg_size_distribution <- function(hyperedges) {
+  sizes <- lengths(hyperedges)
+  if (!length(sizes)) return(integer(0L))
+  size_tab <- table(sizes)
+  stats::setNames(as.integer(size_tab), paste0("size_", names(size_tab)))
+}
+
+# A bare net_hg from an incidence matrix (dense or sparse), with every field
+# the object contract requires derived from the matrix itself, so no row or
+# column (isolated vertex, empty hyperedge) can be lost on the way.
+.thg_from_incidence <- function(incidence, params) {
+  hyperedges <- .thg_edge_members(incidence)
+  structure(
+    list(
+      hyperedges = hyperedges,
+      incidence = incidence,
+      nodes = rownames(incidence) %||% character(0L),
+      n_nodes = nrow(incidence),
+      n_hyperedges = ncol(incidence),
+      size_distribution = .thg_size_distribution(hyperedges),
+      params = params
+    ),
+    class = "net_hg"
+  )
 }
 
 # Member index vectors of every column, without touching one column at a

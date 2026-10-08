@@ -311,6 +311,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     if (is.null(hyperedge)) hyperedge <- cooccur_by
   }
   member <- node
+  labels <- NULL
   if (is.null(member) && is.null(hyperedge) && is.null(from) && is.null(to)) {
     # nothing named: detect an edge list, then co-presence columns
     from <- .thg_match_column(data, "from")
@@ -330,23 +331,28 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
         is.character(from) && length(from) == 1L && from %in% names(data) &&
         is.character(to) && length(to) == 1L && to %in% names(data)
     )
-    edge_id <- paste0("e", seq_len(nrow(data)))
-    long <- data.frame(
-      actor = c(as.character(data[[from]]), as.character(data[[to]])),
-      edge = c(edge_id, edge_id), stringsAsFactors = FALSE
-    )
     if (!is.null(weight)) {
       stopifnot(is.character(weight), length(weight) == 1L, weight %in% names(data))
-      long$weight <- c(data[[weight]], data[[weight]])
-      weight <- "weight"
     }
-    # the remaining columns ride along as candidate edge attributes
-    for (column in setdiff(names(data), c(from, to, weight))) {
-      long[[column]] <- c(data[[column]], data[[column]])
+    # the remaining columns ride along as candidate edge attributes, under
+    # their own names; the structural columns take names no metadata column
+    # holds, so a column called `actor`, `edge` or `weight` cannot replace them
+    metadata <- setdiff(names(data), c(from, to, weight))
+    member <- .thg_free_name("actor", metadata)
+    hyperedge <- .thg_free_name("edge", c(metadata, member))
+    weight_column <- if (!is.null(weight)) {
+      .thg_free_name("weight", c(metadata, member, hyperedge))
     }
-    data <- long
-    member <- "actor"
-    hyperedge <- "edge"
+    rows <- c(seq_len(nrow(data)), seq_len(nrow(data)))
+    long <- data[rows, metadata, drop = FALSE]
+    long[[member]] <- c(as.character(data[[from]]), as.character(data[[to]]))
+    long[[hyperedge]] <- paste0("e", rows)
+    if (!is.null(weight)) long[[weight_column]] <- data[[weight]][rows]
+    rownames(long) <- NULL
+    data <- long[, c(member, hyperedge, weight_column, metadata), drop = FALSE]
+    weight <- weight_column
+    labels <- list(node = "actor", hyperedge = "edge",
+                   weight = if (!is.null(weight)) "weight")
   }
   stopifnot(
     "`node` must name one column of `data`" =
@@ -376,6 +382,11 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
 
   d[[member]] <- as.character(d[[member]])
   d[[hyperedge]]  <- as.character(d[[hyperedge]])
+  # membership weights are numbers, finite and non-negative; a weight of
+  # zero is no membership, so its cell is dropped like any other zero
+  if (!is.null(weight)) {
+    d[[weight]] <- .ho_check_weights(d[[weight]], "weight")
+  }
 
   if (!is.null(nodes)) {
     nodes <- as.character(nodes)
@@ -401,7 +412,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   if (sparse) {
     incidence <- Matrix::sparseMatrix(
       i = mi, j = gj,
-      x = if (is.null(weight)) rep.int(1, length(mi)) else as.numeric(d[[weight]]),
+      x = if (is.null(weight)) rep.int(1, length(mi)) else d[[weight]],
       dims = c(n_members, n_groups),
       dimnames = list(member_levels, group_levels)
     )
@@ -429,9 +440,12 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     } else {
       incidence <- matrix(0, n_members, n_groups,
                           dimnames = list(member_levels, group_levels))
-      acc <- rowsum(as.numeric(d[[weight]]), cell, reorder = FALSE)
+      acc <- rowsum(d[[weight]], cell, reorder = FALSE)
       incidence[as.integer(rownames(acc))] <- acc[, 1L]
     }
+  }
+  if (!is.null(weight) && any(!is.finite(if (sparse) incidence@x else incidence))) {
+    .thg_bad_input("the summed membership weights overflow; rescale `weight`")
   }
 
   # Drop hyperedges that ended up empty (e.g. all-zero weight)
@@ -453,10 +467,8 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   }, candidates)
   edge_data <- NULL
   if (length(attributes)) {
-    edge_data <- d[match(group_levels, d[[hyperedge]]), c(hyperedge, attributes),
-                   drop = FALSE]
-    names(edge_data)[1L] <- "edge"
-    rownames(edge_data) <- NULL
+    edge_data <- .thg_edge_attributes(d[attributes], d[[hyperedge]],
+                                      group_levels, reserved = "edge")
   }
 
   # Member indices of every column from the non-zero cells at once; reading
@@ -483,9 +495,9 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     size_distribution = size_dist,
     params = list(
       source         = "group_hypergraph",
-      node           = member,
-      hyperedge      = hyperedge,
-      weight         = weight,
+      node           = labels$node %||% member,
+      hyperedge      = labels$hyperedge %||% hyperedge,
+      weight         = if (is.null(labels)) weight else labels$weight,
       nodes          = nodes,
       sparse         = sparse,
       n_observations = nrow(d)
@@ -493,6 +505,33 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   )
   if (!is.null(edge_data)) out$edge_data <- edge_data
   structure(out, class = "net_hg")
+}
+
+# `base`, or base_1, base_2, ... when `base` is among `taken`: the name of a
+# structural column that no column of the caller's data can replace.
+.thg_free_name <- function(base, taken) {
+  if (!base %in% taken) return(base)
+  make.unique(c(taken, base), sep = "_")[length(taken) + 1L]
+}
+
+# The attribute table of the hyperedges: one row per value of `edge_levels`,
+# keyed by `edge`, with each column of `values` (one row per membership,
+# `edge` giving its hyperedge) reduced to the value of that hyperedge. The
+# value is the first non-missing one, so a row whose attribute is missing
+# never decides it, whatever the row order; a hyperedge whose rows are all
+# missing gets a missing value of the column's own class. A column whose
+# name is a key column of the table (`reserved`) keeps its values under a
+# suffixed name (`edge_1`).
+.thg_edge_attributes <- function(values, edge, edge_levels, reserved = "edge") {
+  columns <- lapply(values, \(v) {
+    known <- which(!is.na(v))
+    v[known[match(edge_levels, edge[known])]]
+  })
+  out <- data.frame(edge = edge_levels, stringsAsFactors = FALSE)
+  out[make.unique(c(reserved, names(values)), sep = "_")[-seq_along(reserved)]] <-
+    columns
+  rownames(out) <- NULL
+  out
 }
 
 # ---- Frequent state sets of clustered sequences --------------------------
@@ -540,31 +579,40 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
       item_order(v)
     })
     sets <- sets[lengths(sets) >= min_size]
-    keys <- vapply(sets, paste, character(1L), collapse = " + ")
-    # table() orders the sets by name; the stable order() then keeps that
-    # name order among sets of equal count
-    tab <- table(keys)
-    ranked <- order(-as.vector(tab))
-    kept <- names(tab)[utils::head(ranked, min(top, length(ranked)))]
+    # a set is identified by its members, joined by a control character no
+    # state label is expected to hold; the " + " label is for display only,
+    # so the singleton state "a + b" and the pair {a, b} stay two sets
+    keys <- vapply(sets, paste, character(1L), collapse = "\x01")
+    unique_keys <- unique(keys)
+    count_of <- tabulate(match(keys, unique_keys), length(unique_keys))
+    display <- vapply(sets[match(unique_keys, keys)], paste, character(1L),
+                      collapse = " + ")
+    # sets of equal count are ranked by their label in table()'s (locale)
+    # order, as before; two sets that share a label fall back on their key
+    ranked <- order(-count_of, match(display, sort(unique(display))),
+                    unique_keys)
+    kept <- utils::head(ranked, min(top, length(ranked)))
     # minimum support: the share of the group's transactions holding the set
     if (!is.null(min_share)) {
-      kept <- kept[as.integer(tab[kept]) / length(grouped[[g]]) >= min_share]
+      kept <- kept[count_of[kept] / length(grouped[[g]]) >= min_share]
     }
-    counts <- as.integer(tab[kept])
-    members <- sets[match(kept, keys)]
+    counts <- count_of[kept]
+    members <- sets[match(unique_keys[kept], keys)]
     in_state <- table(unlist(sets, use.names = FALSE))
     list(
       members = if (length(kept)) data.frame(
         state = unlist(members, use.names = FALSE),
-        edge = rep(if (prefix) paste0(g, ": ", kept) else kept,
+        edge = rep(if (prefix) paste0(g, ": ", display[kept]) else display[kept],
                    lengths(members)),
         group = g,
-        set = rep(kept, lengths(members)),
+        set = rep(display[kept], lengths(members)),
         count = rep(counts, lengths(members)),
+        key = rep(paste0(match(g, labels), "\x02", unique_keys[kept]),
+                  lengths(members)),
         stringsAsFactors = FALSE
       ),
       sizes = data.frame(group = g, sequences = length(grouped[[g]]),
-                         with_states = length(sets), sets = length(tab),
+                         with_states = length(sets), sets = length(unique_keys),
                          stringsAsFactors = FALSE),
       nodes = data.frame(group = rep(g, length(in_state)),
                          node = names(in_state),
@@ -577,6 +625,13 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     .thg_bad_input(paste0("no sequence or document keeps a state or topic: ",
                           "nothing to build a hyperedge from"))
   }
+  # the hyperedge names come from the labels, which two sets can share (a
+  # set label equal to another's, or a group name holding ": "); each
+  # distinct (group, set) keeps a name of its own
+  first <- !duplicated(members$key)
+  names_of <- make.unique(members$edge[first], sep = " #")
+  members$edge <- names_of[match(members$key, members$key[first])]
+  members$key <- NULL
   out <- group_hypergraph(members, node = "state", hyperedge = "edge")
   out$group_sizes <- do.call(rbind, lapply(per_group, `[[`, "sizes"))
   out$state_counts <- do.call(rbind, lapply(per_group, `[[`, "nodes"))

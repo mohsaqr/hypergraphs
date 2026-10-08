@@ -8,10 +8,11 @@ knn_hypergraph(embeddings, k, weight = c("cosine", "binary"))
 }
 \arguments{
 \item{embeddings}{Numeric matrix, one row per item, with unique non-empty
-rownames (the item IDs). No missing values; no all-zero rows.}
+rownames (the item IDs). Finite values only, none missing; no all-zero
+rows.}
 
-\item{k}{Number of neighbors per hyperedge (between 1 and
-\code{nrow(embeddings) - 1}).}
+\item{k}{Number of neighbors per hyperedge, one whole number between 1
+and \code{nrow(embeddings) - 1}; a fraction is refused, not truncated.}
 
 \item{weight}{\code{"cosine"} (default) or \code{"binary"}.}
 }

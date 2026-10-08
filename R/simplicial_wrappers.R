@@ -128,12 +128,14 @@
 #'   per simplex (`what = "simplices"`, the default), the face counts
 #'   (`"f_vector"`), the per-node simplicial degree (`"degree"`) or, for a
 #'   validated window complex, one row per tested set of actions
-#'   (`"validation"`), and the Betti numbers (`"betti"`). `plot()` draws
+#'   (`"validation"`), and the Betti numbers (`"betti"`, with rational
+#'   coefficients as in [hg_betti()]). `plot()` draws
 #'   the maximal simplices, those no larger simplex contains, as regions
 #'   around their nodes (`cograph::plot_simplicial()`; its arguments pass
-#'   through `...`): the most significant first for a validated window
+#'   through `...`): the largest simplices first and, among simplices of
+#'   one size, the largest validation z-score first for a validated window
 #'   complex, the most frequent first for a window complex, the closest
-#'   first for a Vietoris-Rips complex. With `type = "summary"`, `plot()`
+#'   first for a Vietoris-Rips complex, and by node names otherwise. With `type = "summary"`, `plot()`
 #'   draws the summary of the complex instead: the face counts by dimension,
 #'   the Betti numbers, the simplicial degree of each node and its degree by
 #'   dimension. `plot()` returns the figure. For the `plot()` method, `x` is
@@ -302,9 +304,11 @@ plot.hypergraphs_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
 
 # The maximal simplices (facets) of a complex with two or more nodes, as
 # vectors of node names: the simplices no other simplex contains. Order:
-# for a validated window complex by the z of its test, for a window complex
-# by its count, for a Vietoris-Rips complex by the scale at which it enters
-# (closest first), otherwise by size and then name.
+# by size, largest first; within a size, for a validated window complex by
+# the z of its test (largest first, the z-score, not the adjusted p-value),
+# for a window complex by its count, for a Vietoris-Rips complex by the
+# scale at which it enters (closest first); ties and other complexes by
+# name.
 .sc_facets <- function(x) {
   simplices <- lapply(x$simplices, sort)
   sizes <- lengths(simplices)
@@ -441,7 +445,11 @@ print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
 #'   the sets of actions observed in at least `t` windows and their faces, so
 #'   a class is born at the count where it appears and dies at a lower count;
 #'   `birth`, `death` and the Betti-curve `threshold` are counts, and
-#'   `n_steps` is not used (every observed count is a threshold).
+#'   `n_steps` is not used (every observed count is a threshold). A class
+#'   that never dies (essential) has `death = 0` and `persistence = birth`,
+#'   as in clique mode, and every row of the Betti curve, the last
+#'   included, counts the Z/2 classes alive at that count in the complex
+#'   truncated at `max_dim`.
 #' @param n_steps Grid points of the reported Betti curve. Default `20`; the
 #'   persistence diagram itself is exact.
 #' @param max_dim Highest simplex dimension tracked. Default `3`.
@@ -549,9 +557,16 @@ hg_bottleneck <- function(d1, d2, dimension = NULL,
 
 #' Betti numbers of a simplicial complex
 #'
-#' The ranks of the homology groups over Z/2: \eqn{\beta_0} counts connected
-#' components, \eqn{\beta_1} independent loops, \eqn{\beta_2} voids, and so
-#' on.
+#' The ranks of the homology groups with rational coefficients:
+#' \eqn{\beta_0} counts connected components, \eqn{\beta_1} independent
+#' loops, \eqn{\beta_2} voids, and so on.
+#'
+#' The coefficients are rational, not Z/2. The two agree on most complexes
+#' but not on one with torsion: on the six-vertex real projective plane
+#' (RP2) `hg_betti()` gives `(1, 0, 0)`, while [hg_homology()], which
+#' reduces over Z/2 as the persistence literature does, ends its Betti
+#' curve at `(1, 1, 1)`. Use [hg_homology()] when Z/2 Betti numbers are
+#' meant.
 #'
 #' @param sc A `simplicial_complex` from [simplicial()].
 #' @return A named integer vector `c(b0 = , b1 = , ...)`.
@@ -674,19 +689,17 @@ hg_degree <- function(sc, normalized = FALSE) {
     "`window` must be a single integer >= 2" =
       is.numeric(window) && length(window) == 1L && is.finite(window) &&
       window >= 2 && window == round(window),
-    "`min_count` must be a single count >= 1" =
-      is.numeric(min_count) && length(min_count) == 1L &&
-      is.finite(min_count) && min_count >= 1,
     "`validate` must be TRUE or FALSE" =
       is.logical(validate) && length(validate) == 1L && !is.na(validate),
     "`alpha` must be a single number in (0, 1)" =
       is.numeric(alpha) && length(alpha) == 1L && is.finite(alpha) &&
-      alpha > 0 && alpha < 1,
-    "`n_null` must be NULL or a single integer >= 19" =
-      is.null(n_null) || (is.numeric(n_null) && length(n_null) == 1L &&
-                            is.finite(n_null) && n_null >= 19 &&
-                            n_null == round(n_null))
+      alpha > 0 && alpha < 1
   )
+  min_count <- .ho_check_count(min_count, "min_count")
+  # max_dim = 0 keeps the actions as vertices only; a negative dimension
+  # has no simplices at all and is refused rather than read as 0
+  max_dim <- .ho_check_count(max_dim, "max_dim", min = 0)
+  if (!is.null(n_null)) n_null <- .ho_check_count(n_null, "n_null", min = 19)
   if (validate && min_count != 1) {
     .thg_bad_input(paste0("`min_count` is a count threshold and ",
                           "`validate = TRUE` replaces it; leave `min_count` ",
@@ -774,29 +787,48 @@ hg_degree <- function(sc, normalized = FALSE) {
 
 # Persistent homology of a window complex over its count filtration: the
 # complex at threshold t holds the simplices with count >= t, so classes are
-# born at high counts and die at lower ones. Nestimate's reduction runs on an
-# ascending filtration, so it receives max(count) - count and the result is
-# mapped back to counts.
+# born at high counts and die at lower ones. Nestimate's reduction (over
+# Z/2) runs on an ascending filtration, so it receives top - count, with top
+# the largest count, and the intervals are mapped back to counts.
+#
+# The reduction is run in Nestimate's "vr" mode, which marks a class that
+# never dies with death = Inf whatever its birth; in "clique" mode a class
+# killed at the last step would carry the same death as one never killed.
+# Back on the count scale an essential class gets the clique-mode
+# convention of the persistent_homology class, death = 0 and persistence =
+# birth (a count filtration is a descending similarity scale, and every
+# finite death is the count of a kept set, at least 1), so hg_wasserstein(),
+# hg_bottleneck() and hg_landscape() treat it as essential.
+#
+# Every row of the Betti curve is read from these intervals: at threshold t
+# a class is alive when born at a count >= t and not yet killed (essential,
+# or killed at a count < t). The last row is therefore the Z/2 homology of
+# the complex truncated at max_dim, the complex the intervals describe.
 .ph_window <- function(x, max_dim) {
+  max_dim <- .ho_check_count(max_dim, "max_dim", min = 0)
   counts <- x$count
-  low <- min(counts)
+  top <- max(counts)
   asc <- x
   class(asc) <- "simplicial_complex"
-  asc$filtration <- max(counts) - counts
+  asc$type <- "vr"
+  asc$max_scale <- NULL
+  asc$filtration <- top - counts
   ph <- Nestimate::persistent_homology(asc, max_dim = max_dim)
   pers <- ph$persistence
-  pers$birth <- pers$birth + low
-  pers$death <- pers$death + low
+  essential <- is.infinite(pers$death)
+  pers$birth <- top - pers$birth
+  pers$death <- ifelse(essential, 0, top - pers$death)
   pers$persistence <- pers$birth - pers$death
+  ord <- order(-pers$persistence)
+  pers <- pers[ord, , drop = FALSE]
+  essential <- essential[ord]
+  rownames(pers) <- NULL
   thresholds <- sort(unique(counts), decreasing = TRUE)
-  full_betti <- as.integer(hg_betti(x))
-  full_betti <- c(full_betti, rep(0L, max(0L, max_dim + 1L - length(full_betti))))
   curve <- expand.grid(threshold = thresholds, dimension = 0:max_dim)
   curve$betti <- vapply(seq_len(nrow(curve)), \(i) {
     t <- curve$threshold[i]
-    d <- curve$dimension[i]
-    if (t == low) return(full_betti[d + 1L])
-    sum(pers$dimension == d & pers$birth >= t & pers$death < t)
+    sum(pers$dimension == curve$dimension[i] & pers$birth >= t &
+          (essential | pers$death < t))
   }, integer(1L))
   structure(list(betti_curve = curve, persistence = pers,
                  thresholds = thresholds, mode = "clique"),

@@ -262,21 +262,36 @@ test_that("hypa stores $over and $under data frames", {
   }
 })
 
-test_that("hypa pre-sorts scores: anomalous first", {
-  trajs <- c(
-    replicate(50, c("A", "B", "C"), simplify = FALSE),
-    replicate(2,  c("A", "B", "D"), simplify = FALSE)
+# Two blocks: after A or X the next state depends on the history (A -> B ->
+# C and X -> B -> D over-represented, the crossed paths under-represented);
+# after E or Y it does not (four balanced paths, all normal).
+hypa_mixed_fixture <- function() {
+  c(
+    replicate(40, c("A", "B", "C"), simplify = FALSE),
+    replicate(40, c("X", "B", "D"), simplify = FALSE),
+    replicate(2, c("A", "B", "D"), simplify = FALSE),
+    replicate(2, c("X", "B", "C"), simplify = FALSE),
+    replicate(10, c("E", "F", "G"), simplify = FALSE),
+    replicate(10, c("E", "F", "H"), simplify = FALSE),
+    replicate(10, c("Y", "F", "G"), simplify = FALSE),
+    replicate(10, c("Y", "F", "H"), simplify = FALSE)
   )
-  h <- hypa(trajs, order = 2L, alpha = 0.05, min_count = 1L)
+}
 
-  if (h$n_anomalous > 0L && nrow(h$scores) > h$n_anomalous) {
-    # Anomalous rows should come before normal rows
-    anomaly_positions <- which(h$scores$anomaly != "normal")
-    normal_positions <- which(h$scores$anomaly == "normal")
-    if (length(anomaly_positions) > 0L && length(normal_positions) > 0L) {
-      expect_true(max(anomaly_positions) < min(normal_positions))
-    }
-  }
+test_that("hypa pre-sorts scores: anomalous first", {
+  h <- hypa(hypa_mixed_fixture(), order = 2L, alpha = 0.05, min_count = 1L)
+
+  # the fixture must hold over-, under-represented and normal paths, or the
+  # ordering below would hold vacuously
+  expect_gt(h$n_over, 0L)
+  expect_gt(h$n_under, 0L)
+  expect_gt(sum(h$scores$anomaly == "normal"), 0L)
+  expect_identical(h$n_anomalous, h$n_over + h$n_under)
+
+  anomaly_positions <- which(h$scores$anomaly != "normal")
+  normal_positions <- which(h$scores$anomaly == "normal")
+  expect_lt(max(anomaly_positions), min(normal_positions))
+  expect_identical(anomaly_positions, seq_len(h$n_anomalous))
 })
 
 test_that("summary.net_hypa respects n parameter", {
@@ -396,21 +411,26 @@ test_that("bonferroni is more conservative than BH", {
 })
 
 test_that("$over and $under data frames have p_adjusted columns", {
-  trajs <- c(
-    replicate(50, c("A", "B", "C"), simplify = FALSE),
-    replicate(2, c("A", "B", "D"), simplify = FALSE)
-  )
-  h <- hypa(trajs, order = 2L, alpha = 0.05, min_count = 1L)
+  adjusted <- c("p_adjusted_under", "p_adjusted_over")
+  # with anomalies in both directions
+  h <- hypa(hypa_mixed_fixture(), order = 2L, alpha = 0.05, min_count = 1L)
+  expect_gt(nrow(h$over), 0L)
+  expect_gt(nrow(h$under), 0L)
+  expect_true(all(adjusted %in% names(h$over)))
+  expect_true(all(adjusted %in% names(h$under)))
+  expect_identical(names(h$over), names(h$scores))
+  expect_identical(names(h$under), names(h$scores))
 
-  # $over and $under should have p_adjusted columns as subsets of scores
-  if (nrow(h$over) > 0L) {
-    expect_true("p_adjusted_under" %in% names(h$over))
-    expect_true("p_adjusted_over" %in% names(h$over))
-  }
-  if (nrow(h$under) > 0L) {
-    expect_true("p_adjusted_under" %in% names(h$under))
-    expect_true("p_adjusted_over" %in% names(h$under))
-  }
+  # without any anomaly: zero-row frames that keep the full schema
+  none <- hypa(c(replicate(50, c("A", "B", "C"), simplify = FALSE),
+                 replicate(2, c("A", "B", "D"), simplify = FALSE)),
+               order = 2L, alpha = 0.05, min_count = 1L)
+  expect_identical(none$n_anomalous, 0L)
+  expect_identical(nrow(none$over), 0L)
+  expect_identical(nrow(none$under), 0L)
+  expect_identical(names(none$over), names(none$scores))
+  expect_identical(names(none$under), names(none$scores))
+  expect_true(all(adjusted %in% names(none$over)))
 })
 
 test_that("invalid p_adjust method errors", {

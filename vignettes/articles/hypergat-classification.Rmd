@@ -11,8 +11,8 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
                       comment = "", fig.width = 8, fig.height = 5)
 library(hypergraphs)
-reference_dir <- system.file("extdata", "hypergat-classification",
-                             package = "hypergraphs", mustWork = TRUE)
+# saved results of the full training run, kept beside this article
+reference_dir <- "hypergat-classification"
 reference <- readRDS(file.path(reference_dir, "results.rds"))
 counts <- reference$counts
 accuracy <- reference$accuracy

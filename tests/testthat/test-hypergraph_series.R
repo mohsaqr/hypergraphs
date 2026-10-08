@@ -179,3 +179,30 @@ test_that("a distribution over calendar times names its curves by date", {
                             at = c(11500, 12500), snapshot_mode = "cumulative")
   expect_identical(plot(numeric_sizes)$scales$get_scales("colour")$name, "time")
 })
+
+test_that("growth and snapshot share one window boundary (R15)", {
+  thg <- temporal_hypergraph(data.frame(from = c("a", "b"), to = c("b", "c"),
+                                        time = c(1, 2)),
+                             from = "from", to = "to", time = "time")
+  lapply(c(0, 1, 2), function(w) {
+    lapply(c(0, 1, 2), function(t) {
+      g <- hg_growth(thg, at = t, window = w, mode = "cumulative")
+      s <- hg_snapshot(thg, at = t, window = w, mode = "cumulative")
+      expect_identical(g$n_nodes, s$n_nodes)
+      expect_identical(g$n_edges, s$n_hyperedges)
+    })
+  })
+  whole <- hg_growth(thg, window = "all", mode = "cumulative")
+  expect_identical(whole$n_nodes, hg_snapshot(thg, window = "all",
+                                              mode = "cumulative")$n_nodes)
+  # explicit node entry times follow the same rule in both
+  entry <- temporal_hypergraph(data.frame(from = c("a", "b"), to = c("b", "c"),
+                                          time = c(1, 2)),
+                               from = "from", to = "to", time = "time",
+                               nodes = data.frame(node = c("a", "b", "c", "z"),
+                                                  start = c(1, 1, 2, 2)))
+  g <- hg_growth(entry, at = 1, window = 1, mode = "cumulative")
+  s <- hg_snapshot(entry, at = 1, window = 1, mode = "cumulative")
+  expect_identical(g$n_nodes, 2L)
+  expect_identical(s$n_nodes, 2L)
+})

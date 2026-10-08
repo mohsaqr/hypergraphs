@@ -49,3 +49,26 @@ test_that("HNHN trains and reports normalization", {
   expect_equal(attr(fit, "normalization"), c(alpha = -0.5, beta = 0.5))
   expect_true(all(is.finite(attr(fit, "history")$loss)))
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("HNHN operators stay finite and stochastic for extreme exponents (TXT-20)", {
+  hg <- .hnhn_fixture()
+  for (exponents in list(c(1e6, -1e6), c(-1e6, 1e6), c(800, 800),
+                         c(-800, -800), c(0, 0))) {
+    op <- .thg_hnhn_operators(hg, alpha = exponents[[1L]],
+                              beta = exponents[[2L]])
+    expect_true(all(is.finite(op$v_to_e@x)))
+    expect_true(all(is.finite(op$e_to_v@x)))
+    expect_equal(as.numeric(Matrix::rowSums(op$v_to_e)),
+                 rep(1, hg$n_hyperedges))
+    expect_equal(as.numeric(Matrix::rowSums(op$e_to_v)), rep(1, hg$n_nodes))
+  }
+  # a huge positive beta sends each hyperedge to its highest-degree members
+  op <- .thg_hnhn_operators(hg, alpha = 0, beta = 1e6)
+  H <- (hg$incidence != 0) * 1
+  vd <- rowSums(H)
+  top <- t(H) * matrix(vd, ncol(H), nrow(H), byrow = TRUE)
+  top <- (top == apply(top, 1L, max)) * 1
+  expect_equal(unname(as.matrix(op$v_to_e)), unname(top / rowSums(top)))
+})

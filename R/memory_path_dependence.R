@@ -44,9 +44,7 @@ hg_get.net_path_dependence <- function(x, what = "contexts", ...,
                       KL = "kl", top_o1 = "top_first_order",
                       top_ok = "top_order_k"))
   if (!is.null(min_count)) {
-    stopifnot("`min_count` must be a single integer >= 1" =
-                is.numeric(min_count) && length(min_count) == 1L &&
-                min_count >= 1)
+    min_count <- .ho_check_count(min_count, "min_count")
     out <- out[out$count >= min_count, , drop = FALSE]
   }
   if (!is.null(flips)) {

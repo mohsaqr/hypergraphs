@@ -441,3 +441,82 @@ test_that("pathways.net_hon order parameter selects specific order", {
   pw2 <- .pathways(hon, order = 2L)
   expect_true(is.character(pw2))
 })
+
+# ---- Missing states are gaps (M01) ----------------------------------------
+#
+# A missing state splits a sequence into its runs of observed states: no
+# transition is counted across or into a gap and no state "NA" is invented.
+# The reference is hon() on the runs written out by hand.
+
+.gap_seqs <- function() {
+  # leading, interior, adjacent and trailing gaps
+  list(c(NA, "a", "b", NA, NA, "c", "d", "a"),
+       c("b", "c", NA, "d", "a", "b", NA))
+}
+.gap_runs <- function() {
+  list(c("a", "b"), c("c", "d", "a"), c("b", "c"), c("d", "a", "b"))
+}
+
+test_that(".hon_gap_runs splits at every gap and keeps NA-free input whole", {
+  expect_identical(.hon_gap_runs(c("a", "b", "c")), list(c("a", "b", "c")))
+  expect_identical(.hon_gap_runs(c(NA, "a", NA, NA, "b", "c", NA)),
+                   list("a", c("b", "c")))
+  expect_identical(.hon_gap_runs(c(NA_character_, NA_character_)), list())
+  # a state spelled "NA" is a state, not a gap
+  expect_identical(.hon_gap_runs(c("a", "NA", "b")), list(c("a", "NA", "b")))
+})
+
+test_that("hon() reads a gap as a break, in list, wide and long form", {
+  invisible(lapply(c("hon+", "hon"), \(method) {
+    ref <- hon(.gap_runs(), max_order = 2L, method = method)
+    expect_identical(hon(.gap_seqs(), max_order = 2L, method = method), ref)
+    expect_identical(hon(.ho_wide_sequences(.gap_seqs()), max_order = 2L,
+                         method = method), ref)
+    long <- data.frame(actor = rep(c("u1", "u2"), lengths(.gap_seqs())),
+                       action = unlist(.gap_seqs()),
+                       step = unlist(lapply(lengths(.gap_seqs()), seq_len)))
+    expect_identical(hg_get(hon(long, action = "action", actor = "actor",
+                                time = "step", max_order = 2L,
+                                method = method)),
+                     hg_get(ref))
+    rules <- hg_get(ref)
+    expect_false(anyNA(c(rules$from, rules$to)))
+    expect_false("NA" %in% ref$first_order_states)
+  }))
+})
+
+test_that("hon() keeps a real state spelled \"NA\"", {
+  net <- hon(list(c("a", "NA", "b"), c("a", "NA", "b")), max_order = 1L)
+  expect_true("NA" %in% net$first_order_states)
+  rules <- hg_get(net)
+  expect_false(anyNA(rules$from))
+  expect_identical(rules$count, c(2L, 2L))
+})
+
+test_that("hon() collapses repeats within runs, never across a gap", {
+  seqs <- list(c("a", "a", NA, "a", "b", "b"), c("a", "b", NA, "b", "b", "a"))
+  # the first observed state after a gap is kept
+  runs <- list("a", c("a", "b"), c("a", "b"), c("b", "a"))
+  expect_identical(hon(seqs, max_order = 2L, collapse_repeats = TRUE),
+                   hon(runs, max_order = 2L))
+})
+
+test_that("input without a gap reaches the estimator unchanged", {
+  seqs <- list(c("a", "b", "c"), c("b", "c", "a"))
+  expect_identical(.hon_estimator_input(seqs), seqs)
+  wide <- .ho_wide_sequences(list(c("a", "b", "c"), c("b", "c")))
+  expect_identical(.hon_estimator_input(wide), wide)
+})
+
+# ---- Labels that collide with the memory-node notation (M07) ---------------
+
+test_that("hon() refuses state labels holding the arrow or a separator", {
+  expect_error(hon(rep(list(c("a -> b", "c", "a -> b", "c")), 2L),
+                   max_order = 1L),
+               class = "hypergraphs_bad_input")
+  expect_error(hon(list(c("a\x01b", "c"), c("c", "a\x01b")), max_order = 1L),
+               class = "hypergraphs_bad_input")
+  # an arrow without the surrounding spaces is an ordinary label
+  net <- hon(rep(list(c("a->b", "c", "a->b", "c")), 2L), max_order = 1L)
+  expect_setequal(net$first_order_states, c("a->b", "c"))
+})

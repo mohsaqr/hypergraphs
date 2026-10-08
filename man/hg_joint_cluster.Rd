@@ -21,7 +21,8 @@ hg_joint_cluster(
 )
 }
 \arguments{
-\item{hg}{A connected \code{net_hg}.}
+\item{hg}{A connected, dense \code{net_hg} (a sparse one raises
+\code{hypergraphs_sparse_unsupported}: the factorization is dense).}
 
 \item{relations}{A non-negative \code{n_nodes} by \code{n_nodes} numeric matrix.
 If it has dimnames, rows and columns are reordered to \code{hg$nodes}.}
@@ -40,13 +41,16 @@ relation vertex factors.}
 
 \item{type, edge_weights}{Laplacian inputs for JS-NMF.}
 
-\item{nstart}{Number of random initializations.}
+\item{nstart}{Number of random initializations, a whole number >= 1.}
 
 \item{seed}{Optional integer initialization seed.}
 
-\item{max_iter}{Maximum multiplicative-update iterations.}
+\item{max_iter}{Maximum multiplicative-update iterations, a whole
+number >= 1.}
 
-\item{tol}{Relative objective tolerance.}
+\item{tol}{Relative objective tolerance, a positive number. A count or
+tolerance outside these ranges (including \code{Inf}) raises
+\code{hypergraphs_bad_input}.}
 }
 \value{
 A \code{net_hg_cluster} object. Its \verb{$embedding} is the fitted

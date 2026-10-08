@@ -28,34 +28,38 @@
   cols <- colSums(tab)
   nz <- which(tab > 0, arr.ind = TRUE)
   if (!nrow(nz)) return(0)
-  sum(vapply(seq_len(nrow(nz)), function(k) {
-    i <- nz[k, 1L]
-    j <- nz[k, 2L]
-    nij <- tab[i, j]
-    (nij / n) * log((nij * n) / (rows[i] * cols[j]))
-  }, numeric(1L)))
+  nij <- tab[nz]
+  sum((nij / n) * log((nij * n) / (rows[nz[, 1L]] * cols[nz[, 2L]])))
 }
-
+# Expected mutual information under the hypergeometric (permutation) model
+# (Vinh, Epps & Bailey 2010). Every (row margin, column margin) cell
+# contributes a sum over its admissible n_ij; all cells are expanded into one
+# vector so dhyper() is called once. The cell sums are folded left to right
+# (Reduce) rather than with sum(), so the total is accumulated in the same
+# order and precision as the cell-by-cell definition.
 .thg_expected_mi <- function(tab) {
   n <- sum(tab)
   if (n < 2L) return(0)
   rows <- rowSums(tab)
   cols <- colSums(tab)
-  emi <- 0
-  for (ai in rows) {
-    for (bj in cols) {
-      lo <- max(1, ai + bj - n)
-      hi <- min(ai, bj)
-      if (lo > hi) next
-      nij <- seq.int(lo, hi)
-      probability <- stats::dhyper(nij, ai, n - ai, bj)
-      emi <- emi + sum(probability * (nij / n) *
-                         log((nij * n) / (ai * bj)))
-    }
-  }
-  emi
+  ai <- rep(rows, each = length(cols))
+  bj <- rep(cols, times = length(rows))
+  lo <- pmax(1, ai + bj - n)
+  hi <- pmin(ai, bj)
+  keep <- lo <= hi
+  if (!any(keep)) return(0)
+  ai <- ai[keep]
+  bj <- bj[keep]
+  lo <- lo[keep]
+  width <- hi[keep] - lo + 1
+  cell <- rep(seq_along(ai), width)
+  nij <- sequence(width, from = lo)
+  a <- ai[cell]
+  b <- bj[cell]
+  term <- stats::dhyper(nij, a, n - a, b) * (nij / n) *
+    log((nij * n) / (a * b))
+  Reduce(`+`, vapply(split(term, cell), sum, numeric(1L)), 0)
 }
-
 .thg_ami <- function(a, b) {
   tab <- table(a, b)
   mi <- .thg_mutual_information(tab)
@@ -135,12 +139,21 @@
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  if (anyDuplicated(x[[node]])) {
+  # node names are the join key: checked after coercion to character, so a
+  # missing name never matches another missing name and two values that
+  # print alike are caught as the duplicate they become
+  nodes <- as.character(x[[node]])
+  if (anyNA(nodes) || any(!nzchar(nodes))) {
+    .thg_bad_input(sprintf(
+      "`%s` has a missing or empty node name in column `%s`; every row of a labeling names its node",
+      arg, node))
+  }
+  if (anyDuplicated(nodes)) {
     .thg_bad_input(sprintf(
       "`%s` names a node more than once in column `%s`; a labeling has one row per node",
       arg, node))
   }
-  out <- data.frame(node = as.character(x[[node]]),
+  out <- data.frame(node = nodes,
                     label = as.character(x[[column[[1]]]]),
                     stringsAsFactors = FALSE)
   attr(out, "column") <- column[[1L]]
@@ -419,10 +432,10 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
   type <- match.arg(type)
   resample <- match.arg(resample)
   what <- .ho_match_what(what)
-  stopifnot(
-    "`k` must be a vector of cluster counts, each at least 2" =
-      is.numeric(k) && length(k) >= 1L && all(is.finite(k)) && all(k >= 2)
-  )
+  if (!(is.numeric(k) && length(k) >= 1L && all(is.finite(k)) &&
+        all(k >= 2) && all(abs(k - round(k)) < sqrt(.Machine$double.eps)))) {
+    .thg_bad_input("`k` must be a vector of whole-number cluster counts, each at least 2")
+  }
   if (identical(resample, "seeds")) {
     stopifnot(
       "`seeds` must be two distinct seeds" =
@@ -439,10 +452,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
       fraction <= 0 || fraction >= 1) {
     .thg_bad_input("`fraction` must be a single number strictly between 0 and 1")
   }
-  if (!is.numeric(n_boot) || length(n_boot) != 1L || is.na(n_boot) ||
-      n_boot < 1) {
-    .thg_bad_input("`n_boot` must be a single number >= 1")
-  }
+  n_boot <- .ho_check_count(n_boot, "n_boot")
   if (!is.numeric(seed) || length(seed) != 1L || is.na(seed)) {
     .thg_bad_input("`seed` must be a single number")
   }
@@ -612,10 +622,9 @@ hg_seeds <- function(embedding, n = 5L) {
   stopifnot(
     "`embedding` must be the data.frame from hg_cluster(what = \"embedding\") (columns `node`, `cluster`, `pi`)" =
       is.data.frame(embedding) &&
-        all(c("node", "cluster", "pi") %in% names(embedding)),
-    "`n` must be a single positive integer" =
-      length(n) == 1L && is.finite(n) && n >= 1
+        all(c("node", "cluster", "pi") %in% names(embedding))
   )
+  n <- .ho_check_count(n, "n")
   chosen <- do.call(rbind, lapply(split(embedding, embedding$cluster), \(g)
     utils::head(g[order(-g$pi, g$node), , drop = FALSE], n)))
   stats::setNames(as.character(chosen$cluster), chosen$node)

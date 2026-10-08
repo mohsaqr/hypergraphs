@@ -66,7 +66,8 @@ test_that("co_degree[i,j] = #hyperedges containing both i and j", {
 test_that("edge_sizes equals colSums(incidence)", {
   hg <- .hm_two_overlapping()
   m  <- .hg_measures_fit(hg)
-  expect_equal(m$edge_sizes, c(3L, 3L))
+  # named by hyperedge, as hyperdegree is named by node
+  expect_equal(m$edge_sizes, c(S1 = 3L, S2 = 3L))
 })
 
 test_that("edge_pairwise_overlap = |e_i and e_j|", {
@@ -169,7 +170,8 @@ test_that("matches manual incidence-matrix computation", {
   m  <- .hg_measures_fit(hg)
   B  <- (hg$incidence > 0) * 1
   expect_equal(m$hyperdegree, stats::setNames(as.integer(rowSums(B)), hg$nodes))
-  expect_equal(m$edge_sizes, as.integer(colSums(B)))
+  expect_equal(m$edge_sizes,
+               stats::setNames(as.integer(colSums(B)), colnames(B)))
   manual_co <- tcrossprod(B); diag(manual_co) <- 0
   expect_equal(unname(m$co_degree), unname(manual_co))
   manual_op <- crossprod(B); diag(manual_op) <- 0
@@ -216,4 +218,24 @@ test_that("the hyperedge-pair matrices are built only when asked for", {
                    as.integer(with_pairs$hyperdegree))
   expect_equal(nrow(hg_measures(hg, what = "overlap")),
                choose(hg$n_hyperedges, 2))
+})
+
+test_that("REGRESSION A19: the measures accessor keeps hyperedge names", {
+  px <- group_hypergraph(
+    data.frame(node = c("a", "b", "b", "c", "c"),
+               edge = c("X", "X", "Y", "Y", "Y")),
+    node = "node", hyperedge = "edge"
+  )
+  edges <- hg_get(.hg_measures_fit(px), what = "edges")
+  expect_identical(edges$hyperedge, c("X", "Y"))
+  # names stay aligned with the sizes when the columns are reordered
+  m <- matrix(c(1, 1, 0, 0,
+                0, 1, 1, 1), nrow = 4,
+              dimnames = list(c("a", "b", "c", "d"), c("Q", "P")))
+  reordered <- hypergraphs:::.thg_from_incidence(m[, c("P", "Q")], list())
+  edges <- hg_get(.hg_measures_fit(reordered), what = "edges")
+  expect_identical(edges$hyperedge, c("P", "Q"))
+  expect_identical(edges$size, c(3L, 2L))
+  expect_identical(hg_get(.hg_measures_fit(reordered), what = "edges",
+                          sort_by = "size")$hyperedge, c("P", "Q"))
 })

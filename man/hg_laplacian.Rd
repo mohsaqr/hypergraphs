@@ -8,8 +8,9 @@ hg_laplacian(hg, type = c("zhou", "random_walk"), edge_weights = NULL)
 }
 \arguments{
 \item{hg}{A \code{net_hg} from \code{\link[=network_hypergraph]{network_hypergraph()}} or
-\code{\link[=group_hypergraph]{group_hypergraph()}}. Must be connected and have at least one
-hyperedge.}
+\code{\link[=group_hypergraph]{group_hypergraph()}}, dense or sparse (\code{sparse = TRUE}). Must be
+connected and have at least one hyperedge. Empty hyperedges (which
+\code{\link[=random_hypergraph]{random_hypergraph()}} can produce) contribute nothing.}
 
 \item{type}{Character. \code{"zhou"} (default) for the Zhou et al. (2006)
 normalized Laplacian on the binary incidence pattern, or
@@ -29,7 +30,13 @@ incidence.}
 A symmetric \code{n_nodes} x \code{n_nodes} numeric matrix (node names as
 dimnames) with attributes \code{type} (the Laplacian type),
 \code{pi} (named stationary distribution of the underlying random walk)
-and \code{edge_weights} (the hyperedge weights actually used).
+and \code{edge_weights} (the hyperedge weights, one per hyperedge; an empty
+hyperedge's default weight is 1 and unused). For a sparse hypergraph
+the matrix is a sparse symmetric \code{Matrix} (class \code{dsCMatrix}) with the
+same dimnames and attributes, and the random-walk stationary
+distribution is found by power iteration rather than a dense
+eigendecomposition. A disconnected hypergraph raises
+\code{hypergraphs_hypergraph_disconnected}.
 }
 \description{
 Computes the normalized Laplacian of a hypergraph, either the classic
@@ -59,6 +66,7 @@ range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)
 \references{
 Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 Clustering, classification, and embedding. \emph{NeurIPS 19}.
+\doi{10.7551/mitpress/7503.003.0205}
 
 Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
 random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.

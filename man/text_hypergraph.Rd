@@ -178,7 +178,10 @@ leaves in the sequence.
 }
 \section{Conditions}{
  Raises \code{hypergraphs_bad_input} (broken argument contract,
-including bag-only arguments passed to other constructions),
+including bag-only arguments passed to other constructions, and a
+data.frame column other than \code{column} and \code{id} named like a column of
+the document table: \code{doc}, and for the token-based constructions also
+\code{n_tokens} or \code{n_types}),
 \code{hypergraphs_empty_corpus} (no document survives tokenization and filtering),
 \code{hypergraphs_missing_embeddings} (\code{construction = "knn"} with neither
 \code{embeddings} nor the sbert package), and warns with

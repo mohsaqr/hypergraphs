@@ -72,8 +72,10 @@ chosen type does not take is an error.
 }
 \section{Conditions}{
 
-\code{hypergraphs_bad_input} for an argument the chosen type does not take, or
-an argument given without a name.
+\code{hypergraphs_bad_input} for an argument the chosen type does not take, an
+argument given without a name, or a count (\code{n}, \code{m}, \code{k}, \code{impurity},
+\code{seed}) that is not one whole number in range -- fractions, \code{NA}, \code{Inf}
+and values beyond the integer range are refused, never truncated.
 }
 
 \examples{

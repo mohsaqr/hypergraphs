@@ -139,6 +139,106 @@
 }
 
 # ---------------------------------------------------------------------------
+# Missing states and reserved labels (hypergraphs' own, not Nestimate's)
+# ---------------------------------------------------------------------------
+#
+# A missing state (NA) is a gap in the observation, not a state: a sequence
+# is split at every gap into its contiguous runs of observed states, so no
+# transition is counted across or into a gap and no state "NA" is invented
+# (a real state spelled "NA" is a string and stays a state). The Nestimate
+# estimators the wrappers call read NA as a value or stop on it, so a
+# sequence with a gap reaches them as its runs. Trailing NAs of a wide row
+# are padding, not gaps. Input without a gap is passed on unchanged.
+#
+# Memory nodes are written "a -> b" and tuple keys are joined with control
+# characters, so a state whose label contains " -> " or one of those
+# characters cannot be told apart from a history; such labels are refused.
+
+#' The contiguous runs of observed states of one sequence
+#' @param traj Character vector, possibly with NA.
+#' @return List of non-empty character vectors, in sequence order.
+#' @noRd
+.hon_gap_runs <- function(traj) {
+  if (!anyNA(traj)) return(list(traj))
+  observed <- !is.na(traj)
+  run_id <- cumsum(!observed)
+  unname(split(traj[observed], run_id[observed]))
+}
+
+#' Repeat collapse within one run (a run holds no NA)
+#' @noRd
+.hon_collapse_run <- function(run) {
+  if (length(run) <= 1L) return(run)
+  run[c(TRUE, run[-1L] != run[-length(run)])]
+}
+
+#' The sequences of a sequence input as character vectors, NA kept
+#'
+#' @param data Output of .ho_sequence_input(): a list, a wide data.frame or
+#'   matrix, or a model object.
+#' @return A list of character vectors (trailing NAs of a wide row
+#'   dropped), or `NULL` for a model object that carries no sequences the
+#'   package can read (a group, a network without data).
+#' @noRd
+.hon_sequence_values <- function(data) {
+  if (inherits(data, "netobject_group")) return(NULL)
+  if (inherits(data, c("netobject", "tna", "cograph_network"))) {
+    if (is.null(data$data)) return(NULL)
+    data <- .coerce_sequence_input(data)
+  }
+  if (is.matrix(data)) data <- as.data.frame(data, stringsAsFactors = FALSE)
+  if (is.data.frame(data)) {
+    # one character matrix, column by column (a factor gives its labels),
+    # then one sequence per row without its trailing NAs
+    if (ncol(data) == 0L) return(rep(list(character(0L)), nrow(data)))
+    cells <- matrix(unlist(lapply(data, as.character), use.names = FALSE),
+                    nrow = nrow(data))
+    return(lapply(seq_len(nrow(cells)), \(i) {
+      row <- cells[i, ]
+      observed <- which(!is.na(row))
+      row[seq_len(if (length(observed)) max(observed) else 0L)]
+    }))
+  }
+  if (is.list(data)) return(lapply(data, as.character))
+  NULL
+}
+
+#' Refuse state labels that collide with the memory-node notation
+#' @param states Character vector of state labels (NA ignored).
+#' @noRd
+.hon_check_states <- function(states) {
+  states <- unique(states[!is.na(states)])
+  bad <- states[grepl(" -> ", states, fixed = TRUE) |
+                  grepl("[\x01\x02\x03]", states, useBytes = TRUE)]
+  if (length(bad)) {
+    .ho_input_error(sprintf(paste0(
+      "state labels must not contain \" -> \" (the notation of memory ",
+      "nodes) or control characters; relabel: %s"),
+      paste(sprintf("\"%s\"", utils::head(bad, 5L)), collapse = ", ")))
+  }
+  invisible(NULL)
+}
+
+#' Sequence input for a Nestimate memory estimator
+#'
+#' Checks the state labels and splits every sequence with a gap into its
+#' runs. Input without a gap is returned unchanged, so the estimator sees
+#' exactly what it saw before.
+#'
+#' @param data Output of .ho_sequence_input().
+#' @param check_labels Logical. Refuse labels with " -> " (for estimators
+#'   whose results name paths).
+#' @return `data`, or a list of character runs when a sequence had a gap.
+#' @noRd
+.hon_estimator_input <- function(data, check_labels = TRUE) {
+  sequences <- .hon_sequence_values(data)
+  if (is.null(sequences)) return(data)
+  if (check_labels) .hon_check_states(unlist(sequences, use.names = FALSE))
+  if (!any(vapply(sequences, anyNA, logical(1L)))) return(data)
+  unlist(lapply(sequences, .hon_gap_runs), recursive = FALSE)
+}
+
+# ---------------------------------------------------------------------------
 # Observation counting
 # ---------------------------------------------------------------------------
 

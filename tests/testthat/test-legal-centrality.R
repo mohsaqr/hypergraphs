@@ -68,3 +68,19 @@ test_that("subhypergraph centrality has the closed form for one dyad", {
   out <- .hg_centrality_fit(h, type = "subhypergraph")
   expect_equal(out$subhypergraph, rep(log(cosh(1)), 2), tolerance = 1e-12)
 })
+
+test_that("edge centrality counts refuse fractions and overflow by class", {
+  h <- group_hypergraph(
+    data.frame(member = c("a", "b", "b", "c", "c", "d"),
+               event = rep(c("e1", "e2", "e3"), each = 2)),
+    "member", "event"
+  )
+  for (bad in list(0, 1.5, 3e9, NA_real_)) {
+    expect_error(hg_edge_centrality(h, s = bad),
+                 class = "hypergraphs_bad_input")
+    expect_error(hg_edge_centrality(h, s = 1, top = bad),
+                 class = "hypergraphs_bad_input")
+  }
+  # top applies per measure: two measures, two hyperedges each
+  expect_identical(nrow(hg_edge_centrality(h, s = 1, top = 2)), 4L)
+})

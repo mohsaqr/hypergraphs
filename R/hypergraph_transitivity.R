@@ -177,7 +177,8 @@
 #'   number of nodes where it is undefined).
 #' @param sort_by For `what = "nodes"`, optional `type` to sort by,
 #'   descending (ties broken by node name, `NA` last).
-#' @param n Return only the first `n` node rows after sorting.
+#' @param n Return only the first `n` node rows after sorting: a whole
+#'   number >= 1, or `Inf` (default) for all.
 #'
 #' @return A base `data.frame`. For `what = "nodes"`: one row per node with
 #'   column `node` and one numeric column per requested `type` (in `[0, 1]`,
@@ -238,11 +239,7 @@ hg_transitivity <- function(hg,
                                       "two_node_union", "two_node_min",
                                       "two_node_max"), several.ok = TRUE)
   what <- .ho_match_what(what)
-  if (!(length(n) == 1L && is.numeric(n) &&
-        (is.infinite(n) || (is.finite(n) && n >= 1)))) {
-    stop(errorCondition("`n` must be a single count >= 1",
-                        class = "hypergraphs_bad_input", call = NULL))
-  }
+  n <- .ho_check_count(n, "n", allow_inf = TRUE)
   membership <- .hg_membership(hg)
   values <- lapply(type, \(t) {
     switch(t,

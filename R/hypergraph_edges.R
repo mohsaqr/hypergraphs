@@ -79,9 +79,10 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
     snaps <- hg_snapshots(hg, start = start, end = end, step = step,
                                   window = window, mode = snapshot_mode, at = at,
                                   multiedges = multiedges)
+    # a snapshot with no hyperedge contributes its zero-row table, so a grid
+    # of empty snapshots still returns the typed columns of a non-empty one
     rows <- lapply(seq_along(snaps), function(i) {
       ans <- hg_edges(snaps[[i]], what = what, measure = measure, s = s)
-      if (nrow(ans) == 0L) return(NULL)
       time <- snaps[[i]]$params$at %||% names(snaps)[i]
       data.frame(time = rep(time, nrow(ans)), .ho_plain(ans),
                  row.names = NULL, stringsAsFactors = FALSE)
@@ -147,7 +148,7 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
 
   lapply(s, function(ss) {
     data.frame(
-      edge = colnames(incidence),
+      edge = colnames(incidence) %||% sprintf("h%d", seq_len(ncol(incidence))),
       size = size,
       weight = weight,
       n_incident_edges = as.integer(Matrix::colSums(overlap >= ss)),
@@ -186,8 +187,15 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
   )
 }
 
-# Mean, spread and quartiles of a numeric vector as one row.
+# Mean, spread and quartiles of a numeric vector as one row; with no value
+# (a snapshot without hyperedges) every statistic is missing and `n_edges`
+# is 0.
 .thg_summary_row <- function(x) {
+  if (!length(x)) {
+    return(data.frame(n_edges = 0L, mean = NA_real_, sd = NA_real_,
+                      min = NA_real_, q25 = NA_real_, median = NA_real_,
+                      q75 = NA_real_, max = NA_real_))
+  }
   q <- stats::quantile(x, c(0.25, 0.5, 0.75), names = FALSE)
   data.frame(
     n_edges = length(x), mean = mean(x), sd = stats::sd(x),

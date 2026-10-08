@@ -41,7 +41,8 @@ not uniform over configurations. \code{"swap"} is the stricter null; use
 \code{"configuration"} to compare against the higher-order network
 literature, which reports it.}
 
-\item{n}{Number of null samples (default \code{199L}).}
+\item{n}{Number of null samples: one whole number >= 19 (default
+\code{199L}).}
 
 \item{seed}{Seed for the null draws; set it for a reproducible test.
 The global RNG state is restored on exit.}
@@ -61,8 +62,11 @@ size) and randomizes the memberships by checkerboard swaps (Gotelli
 2000) -- a sequential MCMC with burn-in \code{10 * nnz} swap attempts and
 thinning \code{nnz} between samples, \code{nnz} being the number of memberships.
 Statistics are evaluated on the binarized hypergraph (weights carry no
-meaning under this null), through the same delegated measures as
-\code{\link[=hg_measures]{hg_measures()}}.
+meaning under this null), with the definitions \code{\link[=hg_measures]{hg_measures()}} uses:
+\code{"density"}, \code{"avg_edge_size"} and \code{"pairwise_participation"} equal the
+values of \code{hg_measures(hg, what = "summary")} (density is
+\code{m / choose(n, k)} for a \code{k}-uniform hypergraph, \verb{sum(|e|) / (n * m)}
+otherwise).
 }
 \details{
 The permutation p-value is \code{(1 + extreme) / (n + 1)} (Phipson & Smyth
@@ -71,7 +75,14 @@ are the 2.5\% and 97.5\% null quantiles -- report them with the observed
 value, not the p-value alone.
 }
 \section{Conditions}{
- Raises \code{hypergraphs_bad_input} for broken contracts.
+ Raises \code{hypergraphs_bad_input} for broken contracts,
+including an \code{n} that is not one whole number >= 19.
+A statistic the hypergraph cannot define -- \code{"avg_edge_size"} without
+hyperedges, \code{"avg_jaccard"} with fewer than two hyperedges -- is
+undefined in every null draw as well (the nulls keep the vertex and
+hyperedge counts), so its row is \code{NA} in every column but \code{statistic},
+\code{n} and \code{method}, with a \code{hypergraphs_undefined_statistic} warning; the
+other requested statistics are tested as usual.
 \code{method = "configuration"} signals a \code{hypergraphs_configuration_collapse}
 warning when stub matching collapses more than 1\% of memberships on
 average, which happens whenever hyperedges are large relative to the

@@ -5,16 +5,25 @@
 # The multiplicative update follows the positive/negative gradient split;
 # a square-root step accounts for updating both tied factors simultaneously.
 .hl_symnmf <- function(S, k, nstart = 1L, seed = NULL, max_iter = 500L,
-                       tol = 1e-6, epsilon = 1e-12) {
+                       tol = 1e-6, epsilon = 1e-12, parallel = FALSE,
+                       n_cores = 2L) {
   n <- nrow(S)
   objective <- function(F) sum((S - tcrossprod(F))^2)
-  best <- NULL
-  for (restart in seq_len(nstart)) {
+  # Every start's initial factor is drawn first, in start order (from its
+  # own seed, or one after the other from the caller's stream); the updates
+  # draw nothing, so the starts can then run in parallel with the result of
+  # the serial run.
+  scale <- sqrt(max(mean(S), epsilon) / k)
+  initial <- lapply(seq_len(nstart), \(restart) {
     if (!is.null(seed)) set.seed(as.integer(seed) + restart - 1L)
-    scale <- sqrt(max(mean(S), epsilon) / k)
-    F <- matrix(stats::runif(n * k, 0.5, 1.5) * scale, nrow = n)
+    matrix(stats::runif(n * k, 0.5, 1.5) * scale, nrow = n)
+  })
+  fits <- .ho_apply(seq_len(nstart), \(restart) {
+    F <- initial[[restart]]
     history <- objective(F)
     converged <- FALSE
+    # Multiplicative updates: each step starts from the previous factor, so
+    # the iterations cannot be vectorised; bounded by `max_iter`.
     for (iteration in seq_len(max_iter)) {
       numerator <- S %*% F
       denominator <- F %*% crossprod(F)
@@ -42,12 +51,12 @@
         break
       }
     }
-    fit <- list(factor = F, objective = utils::tail(history, 1L),
-                objective_history = history, iterations = iteration,
-                converged = converged, restart = restart)
-    if (is.null(best) || fit$objective < best$objective) best <- fit
-  }
-  best
+    list(factor = F, objective = utils::tail(history, 1L),
+         objective_history = history, iterations = iteration,
+         converged = converged, restart = restart)
+  }, parallel = parallel, n_cores = n_cores)
+  # the first start with the lowest objective, as the serial loop kept it
+  fits[[which.min(vapply(fits, \(f) f$objective, numeric(1L)))]]
 }
 
 # General rectangular non-negative matrix factorization, used to verify the
@@ -86,7 +95,8 @@
 #' symmetric patent-citation indicator for `S`; any finite non-negative
 #' node-by-node relation matrix can be supplied here.
 #'
-#' @param hg A connected `net_hg`.
+#' @param hg A connected, dense `net_hg` (a sparse one raises
+#'   `hypergraphs_sparse_unsupported`: the factorization is dense).
 #' @param relations A non-negative `n_nodes` by `n_nodes` numeric matrix.
 #'   If it has dimnames, rows and columns are reordered to `hg$nodes`.
 #' @param k Number of clusters, between 2 and `n_nodes - 1`.
@@ -97,10 +107,13 @@
 #'   relation vertex factors.
 #' @param gamma Non-negative weight of the auxiliary-relation loss.
 #' @param type,edge_weights Laplacian inputs for JS-NMF.
-#' @param nstart Number of random initializations.
+#' @param nstart Number of random initializations, a whole number >= 1.
 #' @param seed Optional integer initialization seed.
-#' @param max_iter Maximum multiplicative-update iterations.
-#' @param tol Relative objective tolerance.
+#' @param max_iter Maximum multiplicative-update iterations, a whole
+#'   number >= 1.
+#' @param tol Relative objective tolerance, a positive number. A count or
+#'   tolerance outside these ranges (including `Inf`) raises
+#'   `hypergraphs_bad_input`.
 #'
 #' @return A `net_hg_cluster` object. Its `$embedding` is the fitted
 #'   vertex factor `M`; `$params` contains all fitted factors, the objective
@@ -118,11 +131,13 @@ hg_joint_cluster <- function(
   method <- match.arg(method)
   type <- match.arg(type)
   .hl_validate_hg(hg)
+  .hl_require_dense(hg, "hg_joint_cluster()")
   n <- hg$n_nodes
+  k <- .hl_check_k(k, n)
+  nstart <- .ho_check_count(nstart, "nstart")
+  max_iter <- .ho_check_count(max_iter, "max_iter")
+  tol <- .hg_check_tol(tol)
   stopifnot(
-    "`k` must be a whole number between 2 and n_nodes - 1" =
-      is.numeric(k) && length(k) == 1L && k == round(k) &&
-        k >= 2 && k <= n - 1L,
     "`relations` must be a finite non-negative numeric matrix" =
       is.matrix(relations) && is.numeric(relations) &&
         all(is.finite(relations)) && all(relations >= 0),
@@ -131,13 +146,7 @@ hg_joint_cluster <- function(
     "`alpha`, `beta`, and `gamma` must be finite non-negative numbers" =
       all(vapply(list(alpha, beta, gamma), function(x) {
         is.numeric(x) && length(x) == 1L && is.finite(x) && x >= 0
-      }, logical(1L))),
-    "`nstart` and `max_iter` must be positive whole numbers" =
-      all(vapply(list(nstart, max_iter), function(x) {
-        is.numeric(x) && length(x) == 1L && x >= 1 && x == round(x)
-      }, logical(1L))),
-    "`tol` must be a positive finite number" =
-      is.numeric(tol) && length(tol) == 1L && is.finite(tol) && tol > 0
+      }, logical(1L)))
   )
   if (!is.null(rownames(relations)) || !is.null(colnames(relations))) {
     if (is.null(rownames(relations)) || is.null(colnames(relations)) ||
@@ -149,7 +158,6 @@ hg_joint_cluster <- function(
     relations <- relations[hg$nodes, hg$nodes, drop = FALSE]
   }
   S <- relations * 1.0
-  k <- as.integer(k)
   best <- NULL
   for (restart in seq_len(as.integer(nstart))) {
     restart_seed <- if (is.null(seed)) NULL else as.integer(seed) + restart - 1L

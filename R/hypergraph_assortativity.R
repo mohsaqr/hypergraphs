@@ -24,7 +24,9 @@
 }
 
 # Correlation of a pair distribution given its moments; NA when a marginal
-# has zero variance (the coefficient is undefined, not 0).
+# has zero variance (the coefficient is undefined, not 0). The callers pass
+# standardised scores (.hg_standardise_scores()), so the threshold is
+# relative to the spread of the scores, not to their raw magnitude.
 .hg_moment_correlation <- function(mean_1, mean_2, second_1, second_2, cross) {
   var_1 <- second_1 - mean_1^2
   var_2 <- second_2 - mean_2^2
@@ -34,6 +36,20 @@
     return(NA_real_)
   }
   (cross - mean_1 * mean_2) / sqrt(var_1 * var_2)
+}
+
+# Node scores centred on the mean over the nodes that enter (members of a
+# hyperedge of size >= 2) and divided by their largest absolute deviation.
+# A correlation is invariant to x -> (x - c) / s, so this changes no
+# coefficient, but it keeps the moment formulas free of cancellation: on
+# raw hyperdegrees of 10^4 that differ by 1, second moment minus squared
+# mean is lost below the degeneracy threshold. A constant score stays all
+# zero, so its coefficient stays NA.
+.hg_standardise_scores <- function(x, members) {
+  used <- unique(unlist(members, use.names = FALSE))
+  centred <- x - mean(x[used])
+  spread <- max(abs(centred[used]))
+  if (spread > 0) centred / spread else centred
 }
 
 # One assortativity coefficient for one choice function. `x` is the per-node
@@ -175,6 +191,7 @@ hg_assortativity <- function(hg, type = "uniform",
   } else {
     degree
   }
+  x <- .hg_standardise_scores(x, members)
   data.frame(
     type = type,
     scale = scale,

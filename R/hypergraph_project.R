@@ -89,7 +89,9 @@
 #' @param edge_source The node each hyperedge comes from: the name of a
 #'   column of the hyperedge attributes, a vector of length `n_hyperedges`, a
 #'   named vector keyed by hyperedge, or a data frame with columns `edge` and
-#'   `source`. `NULL` uses an attribute column named `source`. Used with
+#'   `source` (a hyperedge named twice with different sources raises
+#'   `hypergraphs_bad_input`). `NULL` uses an attribute column named
+#'   `source`. Used with
 #'   `self_association = TRUE` and `type = "citation"`.
 #' @param directed For `type = "citation"`: keep the source-to-member
 #'   direction. Default `FALSE`.
@@ -110,6 +112,7 @@
 #'
 #' Zhou, D., Huang, J., & Schoelkopf, B. (2006). Learning with hypergraphs:
 #' clustering, classification, and embedding. *NeurIPS 19*, 1601-1608.
+#' \doi{10.7551/mitpress/7503.003.0205}
 #' @seealso [hg_line_graph()] for the projection onto hyperedges.
 #' @examples
 #' meetings <- data.frame(
@@ -395,6 +398,9 @@ plot.net_hg_pairwise <- function(x, ...) {
   }
   if (!is.atomic(source)) .thg_bad_input("`edge_source` must be a vector or data.frame")
   if (!is.null(names(source))) {
+    # one source per hyperedge: a hyperedge named twice with different
+    # sources is refused rather than resolved by position
+    source <- .thg_unique_assignment(source, "edge_source")
     missing_edges <- setdiff(edges, names(source))
     if (length(missing_edges)) {
       .thg_bad_input("the named `edge_source` vector does not cover every hyperedge")

@@ -80,6 +80,7 @@ hg_classify(hg, labels = c(cooking_1 = "cooking", space_1 = "space"))
 \references{
 Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 Clustering, classification, and embedding. \emph{NeurIPS 19}.
+\doi{10.7551/mitpress/7503.003.0205}
 
 Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
 using Gaussian fields and harmonic functions. \emph{ICML 20}.

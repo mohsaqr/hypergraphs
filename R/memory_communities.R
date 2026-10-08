@@ -362,6 +362,15 @@
                           "labels) or a data.frame with `node` and ",
                           "`community`"))
   }
+  # both forms are checked once normalised: a node named twice would be
+  # resolved silently by whichever entry comes first
+  node_names <- names(partition)
+  if (anyNA(node_names) || any(!nzchar(node_names))) {
+    .hcm_bad_input("`partition` has a missing or empty node name")
+  }
+  if (anyDuplicated(node_names)) {
+    .hcm_bad_input("`partition` lists a node more than once")
+  }
   missing_states <- setdiff(states, names(partition))
   if (length(missing_states)) {
     .hcm_bad_input(sprintf("`partition` does not cover state(s): %s",
@@ -371,6 +380,16 @@
   lab <- partition[states]
   if (anyNA(lab)) .hcm_bad_input("`partition` has missing community labels")
   match(as.character(lab), unique(as.character(lab)))
+}
+
+#' Percentage of the one-module codelength a partition saves
+#'
+#' A network whose walk needs no bits (one state, or every step
+#' deterministic and inside one module) has a zero one-module codelength;
+#' there is nothing to save, so the saving is 0 rather than 0 / 0.
+#' @noRd
+.hcm_savings_pct <- function(codelength, one_level) {
+  if (one_level > 0) 100 * (1 - codelength / one_level) else 0
 }
 
 #' Pairwise adjusted Rand index between trial partitions
@@ -517,6 +536,9 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
   if (!is.matrix(W) || nrow(W) < 1L) {
     .hcm_bad_input("`hon` has no state network to cluster")
   }
+  # the physical state of a memory node is read off its " -> " label, so a
+  # state label holding the arrow would be read as a history
+  .hon_check_states(hon$first_order_states)
   states <- rownames(W)
   phys_label <- vapply(strsplit(states, " -> ", fixed = TRUE),
                        function(p) p[length(p)], character(1L))
@@ -622,8 +644,8 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
     module_codelength = c(cl$module, cl1$module),
     one_level_codelength = c(one_level, one_level1),
     savings_bits = c(one_level - cl$codelength, one_level1 - cl1$codelength),
-    savings_pct = 100 * c(1 - cl$codelength / one_level,
-                          1 - cl1$codelength / one_level1),
+    savings_pct = c(.hcm_savings_pct(cl$codelength, one_level),
+                    .hcm_savings_pct(cl1$codelength, one_level1)),
     n_communities = c(k, length(unique(srch1$module))),
     stringsAsFactors = FALSE)
 
@@ -665,8 +687,9 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
 #'       in the best first-order partition, and its first-order `flow`.}
 #'     \item{`"codelength"`}{one row per model (`memory`, `first_order`):
 #'       `codelength`, `index_codelength`, `module_codelength`,
-#'       `one_level_codelength`, `savings_bits`, `savings_pct`,
-#'       `n_communities`.}
+#'       `one_level_codelength`, `savings_bits`, `savings_pct` (0 when the
+#'       one-module codelength is 0, as for a single state: there is
+#'       nothing to save), `n_communities`.}
 #'   }
 #' @param community Integer vector or `NULL`: keep only these communities
 #'   (tables `"states"`, `"physical"`, `"modules"`).
@@ -687,11 +710,13 @@ hg_get.hypergraphs_memory_communities <- function(
   what <- .ho_match_what(what)
   stopifnot(
     "`overlapping` must be TRUE or FALSE" =
-      is.logical(overlapping) && length(overlapping) == 1L && !is.na(overlapping),
-    "`community` must be NULL or whole numbers" =
-      is.null(community) ||
-      (is.numeric(community) && all(is.finite(community)))
+      is.logical(overlapping) && length(overlapping) == 1L && !is.na(overlapping)
   )
+  if (!is.null(community) &&
+      !(is.numeric(community) && all(is.finite(community)) &&
+        all(abs(community - round(community)) < sqrt(.Machine$double.eps)))) {
+    .hcm_bad_input("`community` must be NULL or whole numbers")
+  }
   out <- switch(what,
                 states = x$states,
                 physical = x$physical,

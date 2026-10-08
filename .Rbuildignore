@@ -28,3 +28,7 @@ Rplots\.pdf$
 ^\.DS_Store$
 ^workinprogress$
 ^ROADMAP\.md$
+^codexfixes$
+^src/.*\.o$
+^src/.*\.so$
+^src/.*\.dll$

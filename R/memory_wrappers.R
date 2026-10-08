@@ -39,6 +39,17 @@
 #' These are the conventions of the tna family of packages, and the same
 #' call builds the same sequences there.
 #'
+#' A missing state anywhere but at the end of a wide row is a gap. The
+#' memory verbs ([hon()], [mogen()], [hypa()], [markov_order()],
+#' [memory()], [hg_bootstrap()], [hg_compare()]) split a sequence at every
+#' gap into its runs of observed states: no transition is counted across or
+#' into a gap and no state `"NA"` is created (a state spelled `"NA"` is an
+#' ordinary state). [hg_bootstrap()] and [hg_compare()] still resample the
+#' original sequences, each with all its runs. Repeats are collapsed within
+#' a run. State labels containing `" -> "` (the notation of memory nodes) are
+#' refused with `hypergraphs_bad_input` by the verbs whose results name
+#' paths.
+#'
 #' A data.frame with columns named like an event table (`code`, `state`,
 #' `user`, `timestamp`, ...) that is passed without `action =` and has no
 #' `action` column raises `hypergraphs_long_format` (a
@@ -120,6 +131,7 @@ hon <- function(data, max_order = 5L, min_freq = 1L,
                              time = time, session = session,
                              time_threshold = time_threshold,
                              timezone = timezone)
+  data <- .hon_estimator_input(data)
   .ho_result(Nestimate::build_hon(data, max_order = max_order,
                                   min_freq = min_freq,
                                   collapse_repeats = collapse_repeats,
@@ -200,6 +212,7 @@ mogen <- function(data, max_order = 5L, criterion = c("aic", "bic", "lrt"),
                              time = time, session = session,
                              time_threshold = time_threshold,
                              timezone = timezone)
+  data <- .hon_estimator_input(data)
   .ho_result(Nestimate::build_mogen(data, max_order = max_order,
                                     criterion = criterion,
                                     lrt_alpha = lrt_alpha))
@@ -250,6 +263,7 @@ markov_order <- function(data, max_order = 3L, n_perm = 500L,
                              time_threshold = time_threshold,
                              timezone = timezone,
                              models = "decode")
+  data <- .hon_estimator_input(data, check_labels = FALSE)
   .ho_result(Nestimate::markov_order_test(data, max_order = max_order,
                                           n_perm = n_perm, alpha = alpha,
                                           parallel = parallel,
@@ -258,15 +272,17 @@ markov_order <- function(data, max_order = 3L, n_perm = 500L,
 
 #' Per-context path dependence
 #'
-#' For every context of `order - 1` states, compares the observed
-#' next-state distribution with the first-order prediction from the most
-#' recent state alone: the Kullback-Leibler divergence and entropy drop
-#' say how much the longer history adds, and `flips` marks the contexts
-#' where it changes the most likely next state.
+#' For every context of `order` states (the `order` most recent states),
+#' compares the observed next-state distribution with the first-order
+#' prediction from the most recent state alone: the Kullback-Leibler
+#' divergence and entropy drop say how much the longer history adds, and
+#' `flips` marks the contexts where it changes the most likely next state.
 #'
 #' @inheritParams hon
-#' @param order Integer >= 2. Length of the conditioning context plus one:
-#'   `2` compares two-step memory with one-step. Default `2`.
+#' @param order Integer >= 2. The number of states in the conditioning
+#'   context: `2` conditions on the last two states (contexts such as
+#'   `"a -> b"`) and compares that two-step memory with one-step, `3` on
+#'   the last three. Default `2`.
 #' @param min_count Integer. Contexts observed fewer times are dropped.
 #'   Default `5`.
 #' @param base Logarithm base of the entropies and divergences. Default `2`
@@ -284,8 +300,11 @@ markov_order <- function(data, max_order = 3L, n_perm = 500L,
 #' @examples
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
 #'              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
+#' # order = 2: two-state contexts ("a -> b")
 #' pd <- memory(seqs, order = 2, min_count = 1)
 #' hg_get(pd)
+#' # order = 3: three-state contexts ("a -> b -> c")
+#' hg_get(memory(seqs, order = 3, min_count = 1))
 #' @export
 memory <- function(data, order = 2L, min_count = 5L, base = 2,
                                action = NULL, actor = NULL, time = NULL,
@@ -296,6 +315,9 @@ memory <- function(data, order = 2L, min_count = 5L, base = 2,
                              time_threshold = time_threshold,
                              timezone = timezone,
                              lists = "wide", models = "decode")
+  # path_dependence() reads a gap as the end of a context already, so the
+  # sequences are only checked, not split
+  .hon_check_states(unlist(.hon_sequence_values(data), use.names = FALSE))
   .ho_result(Nestimate::path_dependence(data, order = order,
                                         min_count = min_count, base = base))
 }

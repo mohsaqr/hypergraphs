@@ -14,6 +14,12 @@
 #   holds exactly n actions, so on a small set of actions the null expects
 #   more co-occurrence than the windows can hold.
 
+# The largest number of swap shuffles chosen automatically (n_null = NULL).
+# Every shuffle is a pass of the swap chain and its counts are kept, so the
+# automatic resolution is bounded; a larger run is the caller's explicit
+# choice.
+.SVH_MAX_AUTO_NULL <- 1e5
+
 # Distribution of the size X of the intersection of length(degrees) random
 # subsets, of sizes `degrees`, of `total` items, on 0..min(degrees): the
 # hierarchical convolution of hypergeometric intersections of Musciotto et
@@ -134,20 +140,41 @@
     # first Benjamini-Hochberg step of its size: 1 / (n_null + 1) <=
     # alpha / n_tests
     sizes_tested <- sort(unique(sizes[tested]))
+    # the number of shuffles that resolves every size grows with
+    # choose(n_active, size) and can exceed any feasible run (or the integer
+    # range), so it is computed in double precision and an automatic choice
+    # above .SVH_MAX_AUTO_NULL is refused rather than run or capped
     needed <- if (length(tested) > 0L) {
-      as.integer(ceiling(max(n_tests[sizes_tested]) / alpha))
+      ceiling(max(n_tests[sizes_tested]) / alpha)
     } else {
-      0L
+      0
     }
-    n_null <- as.integer(n_null %||% max(999L, needed))
+    if (is.null(n_null)) {
+      if (needed > .SVH_MAX_AUTO_NULL) {
+        .ho_input_error(sprintf(paste0(
+          "resolving every set size at alpha = %s needs n_null = %s swap ",
+          "shuffles (%s possible sets of size %s), more than the %s run ",
+          "automatically. Pass an explicit `n_null` (a set then passes only ",
+          "together with others, with a `hypergraphs_low_resolution` ",
+          "warning), lower `window`, or use null = \"hypergeometric\"."),
+          format(alpha), format(needed, big.mark = ",", scientific = FALSE),
+          format(max(n_tests[sizes_tested]), big.mark = ",",
+                 scientific = FALSE),
+          sizes_tested[which.max(n_tests[sizes_tested])],
+          format(.SVH_MAX_AUTO_NULL, big.mark = ",", scientific = FALSE)))
+      }
+      n_null <- max(999L, as.integer(needed))
+    }
+    n_null <- as.integer(n_null)
     short <- sizes_tested[1 / (n_null + 1) > alpha / n_tests[sizes_tested]]
     if (length(short) > 0L) {
       warning(warningCondition(sprintf(paste0(
         "with n_null = %d the smallest p-value is %.3g, above the ",
         "Benjamini-Hochberg threshold alpha / n_tests for sets of size %s; ",
         "a set can then pass only together with many others. ",
-        "n_null = %d resolves every size."),
-        n_null, 1 / (n_null + 1), paste(short, collapse = ", "), needed),
+        "n_null = %s resolves every size."),
+        n_null, 1 / (n_null + 1), paste(short, collapse = ", "),
+        format(needed, big.mark = ",", scientific = FALSE)),
         class = "hypergraphs_low_resolution", call = NULL))
     }
     draws <- .svh_swap_counts(m, .svh_row_keys(target_rows), n_null)

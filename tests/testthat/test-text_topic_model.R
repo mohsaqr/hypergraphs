@@ -154,6 +154,10 @@ test_that("bad input is refused by class and non-convergence is reported", {
 test_that("the readers, print, summary and plot", {
   fit <- hg_topics(text_hypergraph(.tm_toy()), k = 2, nstart = 2)
   expect_identical(nrow(hg_get(fit, what = "words", n = 3)), 6L)
+  expect_error(hg_get(fit, what = "words", n = 2.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(fit, what = "words", n = -Inf),
+               class = "hypergraphs_bad_input")
   expect_identical(unique(hg_get(fit, what = "shares", topic = "Topic 1")$topic),
                    "Topic 1")
   expect_output(print(fit), "Topic model \\(KL factorization\\): 2 topics")
@@ -424,4 +428,138 @@ test_that("hg_get(what = \"prevalence\") gives the mean topic share by group", {
                class = "hypergraphs_bad_input")
   expect_error(hg_get(fit, what = "prevalence", group = c(z = "q")),
                class = "hypergraphs_bad_input")
+})
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("explicit sparse zeros do not change the KL-NMF fit (TXT-10)", {
+  dense <- matrix(c(1, 0, 0,
+                    0, 1, 0,
+                    0, 0, 1), 3, 3, byrow = TRUE)
+  implicit <- Matrix::sparseMatrix(i = 1:3, j = 1:3, x = 1, dims = c(3, 3))
+  explicit <- Matrix::sparseMatrix(i = c(1, 2, 3, 1), j = c(1, 2, 3, 2),
+                                   x = c(1, 1, 1, 0), dims = c(3, 3))
+  expect_identical(length(explicit@x), 4L)   # the zero is really stored
+  set.seed(1)
+  start <- .tm_start(implicit, 2L)
+  fits <- lapply(list(methods::as(dense, "CsparseMatrix"), implicit, explicit),
+                 \(X) .tm_fit(X, start$Wt, start$Htt, 50L, 1e-5))
+  divergences <- vapply(fits, \(f) f$divergence, numeric(1L))
+  expect_true(all(is.finite(divergences)))
+  expect_equal(fits[[3L]]$divergence, fits[[2L]]$divergence, tolerance = 1e-12)
+  expect_equal(fits[[3L]]$W, fits[[2L]]$W, tolerance = 1e-12)
+  expect_equal(fits[[1L]]$Ht, fits[[3L]]$Ht, tolerance = 1e-12)
+  # the divergence skips zero cells: 0 log 0 = 0
+  expect_equal(.tm_divergence(c(1, 0), c(0.5, 0.25), matrix(1), matrix(1)),
+               log(2) - 1 + 1)
+})
+
+test_that("a topic model is checked against the corpus it was fitted on (TXT-11)", {
+  docs <- .tm_network_corpus()
+  hg <- text_hypergraph(docs)
+  fit <- hg_topics(hg, k = 2, nstart = 1, max_iter = 50L, tol = 0)
+  expect_s3_class(hg_topic_quality(hg, topics = fit), "hypergraphs_topic_quality")
+  # same texts and words under other document ids
+  renamed <- text_hypergraph(stats::setNames(unname(docs),
+                                             paste0("w", seq_along(docs))))
+  expect_error(hg_topic_quality(renamed, topics = fit),
+               class = "hypergraphs_bad_input")
+  expect_error(topic_network(renamed, topics = fit),
+               class = "hypergraphs_bad_input")
+  # same ids and words, different counts
+  recounted <- docs
+  recounted[["a"]] <- paste(recounted[["a"]], "soup soup")
+  expect_error(hg_topic_quality(text_hypergraph(recounted), topics = fit),
+               class = "hypergraphs_bad_input")
+  # the same corpus with its documents in another order is the same corpus
+  reordered <- text_hypergraph(rev(docs))
+  expect_identical(hg_topic_quality(reordered, topics = fit),
+                   hg_topic_quality(hg, topics = fit))
+  # a model saved before the signature is still checked on ids and words
+  legacy <- fit
+  legacy$corpus <- NULL
+  expect_s3_class(hg_topic_quality(hg, topics = legacy),
+                  "hypergraphs_topic_quality")
+  expect_error(hg_topic_quality(renamed, topics = legacy),
+               class = "hypergraphs_bad_input")
+  # counts that are negative are refused before fitting
+  plain <- group_hypergraph(data.frame(node = c("a", "a", "b", "b", "c", "c"),
+                                       hyperedge = c("x", "y", "x", "z", "y", "z")),
+                            node = "node", hyperedge = "hyperedge")
+  plain$incidence["a", "y"] <- -1
+  expect_error(hg_topics(plain, k = 2, nstart = 1),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("constant topic shares give isolated topics, never NA edges (TXT-13)", {
+  hg <- text_hypergraph(.tm_network_corpus())
+  fit <- hg_topics(hg, k = 3, nstart = 1, max_iter = 50L, tol = 0)
+  constant <- fit
+  constant$shares$share <- 1 / 3
+  expect_warning(edges <- topic_network(hg, topics = constant),
+                 class = "hypergraphs_constant_topics")
+  expect_identical(nrow(edges), 0L)
+  expect_warning(net <- topic_network(hg, topics = constant, what = "network"),
+                 class = "hypergraphs_constant_topics")
+  expect_identical(net$nodes$name, fit$topics$topic)
+  expect_identical(nrow(net$edges), 0L)
+  # one constant topic among varying ones: the varying pair keeps its value
+  mixed <- fit
+  t3 <- mixed$shares$topic == "Topic 3"
+  mixed$shares$share[t3] <- 0.2
+  expect_warning(mixed_edges <- topic_network(hg, topics = mixed),
+                 class = "hypergraphs_constant_topics")
+  expect_false(anyNA(mixed_edges))
+  expect_false(any(c(mixed_edges$source, mixed_edges$target) == "Topic 3"))
+  shares <- hg_get(mixed, what = "shares")
+  wide <- stats::reshape(shares, idvar = "node", timevar = "topic",
+                         direction = "wide")
+  expected <- stats::cor(wide$`share.Topic 1`, wide$`share.Topic 2`)
+  pair <- subset(mixed_edges, source == "Topic 1" & target == "Topic 2")
+  if (expected > 0.01) {
+    expect_equal(pair$weight, expected)
+  } else {
+    expect_identical(nrow(pair), 0L)
+  }
+})
+
+test_that("prevalence refuses a document given two groups (TXT-07)", {
+  hg <- text_hypergraph(.tm_network_corpus())
+  fit <- hg_topics(hg, k = 2, nstart = 1, max_iter = 50L, tol = 0)
+  groups <- c(a = "x", a = "y", b = "x", c = "y")
+  expect_error(hg_get(fit, what = "prevalence", group = groups),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("the expected-count kernel equals the R colSums expression", {
+  set.seed(4)
+  X <- Matrix::rsparsematrix(40, 70, density = 0.2,
+                             rand.x = \(n) stats::rpois(n, 3) + 1)
+  i <- X@i + 1L
+  j <- rep.int(seq_len(ncol(X)), diff(X@p))
+  for (k in c(1L, 6L, 52L)) {
+    st <- .tm_start(X, k)
+    # spread the scale so some cells fall under the floor
+    st$Wt[, 1:5] <- st$Wt[, 1:5] * 1e-9
+    reference <- pmax(colSums(st$Wt[, i, drop = FALSE] *
+                                st$Htt[, j, drop = FALSE]), .TM_EPSILON)
+    expect_identical(.tm_fitted(st$Wt, st$Htt, i, j), reference)
+  }
+  expect_identical(.tm_fitted(st$Wt, st$Htt, integer(), integer()), numeric(0))
+})
+
+test_that("all-pairs topic similarity equals the pairwise average Jaccard", {
+  set.seed(8)
+  vocabulary <- sprintf("w%02d", 1:40)
+  for (k in c(1L, 3L, 9L)) for (depth in c(1L, 4L, 10L)) {
+    a <- replicate(k, sample(vocabulary, depth), simplify = FALSE)
+    b <- replicate(k, sample(vocabulary, depth), simplify = FALSE)
+    pairwise <- outer(seq_len(k), seq_len(k), Vectorize(
+      \(x, y) .tm_average_jaccard(a[[x]], b[[y]])))
+    expect_identical(.tm_similarity(a, b), pairwise)
+  }
+  # identical lists agree perfectly; disjoint lists not at all
+  same <- list(c("a", "b", "c"), c("d", "e", "f"))
+  expect_identical(diag(.tm_similarity(same, same)), c(1, 1))
+  expect_identical(.tm_similarity(same, rev(same))[1, 1], 0)
 })

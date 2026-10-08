@@ -22,7 +22,9 @@ window_hypergraph(
 \arguments{
 \item{data}{Sequences in any form described in \link{sequence-input}: a long
 event table, a wide data.frame or character matrix (one sequence per
-row, trailing \code{NA}s stripped), or a list of character vectors.}
+row, trailing \code{NA}s stripped), or a list of character vectors. A
+list's names, when it has them, identify its sequences and must be
+unique and non-empty (\code{hypergraphs_bad_input} otherwise).}
 
 \item{window}{Integer >= 2. Window size in sequence positions.}
 

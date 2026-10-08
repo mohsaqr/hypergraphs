@@ -122,7 +122,9 @@
 #' @param partition The partition to score: a data.frame with `node` and a
 #'   label column (`community`, `cluster`, `label` or `predicted`), a named
 #'   label vector, an unnamed vector in node order, or an [hg_communities()]
-#'   fit (its AMI medoid is scored). Every node must be labelled.
+#'   fit (its AMI medoid is scored). Every node must be labelled, once: a
+#'   node listed twice with the same label counts once, with different
+#'   labels it raises `hypergraphs_bad_input`.
 #' @param type Hyperedge weighting \eqn{\omega(d, c)}: `"linear"` (default),
 #'   `"majority"` or `"strict"`.
 #' @param edge_weights Positive hyperedge weights (one per hyperedge, or one
@@ -138,7 +140,7 @@
 #'   `n_nodes`, `volume` (summed weighted degree), `edge_contribution`,
 #'   `degree_tax` and `modularity`, sorted by decreasing `modularity`.
 #'   Raises `hypergraphs_bad_input` for a non-`net_hg` input, a partition that
-#'   misses a node or has `NA` labels, or a hypergraph with no non-empty
+#'   misses a node, has `NA` labels or conflicting repeated nodes, or a hypergraph with no non-empty
 #'   hyperedge; invalid `edge_weights` fail the shared weight check.
 #' @references Kaminski, B., Poulin, V., Pralat, P., Szufel, P., &
 #'   Theberge, F. (2019). Clustering via hypergraph modularity. *PLoS ONE*,
@@ -248,6 +250,11 @@ hg_modularity <- function(hg, partition,
 # is the graph-clustering step, a function(adjacency, iteration); the oracle
 # tests replace it with recorded HyperNetX memberships.
 .hg_irmm_fit <- function(parts, delta, max_iter, cluster = .hg_irmm_louvain) {
+  # Every pass rebuilds the clique reduction and hands it to igraph; sparse
+  # storage gives the same values and the same igraph edge list as dense
+  # storage, and is roughly ten times cheaper to build and convert.
+  parts$pattern <- methods::as(methods::as(parts$pattern, "CsparseMatrix"),
+                               "generalMatrix")
   weights <- parts$weights
   labels <- cluster(.hg_irmm_two_section(parts, weights), 0L)
   history <- list(weights)
@@ -273,7 +280,7 @@ hg_modularity <- function(hg, partition,
 }
 
 # Pairwise partition similarity over runs, as in hg_communities().
-.hg_irmm_similarity <- function(partitions) {
+.hg_run_similarity <- function(partitions) {
   n_runs <- length(partitions)
   run_names <- paste0("run_", seq_len(n_runs))
   pairs <- if (n_runs > 1L) utils::combn(n_runs, 2L) else matrix(integer(), 2L, 0L)
@@ -298,7 +305,8 @@ hg_modularity <- function(hg, partition,
 #' @return An `hg_communities` object.
 #' @noRd
 .hg_irmm_communities <- function(hg, n_runs = 50L, seeds = NULL, delta = 0.01,
-                                 max_iter = 50L, edge_weights = NULL) {
+                                 max_iter = 50L, edge_weights = NULL,
+                                 parallel = FALSE, n_cores = 2L) {
   .thg_check_hg(hg)
   if (!requireNamespace("igraph", quietly = TRUE)) {
     stop(errorCondition(
@@ -340,10 +348,10 @@ hg_modularity <- function(hg, partition,
       rm(".Random.seed", envir = globalenv())
     }
   }, add = TRUE)
-  fits <- lapply(seeds, function(seed) {
+  fits <- .ho_apply(seeds, function(seed) {
     set.seed(seed)
     .hg_irmm_fit(parts, delta = delta, max_iter = max_iter)
-  })
+  }, parallel = parallel, n_cores = n_cores)
 
   labels <- lapply(fits, function(fit) as.character(fit$labels))
   partitions <- do.call(rbind, lapply(seq_len(n_runs), function(i) {
@@ -373,7 +381,7 @@ hg_modularity <- function(hg, partition,
     ))
   }
 
-  similarity <- .hg_irmm_similarity(labels)
+  similarity <- .hg_run_similarity(labels)
   medoid_run <- unname(which.max(rowSums(similarity$ami))[1L])
   medoid <- data.frame(node = parts$nodes, community = labels[[medoid_run]],
                        stringsAsFactors = FALSE)

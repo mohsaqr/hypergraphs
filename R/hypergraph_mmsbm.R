@@ -91,14 +91,26 @@
 # default w prior (with no u prior) the MAP objective keeps gaining by
 # shrinking w and growing u, so the rule never fires there.
 # "membership" compares the row-normalised memberships instead (largest
-# absolute change), which that rescaling leaves unchanged.
+# absolute change), which that rescaling leaves unchanged. A node whose
+# membership became undefined (collapsed) or defined since the last check
+# has moved, so the fit has not settled; nodes undefined at both checks
+# (isolates, or rows collapsed earlier) do not block convergence, but a fit
+# with no defined membership at all has nothing to settle and never does.
 .mmsbm_settled <- function(u, w, old_u, old_w, tol, criterion) {
   if (criterion == "parameters") {
     return(sqrt(sum((w - old_w)^2)) / ncol(u) < tol &&
              sqrt(sum((u - old_u)^2)) / nrow(u) < tol)
   }
-  change <- abs(.mmsbm_share(u) - .mmsbm_share(old_u))
-  max(change[is.finite(change)], 0) < tol
+  share <- .mmsbm_share(u)
+  old_share <- .mmsbm_share(old_u)
+  defined <- rowSums(!is.finite(share)) == 0L
+  if (!identical(defined, rowSums(!is.finite(old_share)) == 0L) ||
+      !any(defined)) {
+    return(FALSE)
+  }
+  change <- abs(share[defined, , drop = FALSE] -
+                  old_share[defined, , drop = FALSE])
+  max(change) < tol
 }
 
 # One EM run from (u, w), as HyMMSBM.fit(): w is updated before u in every
@@ -195,7 +207,16 @@
 #' remnants) by the multiplicative EM updates; any row whose total is below
 #' the precision of the largest row is treated as having no membership
 #' (`NA`) and reported with a `hypergraphs_collapsed_membership` warning,
-#' rather than normalising remnants into spurious exact mixtures.
+#' rather than normalising remnants into spurious exact mixtures. This is a
+#' property of the model, not of the fit: \eqn{\lambda_e} sums over the
+#' pairs of a hyperedge, so in a hyperedge of three or more nodes the pairs
+#' that avoid node \eqn{i} can explain it on their own, and \eqn{u_i = 0}
+#' then costs the likelihood nothing while removing its share of the
+#' \eqn{-C\sum_{i<j}} term. Documents bound by word hyperedges, nearly all of
+#' size three or more, are the common case: on a 6,630-document legal
+#' corpus about a third of the documents collapse for `k = 3`, with or
+#' without stop words and with `max_size = 25`. For the topic mixture of
+#' every document of a corpus use [hg_topics()].
 #'
 #' The membership of node \eqn{i} in community \eqn{k} is
 #' \eqn{u_{ik} / \sum_q u_{iq}}; the hard `community` is its largest entry.
@@ -244,6 +265,11 @@
 #'   the stored cell weights (word counts, tf-idf) do not enter the model.
 #' @param seed `NULL` (default: the current random stream) or a whole number
 #'   for the random starts; the caller's stream is restored on exit.
+#' @param parallel Logical. Fit the `nstart` starts with
+#'   `parallel::mclapply()` (not on Windows, where they run serially).
+#'   Default `FALSE`. All starting values are drawn first, in order, from
+#'   one stream, so the result equals the serial one.
+#' @param n_cores Integer. Cores when `parallel = TRUE` (default 2).
 #' @return An object of class `net_hg_mmsbm`, a list read through
 #'   `hg_get(x, what = )`:
 #'   * `"membership"` (default): one row per node and community, columns
@@ -292,7 +318,8 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
                      max_iter = 5000L, tol = 1e-5, check_every = 10L,
                      criterion = c("membership", "parameters"),
                      w_prior = 1, u_prior = 0, max_size = NULL,
-                     edge_weights = NULL, seed = NULL) {
+                     edge_weights = NULL, seed = NULL, parallel = FALSE,
+                     n_cores = 2L) {
   .thg_check_hg(hg)
   criterion <- match.arg(criterion)
   n <- hg$n_nodes
@@ -349,13 +376,17 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
     on.exit(.thg_rng_restore(had_seed, saved_seed), add = TRUE, after = FALSE)
     set.seed(as.integer(seed))
   }
-  # Starts drawn serially, one after the other, from one stream.
-  fits <- lapply(seq_len(nstart), \(start) {
-    init <- .mmsbm_init(n, k, assortative, u_prior, w_prior)
+  # Starts drawn serially, one after the other, from one stream. EM itself
+  # draws nothing, so every start is drawn before any is fitted and the fits
+  # can run in parallel with the same result as the serial run.
+  inits <- lapply(seq_len(nstart), \(start) {
+    .mmsbm_init(n, k, assortative, u_prior, w_prior)
+  })
+  fits <- .ho_apply(inits, \(init) {
     .mmsbm_em(B, A, init$u, init$w, max_iter = as.integer(max_iter), tol = tol,
               check_every = as.integer(check_every), u_prior = u_prior,
               w_prior = w_prior, C = C, criterion = criterion)
-  })
+  }, parallel = parallel, n_cores = n_cores)
   finite <- vapply(fits, \(f) f$finite, logical(1L))
   if (!any(finite)) {
     stop(errorCondition(
@@ -405,8 +436,10 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
   if (any(collapsed)) {
     warning(warningCondition(sprintf(paste0(
       "%d node(s) lie in fitted hyperedges but their memberships collapsed ",
-      "to zero under EM (no membership, NA): %s. Try more starts, another ",
-      "k or `assortative`."),
+      "to zero under EM (no membership, NA): %s. Hy-MMSBM sums a ",
+      "hyperedge's rate over its node pairs, so in hyperedges of three or ",
+      "more nodes the other members can explain it without these nodes; ",
+      "for document mixtures in a text hypergraph use hg_topics()."),
       sum(collapsed), paste(utils::head(nodes[collapsed], 5L), collapse = ", ")),
       class = "hypergraphs_collapsed_membership", call = NULL))
   }

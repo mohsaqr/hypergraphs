@@ -434,3 +434,127 @@ test_that("hg_betti() is rational and hg_homology() is Z/2 on RP^2", {
   expect_identical(sum(c(1L, -1L, 1L) * hg_betti(sc)), 1L)
   expect_equal(sum((-1)^essential$dimension), 1)
 })
+
+# ---- Window complexes: essential classes and the last Betti row (M02/M03) --
+
+.rp2_triangles <- function() {
+  list(c(1L, 2L, 3L), c(1L, 3L, 4L), c(1L, 4L, 5L), c(1L, 5L, 6L),
+       c(1L, 2L, 6L), c(2L, 3L, 5L), c(3L, 4L, 6L), c(2L, 4L, 5L),
+       c(3L, 5L, 6L), c(2L, 4L, 6L))
+}
+
+test_that("a window complex keeps its essential classes essential", {
+  empty <- data.frame(dimension = integer(0), birth = numeric(0),
+                      death = numeric(0))
+  # one connected triangle seen in three windows: one class that never dies
+  ph <- hg_homology(simplicial(rep(list(c("a", "b", "c")), 3L),
+                               type = "window"))
+  pers <- hg_get(ph)
+  expect_identical(nrow(pers), 1L)
+  expect_identical(pers$birth, 3)
+  expect_identical(pers$death, 0)
+  expect_identical(pers$persistence, 3)
+  expect_identical(unname(hg_wasserstein(ph, empty)), Inf)
+  expect_identical(unname(hg_bottleneck(ph, empty)), Inf)
+  # two disjoint windows: two essential components
+  two <- hg_homology(simplicial(list(c("a", "b"), c("c", "d")),
+                                type = "window", window = 2L))
+  expect_identical(sum(hg_get(two)$death == 0), 2L)
+  # differing essential counts are infinitely far apart
+  expect_identical(unname(hg_wasserstein(ph, two)["dim_0"]), Inf)
+})
+
+test_that("every Betti row of a window complex is Z/2 on the truncated complex", {
+  window_ph <- function(max_dim) {
+    hg_homology(simplicial(list(c("a", "b", "c")), type = "window"),
+                max_dim = max_dim)
+  }
+  last_betti <- function(ph) {
+    curve <- hg_get(ph, what = "betti")
+    curve$betti[curve$threshold == min(curve$threshold)]
+  }
+  # max_dim = 1 keeps the boundary of the triangle: a loop
+  expect_identical(last_betti(window_ph(1L)), c(1L, 1L))
+  # max_dim = 2 fills it
+  expect_identical(last_betti(window_ph(2L)), c(1L, 0L, 0L))
+  # the projective plane from its ten triangles, one window each: Z/2
+  # Betti numbers (1, 1, 1) while the rational ones are (1, 0, 0)
+  windows <- lapply(.rp2_triangles(), \(t) paste0("v", t))
+  sc <- simplicial(windows, type = "window")
+  expect_identical(unname(sc$f_vector), c(6L, 15L, 10L))
+  expect_identical(last_betti(hg_homology(sc))[1:3], c(1L, 1L, 1L))
+  expect_identical(hg_betti(sc), c(b0 = 1L, b1 = 0L, b2 = 0L))
+})
+
+test_that("window persistence matches complexes thresholded by count", {
+  seqs <- c(rep(list(c("a", "b", "c")), 3L), list(c("c", "d", "e")),
+            list(c("e", "a", "x")), rep(list(c("x", "y", "z")), 2L))
+  ph <- hg_homology(simplicial(seqs, type = "window"), max_dim = 2L)
+  curve <- hg_get(ph, what = "betti")
+  invisible(lapply(unique(curve$threshold), \(t) {
+    # the complex at count t, built independently (no torsion here, so the
+    # rational Betti numbers are the Z/2 ones)
+    betti <- hg_betti(simplicial(seqs, type = "window", min_count = t))
+    betti <- c(betti, rep(0L, 3L - length(betti)))
+    expect_identical(curve$betti[curve$threshold == t], unname(betti[1:3]))
+  }))
+})
+
+# ---- Generic diagrams and large orders (M14/M15) ---------------------------
+
+test_that("a data-frame diagram dying at 0 is finite, not essential", {
+  empty <- data.frame(dimension = integer(0), birth = numeric(0),
+                      death = numeric(0))
+  one <- data.frame(dimension = 0L, birth = -1, death = 0)
+  expect_equal(unname(hg_wasserstein(one, empty)), 0.5)
+  # translation invariance of ordinary finite diagrams
+  moved <- data.frame(dimension = 0L, birth = 9, death = 10)
+  expect_equal(unname(hg_wasserstein(moved, empty)), 0.5)
+  # a zero-length point sits on the diagonal
+  expect_identical(unname(hg_wasserstein(
+    data.frame(dimension = 0L, birth = 0, death = 0), empty)), 0)
+  # VR-style essential classes (death = Inf) are still essential
+  ess <- data.frame(dimension = 0L, birth = 0, death = Inf)
+  expect_identical(unname(hg_wasserstein(ess, empty)), Inf)
+})
+
+test_that("Wasserstein distances do not overflow for large orders", {
+  a <- data.frame(dimension = 0L, birth = 0, death = 20)
+  b <- data.frame(dimension = 0L, birth = 1, death = 23)
+  # L_p ground distance of (1, 3) tends to 3 as p grows
+  expect_equal(unname(hg_wasserstein(a, b, internal_p = 10000)), 3,
+               tolerance = 1e-3)
+  empty <- data.frame(dimension = integer(0), birth = numeric(0),
+                      death = numeric(0))
+  # two points 1 from the diagonal: (2 * 1^q)^(1/q)
+  two <- data.frame(dimension = 0L, birth = c(0, 0), death = c(2, 2))
+  expect_equal(unname(hg_wasserstein(two, empty, order = 1000)), 2^(1 / 1000))
+  wide <- data.frame(dimension = 0L, birth = 0, death = 1e200)
+  expect_equal(unname(hg_wasserstein(wide, empty, order = 50)), 5e199)
+  # ordinary orders are unchanged
+  expect_equal(unname(hg_wasserstein(a, b, order = 2, internal_p = 2)),
+               sqrt(1 + 9))
+})
+
+test_that("invalid diagram coordinates raise a classed input error", {
+  empty <- data.frame(dimension = integer(0), birth = numeric(0),
+                      death = numeric(0))
+  expect_error(hg_wasserstein(data.frame(dimension = 0L, birth = NA,
+                                         death = 1), empty),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_wasserstein(empty, data.frame(dimension = 0.5, birth = 0,
+                                                death = 1)),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_wasserstein(data.frame(dimension = 0L, birth = Inf,
+                                         death = Inf), empty),
+               class = "hypergraphs_bad_input")
+})
+
+# ---- Accessor controls (M13) -----------------------------------------------
+
+test_that("hg_get() refuses a fractional homology dimension", {
+  ph <- hg_homology(simplicial(list(c("a", "b", "c")), type = "window"),
+                    max_dim = 1L)
+  expect_error(hg_get(ph, dimension = 0.5), class = "hypergraphs_bad_input")
+  expect_identical(nrow(hg_get(ph, what = "betti", dimension = 1)), 1L)
+})

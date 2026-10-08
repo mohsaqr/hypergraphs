@@ -137,3 +137,82 @@ test_that("broken contracts raise classed errors", {
                class = "hypergraphs_bad_input")
   expect_error(hg_degree_correlation(list()), class = "hypergraphs_bad_input")
 })
+
+# ---- Audit regressions (2026-10-06) ---------------------------------------
+
+# Independent oracle: enumerate the chosen ordered pairs of every hyperedge
+# with their probabilities (each hyperedge carries total weight 1) and take
+# the weighted Pearson correlation with stats::cov.wt().
+.as_enumerated <- function(hg, type, scale = "degree") {
+  inc <- (as.matrix(hg$incidence) > 0) * 1
+  degree <- rowSums(inc)
+  x <- if (identical(scale, "rank")) rank(degree) else degree
+  edges <- lapply(seq_len(ncol(inc)), \(j) which(inc[, j] > 0))
+  edges <- edges[lengths(edges) >= 2L]
+  pairs <- do.call(rbind, lapply(edges, \(v) {
+    s <- x[v]
+    if (identical(type, "uniform")) {
+      g <- expand.grid(i = seq_along(v), j = seq_along(v))
+      g <- g[g$i != g$j, ]
+      data.frame(a = s[g$i], b = s[g$j], w = 1 / nrow(g))
+    } else if (identical(type, "top_2")) {
+      top <- sort(s, decreasing = TRUE)[1:2]
+      data.frame(a = top, b = rev(top), w = 0.5)
+    } else {
+      data.frame(a = max(s), b = min(s), w = 1)
+    }
+  }))
+  cw <- stats::cov.wt(as.matrix(pairs[c("a", "b")]), wt = pairs$w / sum(pairs$w),
+                      cor = TRUE, method = "ML")
+  cw$cor[1L, 2L]
+}
+
+test_that("A07: near-regular large degrees keep a defined coefficient", {
+  n <- 10000L
+  d <- data.frame(
+    node = c(rep(c("a", "b", "c"), n), "a", "b"),
+    hyperedge = c(rep(sprintf("e%05d", seq_len(n)), each = 3), "z", "z")
+  )
+  hg <- group_hypergraph(d, node = "node", hyperedge = "hyperedge")
+  got <- hg_assortativity(hg, type = "uniform", scale = "degree")
+  expect_false(is.na(got$assortativity))
+  # degrees (10001, 10001, 10000) shift exactly to the 0/1 scores (1, 1, 0).
+  # Closed form over the n triangles (ordered pairs (1,1) x 2, (1,0) x 2,
+  # (0,1) x 2, each 1/6) and the edge {a, b} (pair (1,1)): with p = E[X]
+  # and q = E[XY], r = (q - p^2) / (p (1 - p)).
+  p <- (n * 2 / 3 + 1) / (n + 1)
+  q <- (n / 3 + 1) / (n + 1)
+  expect_equal(got$assortativity, (q - p^2) / (p * (1 - p)), tolerance = 1e-10)
+  # top_2 and top_bottom are genuinely constant here: still NA
+  expect_true(all(is.na(hg_assortativity(hg, type = c("top_2", "top_bottom"),
+                                         scale = "degree")$assortativity)))
+})
+
+test_that("A07: coefficients equal the enumerated weighted Pearson", {
+  lapply(1:3, \(seed) {
+    hg <- random_hypergraph("gnp", n = 10, m = 12, p = 0.35, seed = seed)
+    lapply(c("uniform", "top_2", "top_bottom"), \(ty) lapply(
+      c("degree", "rank"), \(sc) {
+        expect_equal(hg_assortativity(hg, type = ty, scale = sc)$assortativity,
+                     .as_enumerated(hg, ty, sc), tolerance = 1e-10)
+      }))
+  })
+})
+
+test_that("A07: scores are shift and scale invariant; regular stays NA", {
+  hg <- random_hypergraph("gnp", n = 10, m = 12, p = 0.35, seed = 2)
+  membership <- (as.matrix(hg$incidence) > 0) * 1
+  members <- lapply(seq_len(ncol(membership)), \(j) which(membership[, j] > 0))
+  members <- members[lengths(members) >= 2L]
+  x <- rowSums(membership)
+  lapply(c("uniform", "top_2", "top_bottom"), \(ty) {
+    base <- .hg_assort_one(.hg_standardise_scores(x, members), members, ty)
+    moved <- .hg_assort_one(.hg_standardise_scores(7 * x + 1e9, members),
+                            members, ty)
+    expect_equal(moved, base, tolerance = 1e-10)
+  })
+  regular <- random_hypergraph("regular", n = 12, m = 8, k = 3, seed = 1)
+  expect_true(all(is.na(hg_assortativity(
+    regular, type = c("uniform", "top_2", "top_bottom"),
+    scale = "degree")$assortativity)))
+})

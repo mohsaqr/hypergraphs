@@ -32,8 +32,9 @@ partition), \code{best}.}
 in the best first-order partition, and its first-order \code{flow}.}
 \item{\code{"codelength"}}{one row per model (\code{memory}, \code{first_order}):
 \code{codelength}, \code{index_codelength}, \code{module_codelength},
-\code{one_level_codelength}, \code{savings_bits}, \code{savings_pct},
-\code{n_communities}.}
+\code{one_level_codelength}, \code{savings_bits}, \code{savings_pct} (0 when the
+one-module codelength is 0, as for a single state: there is
+nothing to save), \code{n_communities}.}
 }}
 
 \item{...}{Ignored.}

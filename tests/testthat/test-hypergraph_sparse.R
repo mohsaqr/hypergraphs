@@ -168,3 +168,189 @@ test_that("sparse scale: thousands of documents classify in seconds", {
   accuracy <- mean(fit$predicted == truth)
   expect_gt(accuracy, 0.95)
 })
+
+# ---- R11: sparse measures use the dense engine's definitions ------------
+
+.sparse_general <- function(m) {
+  methods::as(methods::as(m, "CsparseMatrix"), "generalMatrix")
+}
+
+.measure_fixtures <- function() {
+  inc <- function(cols, nodes) {
+    m <- vapply(cols, \(members) as.numeric(nodes %in% members),
+                numeric(length(nodes)))
+    m <- matrix(m, nrow = length(nodes),
+                dimnames = list(nodes, names(cols) %||% character(0)))
+    m
+  }
+  list(
+    # the audit fixture: {a,b}, {b,c} plus the isolate z
+    uniform_isolate = inc(list(e1 = c("a", "b"), e2 = c("b", "c")),
+                          c("a", "b", "c", "z")),
+    uniform_3 = inc(list(e1 = c("a", "b", "c"), e2 = c("b", "c", "d"),
+                         e3 = c("a", "c", "d")), c("a", "b", "c", "d")),
+    mixed = inc(list(e1 = c("a", "b", "c"), e2 = c("c", "d"),
+                     e3 = c("d")), c("a", "b", "c", "d", "z")),
+    with_empty_edge = inc(list(e1 = c("a", "b"), e2 = character(0),
+                               e3 = c("b", "c", "d")), c("a", "b", "c", "d")),
+    singleton = inc(list(e1 = "a"), "a"),
+    no_edges = inc(list(), c("a", "b", "c"))
+  )
+}
+
+test_that("REGRESSION R11: sparse measures equal dense measures on every shape", {
+  for (nm in names(.measure_fixtures())) {
+    m <- .measure_fixtures()[[nm]]
+    dense <- hypergraphs:::.thg_from_incidence(m, list())
+    sparse <- hypergraphs:::.thg_from_incidence(.sparse_general(m), list())
+    for (what in c("nodes", "edges", "overlap", "summary")) {
+      expect_equal(hg_measures(sparse, what = what),
+                   hg_measures(dense, what = what),
+                   tolerance = 1e-12, info = paste(nm, what))
+    }
+  }
+})
+
+test_that("REGRESSION R11: the documented values on the audit fixture", {
+  m <- .measure_fixtures()$uniform_isolate
+  sparse <- hypergraphs:::.thg_from_incidence(.sparse_general(m), list())
+  summary_tab <- hg_measures(sparse, what = "summary")
+  value <- stats::setNames(summary_tab$value, summary_tab$measure)
+  # 2 of the choose(4, 2) = 6 vertex pairs co-occur: ab, bc
+  expect_equal(value[["pairwise_participation"]], 2 / 6)
+  # 2-uniform: m / choose(n, 2)
+  expect_equal(value[["density"]], 2 / choose(4, 2))
+  nodes <- hg_measures(sparse, what = "nodes")
+  expect_identical(nodes$max_edge_size, c(2L, 2L, 2L, 0L))
+  expect_identical(nodes$n_neighbors, c(1L, 2L, 1L, 0L))
+  no_edges <- hypergraphs:::.thg_from_incidence(
+    .sparse_general(.measure_fixtures()$no_edges), list()
+  )
+  empty_summary <- hg_measures(no_edges, what = "summary")
+  expect_identical(empty_summary$value[empty_summary$measure == "density"], 0)
+  expect_true(is.na(
+    empty_summary$value[empty_summary$measure == "avg_edge_size"]
+  ))
+})
+
+# ---- R25: sparse clustering honours the dense count contract ------------
+
+test_that("REGRESSION R25: sparse hg_cluster refuses invalid k and nstart", {
+  path <- data.frame(node = c("a", "b", "b", "c"),
+                     edge = c("e1", "e1", "e2", "e2"))
+  sparse <- group_hypergraph(path, node = "node", hyperedge = "edge",
+                             sparse = TRUE)
+  dense <- group_hypergraph(path, node = "node", hyperedge = "edge")
+  bad_k <- list(1, 1.5, 3, Inf, NA_real_, -2, 3e9, c(2, 2))
+  for (k in bad_k) {
+    expect_error(hg_cluster(sparse, k = k), class = "hypergraphs_bad_input",
+                 info = paste(k, collapse = ","))
+  }
+  for (nstart in list(0, 1.5, NA_real_, Inf, 3e9)) {
+    expect_error(hg_cluster(sparse, k = 2, nstart = nstart),
+                 class = "hypergraphs_bad_input", info = nstart)
+  }
+  # the dense engine refuses the same controls with the same class
+  for (k in bad_k) {
+    expect_error(hg_cluster(dense, k = k), class = "hypergraphs_bad_input",
+                 info = paste(k, collapse = ","))
+  }
+  for (nstart in list(0, 1.5, NA_real_, Inf, 3e9)) {
+    expect_error(hg_cluster(dense, k = 2, nstart = nstart),
+                 class = "hypergraphs_bad_input", info = nstart)
+  }
+  # the smallest valid sparse case still clusters, as the dense one does
+  expect_identical(hg_cluster(sparse, k = 2, seed = 1),
+                   hg_cluster(dense, k = 2, seed = 1))
+  expect_identical(nrow(hg_cluster(sparse, k = 2, nstart = 1, seed = 1)), 3L)
+})
+
+# ---- A04: empty hyperedges contribute nothing to the sparse walk ---------
+
+test_that("REGRESSION A04: sparse PageRank ignores an empty hyperedge", {
+  # seed 4 draws one empty column (h2) on a connected support
+  h <- random_hypergraph("gnp", n = 3, m = 4, p = 0.5, seed = 4)
+  expect_identical(unname(colSums(h$incidence))[2L], 0)
+  sparse <- h
+  sparse$incidence <- .sparse_general(h$incidence)
+  without_empty <- hg_subset(h, edges = c("h1", "h3", "h4"),
+                             drop_isolated = FALSE)
+  # the default dispersion weight of an empty column is 1, not 0/0
+  expect_identical(hypergraphs:::.thg_sparse_edge_weights(sparse$incidence),
+                   c(1, 1, 1, 1))
+  for (damping in c(0.85, 1)) {
+    sparse_pr <- hg_pagerank(sparse, damping = damping)
+    expect_true(all(is.finite(sparse_pr$pagerank)))
+    expect_equal(sparse_pr, hg_pagerank(h, damping = damping),
+                 tolerance = 1e-10)
+    expect_equal(sparse_pr, hg_pagerank(without_empty, damping = damping),
+                 tolerance = 1e-10)
+  }
+  # the Zhou similarity operator behind sparse transduction, likewise
+  labels <- c(V1 = "x", V3 = "y")
+  expect_equal(hg_classify(sparse, labels = labels),
+               hg_classify(h, labels = labels), tolerance = 1e-8)
+})
+
+test_that("SymNMF on a sparse hypergraph matches the dense engine", {
+  # repeated words and uneven document lengths, so the random-walk
+  # (edge-dependent weights) and Zhou similarities genuinely differ
+  docs <- c(
+    d1 = "solar solar solar wind energy grid night",
+    d2 = "solar panels energy energy night",
+    d3 = "wind wind turbines grid energy night night",
+    d4 = "coal plant emissions emissions emissions night",
+    d5 = "coal coal mining emissions plant night",
+    d6 = "gas plant emissions night",
+    d7 = "solar wind turbines turbines night",
+    d8 = "coal gas gas gas emissions night night")
+  dense <- text_hypergraph(docs)
+  sparse <- text_hypergraph(docs, sparse = TRUE)
+  expect_true(.thg_is_sparse(sparse))
+  similarity <- \(type) as.matrix(Matrix::Diagonal(length(docs)) -
+                                   .hl_build(sparse, type, NULL)$L)
+  expect_gt(max(abs(similarity("zhou") - similarity("random_walk"))), 0.01)
+  for (type in c("zhou", "random_walk")) {
+    a <- hg_cluster(dense, k = 2, type = type, algorithm = "symnmf",
+                    seed = 3, nstart = 3, what = "membership")
+    b <- hg_cluster(sparse, k = 2, type = type, algorithm = "symnmf",
+                    seed = 3, nstart = 3, what = "membership")
+    expect_equal(b, a, tolerance = 1e-6)
+    expect_equal(as.numeric(tapply(b$membership, b$node, sum)),
+                 rep(1, length(docs)), tolerance = 1e-12)
+  }
+  # leading eigenvalues agree with the dense spectrum
+  ev_dense <- hg_cluster(dense, k = 2, algorithm = "symnmf", seed = 3,
+                         what = "eigenvalues")
+  ev_sparse <- hg_cluster(sparse, k = 2, algorithm = "symnmf", seed = 3,
+                          what = "eigenvalues")
+  expect_equal(ev_sparse$value, utils::head(ev_dense$value, 3),
+               tolerance = 1e-8)
+})
+
+test_that("sparse SymNMF refuses a similarity too large to hold", {
+  sparse <- text_hypergraph(c(a = "x y night", b = "y z night",
+                              c = "z x night"), sparse = TRUE)
+  expect_error(.thg_sparse_symnmf(sparse, k = 2, type = "zhou",
+                                  edge_weights = NULL, nstart = 1, seed = 1,
+                                  max_iter = 10, tol = 1e-6, max_nodes = 2),
+               class = "hypergraphs_sparse_too_large")
+})
+
+test_that("hg_cluster runs SymNMF starts in parallel with the serial result", {
+  skip_on_os("windows")
+  docs <- c(d1 = "solar wind energy night", d2 = "solar panels energy night",
+            d3 = "coal plant emissions night", d4 = "coal gas emissions night",
+            d5 = "wind turbines grid night", d6 = "gas plant mining night")
+  for (sparse in c(FALSE, TRUE)) {
+    hg <- text_hypergraph(docs, sparse = sparse)
+    serial <- hg_cluster(hg, k = 2, algorithm = "symnmf", seed = 4,
+                         nstart = 3, what = "membership")
+    forked <- suppressWarnings(  # a macOS fork may fall back to serial
+      hg_cluster(hg, k = 2, algorithm = "symnmf", seed = 4, nstart = 3,
+                 what = "membership", parallel = TRUE, n_cores = 2))
+    expect_identical(forked, serial)
+  }
+  expect_error(hg_cluster(text_hypergraph(docs), k = 2, parallel = TRUE),
+               class = "hypergraphs_bad_input")
+})

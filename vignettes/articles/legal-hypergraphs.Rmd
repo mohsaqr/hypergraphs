@@ -724,14 +724,16 @@ communities_mhs <- hg_communities(backward_all, n_runs = 5, trials = 5,
 ```
 
 The eight partitions are set side by side. With `hg`, each medoid is also
-scored on the graph it was computed on.
+scored on the graph it was computed on. The quality measures are defined on
+undirected graphs, so the two directed citation fits (`bg`, `mg`) get no
+score and the comparison warns about them.
 
 ```{r gfcc-compare, eval = has_igraph}
 comparison <- hg_compare_communities(
   bg = communities_bg, bgu = communities_bgu, mg = communities_mg,
   mgu = communities_mgu, bh = communities_bh, bhs = communities_bhs,
   mh = communities_mh, mhs = communities_mhs,
-  hg = backward_all, edge_source = "citing"
+  hg = backward_all
 )
 comparison
 ```
@@ -793,13 +795,13 @@ hg_get(comparison, what = "quality")
 ```{r gfcc-quality-values, eval = has_igraph, include = FALSE}
 quality <- hg_get(comparison, what = "quality")
 quality_hyper <- subset(quality, model %in% hyper)
-quality_graph <- subset(quality, !model %in% hyper)
+quality_graph <- subset(quality, !model %in% hyper & !is.na(modularity))
 ```
 
 The medoids of the hypergraph representations reach a graph modularity
 between `r sprintf("%.2f", min(quality_hyper$modularity))` and
 `r sprintf("%.2f", max(quality_hyper$modularity))` on their own graphs,
-and those of the citation graphs between
+and those of the undirected citation graphs between
 `r sprintf("%.2f", min(quality_graph$modularity))` and
 `r sprintf("%.2f", max(quality_graph$modularity))`. Each score is computed
 on a different graph, so the comparison describes how clearly each

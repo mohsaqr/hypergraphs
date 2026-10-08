@@ -2,6 +2,31 @@
 # Node-level, hyperedge-level, and global statistics for a net_hg.
 # All measures are fast matrix operations on the incidence matrix B.
 
+# Global measure definitions, shared by the dense engine below, the sparse
+# engine (.thg_sparse_measures()) and the null-model statistics
+# (.thg_null_statistics()), so all three report the same number.
+
+# Density from the hyperedge sizes (distinct members) and the vertex count:
+# m / choose(n, k) when every hyperedge has the same size k (0 when k > n),
+# otherwise the mean fraction of vertices per hyperedge, sum(|e|) / (n * m).
+# A hypergraph without hyperedges has density 0.
+.hg_density <- function(edge_sizes, n) {
+  m <- length(edge_sizes)
+  if (m == 0L) return(0)
+  if (length(unique(edge_sizes)) == 1L) {
+    k <- edge_sizes[[1L]]
+    return(if (k > n) 0 else m / choose(n, k))
+  }
+  sum(edge_sizes) / (n * m)
+}
+
+# Share of the choose(n, 2) vertex pairs that co-occur in at least one
+# hyperedge; 0 when there are fewer than two vertices (no pair exists).
+.hg_pairwise_participation <- function(n_sharing_pairs, n) {
+  if (n < 2L) return(0)
+  n_sharing_pairs / choose(n, 2L)
+}
+
 #' Structural measures for a hypergraph
 #'
 #' Computes a comprehensive structural-statistics suite for a
@@ -98,15 +123,16 @@
         max_edge_size          = stats::setNames(integer(n), hg$nodes),
         co_degree              = matrix(0, n, n,
                                         dimnames = list(hg$nodes, hg$nodes)),
-        edge_sizes             = integer(0),
+        edge_sizes             = stats::setNames(integer(0),
+                                                 character(0)),
         edge_pairwise_overlap  = empty_mm,
         overlap_coefficient    = empty_mm,
         jaccard                = empty_mm,
-        density                = 0,
+        density                = .hg_density(integer(0), n),
         avg_edge_size          = NA_real_,
         size_distribution      = hg$size_distribution,
         intersection_profile   = integer(0),
-        pairwise_participation = 0,
+        pairwise_participation = .hg_pairwise_participation(0, n),
         n_nodes                = n,
         n_hyperedges           = 0L
       ),
@@ -115,8 +141,8 @@
   }
 
   B_bin <- (B > 0) * 1.0
-  edge_sizes <- as.integer(colSums(B_bin))
   edge_names <- colnames(B) %||% paste0("h", seq_len(m))
+  edge_sizes <- stats::setNames(as.integer(colSums(B_bin)), edge_names)
 
   # ---- Node-level ----
   hyperdegree <- stats::setNames(as.integer(rowSums(B_bin)), hg$nodes)
@@ -158,13 +184,7 @@
   }
 
   # ---- Global ----
-  is_uniform <- length(unique(edge_sizes)) == 1L
-  density <- if (is_uniform) {
-    k <- edge_sizes[1L]
-    if (k > n) 0 else m / choose(n, k)
-  } else {
-    sum(edge_sizes) / (n * m)
-  }
+  density <- .hg_density(edge_sizes, n)
   avg_edge_size <- mean(edge_sizes)
 
   intersection_profile <- if (pairs && m >= 2L) {
@@ -177,11 +197,9 @@
     integer(0L)
   }
 
-  pairwise_participation <- if (n >= 2L) {
-    sum(co_degree[upper.tri(co_degree)] > 0) / choose(n, 2L)
-  } else {
-    0
-  }
+  pairwise_participation <- .hg_pairwise_participation(
+    sum(co_degree[upper.tri(co_degree)] > 0), n
+  )
 
   structure(
     list(

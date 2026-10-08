@@ -399,3 +399,147 @@ test_that("zero-mass classes are refused with a classed condition", {
   expect_error(.hl_score_predictions(f, c("A", NA), "class_mass"),
                class = "hypergraphs_bad_input")
 })
+
+# ---- Audit regressions (2026-10-06) ---------------------------------------
+
+# the same hypergraph with its empty hyperedges (and only those) removed
+.hl_drop_empty <- function(hg) {
+  keep <- colSums(hg$incidence != 0) > 0
+  .thg_from_incidence(hg$incidence[, keep, drop = FALSE], params = hg$params)
+}
+
+test_that("A04: empty hyperedges contribute nothing to the Laplacians", {
+  hg <- random_hypergraph("gnp", n = 3, m = 4, p = 0.5, seed = 4)
+  expect_true(any(colSums(hg$incidence) == 0))
+  ref <- .hl_drop_empty(hg)
+  lapply(c("zhou", "random_walk"), \(ty) {
+    got <- hg_laplacian(hg, type = ty)
+    want <- hg_laplacian(ref, type = ty)
+    expect_true(all(is.finite(got)))
+    expect_equal(unclass(got)[, ], unclass(want)[, ], tolerance = 1e-12,
+                 ignore_attr = TRUE)
+    expect_equal(attr(got, "pi"), attr(want, "pi"), tolerance = 1e-12)
+    # one reported weight per hyperedge, the empty one included
+    expect_length(attr(got, "edge_weights"), hg$n_hyperedges)
+  })
+  # explicit weights stay aligned with the incidence columns
+  w <- c(2, 5, 3, 4)
+  keep <- colSums(hg$incidence) > 0
+  got <- hg_laplacian(hg, type = "random_walk", edge_weights = w)
+  want <- hg_laplacian(ref, type = "random_walk", edge_weights = w[keep])
+  expect_equal(unclass(got)[, ], unclass(want)[, ], tolerance = 1e-12,
+               ignore_attr = TRUE)
+  expect_identical(attr(got, "edge_weights"), w)
+})
+
+test_that("A04: walks, PageRank and downstream fits ignore empty hyperedges", {
+  hg <- random_hypergraph("gnp", n = 3, m = 4, p = 0.5, seed = 4)
+  ref <- .hl_drop_empty(hg)
+  expect_equal(hg_pagerank(hg), hg_pagerank(ref), tolerance = 1e-12)
+  expect_equal(hg_centrality(hg, type = "pagerank"),
+               hg_centrality(ref, type = "pagerank"), tolerance = 1e-12)
+  lab <- c(V1 = "x", V3 = "y")
+  expect_equal(.hg_transduction_fit(hg, lab)$scores,
+               .hg_transduction_fit(ref, lab)$scores, tolerance = 1e-12)
+  # seed 1: connected, with at least one empty hyperedge
+  big <- random_hypergraph("gnp", n = 8, m = 12, p = 0.3, seed = 1)
+  expect_true(any(colSums(big$incidence) == 0) && .hl_connected(big))
+  expect_identical(.hg_cluster_fit(big, k = 2, seed = 1)$clusters,
+                   .hg_cluster_fit(.hl_drop_empty(big), k = 2,
+                                   seed = 1)$clusters)
+})
+
+test_that("A05: hg_laplacian on a sparse hypergraph equals the dense one", {
+  long <- data.frame(
+    node = c("a", "b", "b", "c", "c", "d", "a", "d"),
+    hyperedge = c("X", "X", "Y", "Y", "Z", "Z", "W", "W"),
+    hours = c(2, 1, 3, 1, 2, 2, 1, 4)
+  )
+  dense <- group_hypergraph(long, node = "node", hyperedge = "hyperedge",
+                            weight = "hours")
+  sparse <- group_hypergraph(long, node = "node", hyperedge = "hyperedge",
+                             weight = "hours", sparse = TRUE)
+  lapply(list(NULL, c(1, 2, 3, 4)), \(w) lapply(c("zhou", "random_walk"),
+    \(ty) {
+      d <- hg_laplacian(dense, type = ty, edge_weights = w)
+      s <- hg_laplacian(sparse, type = ty, edge_weights = w)
+      expect_s4_class(s, "symmetricMatrix")
+      expect_identical(dimnames(s), dimnames(d))
+      expect_equal(as.matrix(s), unclass(d)[, ], tolerance = 1e-10,
+                   ignore_attr = TRUE)
+      expect_equal(attr(s, "pi"), attr(d, "pi"), tolerance = 1e-10)
+      expect_equal(attr(s, "edge_weights"), attr(d, "edge_weights"),
+                   tolerance = 1e-12)
+      expect_identical(attr(s, "type"), ty)
+    }))
+  # disconnected sparse input keeps the classed condition
+  split_long <- data.frame(node = c("a", "b", "c", "d"),
+                           hyperedge = c("X", "X", "Y", "Y"))
+  expect_error(
+    hg_laplacian(group_hypergraph(split_long, node = "node",
+                                  hyperedge = "hyperedge", sparse = TRUE)),
+    class = "hypergraphs_hypergraph_disconnected"
+  )
+})
+
+test_that("cluster and NMF iteration controls refuse Inf and fractions", {
+  hg <- .hl_planted()
+  lapply(list(Inf, 2.5, 0, NA), \(bad) {
+    expect_error(.hg_cluster_fit(hg, k = 2, nstart = bad),
+                 class = "hypergraphs_bad_input")
+    expect_error(.hg_cluster_fit(hg, k = 2, algorithm = "symnmf",
+                                 max_iter = bad),
+                 class = "hypergraphs_bad_input")
+    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), 2, nstart = bad),
+                 class = "hypergraphs_bad_input")
+    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), 2, max_iter = bad),
+                 class = "hypergraphs_bad_input")
+  })
+  lapply(list(Inf, 0, -1), \(bad) {
+    expect_error(.hg_cluster_fit(hg, k = 2, tol = bad),
+                 class = "hypergraphs_bad_input")
+    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), 2, tol = bad),
+                 class = "hypergraphs_bad_input")
+  })
+  lapply(list(Inf, 1, 6, 2.5), \(bad) {
+    expect_error(.hg_cluster_fit(hg, k = bad), class = "hypergraphs_bad_input")
+    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), bad),
+                 class = "hypergraphs_bad_input")
+  })
+})
+
+test_that("dense-only engines refuse sparse input with a classed condition", {
+  long <- data.frame(
+    node = c("a", "b", "b", "c", "c", "d", "a", "d"),
+    hyperedge = c("X", "X", "Y", "Y", "Z", "Z", "W", "W")
+  )
+  sparse <- group_hypergraph(long, node = "node", hyperedge = "hyperedge",
+                             sparse = TRUE)
+  expect_error(hg_joint_cluster(sparse, diag(4), 2),
+               class = "hypergraphs_sparse_unsupported")
+  expect_error(.hg_cluster_fit(sparse, k = 2),
+               class = "hypergraphs_sparse_unsupported")
+  expect_error(.hg_transduction_fit(sparse, c(a = "x", c = "y")),
+               class = "hypergraphs_sparse_unsupported")
+})
+
+test_that("A16: the embedding plot builds for more than nine clusters", {
+  hg <- random_hypergraph("uniform", n = 12, m = 30, k = 3, seed = 1)
+  lapply(c(2L, 9L, 10L), \(k) {
+    fit <- .hg_cluster_fit(hg, k = k, seed = 1)
+    built <- ggplot2::ggplot_build(plot(fit, what = "embedding"))$data[[1L]]
+    realized <- length(unique(fit$clusters$cluster))
+    pairs <- unique(built[c("group", "colour", "shape")])
+    expect_identical(nrow(pairs), realized)
+    # every cluster has a distinct colour-shape pair, colours Okabe-Ito only
+    expect_identical(nrow(unique(pairs[c("colour", "shape")])), realized)
+    expect_true(all(pairs$colour %in% c("#E69F00", "#56B4E9", "#009E73",
+                                        "#F0E442", "#0072B2", "#D55E00",
+                                        "#CC79A7", "#999999", "#000000")))
+  })
+  # fewer realized clusters than requested (as NMF can leave one empty)
+  fit <- .hg_cluster_fit(hg, k = 10, seed = 1)
+  fit$clusters$cluster[fit$clusters$cluster == "Cluster 10"] <- "Cluster 1"
+  built <- ggplot2::ggplot_build(plot(fit, what = "embedding"))$data[[1L]]
+  expect_identical(length(unique(built$group)), 9L)
+})

@@ -14,9 +14,14 @@
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypergraphs
 #'   `net_hg`.
-#' @return A hypergraph whose incidence is the transpose of `hg`'s: a
-#'   `text_hypergraph` with flipped `nodes` for bag constructions, otherwise
-#'   a `net_hg`. Accepted by all `hg_*` verbs.
+#' @return A hypergraph whose incidence is exactly the transpose of `hg`'s,
+#'   sparse when `hg` is sparse, with every row and column kept: an isolated
+#'   vertex of `hg` becomes an empty hyperedge of the dual and an empty
+#'   hyperedge an isolated vertex, so the dual of the dual is `hg`'s
+#'   incidence again. A `text_hypergraph` with flipped `nodes` for bag
+#'   constructions (dense or sparse), otherwise a `net_hg`. Hyperedge
+#'   metadata (`edge_data`, window counts) describes hyperedges that become
+#'   vertices, so it is not carried over. Accepted by all `hg_*` verbs.
 #' @references
 #' Berge, C. (1989). *Hypergraphs: Combinatorics of Finite Sets*.
 #' North-Holland Mathematical Library 45. North-Holland.
@@ -28,24 +33,15 @@
 #' @export
 dual_hypergraph <- function(hg) {
   .thg_check_hg(hg)
-  if (.thg_is_sparse(hg)) {
-    triplet <- methods::as(hg$incidence, "TsparseMatrix")
-    long <- data.frame(
-      vertex = colnames(hg$incidence)[triplet@j + 1L],
-      edge = rownames(hg$incidence)[triplet@i + 1L],
-      w = triplet@x
-    )
-    return(.thg_sparse_bipartite(long, node = "vertex", hyperedge = "edge",
-                                 weight = "w"))
-  }
-  nz <- which(hg$incidence != 0, arr.ind = TRUE)
-  long <- data.frame(
-    vertex = colnames(hg$incidence)[nz[, "col"]],
-    edge = rownames(hg$incidence)[nz[, "row"]],
-    w = as.numeric(hg$incidence[nz])
+  sparse <- .thg_is_sparse(hg)
+  # The dual is the transpose of the whole incidence, so an isolated vertex
+  # becomes an empty hyperedge and an empty hyperedge an isolated vertex;
+  # every other field is derived from that transpose, on both storages.
+  incidence <- if (sparse) Matrix::t(hg$incidence) else t(hg$incidence)
+  dual <- .thg_from_incidence(
+    incidence,
+    params = list(source = "dual_hypergraph", sparse = sparse)
   )
-  dual <- group_hypergraph(long, node = "vertex",
-                                      hyperedge = "edge", weight = "w")
   if (inherits(hg, "text_hypergraph") &&
       identical(hg$text$construction, "bag")) {
     dual$text <- hg$text

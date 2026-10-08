@@ -32,8 +32,9 @@
 #' weights they coincide.
 #'
 #' @param hg A `net_hg` from [network_hypergraph()] or
-#'   [group_hypergraph()]. Must be connected and have at least one
-#'   hyperedge.
+#'   [group_hypergraph()], dense or sparse (`sparse = TRUE`). Must be
+#'   connected and have at least one hyperedge. Empty hyperedges (which
+#'   [random_hypergraph()] can produce) contribute nothing.
 #' @param type Character. `"zhou"` (default) for the Zhou et al. (2006)
 #'   normalized Laplacian on the binary incidence pattern, or
 #'   `"random_walk"` for the Hayashi et al. (2020) EDVW random-walk
@@ -50,11 +51,18 @@
 #' @return A symmetric `n_nodes` x `n_nodes` numeric matrix (node names as
 #'   dimnames) with attributes `type` (the Laplacian type),
 #'   `pi` (named stationary distribution of the underlying random walk)
-#'   and `edge_weights` (the hyperedge weights actually used).
+#'   and `edge_weights` (the hyperedge weights, one per hyperedge; an empty
+#'   hyperedge's default weight is 1 and unused). For a sparse hypergraph
+#'   the matrix is a sparse symmetric `Matrix` (class `dsCMatrix`) with the
+#'   same dimnames and attributes, and the random-walk stationary
+#'   distribution is found by power iteration rather than a dense
+#'   eigendecomposition. A disconnected hypergraph raises
+#'   `hypergraphs_hypergraph_disconnected`.
 #'
 #' @references
 #' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
+#' \doi{10.7551/mitpress/7503.003.0205}
 #'
 #' Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
 #' random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.
@@ -147,28 +155,18 @@ hg_laplacian <- function(hg,
                                seed = NULL,
                                algorithm = c("spectral", "symnmf"),
                                max_iter = 500L,
-                               tol = 1e-6) {
+                               tol = 1e-6,
+                               parallel = FALSE,
+                               n_cores = 2L) {
   type <- match.arg(type)
   algorithm <- match.arg(algorithm)
   .hl_validate_hg(hg)
-  stopifnot(
-    "`k` must be a single whole number" =
-      is.numeric(k) && length(k) == 1L && is.finite(k) && k == round(k),
-    "`nstart` must be a single positive whole number" =
-      is.numeric(nstart) && length(nstart) == 1L && nstart >= 1 &&
-        nstart == round(nstart),
-    "`max_iter` must be a single positive whole number" =
-      is.numeric(max_iter) && length(max_iter) == 1L && max_iter >= 1 &&
-        max_iter == round(max_iter),
-    "`tol` must be a single positive finite number" =
-      is.numeric(tol) && length(tol) == 1L && is.finite(tol) && tol > 0
-  )
-  k <- as.integer(k)
+  .hl_require_dense(hg, "the dense clustering engine")
   n <- hg$n_nodes
-  if (k < 2L || k > n - 1L) {
-    stop(sprintf("`k` must be between 2 and n_nodes - 1 (= %d), got %d.",
-                 n - 1L, k), call. = FALSE)
-  }
+  k <- .hl_check_k(k, n)
+  nstart <- .ho_check_count(nstart, "nstart")
+  max_iter <- .ho_check_count(max_iter, "max_iter")
+  tol <- .hg_check_tol(tol)
   if (!is.null(seed)) set.seed(as.integer(seed))
 
   parts <- .hl_build(hg, type = type, edge_weights = edge_weights)
@@ -182,8 +180,7 @@ hg_laplacian <- function(hg,
     row_norm <- sqrt(rowSums(U^2))
     nz <- row_norm > 0
     U[nz, ] <- U[nz, , drop = FALSE] / row_norm[nz]
-    km <- stats::kmeans(U, centers = k, nstart = as.integer(nstart),
-                        iter.max = 100L)
+    km <- .ho_kmeans(U, k, nstart = as.integer(nstart), iter.max = 100L)
     assignment <- km$cluster
     diagnostics <- list(tot_withinss = km$tot.withinss)
   } else {
@@ -195,7 +192,8 @@ hg_laplacian <- function(hg,
     }
     T <- pmax((T + t(T)) / 2, 0)
     fit <- .hl_symnmf(T, k = k, nstart = as.integer(nstart), seed = seed,
-                      max_iter = as.integer(max_iter), tol = tol)
+                      max_iter = as.integer(max_iter), tol = tol,
+                      parallel = parallel, n_cores = n_cores)
     U <- fit$factor
     assignment <- max.col(U, ties.method = "first")
     diagnostics <- fit[c("objective", "objective_history", "iterations",
@@ -274,6 +272,7 @@ hg_laplacian <- function(hg,
 #' @references
 #' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
+#' \doi{10.7551/mitpress/7503.003.0205}
 #'
 #' Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
 #' using Gaussian fields and harmonic functions. \emph{ICML 20}.
@@ -286,6 +285,7 @@ hg_laplacian <- function(hg,
   type <- match.arg(type)
   normalization <- match.arg(normalization)
   .hl_validate_hg(hg)
+  .hl_require_dense(hg, "the dense transduction engine")
   stopifnot(
     "`xi` must be a single number in (0, 1)" =
       is.numeric(xi) && length(xi) == 1L && xi > 0 && xi < 1
@@ -386,7 +386,7 @@ hg_laplacian <- function(hg,
     "`hg` must have at least 2 nodes" = hg$n_nodes >= 2L,
     "`hg` must have at least 1 hyperedge" = hg$n_hyperedges >= 1L
   )
-  if (!.hl_is_connected(hg$incidence > 0)) {
+  if (!.hl_connected(hg)) {
     stop(errorCondition(
       paste0("The hypergraph is not connected; the random walk has no ",
              "unique stationary distribution. Analyze components ",
@@ -395,6 +395,18 @@ hg_laplacian <- function(hg,
     ))
   }
   invisible(TRUE)
+}
+
+#' Connectivity of a dense or sparse net_hg (the sparse search never forms
+#' the node co-membership matrix). A graph with at most one node is
+#' connected.
+#' @noRd
+.hl_connected <- function(hg) {
+  if (nrow(hg$incidence) <= 1L) return(TRUE)
+  if (.thg_is_sparse(hg)) {
+    return(.thg_sparse_connected((hg$incidence > 0) * 1))
+  }
+  .hl_is_connected(hg$incidence > 0)
 }
 
 #' Connectivity of the hypergraph via BFS on the node co-membership graph
@@ -418,14 +430,23 @@ hg_laplacian <- function(hg,
 .hl_pop_sd <- function(x) sqrt(mean((x - mean(x))^2))
 
 #' Build Laplacian + stationary distribution + edge weights for a type
+#'
+#' Works on a dense incidence (base matrices throughout) and on a sparse
+#' one (Matrix algebra throughout, returning a symmetric sparse Laplacian;
+#' the stationary distribution of the random-walk type then comes from
+#' power iteration on the sparse transition matrix instead of a dense
+#' eigendecomposition). Empty hyperedges carry no walk and no Laplacian
+#' term: they are left out of the algebra, while `w` keeps one weight per
+#' hyperedge, aligned with the incidence columns.
 #' @return list(L, pi, w)
 #' @noRd
 .hl_build <- function(hg, type, edge_weights) {
   gamma <- hg$incidence * 1.0
-  pattern <- (gamma > 0) * 1.0
+  sparse <- methods::is(gamma, "Matrix")
   n <- nrow(gamma)
   m <- ncol(gamma)
   nodes <- rownames(gamma) %||% hg$nodes
+  identity <- if (sparse) Matrix::Diagonal(n) else diag(n)
 
   edge_weights <- .hl_check_edge_weights(edge_weights, m)
 
@@ -433,11 +454,14 @@ hg_laplacian <- function(hg,
     # Binary incidence pattern; default hyperedge weights are the window
     # counts when present (window_hypergraph), else unit
     w <- as.numeric(edge_weights %||% hg$window_counts %||% rep(1, m))
-    delta_e <- colSums(pattern)
-    d_v <- as.vector(pattern %*% w)
+    keep <- .hl_nonempty(gamma)
+    pattern <- (gamma[, keep, drop = FALSE] > 0) * 1.0
+    w_keep <- w[keep]
+    delta_e <- Matrix::colSums(pattern)
+    d_v <- as.numeric(pattern %*% w_keep)
     Hs <- pattern / sqrt(d_v)
-    Theta <- Hs %*% ((w / delta_e) * t(Hs))
-    L <- diag(n) - (Theta + t(Theta)) / 2
+    Theta <- Hs %*% ((w_keep / delta_e) * Matrix::t(Hs))
+    L <- identity - (Theta + Matrix::t(Theta)) / 2
     pi_v <- d_v / sum(d_v)
   } else {
     # Hayashi EDVW random walk on the weighted incidence; the transition
@@ -446,11 +470,19 @@ hg_laplacian <- function(hg,
     w <- rw$w
     P <- rw$P
 
-    # Stationary distribution: dominant left eigenvector of P
-    eg <- eigen(t(P))
-    lead <- which.max(Mod(eg$values))
-    pi_v <- Re(eg$vectors[, lead])
-    pi_v <- pi_v / sum(pi_v)
+    if (sparse) {
+      # Stationary distribution by power iteration on the left action
+      # (the walk has self-loops, so it is aperiodic), never densifying P
+      pi_v <- .thg_sparse_stationary(list(
+        left = \(v) as.numeric(Matrix::crossprod(P, v)), d_v = rw$d_v
+      ))
+    } else {
+      # Stationary distribution: dominant left eigenvector of P
+      eg <- eigen(t(P))
+      lead <- which.max(Mod(eg$values))
+      pi_v <- Re(eg$vectors[, lead])
+      pi_v <- pi_v / sum(pi_v)
+    }
     if (min(pi_v) < -1e-8) {
       stop("Stationary distribution has negative mass; the walk appears ",
            "reducible despite the connectivity check.", call. = FALSE)
@@ -460,13 +492,48 @@ hg_laplacian <- function(hg,
 
     # Chung (2005) directed Laplacian, symmetrized via pi
     G <- (P * sqrt(pi_v))                       # scale rows by sqrt(pi)
-    G <- sweep(G, 2L, sqrt(pi_v), "/")          # scale cols by 1/sqrt(pi)
-    L <- diag(n) - (G + t(G)) / 2
+    G <- .hl_scale_cols(G, sqrt(pi_v), "/")     # scale cols by 1/sqrt(pi)
+    L <- identity - (G + Matrix::t(G)) / 2
   }
 
+  if (sparse) L <- Matrix::forceSymmetric(L)
   dimnames(L) <- list(nodes, nodes)
   names(pi_v) <- nodes
   list(L = L, pi = pi_v, w = w)
+}
+
+#' Columns of an incidence with at least one member (empty hyperedges are
+#' allowed by the random generators and carry nothing).
+#' @noRd
+.hl_nonempty <- function(incidence) {
+  as.logical(Matrix::colSums(incidence != 0) > 0)
+}
+
+#' Scale the columns of a dense or sparse matrix by `s` (`op = "*"`) or by
+#' `1 / s` (`op = "/"`); the dense branch is base `sweep()`.
+#' @noRd
+.hl_scale_cols <- function(x, s, op = c("*", "/")) {
+  op <- match.arg(op)
+  if (methods::is(x, "Matrix")) {
+    return(x %*% Matrix::Diagonal(x = if (op == "*") s else 1 / s))
+  }
+  sweep(x, 2L, s, op)
+}
+
+#' Hayashi et al. default hyperedge weights: the population standard
+#' deviation of each hyperedge's non-zero vertex weights, plus one. An empty
+#' hyperedge has no dispersion and gets 1; it carries no walk either way.
+#' @noRd
+.hl_default_edge_weights <- function(gamma) {
+  if (methods::is(gamma, "Matrix")) {
+    w <- .thg_sparse_edge_weights(gamma)
+    w[!.hl_nonempty(gamma)] <- 1
+    return(w)
+  }
+  vapply(seq_len(ncol(gamma)), function(j) {
+    x <- gamma[gamma[, j] > 0, j]
+    if (length(x)) .hl_pop_sd(x) + 1 else 1
+  }, numeric(1L))
 }
 
 #' EDVW random-walk transition matrix of a net_hg
@@ -475,9 +542,11 @@ hg_laplacian <- function(hg,
 #' (Chitra & Raphael 2019; Hayashi et al. 2020). Shared by .hl_build's
 #' random_walk branch and hg_centrality(type = "pagerank").
 #' Default hyperedge weights: window counts when present
-#' (window_hypergraph), else the Hayashi dispersion heuristic. Rows of
-#' nodes that sit in no hyperedge (d_v = 0) come back NaN; callers that
-#' tolerate such nodes (PageRank teleportation) must replace them.
+#' (window_hypergraph), else the Hayashi dispersion heuristic. Empty
+#' hyperedges are left out of the walk (a walker can never pick them) while
+#' `w` keeps one weight per hyperedge. Rows of nodes that sit in no
+#' hyperedge (d_v = 0) come back NaN; callers that tolerate such nodes
+#' (PageRank teleportation) must replace them. Dense or sparse incidence.
 #'
 #' @param hg A `net_hg`.
 #' @param edge_weights NULL or positive numeric vector, one per hyperedge.
@@ -485,19 +554,48 @@ hg_laplacian <- function(hg,
 #' @noRd
 .hl_rw_transition <- function(hg, edge_weights = NULL) {
   gamma <- hg$incidence * 1.0
-  pattern <- (gamma > 0) * 1.0
   m <- ncol(gamma)
   edge_weights <- .hl_check_edge_weights(edge_weights, m)
   w <- as.numeric(edge_weights %||% hg$window_counts %||%
-                    vapply(seq_len(m), function(j) {
-                      .hl_pop_sd(gamma[gamma[, j] > 0, j]) + 1
-                    }, numeric(1L)))
-  delta_e <- colSums(gamma)
-  d_v <- as.vector(pattern %*% w)
-  A <- sweep(pattern, 2L, w, "*") / d_v      # A[v,e] = w(e) 1[v in e]/d(v)
-  B <- t(gamma) / delta_e                     # B[e,u] = gamma_e(u)/delta(e)
+                    .hl_default_edge_weights(gamma))
+  keep <- .hl_nonempty(gamma)
+  gamma_keep <- gamma[, keep, drop = FALSE]
+  pattern <- (gamma_keep > 0) * 1.0
+  w_keep <- w[keep]
+  delta_e <- Matrix::colSums(gamma_keep)
+  d_v <- as.numeric(pattern %*% w_keep)
+  A <- .hl_scale_cols(pattern, w_keep) / d_v  # A[v,e] = w(e) 1[v in e]/d(v)
+  B <- Matrix::t(gamma_keep) / delta_e               # B[e,u] = gamma_e(u)/delta(e)
   list(P = A %*% B, w = w, d_v = d_v,
        nodes = rownames(gamma) %||% hg$nodes)
+}
+
+#' Refuse a sparse hypergraph in an engine that factorizes or inverts the
+#' dense n x n operator (the public verbs route sparse input to the
+#' operator-based engines in hypergraph_sparse.R instead).
+#' @noRd
+.hl_require_dense <- function(hg, what) {
+  if (.thg_is_sparse(hg)) {
+    stop(errorCondition(
+      sprintf("%s needs the dense representation; rebuild with `sparse = FALSE`",
+              what),
+      class = "hypergraphs_sparse_unsupported", call = NULL
+    ))
+  }
+  invisible(TRUE)
+}
+
+#' Validate a cluster count: one whole number from 2 to n_nodes - 1
+#' @noRd
+.hl_check_k <- function(k, n) {
+  # whole-number check first, so an out-of-range whole k gets the range
+  k <- .ho_check_count(k, "k", min = -.Machine$integer.max)
+  if (k < 2L || k > n - 1L) {
+    .ho_input_error(sprintf(
+      "`k` must be between 2 and n_nodes - 1 (= %d), got %d.", n - 1L, k
+    ))
+  }
+  k
 }
 
 #' Validate edge_weights; a positive scalar recycles to all hyperedges
@@ -643,6 +741,17 @@ plot.net_hg_cluster <- function(x,
   if (what == "spectrum") return(p_spec)
 
   df_e <- hg_get(x)
+  # Clusters actually realized (NMF can leave a requested cluster empty),
+  # ordered by number so "Cluster 10" follows "Cluster 9". Beyond nine
+  # clusters the Okabe-Ito colours recycle; the shapes recycle on a
+  # different period (14), so no two of the first 126 clusters share both
+  # colour and shape and colour is never the only cue.
+  cluster_ids <- unique(df_e$cluster)
+  cluster_ids <- cluster_ids[order(as.integer(sub("^Cluster ", "",
+                                                  cluster_ids)))]
+  df_e$cluster <- factor(df_e$cluster, levels = cluster_ids)
+  n_clusters <- length(cluster_ids)
+  shapes <- c(16, 17, 15, 18, 8, 7, 3, 4, 6, 0, 1, 2, 5, 14)
   p_emb <- ggplot2::ggplot(df_e, ggplot2::aes(x = .data$dim1,
                                               y = .data$dim2,
                                               color = .data$cluster,
@@ -650,10 +759,8 @@ plot.net_hg_cluster <- function(x,
     ggplot2::geom_point(ggplot2::aes(size = .data$pi), alpha = 0.85) +
     ggplot2::geom_text(ggplot2::aes(label = .data$node),
                        vjust = -1.1, size = 3.5, show.legend = FALSE) +
-    ggplot2::scale_color_manual(values = okabe) +
-    ggplot2::scale_shape_manual(
-      values = rep(c(16, 17, 15, 18, 8, 7, 3, 4, 6), length.out = x$k)
-    ) +
+    ggplot2::scale_color_manual(values = rep_len(okabe, n_clusters)) +
+    ggplot2::scale_shape_manual(values = rep_len(shapes, n_clusters)) +
     ggplot2::scale_size_continuous(range = c(2, 6),
                                    guide = "none") +
     ggplot2::expand_limits(

@@ -21,13 +21,15 @@ hg_pagerank(
 
 \item{damping}{Probability of following the hypergraph walk (default
 \code{0.85}); \code{1 - damping} is the teleport probability. Must be in
-\verb{(0, 1]}; \code{damping = 1} gives the pure stationary distribution and
-requires a connected hypergraph to converge.}
+\verb{(0, 1]}; \code{damping = 1} gives the pure stationary distribution, which
+is unique only on a connected hypergraph: a disconnected one raises
+\code{hypergraphs_hypergraph_disconnected}.}
 
 \item{personalized}{Optional restart preference: a character vector of
-vertex names (uniform teleport over exactly those vertices), or a
-named non-negative vector of teleport weights over (a subset of) the
-vertex names; unnamed vertices get teleport probability 0. \code{NULL}
+vertex names (uniform teleport over exactly those vertices; a name
+given twice counts once), or a named vector of finite non-negative
+teleport weights over (a subset of) the vertex names, each name at
+most once; unnamed vertices get teleport probability 0. \code{NULL}
 (default) teleports uniformly.}
 
 \item{edge_weights}{Positive hyperedge weights (one per hyperedge), or
@@ -40,9 +42,11 @@ incidence).}
 \item{sort_by}{\code{NULL} (default, vertex order) or \code{"pagerank"} to sort
 descending (ties broken by vertex name).}
 
-\item{n}{Return only the first \code{n} rows after sorting (default all).}
+\item{n}{Return only the first \code{n} rows after sorting: a whole number
+of at least 1, or \code{Inf} (default) for all.}
 
-\item{max_iter, tol}{Power-iteration cap and L1 convergence tolerance.}
+\item{max_iter, tol}{Power-iteration cap (a whole number of at least 1) and L1
+convergence tolerance (a positive number).}
 }
 \value{
 A base \code{data.frame}, one row per vertex, with columns \code{node} and
@@ -72,9 +76,11 @@ with uniform teleportation it equals
 \code{hg_centrality(type = "pagerank")} (tested).
 }
 \section{Conditions}{
- Raises \code{hypergraphs_bad_input} for broken contracts and
-warns with \code{hypergraphs_no_converge} (returning the last iterate) when
-\code{max_iter} is reached before \code{tol}.
+ Raises \code{hypergraphs_bad_input} for broken contracts
+(including a non-finite, duplicated or unknown \code{personalized} entry),
+\code{hypergraphs_hypergraph_disconnected} for \code{damping = 1} on a
+disconnected hypergraph, and warns with \code{hypergraphs_no_converge}
+(returning the last iterate) when \code{max_iter} is reached before \code{tol}.
 }
 
 \examples{

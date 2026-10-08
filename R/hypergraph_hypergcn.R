@@ -3,13 +3,13 @@
 # Shared validation and training utilities for node-classification models.
 .thg_neural_problem <- function(hg, labels, features) {
   .thg_check_hg(hg)
-  labels <- .thg_labels_input(labels)
+  labels <- .thg_check_assignment(.thg_labels_input(labels))
   stopifnot("`labels` must be a named character vector" =
               is.character(labels) && !is.null(names(labels)))
   unknown <- setdiff(names(labels), hg$nodes)
   if (length(unknown)) {
-    stop("Unknown node names in `labels`: ", paste(unknown, collapse = ", "),
-         call. = FALSE)
+    .thg_bad_input(paste0("Unknown node names in `labels`: ",
+                          paste(unknown, collapse = ", ")))
   }
   classes <- sort(unique(as.character(labels)))
   if (length(classes) < 2L) {
@@ -26,6 +26,7 @@
       "`features` needs rownames matching the hypergraph nodes" =
         !is.null(rownames(features)) && all(hg$nodes %in% rownames(features))
     )
+    .ho_check_ids(rownames(features), "rownames(features)")
     features[match(hg$nodes, rownames(features)), , drop = FALSE]
   }
   list(labels = labels, classes = classes, features = x)

@@ -5,7 +5,9 @@
 #   * Z-eigenvector ("Z")  - linear tensor eigenvector
 #   * H-eigenvector ("H")  - H-eigenvector (power-k-1 recurrence)
 #
-# All three solved by power iteration on the hyperedge list.
+# The clique variant is the Perron vector of the clique adjacency, solved
+# directly by a symmetric eigendecomposition of each connected component;
+# Z and H are solved by shifted power iteration on the hyperedge list.
 
 #' Hypergraph eigenvector centralities
 #'
@@ -21,10 +23,11 @@
 #' @param type Character vector, any subset of
 #'   `c("clique", "Z", "H", "pagerank", "subhypergraph")`. The default computes the three
 #'   eigenvector variants; request `"pagerank"` explicitly.
-#' @param max_iter Maximum number of power-iteration steps. Default
-#'   `1000`.
+#' @param max_iter Maximum number of power-iteration steps for the `"Z"`,
+#'   `"H"` and `"pagerank"` variants, a whole number >= 1. Default `1000`.
+#'   The `"clique"` variant is solved directly and needs no iteration.
 #' @param tol Convergence tolerance on the L1 change between successive
-#'   iterates. Default `1e-8`.
+#'   iterates, a positive number. Default `1e-8`.
 #' @param normalize Logical. If `TRUE` (default), each returned
 #'   centrality vector is L2-normalized to unit norm (compatible with
 #'   `igraph::eigen_centrality()`'s scale for type `"clique"`). Does not
@@ -57,12 +60,28 @@
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 #' eigenvector of \eqn{W}. Equivalent to running
-#' `igraph::eigen_centrality()` on [pairwise_network()] output.
+#' `igraph::eigen_centrality()` on [pairwise_network()] output. The vector
+#' is solved directly from a symmetric eigendecomposition of each connected
+#' component (Perron-Frobenius makes the leading eigenvalue of a connected
+#' component simple), not by power iteration, which oscillates on bipartite
+#' clique expansions. When several components share the largest eigenvalue,
+#' the result is the projection of the uniform vector onto their joint
+#' leading eigenspace, the limit power iteration from a uniform start
+#' reaches; components with a smaller leading eigenvalue score zero.
+#'
+#' **No pairwise contact.** When no hyperedge has two or more members (no
+#' hyperedges at all, or singletons only), the clique adjacency is zero and
+#' every eigenvector of it has eigenvalue zero, so no vector is singled out.
+#' `"clique"`, `"Z"` and `"H"` then return zero for every node, the same
+#' convention as a hypergraph without hyperedges.
 #'
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
 #' eigen-equation on the hyperedge tensor,
 #' \deqn{\lambda\, x_i \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j,}
-#' via power iteration. Works for hypergraphs with mixed edge sizes.
+#' via shifted power iteration (SS-HOPM). Works for hypergraphs with mixed
+#' edge sizes. An iteration (here, for `"H"`, and for `"pagerank"`) that
+#' exhausts `max_iter` warns with class `hypergraphs_no_converge` and
+#' returns its last iterate.
 #'
 #' **H-eigenvector centrality (HEC)**: solves the power-k-1
 #' eigen-equation,
@@ -95,7 +114,12 @@
 #' binary incidence (so entries count shared hyperedges),
 #' \eqn{\log[\exp(W)]_{ii}}. It counts closed walks based at each node with a
 #' factorial penalty for length and matches the implementation used by
-#' HypergraphX 1.5 in the legal-hypergraphs analysis.
+#' HypergraphX 1.5 in the legal-hypergraphs analysis. Each diagonal entry
+#' is evaluated in log space, row by row and component by component
+#' (\eqn{\log \sum_j v_{ij}^2 e^{\lambda_j}} by log-sum-exp over the
+#' eigenpairs of the node's own component), so a node outside the
+#' component with the largest eigenvalue stays finite; a node in no
+#' pairwise contact scores exactly 0.
 #'
 #' @seealso [network_hypergraph()], [pairwise_network()],
 #'   [hg_measures()].
@@ -137,13 +161,13 @@
                                    top = NULL) {
   stopifnot(
     inherits(hg, "net_hg"),
-    is.numeric(max_iter), length(max_iter) == 1L, max_iter > 0,
-    is.numeric(tol), length(tol) == 1L, tol > 0,
     is.logical(normalize), length(normalize) == 1L,
     "`damping` must be a single number strictly between 0 and 1" =
       is.numeric(damping) && length(damping) == 1L && is.finite(damping) &&
       damping > 0 && damping < 1
   )
+  max_iter <- .ho_check_count(max_iter, "max_iter")
+  tol <- .hg_check_tol(tol)
   type <- match.arg(type, choices = c("clique", "Z", "H", "pagerank",
                                       "subhypergraph"),
                     several.ok = TRUE)
@@ -175,24 +199,26 @@
   edge_sizes <- vapply(hyperedges, length, integer(1L))
   k_max      <- max(edge_sizes)
 
+  # No hyperedge with two or more members: the clique adjacency and the
+  # tensor are zero, every vector is an eigenvector of eigenvalue 0, and
+  # the convention is the zero result of the no-hyperedge branch above.
+  # Guarded here, before any iteration could pick an arbitrary vector.
+  pairwise <- k_max >= 2L
+
   out <- list()
 
-  # ---- CEC: power iteration on clique-expansion W ----
+  # Clique adjacency (shared hyperedges per node pair, zero diagonal) and
+  # its per-component eigendecomposition, shared by "clique" and
+  # "subhypergraph".
+  if (any(c("clique", "subhypergraph") %in% type)) {
+    adjacency <- tcrossprod((hg$incidence != 0) * 1.0)
+    diag(adjacency) <- 0
+    spectra <- .hg_component_spectra(adjacency)
+  }
+
+  # ---- CEC: Perron vector of the clique expansion W ----
   if ("clique" %in% type) {
-    B_bin <- (hg$incidence > 0) * 1.0
-    W <- tcrossprod(B_bin)
-    diag(W) <- 0
-    x <- x0
-    for (iter in seq_len(max_iter)) {
-      y <- as.numeric(W %*% x)
-      nrm <- sqrt(sum(y^2))
-      if (nrm == 0) break
-      y <- y / nrm
-      if (sum(abs(y - x)) < tol) break
-      x <- y
-    }
-    # Sign convention: positive entries (W is non-negative so Perron vec is positive)
-    if (any(x != 0) && sum(x) < 0) x <- -x
+    x <- if (pairwise) .hg_perron_vector(spectra, x0) else rep(0, n)
     if (!normalize && any(x != 0)) x <- x / max(abs(x))
     out$clique <- stats::setNames(x, nodes)
   }
@@ -200,9 +226,13 @@
   # ---- ZEC: lambda x = sum_{e contains i} prod_{j in e,j!=i} x_j ----
   if ("Z" %in% type) {
     out$Z <- stats::setNames(
-      .hg_tensor_power_iter(hyperedges, edge_sizes, n,
-                            exponent = 1L, max_iter = max_iter, tol = tol,
-                            x0 = x0, normalize = normalize),
+      if (pairwise) {
+        .hg_tensor_power_iter(hyperedges, edge_sizes, n,
+                              exponent = 1L, max_iter = max_iter, tol = tol,
+                              x0 = x0, normalize = normalize, label = "Z")
+      } else {
+        rep(0, n)
+      },
       nodes
     )
   }
@@ -210,10 +240,14 @@
   # ---- HEC: lambda x^{k-1} = sum_{e contains i} prod_{j in e,j!=i} x_j ----
   if ("H" %in% type) {
     out$H <- stats::setNames(
-      .hg_tensor_power_iter(hyperedges, edge_sizes, n,
-                            exponent = k_max - 1L,
-                            max_iter = max_iter, tol = tol,
-                            x0 = x0, normalize = normalize),
+      if (pairwise) {
+        .hg_tensor_power_iter(hyperedges, edge_sizes, n,
+                              exponent = k_max - 1L,
+                              max_iter = max_iter, tol = tol,
+                              x0 = x0, normalize = normalize, label = "H")
+      } else {
+        rep(0, n)
+      },
       nodes
     )
   }
@@ -250,14 +284,20 @@
   }
 
   # ---- Log subhypergraph centrality (Estrada & Rodriguez-Velazquez) ----
+  # log [exp(W)]_ii = log sum_j V_ij^2 exp(lambda_j), by a row-wise
+  # log-sum-exp over the eigenpairs of the node's own component: a global
+  # shift by the largest eigenvalue underflows every row with no mass on
+  # the dominant eigenspace to log(0) = -Inf. A one-node component has the
+  # 1 x 1 zero matrix, exp(0) = 1, so it scores exactly 0.
   if ("subhypergraph" %in% type) {
-    b <- (hg$incidence != 0) * 1
-    adjacency <- as.matrix(tcrossprod(b))
-    diag(adjacency) <- 0
-    eig <- eigen(adjacency, symmetric = TRUE)
-    shift <- max(eig$values)
-    terms <- sweep(eig$vectors^2, 2L, exp(eig$values - shift), `*`)
-    value <- shift + log(rowSums(terms))
+    value <- numeric(n)
+    pieces <- lapply(spectra, \(piece) {
+      if (length(piece$index) == 1L) return(0)
+      log_terms <- sweep(2 * log(abs(piece$vectors)), 2L, piece$values, `+`)
+      top <- apply(log_terms, 1L, max)
+      top + log(rowSums(exp(log_terms - top)))
+    })
+    value[unlist(lapply(spectra, `[[`, "index"))] <- unlist(pieces)
     out$subhypergraph <- stats::setNames(value, nodes)
   }
 
@@ -273,6 +313,75 @@
   .ho_top(res, top)
 }
 
+# A convergence tolerance: one finite number > 0 (0 would never be met and
+# Inf would stop after the first step). Shared by the iterative verbs of the
+# hypergraph family.
+.hg_check_tol <- function(tol, arg = "tol") {
+  tol <- .ho_check_number(tol, arg, min = 0)
+  if (!(tol > 0)) .ho_input_error(sprintf("`%s` must be > 0", arg))
+  tol
+}
+
+# Connected-component labels of a symmetric adjacency by minimum-label
+# propagation over its non-zero cells: every pass lets each node adopt the
+# smallest label among itself and its neighbours, so the loop runs at most
+# diameter + 1 times (sequential by nature). Labels are 1, 2, ... in order
+# of first appearance.
+.hg_component_labels <- function(adjacency) {
+  n <- nrow(adjacency)
+  label <- seq_len(n)
+  cells <- which(adjacency != 0, arr.ind = TRUE)
+  if (nrow(cells) == 0L) return(label)
+  row_of <- factor(cells[, 1L], levels = seq_len(n))
+  repeat {
+    neighbour <- vapply(
+      split(label[cells[, 2L]], row_of),
+      \(v) if (length(v)) min(v) else .Machine$integer.max, integer(1L)
+    )
+    nxt <- pmin(label, neighbour)
+    if (identical(nxt, label)) break
+    label <- nxt
+  }
+  match(label, unique(label))
+}
+
+# Symmetric eigendecomposition of each connected component of a clique
+# adjacency: a list with one element per component, `index` (its nodes),
+# `values` (decreasing) and `vectors` (columns). By Perron-Frobenius the
+# leading eigenvalue of a connected non-negative component is simple and its
+# vector has one sign, so the leading vector is well defined component by
+# component even where the whole matrix has a repeated leading eigenvalue
+# (equal components) or a +/- pair (bipartite components).
+.hg_component_spectra <- function(adjacency) {
+  labels <- .hg_component_labels(adjacency)
+  lapply(split(seq_len(nrow(adjacency)), labels), \(index) {
+    eig <- eigen(adjacency[index, index, drop = FALSE], symmetric = TRUE)
+    list(index = index, values = eig$values, vectors = eig$vectors)
+  })
+}
+
+# Unit-L2 leading eigenvector of a clique adjacency from its component
+# spectra. Components whose leading eigenvalue equals the global one (to
+# rounding) share the leading eigenspace; the result is the projection of
+# the start vector `x0` onto that space -- exactly the limit of power
+# iteration from `x0` -- and every other node is 0.
+.hg_perron_vector <- function(spectra, x0) {
+  lead <- vapply(spectra, \(piece) piece$values[1L], numeric(1L))
+  top_value <- max(lead)
+  if (!(top_value > 0)) return(rep(0, length(x0)))
+  near <- abs(lead - top_value) <= sqrt(.Machine$double.eps) * top_value
+  x <- numeric(length(x0))
+  parts <- lapply(spectra[near], \(piece) {
+    v <- piece$vectors[, 1L]
+    v <- if (sum(v) < 0) -v else v
+    # a Perron vector is non-negative; clamp rounding noise below zero
+    v <- pmax(v, 0)
+    sum(v * x0[piece$index]) * v
+  })
+  x[unlist(lapply(spectra[near], `[[`, "index"))] <- unlist(parts)
+  x / sqrt(sum(x^2))
+}
+
 # Shared tensor-power-iteration kernel.
 # Uses Kolda-Mayo SSHOPM shift: x_{k+1} ~ f(x_k) + shift * x_k
 # which guarantees monotone convergence for non-negative tensors
@@ -280,13 +389,20 @@
 #
 # exponent = 1    => Z-eigenvector (no post-root)
 # exponent = k-1  => H-eigenvector (k-1-root)
+#
+# An iteration that exhausts `max_iter` warns with class
+# `hypergraphs_no_converge` (naming `label`) and returns its last iterate.
 #' @noRd
 .hg_tensor_power_iter <- function(hyperedges, edge_sizes, n, exponent,
                                    max_iter, tol, x0, normalize,
-                                   shift = 1) {
+                                   shift = 1, label = "tensor") {
   x <- x0
+  converged <- FALSE
+  # power iteration: an inherently sequential fixed-point loop
   for (iter in seq_len(max_iter)) {
     y <- numeric(n)
+    # accumulation over hyperedges with in-place adds into y; the per-edge
+    # leave-one-out products have no vectorised form across ragged edges
     for (e_idx in seq_along(hyperedges)) {
       e  <- hyperedges[[e_idx]]
       ke <- edge_sizes[e_idx]
@@ -303,9 +419,7 @@
         }
         # With >=2 zeros in x_e, every leave-one-out product is zero.
       } else {
-        for (idx in seq_len(ke)) {
-          y[e[idx]] <- y[e[idx]] + total / x_e[idx]
-        }
+        y[e] <- y[e] + total / x_e
       }
     }
 
@@ -318,17 +432,27 @@
     y <- y + shift * x
 
     nrm <- sqrt(sum(y^2))
-    if (nrm == 0) {
+    if (!(nrm > 0)) {
       x <- y
+      converged <- TRUE
       break
     }
     y <- y / nrm
 
     if (sum(abs(y - x)) < tol) {
       x <- y
+      converged <- TRUE
       break
     }
     x <- y
+  }
+  if (!converged) {
+    warning(warningCondition(
+      sprintf(paste0("%s-eigenvector centrality did not converge in %d ",
+                     "iterations (L1 change > %g); returning the last ",
+                     "iterate."), label, as.integer(max_iter), tol),
+      class = "hypergraphs_no_converge"
+    ))
   }
 
   if (any(x != 0) && sum(x) < 0) x <- -x

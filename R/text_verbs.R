@@ -153,10 +153,14 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #'   by node name); default keeps node order.
 #' @param n Return only the first `n` rows after sorting (default all) --
 #'   e.g. `sort_by = "clique", n = 10` for the ten most central nodes.
-#' @param max_iter Maximum number of power-iteration steps. Default
-#'   `1000`.
-#' @param tol Convergence tolerance on the L1 change between successive
-#'   iterates. Default `1e-8`.
+#' @param max_iter Maximum number of power-iteration steps of the `"Z"`
+#'   and `"H"` tensor centralities. Default `1000`. The `"clique"`
+#'   centrality is solved directly (the Perron vector of each connected
+#'   component) and does not iterate.
+#' @param tol Convergence tolerance of the `"Z"` and `"H"` iterations, on
+#'   the L1 change between successive iterates. Default `1e-8`. An
+#'   iteration that does not reach it within `max_iter` steps warns with
+#'   class `hypergraphs_no_converge`.
 #' @param normalize Logical. If `TRUE` (default), each returned
 #'   centrality vector is L2-normalized to unit norm (compatible with
 #'   `igraph::eigen_centrality()`'s scale for type `"clique"`). Does not
@@ -304,10 +308,7 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
       class = "hypergraphs_sparse_unsupported", call = NULL
     ))
   }
-  stopifnot(
-    "`n` must be a single count >= 1" =
-      length(n) == 1L && (is.infinite(n) || (is.finite(n) && n >= 1))
-  )
+  n <- .ho_check_count(n, "n", allow_inf = TRUE)
   if ("katz" %in% type && is.null(alpha)) {
     stop(errorCondition(
       "`type = \"katz\"` needs `alpha` in (0, 1 / lambda_max)",
@@ -320,7 +321,10 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
       normalize = normalize, damping = damping, edge_weights = edge_weights
     )
   } else {
-    data.frame(node = rownames(hg$incidence), stringsAsFactors = FALSE)
+    # a hypergraph with no nodes still gives a typed `node` column, so the
+    # empty Katz table binds to it
+    data.frame(node = hg$nodes %||% rownames(hg$incidence) %||% character(0L),
+               stringsAsFactors = FALSE)
   }
   if ("katz" %in% type) {
     out$katz <- .hg_katz_fit(hg, alpha = alpha)$katz
@@ -346,6 +350,10 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
 #' computes a rank-`k` non-negative factorization `T ~= U U'` of the
 #' normalized similarity `T = I - L`, then assigns each vertex to the
 #' largest entry in its row of `U`, exactly as Algorithm 2 specifies.
+#' `T` is dense whatever the incidence, so on a sparse hypergraph it is
+#' built from the sparse Laplacian and factorised dense (8 n^2 bytes:
+#' 350 MB for 6,630 documents); beyond 15,000 nodes this raises
+#' `hypergraphs_sparse_too_large`.
 #' With `type = "random_walk"` and a weighted
 #' incidence (e.g. from [group_hypergraph()] with `weight =`), the
 #' edge-dependent vertex weights genuinely change the partition - with
@@ -385,6 +393,12 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
 #' @param max_iter Maximum multiplicative-update iterations for
 #'   `algorithm = "symnmf"`.
 #' @param tol Relative objective tolerance for `algorithm = "symnmf"`.
+#' @param parallel For `algorithm = "symnmf"`: run the `nstart` starts with
+#'   `parallel::mclapply()` (not on Windows, where they run serially).
+#'   Default `FALSE`. Every start's initial factor is drawn first, in order,
+#'   so the result equals the serial one. Supplying it (or `n_cores`) with
+#'   `algorithm = "spectral"` raises `hypergraphs_bad_input`.
+#' @param n_cores Cores when `parallel = TRUE` (default 2).
 #'
 #' @param what What to return: `"clusters"` (default) for the partition,
 #'   `"embedding"` for the partition plus the row-normalized spectral
@@ -434,12 +448,10 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
                        what = c("clusters", "embedding", "eigenvalues",
                                 "membership"),
                        n = Inf, algorithm = c("spectral", "symnmf"),
-                       max_iter = 500L, tol = 1e-6) {
+                       max_iter = 500L, tol = 1e-6, parallel = FALSE,
+                       n_cores = 2L) {
   .thg_check_hg(hg)
-  stopifnot(
-    "`n` must be a single number >= 1" =
-      length(n) == 1L && !is.na(n) && n >= 1
-  )
+  n <- .ho_check_count(n, "n", allow_inf = TRUE)
   type <- match.arg(type)
   algorithm <- match.arg(algorithm)
   what <- .ho_match_what(what)
@@ -449,20 +461,22 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
                           "`algorithm = \"symnmf\"`; for the spectral ",
                           "clustering use hg_membership()"))
   }
-  if (.thg_is_sparse(hg) && algorithm == "symnmf") {
-    stop(errorCondition(
-      paste0("`algorithm = \"symnmf\"` requires a dense incidence matrix; ",
-             "RDC-Sym factorizes a dense n_nodes x n_nodes similarity."),
-      class = "hypergraphs_dense_required", call = NULL
-    ))
+  if (!identical(algorithm, "symnmf") &&
+      any(c("parallel", "n_cores") %in% names(match.call()))) {
+    .thg_bad_input("`parallel` and `n_cores` apply to `algorithm = \"symnmf\"` only")
   }
-  fit <- if (.thg_is_sparse(hg)) {
+  fit <- if (.thg_is_sparse(hg) && algorithm == "symnmf") {
+    .thg_sparse_symnmf(hg, k = k, type = type, edge_weights = edge_weights,
+                       nstart = nstart, seed = seed, max_iter = max_iter,
+                       tol = tol, parallel = parallel, n_cores = n_cores)
+  } else if (.thg_is_sparse(hg)) {
     .thg_sparse_cluster(hg, k = k, type = type, edge_weights = edge_weights,
                         nstart = nstart, seed = seed)
   } else {
     .hg_cluster_fit(hg, k = k, type = type, edge_weights = edge_weights,
                        algorithm = algorithm, seed = seed, nstart = nstart,
-                       max_iter = max_iter, tol = tol)
+                       max_iter = max_iter, tol = tol, parallel = parallel,
+                       n_cores = n_cores)
   }
   if (identical(what, "eigenvalues")) {
     values <- as.numeric(fit$eigenvalues)
@@ -580,7 +594,9 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   not tie on words present in every document, as the clique measure
 #'   does), `"clique"`, `"Z"` or `"H"`.
 #' @param scores An external score table (columns `node`, `word` and one
-#'   numeric column), summed per cluster and added as its own block.
+#'   numeric column of finite values), summed per cluster and added as its
+#'   own block. Several rows for one document and word add their scores but
+#'   count as one document in `n_docs`.
 #' @param collapse If `TRUE`, return one row per type and cluster with the
 #'   words joined into a single comma-separated string -- a display table,
 #'   not tidy data. Default `FALSE`.
@@ -599,7 +615,10 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   `share` (`score` divided by the word's summed score over all
 #'   clusters) and `n_docs` (the cluster's documents containing the word),
 #'   ranked by `sort_by` within type and cluster; only words with a
-#'   positive score and at least `min_docs` documents appear. With
+#'   positive score and at least `min_docs` documents appear, so a cluster
+#'   with no such word has no rows (and no row in the collapsed view), and
+#'   a table in which no cluster has one has zero rows and the same
+#'   columns. With
 #'   `collapse = TRUE`: one row per type and cluster, columns `type`,
 #'   `cluster`, `size` and `words`. The print method shows the collapsed
 #'   view, truncated to the console width; the returned table itself is
@@ -649,15 +668,14 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
     ))
   }
   centrality <- match.arg(centrality)
+  n <- .ho_check_count(n, "n", allow_inf = TRUE)
   stopifnot(
-    "`n` must be a single positive number" =
-      length(n) == 1L && is.numeric(n) && n >= 1,
     "`min_docs` must be a single number >= 1" =
       length(min_docs) == 1L && is.numeric(min_docs) && min_docs >= 1,
     "`collapse` must be TRUE or FALSE" =
       isTRUE(collapse) || isFALSE(collapse)
   )
-  assignment <- .thg_resolve_labels(hg, clusters)
+  assignment <- .thg_resolve_labels(hg, clusters, arg = "clusters")
   stopifnot(
     "`clusters` must be a data.frame or a named vector" =
       !is.null(names(assignment))
@@ -694,20 +712,27 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
 
   per_block <- lapply(blocks, \(block) {
     total <- colSums(block$scores)
+    words <- colnames(block$scores)
     per_cluster <- lapply(rownames(block$scores), \(cl) {
-      row <- block$scores[cl, ]
+      # rows read with drop = FALSE and renamed: a one-word vocabulary would
+      # otherwise lose the word's name with the dropped dimension
+      row <- stats::setNames(as.numeric(block$scores[cl, , drop = FALSE]),
+                             words)
       share <- ifelse(total > 0, row / total, 0)
-      support <- block$support[cl, names(row)]
+      support <- as.numeric(block$support[cl, words, drop = FALSE])
       ord <- if (identical(sort_by, "share")) {
-        order(-share, -row, names(row))
+        order(-share, -row, words)
       } else {
-        order(-row, -share, names(row))
+        order(-row, -share, words)
       }
       eligible <- row[ord] > 0 & support[ord] >= min_docs
       keep <- utils::head(ord[eligible], n)
+      # a cluster with no eligible word contributes a typed zero-row block
       data.frame(
-        type = block$label, cluster = cl, size = as.integer(sizes[[cl]]),
-        rank = seq_along(keep), word = names(row)[keep],
+        type = rep(block$label, length(keep)),
+        cluster = rep(cl, length(keep)),
+        size = rep(as.integer(sizes[[cl]]), length(keep)),
+        rank = seq_along(keep), word = words[keep],
         score = as.numeric(row[keep]), share = as.numeric(share[keep]),
         n_docs = as.numeric(support[keep]),
         stringsAsFactors = FALSE
@@ -983,6 +1008,10 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
     ))
   }
   value_col <- value_col[[1L]]
+  if (any(!is.finite(scores[[value_col]]))) {
+    .thg_bad_input(sprintf(
+      "the score column `%s` of `scores` must hold finite numbers", value_col))
+  }
   scores <- scores[scores$node %in% scope$docs, , drop = FALSE]
   if (nrow(scores) == 0L) {
     stop(errorCondition(
@@ -998,9 +1027,12 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
       dimnames = list(scope$docs, words)
     )
   }
+  # repeated (node, word) rows add their scores, but a document supports a
+  # word once however many rows it has for it
+  present <- (cell(rep(1, nrow(scores))) > 0) * 1
   list(label = value_col,
        scores = .thg_kw_aggregate(groups, cell(as.numeric(scores[[value_col]]))),
-       support = .thg_kw_aggregate(groups, cell(rep(1, nrow(scores)))))
+       support = .thg_kw_aggregate(groups, present))
 }
 
 #' Network of topics
@@ -1058,14 +1090,17 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
 #' @return For `what = "edges"`: a base `data.frame`, one row per pair of
 #'   topics with a positive weight, columns `source`, `target`, `weight`,
 #'   pairs in the topics' natural order. For `what = "network"`: a
-#'   `cograph_network` with one node per topic (`label`, `name`, `size`)
-#'   and one undirected weighted edge per pair; `size` is the number of
+#'   `cograph_network` with one node per topic (`label`, `name`, `size`),
+#'   a topic without any edge included, and one undirected weighted edge per
+#'   pair; `size` is the number of
 #'   documents of a cluster, the documents in which a topic is present, or
 #'   (without `threshold`) a topic's expected number of documents. Raises
 #'   `hypergraphs_bad_input` for unknown node names, for neither or both of
 #'   `clusters` and `topics`, for a topic model not fitted on `hg`, for an
 #'   invalid `threshold` or `cutoff`, and for a similarity measure on a
-#'   correlation network.
+#'   correlation network. A topic whose share is the same in every
+#'   document has no correlation with any other: it is kept without edges,
+#'   with a `hypergraphs_constant_topics` warning.
 #' @references
 #' van Eck, N. J., & Waltman, L. (2009). How to normalize cooccurrence
 #' data? An analysis of some well-known similarity measures. *Journal of
@@ -1124,7 +1159,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
   if (!is.null(threshold)) {
     .thg_bad_input("`threshold` applies to a topic model (`topics`)")
   }
-  assignment <- .thg_resolve_labels(hg, clusters)
+  assignment <- .thg_resolve_labels(hg, clusters, arg = "clusters")
   stopifnot(
     "`clusters` must be a data.frame or a named vector" =
       !is.null(names(assignment))
@@ -1159,8 +1194,13 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
   weight
 }
 
-# Edge list of the upper triangle (positive weights), or a cograph network.
+# Edge list of the upper triangle (finite positive weights), or a cograph
+# network built from the symmetric weight matrix, so that every topic is a
+# node -- an isolated topic included -- and a network without edges is valid.
 .thg_network_out <- function(weight, labels, sizes, what) {
+  weight <- as.matrix(weight)
+  weight[!is.finite(weight) | weight < 0] <- 0
+  dimnames(weight) <- list(labels, labels)
   pairs <- which(upper.tri(weight), arr.ind = TRUE)
   pairs <- pairs[order(pairs[, 1L], pairs[, 2L]), , drop = FALSE]
   edges <- data.frame(
@@ -1174,7 +1214,8 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
   if (identical(what, "edges")) {
     return(edges)
   }
-  net <- cograph::as_cograph(edges, directed = FALSE)
+  kept <- weight * upper.tri(weight)
+  net <- cograph::as_cograph(kept + t(kept), directed = FALSE)
   net$nodes$size <- unname(sizes[net$nodes$name])
   net
 }
@@ -1191,6 +1232,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
   if (!identical(length(docs), hg$n_nodes) || !all(docs %in% hg$nodes)) {
     .thg_bad_input("`topics` was not fitted on `hg`")
   }
+  .tm_check_fitted_on(topics, hg)
   labels <- topics$topics$topic
   theta <- matrix(0, length(docs), length(labels),
                   dimnames = list(docs, labels))
@@ -1205,7 +1247,24 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
         cutoff < 0 || cutoff >= 1) {
       .thg_bad_input("`cutoff` must be one number in [0, 1)")
     }
-    correlation <- stats::cor(theta)
+    # a topic whose share is the same in every document has no correlation
+    # with any other: it stays in the network as an isolate, with a warning
+    varying <- vapply(seq_along(labels), \(t) {
+      isTRUE(stats::var(theta[, t]) > 0)
+    }, logical(1L))
+    if (!all(varying)) {
+      warning(warningCondition(
+        sprintf(paste0("topic(s) with the same share in every document have ",
+                       "no correlation and are left without edges: %s"),
+                paste(labels[!varying], collapse = ", ")),
+        class = "hypergraphs_constant_topics", call = NULL))
+    }
+    correlation <- matrix(0, length(labels), length(labels),
+                          dimnames = list(labels, labels))
+    if (sum(varying) >= 2L) {
+      correlation[varying, varying] <- stats::cor(theta[, varying,
+                                                        drop = FALSE])
+    }
     weight <- ifelse(correlation > cutoff, correlation, 0)
     return(.thg_network_out(weight, labels, colSums(theta), what))
   }
@@ -1266,6 +1325,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
 #' @references
 #' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
+#' \doi{10.7551/mitpress/7503.003.0205}
 #'
 #' Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
 #' using Gaussian fields and harmonic functions. \emph{ICML 20}.
@@ -1334,6 +1394,7 @@ hg_classify <- function(hg, labels, xi = 0.99,
 # warning, so the table that built the hypergraph can be passed back whole;
 # any other unknown name is an error.
 .thg_known_assignment <- function(assignment, known, hg, arg = "clusters") {
+  assignment <- .thg_check_assignment(assignment, arg)
   unknown <- setdiff(names(assignment), known)
   if (length(unknown) == 0L) return(assignment)
   dropped <- c(if (is.list(hg$text)) hg$text$dropped,

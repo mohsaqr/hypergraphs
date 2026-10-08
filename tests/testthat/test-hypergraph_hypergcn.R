@@ -45,3 +45,31 @@ test_that("HyperGCN variants train end to end", {
     expect_true(all(is.finite(attr(fit, "history")$loss)))
   }
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("the shared neural problem refuses ambiguous labels and rows (TXT-07, TXT-15)", {
+  hg <- group_hypergraph(data.frame(node = c("a", "b", "b", "c", "c", "a"),
+                                    hyperedge = c("e1", "e1", "e2", "e2", "e3", "e3")),
+                         node = "node", hyperedge = "hyperedge")
+  expect_error(.thg_neural_problem(hg, c(a = "food", a = "space", c = "space"),
+                                   "incidence"),
+               class = "hypergraphs_bad_input")
+  expect_error(.thg_neural_problem(hg, stats::setNames(c("food", "space"),
+                                                       c("a", NA)),
+                                   "incidence"),
+               class = "hypergraphs_bad_input")
+  expect_error(.thg_neural_problem(hg, c(zz = "food", c = "space"), "incidence"),
+               class = "hypergraphs_bad_input")
+  # an identical repeat and a missing label resolve to one clean assignment
+  problem <- .thg_neural_problem(hg, c(a = "food", a = "food", b = NA,
+                                       c = "space"), "incidence")
+  expect_identical(problem$labels, c(a = "food", c = "space"))
+  features <- matrix(c(1, 1, 1, 2, 3, 3, 100, 100), 4, 2, byrow = TRUE,
+                     dimnames = list(c("a", "b", "c", "a"), NULL))
+  expect_error(.thg_neural_problem(hg, c(a = "food", c = "space"), features),
+               class = "hypergraphs_bad_input")
+  shuffled <- features[c(3, 1, 2), , drop = FALSE]
+  aligned <- .thg_neural_problem(hg, c(a = "food", c = "space"), shuffled)
+  expect_identical(rownames(aligned$features), hg$nodes)
+})

@@ -1008,3 +1008,19 @@ test_that("simplicial pathway error message includes net_mogen", {
     "net_mogen"
   )
 })
+
+# ---- Dimension controls (M13) ----------------------------------------------
+
+test_that("hg_get() never reads a fractional dimension as another one", {
+  sc <- simplicial(list(c("a", "b", "c")), type = "window")
+  expect_error(hg_get(sc, dimension = 1.9), class = "hypergraphs_bad_input")
+  expect_error(hg_get(sc, dimension = -1), class = "hypergraphs_bad_input")
+  expect_identical(nrow(hg_get(sc, dimension = 1)), 3L)
+  expect_warning(
+    validated <- simplicial(rep(list(c("a", "b", "c"), c("d", "e", "f")), 6L),
+                            type = "window", validate = TRUE, n_null = 99L,
+                            seed = 1L),
+    class = "hypergraphs_low_resolution")
+  expect_error(hg_get(validated, what = "validation", dimension = 1.5),
+               class = "hypergraphs_bad_input")
+})

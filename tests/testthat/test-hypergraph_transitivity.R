@@ -132,3 +132,12 @@ test_that("broken contracts raise classed errors", {
   expect_error(hg_transitivity(hg, n = 0), class = "hypergraphs_bad_input")
   expect_error(hg_transitivity(hg, type = "global"))
 })
+
+test_that("`n` must be a whole count or Inf (fractions and -Inf refused)", {
+  hg <- random_hypergraph("uniform", n = 8, m = 10, k = 3, seed = 1)
+  lapply(list(2.5, -Inf, 0, NA, "2", c(1, 2)), \(bad) {
+    expect_error(hg_transitivity(hg, n = bad), class = "hypergraphs_bad_input")
+  })
+  expect_identical(nrow(hg_transitivity(hg, n = 2)), 2L)
+  expect_identical(nrow(hg_transitivity(hg, n = Inf)), hg$n_nodes)
+})

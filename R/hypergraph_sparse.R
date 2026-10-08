@@ -9,7 +9,8 @@
 .thg_is_sparse <- function(hg) methods::is(hg$incidence, "sparseMatrix")
 
 # Sparse bipartite constructor mirroring group_hypergraph():
-# sorted vertex/edge names, summed weights, same top-level fields.
+# sorted vertex/edge names, summed weights, same top-level fields
+# (including the `hyperedges` member lists every reader relies on).
 .thg_sparse_bipartite <- function(long, node, hyperedge, weight) {
   member <- node
   vertices <- sort(unique(long[[member]]))
@@ -21,32 +22,29 @@
     dims = c(length(vertices), length(edges)),
     dimnames = list(vertices, edges)
   )
-  sizes <- Matrix::colSums(incidence > 0)
-  size_tab <- table(sizes)
-  size_distribution <- as.integer(size_tab)
-  names(size_distribution) <- paste0("size_", names(size_tab))
-  structure(
-    list(
-      incidence = incidence,
-      nodes = vertices,
-      n_nodes = length(vertices),
-      n_hyperedges = length(edges),
-      size_distribution = size_distribution,
-      params = list(sparse = TRUE)
-    ),
-    class = "net_hg"
-  )
+  .thg_from_incidence(incidence, params = list(sparse = TRUE))
 }
 
 # Hayashi SD+1 default edge weights, computed on the dgCMatrix slots
 # without densifying: population SD of each column's non-zeros, plus one.
+# An empty column has no members to disperse and gets weight 1, as in the
+# dense .hl_default_edge_weights() (0/0 would otherwise be NaN).
 .thg_sparse_edge_weights <- function(incidence) {
-  csp <- methods::as(incidence, "CsparseMatrix")
-  nnz <- diff(csp@p)
+  csp <- methods::as(methods::as(incidence, "CsparseMatrix"), "generalMatrix")
+  nnz <- Matrix::colSums(csp != 0)
   s1 <- Matrix::colSums(csp)
   s2 <- Matrix::colSums(csp^2)
   mu <- s1 / nnz
-  unname(sqrt(pmax(s2 / nnz - mu^2, 0)) + 1)
+  w <- unname(sqrt(pmax(s2 / nnz - mu^2, 0)) + 1)
+  w[nnz == 0] <- 1
+  w
+}
+
+# Per-hyperedge scale w(e) / delta(e) of the EDVW walk. An empty hyperedge
+# (delta = 0) can never be picked by a walker, so it contributes nothing:
+# scale 0 instead of w / 0 = Inf, which would turn 0 * Inf into NaN.
+.thg_edge_scale <- function(w, delta) {
+  ifelse(delta > 0, w / delta, 0)
 }
 
 # Connectivity by alternating vertex -> edge -> vertex BFS, never forming
@@ -84,7 +82,7 @@
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  scale_e <- w / delta
+  scale_e <- .thg_edge_scale(w, delta)
   list(
     left = function(v) {
       as.numeric(Matrix::crossprod(membership, v / d_v) * scale_e) |>
@@ -141,7 +139,7 @@
     delta <- as.numeric(Matrix::colSums(membership))
     d_v <- as.numeric(membership %*% w)
     root_d <- sqrt(d_v)
-    scale_e <- w / delta
+    scale_e <- .thg_edge_scale(w, delta)
     pi_v <- d_v / sum(d_v)
     smult <- function(v) {
       z <- as.numeric(Matrix::crossprod(membership, v / root_d)) * scale_e
@@ -194,8 +192,14 @@
 # through RSpectra's function interface, then the same row-normalized
 # k-means as the dense engine.
 .thg_sparse_cluster <- function(hg, k, type, edge_weights, nstart, seed) {
+  # The dense engine's count contract, through the same validators as
+  # .hg_cluster_fit(): a whole `k` in [2, n_nodes - 1] (.hl_check_k(),
+  # hypergraph_laplacian.R) and a whole `nstart` >= 1, checked before the
+  # connectivity search and the eigensolver allocate anything.
+  n <- hg$n_nodes
+  k <- .hl_check_k(k, n)
+  nstart <- .ho_check_count(nstart, "nstart")
   sim <- .thg_similarity_operator(hg, type, edge_weights)
-  n <- sim$n
   k_ask <- min(k + 1L, n - 1L)
   eig <- RSpectra::eigs_sym(
     \(x, args) sim$smult(x), k = k_ask, which = "LA", n = n
@@ -213,8 +217,7 @@
   U[nz, ] <- U[nz, , drop = FALSE] / row_norm[nz]
 
   if (!is.null(seed)) set.seed(as.integer(seed))
-  km <- stats::kmeans(U, centers = k, nstart = as.integer(nstart),
-                      iter.max = 100L)
+  km <- .ho_kmeans(U, k, nstart = as.integer(nstart), iter.max = 100L)
   relabel <- match(km$cluster, unique(km$cluster))
   cluster_lab <- paste("Cluster", relabel)
   clusters <- data.frame(node = hg$nodes, cluster = cluster_lab,
@@ -246,6 +249,89 @@
       params = list(edge_weights = sim$w, nstart = as.integer(nstart),
                     seed = seed, tot_withinss = km$tot.withinss,
                     sparse = TRUE)
+    ),
+    class = "net_hg_cluster"
+  )
+}
+
+# SymNMF clustering of a sparse hypergraph (RDC-Sym, Hayashi et al. 2020).
+# SymNMF factorises the n_nodes x n_nodes similarity S = I - L, which is
+# dense whatever the incidence, so it is built once from the sparse
+# operator .hl_build() returns; the dense engine's full eigendecomposition
+# is not needed (the factorisation does not use it) and the eigenvalues
+# reported are the k + 1 smallest of L, as for the sparse spectral fit.
+# A similarity beyond .THG_SYMNMF_MAX_NODES nodes would not fit in memory
+# alongside the factorisation's working copies, so it is refused.
+.THG_SYMNMF_MAX_NODES <- 15000L
+.thg_sparse_symnmf <- function(hg, k, type, edge_weights, nstart, seed,
+                               max_iter, tol, parallel = FALSE,
+                               n_cores = 2L,
+                               max_nodes = .THG_SYMNMF_MAX_NODES) {
+  n <- hg$n_nodes
+  k <- .hl_check_k(k, n)
+  nstart <- .ho_check_count(nstart, "nstart")
+  max_iter <- .ho_check_count(max_iter, "max_iter")
+  tol <- .hg_check_tol(tol)
+  if (n > max_nodes) {
+    stop(errorCondition(
+      sprintf(paste0("SymNMF factorises a dense %d x %d similarity (%.1f GB); ",
+                     "it is limited to %d nodes"),
+              n, n, 8 * n^2 / 1e9, max_nodes),
+      class = "hypergraphs_sparse_too_large", call = NULL
+    ))
+  }
+  parts <- .hl_build(hg, type = type, edge_weights = edge_weights)
+  similarity <- as.matrix(Matrix::Diagonal(n) - parts$L)
+  # S is non-negative analytically; remove only floating-point undershoot.
+  if (min(similarity) < -1e-10) {
+    stop("`I - L` has negative entries and cannot be factorized by SymNMF.",
+         call. = FALSE)
+  }
+  similarity <- pmax((similarity + t(similarity)) / 2, 0)
+  fit <- .hl_symnmf(similarity, k = k, nstart = nstart, seed = seed,
+                    max_iter = max_iter, tol = tol, parallel = parallel,
+                    n_cores = n_cores)
+  rm(similarity)
+  sim <- .thg_similarity_operator(hg, type, edge_weights)
+  eig <- RSpectra::eigs_sym(
+    \(x, args) sim$smult(x), k = min(k + 1L, n - 1L), which = "LA", n = n
+  )
+  lap_values <- 1 - eig$values
+  U <- fit$factor
+  assignment <- max.col(U, ties.method = "first")
+  relabel <- match(assignment, unique(assignment))
+  cluster_lab <- paste("Cluster", relabel)
+  clusters <- data.frame(node = hg$nodes, cluster = cluster_lab,
+                         stringsAsFactors = FALSE)
+  dimnames(U) <- list(hg$nodes, paste0("dim", seq_len(k)))
+  sizes <- as.data.frame(table(cluster = cluster_lab),
+                         stringsAsFactors = FALSE)
+  names(sizes) <- c("cluster", "size")
+  sizes <- sizes[order(sizes$cluster), , drop = FALSE]
+  rownames(sizes) <- NULL
+
+  structure(
+    list(
+      clusters = clusters,
+      embedding = U,
+      k = as.integer(k),
+      type = type,
+      algorithm = "symnmf",
+      eigenvalues = lap_values,
+      eigengap = if (length(lap_values) > k) {
+        lap_values[k + 1L] - lap_values[k]
+      } else {
+        NA_real_
+      },
+      sizes = sizes,
+      pi = parts$pi,
+      n_nodes = n,
+      n_hyperedges = hg$n_hyperedges,
+      params = c(list(edge_weights = parts$w, nstart = as.integer(nstart),
+                      seed = seed, max_iter = as.integer(max_iter), tol = tol,
+                      sparse = TRUE),
+                 fit[c("objective", "objective_history", "iterations",
+                       "converged", "restart")])
     ),
     class = "net_hg_cluster"
   )
@@ -297,23 +383,34 @@
 }
 
 # Sparse structural measures (nodes/edges/summary); the pairwise tables are
-# guarded, since they are quadratic in the hyperedge count.
+# guarded, since they are quadratic in the hyperedge count. Every value uses
+# the dense engine's definition (.hg_measures_fit() and its shared
+# .hg_density() / .hg_pairwise_participation()), so the two storages agree
+# on every graph, including isolated vertices and empty hyperedges.
 .thg_sparse_measures <- function(hg, what) {
   incidence <- hg$incidence
   membership <- (incidence > 0) * 1
   sizes <- as.numeric(Matrix::colSums(membership))
+  n <- hg$n_nodes
   if (identical(what, "nodes")) {
-    triplet <- methods::as(membership, "TsparseMatrix")
-    max_size <- tapply(sizes[triplet@j + 1L], triplet@i + 1L, max)
-    co <- Matrix::tcrossprod(membership)
-    Matrix::diag(co) <- 0
+    # .thg_general_triplet() (text_neural.R) reads every stored cell,
+    # whatever packed storage the Matrix uses
+    triplet <- .thg_general_triplet(membership)
+    # an isolated vertex has no hyperedge, so its largest one is size 0
+    max_size <- numeric(n)
+    if (length(triplet@i)) {
+      by_node <- tapply(sizes[triplet@j + 1L], triplet@i + 1L, max)
+      max_size[as.integer(names(by_node))] <- as.numeric(by_node)
+    }
+    co <- .thg_general_triplet(Matrix::tcrossprod(membership))
+    off_diagonal <- co@i != co@j & co@x > 0
     # engine definition: strength(v) = sum of the SIZES of v's edges
     return(data.frame(
       node = hg$nodes,
       hyperdegree = as.integer(Matrix::rowSums(membership)),
       strength = as.numeric(membership %*% sizes),
-      max_edge_size = as.integer(max_size[as.character(seq_len(hg$n_nodes))]),
-      n_neighbors = as.integer(Matrix::rowSums(co > 0)),
+      max_edge_size = as.integer(max_size),
+      n_neighbors = tabulate(co@i[off_diagonal] + 1L, nbins = n),
       row.names = NULL
     ))
   }
@@ -336,30 +433,31 @@
     s1 <- sizes[pair[, "row"]]
     s2 <- sizes[pair[, "col"]]
     ov <- co[pair]
+    size_min <- pmin(s1, s2)
+    size_union <- s1 + s2 - ov
+    # the dense engine scores a pair with an empty hyperedge as 0, not 0/0
     return(data.frame(
       edge_1 = colnames(incidence)[pair[, "row"]],
       edge_2 = colnames(incidence)[pair[, "col"]],
       overlap = as.numeric(ov),
-      overlap_coefficient = as.numeric(ov / pmin(s1, s2)),
-      jaccard = as.numeric(ov / (s1 + s2 - ov)),
+      overlap_coefficient = as.numeric(ifelse(size_min > 0, ov / size_min, 0)),
+      jaccard = as.numeric(ifelse(size_union > 0, ov / size_union, 0)),
       row.names = NULL
     ))
   }
   # summary; pairwise participation only while the vertex count keeps the
   # co-membership crossprod affordable
-  participation <- if (hg$n_nodes <= 5000L) {
-    co_nodes <- Matrix::tcrossprod(membership) > 0
-    (Matrix::nnzero(co_nodes) - hg$n_nodes) /
-      (hg$n_nodes * (hg$n_nodes - 1))
+  participation <- if (n <= 5000L) {
+    co <- .thg_general_triplet(Matrix::tcrossprod(membership))
+    .hg_pairwise_participation(sum(co@i < co@j & co@x > 0), n)
   } else {
     NA_real_
   }
   data.frame(
     measure = c("n_nodes", "n_hyperedges", "density", "avg_edge_size",
                 "pairwise_participation"),
-    value = c(hg$n_nodes, hg$n_hyperedges,
-              Matrix::nnzero(membership) / (hg$n_nodes * hg$n_hyperedges),
-              mean(sizes), participation),
+    value = c(n, hg$n_hyperedges, .hg_density(sizes, n),
+              if (length(sizes)) mean(sizes) else NA_real_, participation),
     row.names = NULL
   )
 }

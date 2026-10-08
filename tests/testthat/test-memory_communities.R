@@ -513,3 +513,48 @@ test_that("teleportation = 0 on a reducible walk is hypergraphs_not_ergodic", {
   comm <- hg_communities(.cm_fake_hon(W), trials = 2L)
   expect_equal(nrow(hg_get(comm, what = "modules")), 2L)
 })
+
+# ---- State labels holding the arrow (M07) ----------------------------------
+
+test_that("hg_communities() refuses a network whose states hold the arrow", {
+  net <- Nestimate::build_hon(rep(list(c("a -> b", "c", "a -> b", "c")), 2L),
+                              max_order = 1L)
+  expect_error(hg_communities(net, trials = 1L),
+               class = "hypergraphs_bad_input")
+})
+
+# ---- Zero-entropy networks (M11) -------------------------------------------
+
+test_that("savings are 0, not NaN, when the walk needs no bits", {
+  comm <- hg_communities(hon(list(c("a", "a", "a")), max_order = 1L),
+                         trials = 1L)
+  cl <- hg_get(comm, what = "codelength")
+  expect_identical(cl$one_level_codelength, c(0, 0))
+  expect_identical(cl$savings_pct, c(0, 0))
+  expect_identical(.hcm_savings_pct(1, 2), 50)
+})
+
+# ---- Duplicated partition names (M12) --------------------------------------
+
+test_that("a partition naming a node twice is refused in either form", {
+  expect_error(.hcm_partition(c(a = 1, a = 2), "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(.hcm_partition(data.frame(node = c("a", "a"),
+                                         community = c(1, 2)), "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(.hcm_partition(stats::setNames(c(1, 2), c("a", NA)), "a"),
+               class = "hypergraphs_bad_input")
+  # a unique, reordered named vector still aligns by node
+  expect_identical(.hcm_partition(c(b = 2, a = 1), c("a", "b")), c(1L, 2L))
+})
+
+# ---- Community identifiers (M13) -------------------------------------------
+
+test_that("hg_get() refuses a fractional community identifier", {
+  comm <- hg_communities(hon(list(c("a", "b", "a", "c", "a", "b")),
+                             max_order = 1L), trials = 1L)
+  expect_error(hg_get(comm, community = 1.5),
+               class = "hypergraphs_bad_input")
+  expect_identical(nrow(hg_get(comm, community = 1)),
+                   sum(hg_get(comm)$community == 1))
+})

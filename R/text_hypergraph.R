@@ -246,7 +246,10 @@
 #'   tables.
 #'
 #' @section Conditions: Raises `hypergraphs_bad_input` (broken argument contract,
-#'   including bag-only arguments passed to other constructions),
+#'   including bag-only arguments passed to other constructions, and a
+#'   data.frame column other than `column` and `id` named like a column of
+#'   the document table: `doc`, and for the token-based constructions also
+#'   `n_tokens` or `n_types`),
 #'   `hypergraphs_empty_corpus` (no document survives tokenization and filtering),
 #'   `hypergraphs_missing_embeddings` (`construction = "knn"` with neither
 #'   `embeddings` nor the sbert package), and warns with
@@ -376,6 +379,31 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       }
     }
     meta <- x[setdiff(names(x), c(column, id))]
+    # the document table's own columns cannot also be metadata: a second
+    # `n_tokens` column would make `labels = "n_tokens"` read the computed
+    # counts instead of the input's values
+    reserved <- if (identical(construction, "knn")) "doc" else
+      c("doc", "n_tokens", "n_types")
+    # so such a column is kept as metadata under `input_<name>`, and the
+    # renaming is announced
+    clash <- intersect(names(meta), reserved)
+    if (length(clash) > 0L) {
+      renamed <- paste0("input_", clash)
+      if (any(renamed %in% names(meta))) {
+        .thg_bad_input(sprintf(paste0(
+          "column(s) %s of `x` collide with the document table's own ",
+          "column(s), and %s are taken too; rename them"),
+          paste0("`", clash, "`", collapse = ", "),
+          paste0("`", renamed, "`", collapse = ", ")))
+      }
+      names(meta)[match(clash, names(meta))] <- renamed
+      warning(warningCondition(sprintf(paste0(
+        "column(s) %s of `x` share a name with the document table's own ",
+        "column(s) and are kept as metadata %s"),
+        paste0("`", clash, "`", collapse = ", "),
+        paste0("`", renamed, "`", collapse = ", ")),
+        class = "hypergraphs_renamed_column", call = NULL))
+    }
   } else {
     text <- x
     doc_id <- names(x) %||% sprintf("doc_%d", seq_along(x))
@@ -660,6 +688,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       }
       rownames(embeddings) <- doc_id
     } else {
+      .ho_check_ids(rownames(embeddings), "rownames(embeddings)")
       if (!setequal(rownames(embeddings), doc_id)) {
         stop(errorCondition(
           "rownames of `embeddings` must match the document IDs",
@@ -788,27 +817,13 @@ hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
                                    node = NULL, sort_by = NULL, top = NULL,
                                    ...) {
   what <- .ho_match_what(what)
-  if (!is.null(sort_by)) {
-    if (!identical(what, "vocabulary")) {
-      .thg_bad_input("`sort_by` applies only to `what = \"vocabulary\"`")
-    }
-    sort_by <- match.arg(sort_by, c("count", "doc_freq"))
-    vocabulary <- x$text$vocabulary
-    vocabulary <- vocabulary[order(-vocabulary[[sort_by]], vocabulary$word), ,
-                             drop = FALSE]
-    rownames(vocabulary) <- NULL
-    return(.ho_top(vocabulary, top))
+  # every filter is checked against `what` before any is applied, and they
+  # compose: node, then sort_by, then top
+  if (!is.null(sort_by) && !identical(what, "vocabulary")) {
+    .thg_bad_input("`sort_by` applies only to `what = \"vocabulary\"`")
   }
-  if (!is.null(node)) {
-    if (!identical(what, "documents")) {
-      .thg_bad_input("`node` applies only to `what = \"documents\"`")
-    }
-    documents <- x$text$documents
-    out <- documents[match(.thg_node_filter(node), documents$doc), ,
-                     drop = FALSE]
-    out <- out[!is.na(out$doc), , drop = FALSE]
-    rownames(out) <- NULL
-    return(out)
+  if (!is.null(node) && !identical(what, "documents")) {
+    .thg_bad_input("`node` applies only to `what = \"documents\"`")
   }
   if (identical(what, "sentences") && is.null(x$text$sentences)) {
     stop(errorCondition(
@@ -816,5 +831,16 @@ hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  .ho_top(x$text[[what]], top)
+  out <- x$text[[what]]
+  if (!is.null(node)) {
+    out <- out[match(.thg_node_filter(node), out$doc), , drop = FALSE]
+    out <- out[!is.na(out$doc), , drop = FALSE]
+    rownames(out) <- NULL
+  }
+  if (!is.null(sort_by)) {
+    sort_by <- match.arg(sort_by, c("count", "doc_freq"))
+    out <- out[order(-out[[sort_by]], out$word), , drop = FALSE]
+    rownames(out) <- NULL
+  }
+  .ho_top(out, top)
 }

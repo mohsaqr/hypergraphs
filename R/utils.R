@@ -518,8 +518,20 @@
 #'   on the right.
 #' @noRd
 .ho_wide_sequences <- function(sequences) {
+  if (!length(sequences)) {
+    .ho_bad_input("`data` holds no sequence: the list of sequences is empty")
+  }
+  atomic <- vapply(sequences, \(s) is.atomic(s) || is.factor(s), logical(1L))
+  if (!all(atomic)) {
+    .ho_bad_input(sprintf(paste0(
+      "every sequence must be a vector of states; element %d is a %s"),
+      which(!atomic)[1L], class(sequences[[which(!atomic)[1L]]])[1L]))
+  }
   sequences <- lapply(sequences, as.character)
-  width <- max(1L, lengths(sequences))
+  if (all(lengths(sequences) == 0L)) {
+    .ho_bad_input("`data` holds no state: every sequence is empty")
+  }
+  width <- max(lengths(sequences))
   rows <- lapply(sequences, function(s) {
     c(s, rep(NA_character_, width - length(s)))
   })
@@ -534,4 +546,126 @@
 #' @noRd
 .ho_bad_input <- function(msg) {
   stop(errorCondition(msg, class = "hypergraphs_bad_input", call = NULL))
+}
+
+# Apply `fn` to every element of `x`, serially or with parallel::mclapply
+# (forking, so never on Windows, where it runs serially). Work that seeds
+# itself per element returns the same result either way, so `fn` must not
+# return NULL and must not draw from the caller's stream. A worker whose R
+# code fails comes back as a "try-error" value and is re-raised as
+# `hypergraphs_parallel_failed`. A worker the operating system killed comes
+# back as NULL -- on macOS this happens when a forked child calls the
+# Accelerate BLAS after the parent has (it is not fork-safe) -- and is rerun
+# here, serially, with one `hypergraphs_parallel_fallback` warning: the work
+# is deterministic, so the rerun gives the value the worker would have.
+.ho_apply <- function(x, fn, parallel = FALSE, n_cores = 2L) {
+  if (!is.logical(parallel) || length(parallel) != 1L || is.na(parallel)) {
+    .ho_input_error("`parallel` must be TRUE or FALSE")
+  }
+  n_cores <- .ho_check_count(n_cores, "n_cores")
+  if (!parallel || .Platform$OS.type == "windows") return(lapply(x, fn))
+  # mclapply also warns "scheduled core(s) ... encountered errors" or "did
+  # not deliver results"; both outcomes are handled below, so only those
+  # warnings are muffled here.
+  out <- withCallingHandlers(
+    parallel::mclapply(x, fn, mc.cores = n_cores),
+    warning = function(w) {
+      if (grepl("scheduled cores?", conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+  errored <- vapply(out, inherits, logical(1L), "try-error")
+  if (any(errored)) {
+    stop(errorCondition(
+      sprintf("%d of %d parallel workers failed; first error: %s",
+              sum(errored), length(out),
+              conditionMessage(attr(out[[which(errored)[1L]]], "condition"))),
+      class = "hypergraphs_parallel_failed", call = NULL
+    ))
+  }
+  killed <- vapply(out, is.null, logical(1L))
+  if (any(killed)) {
+    warning(warningCondition(sprintf(paste0(
+      "%d of %d parallel workers were killed by the operating system and ",
+      "were rerun serially (on macOS the Accelerate BLAS is not fork-safe)"),
+      sum(killed), length(out)),
+      class = "hypergraphs_parallel_fallback", call = NULL))
+    out[killed] <- lapply(x[killed], fn)
+  }
+  out
+}
+
+# k-means with `nstart` random starts, drawn exactly as stats::kmeans(x, k,
+# nstart = nstart) draws them (one start: k rows of `x`, redrawn from the
+# unique rows if two coincide; several: every start from the unique rows,
+# in order, from one stream), keeping the first start with the smallest
+# total within-cluster sum. The difference: a Hartigan-Wong start that
+# stops before it has finished (ifault 4, "Quick-TRANSfer stage steps
+# exceeded", or ifault 2, `iter.max` reached) is finished instead of
+# entering the comparison unfinished: Hartigan-Wong is continued from the
+# centres it reached while that lowers the within-cluster sum (at most
+# `max_continue` times), and a start that still cycles is finished by
+# Lloyd's algorithm from those centres (Lloyd 1982), whose steps never
+# raise the same objective. Starts that finish give exactly the
+# stats::kmeans() result. A start Lloyd cannot finish either raises one
+# `hypergraphs_no_converge` warning.
+.ho_kmeans <- function(x, k, nstart = 1L, iter.max = 100L,
+                       max_continue = 20L, lloyd_iter = 1000L) {
+  first <- if (nstart == 1L) x[sample.int(nrow(x), k), , drop = FALSE]
+  need_unique <- is.null(first) || anyDuplicated(first) > 0L
+  unique_rows <- if (need_unique) unique(x)
+  draw_unique <- \() unique_rows[sample.int(nrow(unique_rows), k), , drop = FALSE]
+  if (need_unique) first <- draw_unique()
+  starts <- c(list(first), lapply(seq_len(nstart - 1L), \(s) draw_unique()))
+  runs <- lapply(starts, \(centres) {
+    run <- .ho_kmeans_once(x, centres, iter.max)
+    continued <- 0L
+    # each continuation restarts Hartigan-Wong from the centres reached,
+    # while it still lowers the within-cluster sum; bounded by `max_continue`
+    while (!run$finished && continued < max_continue) {
+      nxt <- .ho_kmeans_once(x, run$fit$centers, iter.max)
+      improved <- nxt$fit$tot.withinss < run$fit$tot.withinss
+      run <- nxt
+      continued <- continued + 1L
+      if (!improved) break
+    }
+    if (!run$finished) {
+      run <- .ho_kmeans_once(x, run$fit$centers, iter.max = lloyd_iter,
+                             algorithm = "Lloyd")
+    }
+    run
+  })
+  unfinished <- !vapply(runs, \(r) r$finished, logical(1L))
+  if (any(unfinished)) {
+    warning(warningCondition(sprintf(
+      "k-means: %d of %d starts did not converge, even by Lloyd's algorithm",
+      sum(unfinished), nstart),
+      class = "hypergraphs_no_converge", call = NULL))
+  }
+  # which.min() keeps the first of tied minima, as stats::kmeans() does
+  totals <- vapply(runs, \(r) r$fit$tot.withinss, numeric(1L))
+  runs[[which.min(totals)]]$fit
+}
+
+# One k-means run from given centres, as list(fit, finished). The two
+# "stopped early" warnings (Hartigan-Wong's ifault 4 "Quick-TRANSfer stage
+# steps exceeded", and "did not converge in ... iterations" from either
+# algorithm) are what .ho_kmeans() acts on, so they are recorded in
+# `finished` and muffled; any other warning passes through.
+.ho_kmeans_once <- function(x, centres, iter.max,
+                            algorithm = "Hartigan-Wong") {
+  stopped_early <- FALSE
+  fit <- withCallingHandlers(
+    stats::kmeans(x, centers = centres, iter.max = iter.max,
+                  algorithm = algorithm),
+    warning = function(w) {
+      if (grepl("^(Quick-TRANSfer stage steps exceeded|did not converge in)",
+                conditionMessage(w))) {
+        stopped_early <<- TRUE
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+  list(fit = fit, finished = !stopped_early)
 }

@@ -18,8 +18,9 @@ hg_embed(
 \arguments{
 \item{hg}{Any hypergraphs \code{net_hg}.}
 
-\item{dimensions}{Number of embedding coordinates, between 2 and
-\code{n_nodes - 1}.}
+\item{dimensions}{Number of embedding coordinates, one whole number
+between 2 and \code{n_nodes - 1}; anything else raises
+\code{hypergraphs_bad_input}.}
 
 \item{type}{Laplacian type: \code{"zhou"} or \code{"random_walk"}.}
 
@@ -54,7 +55,7 @@ hg_embed(h, dimensions = 2)
 \references{
 Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
 clustering, classification, and embedding. \emph{Advances in Neural
-Information Processing Systems 19}.
+Information Processing Systems 19}. \doi{10.7551/mitpress/7503.003.0205}
 
 Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
 random walks, Laplacians, and clustering. \emph{Proceedings of the 29th ACM

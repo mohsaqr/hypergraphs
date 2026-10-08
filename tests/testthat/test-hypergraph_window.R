@@ -291,3 +291,18 @@ test_that("min_weight keeps only recurrent hyperedges", {
   expect_error(window_hypergraph(list(c("a", "b", "c")), window = 2L,
                                  min_weight = 5L), "min_weight")
 })
+
+test_that("sequence names identify sequences and never merge them (R06)", {
+  expect_error(window_hypergraph(list(s = c("a", "b"), s = c("c", "d")),
+                                 window = 2, collapse = FALSE),
+               class = "hypergraphs_bad_input")
+  expect_error(window_hypergraph(list(s = c("a", "b"), c("c", "d")), window = 2),
+               class = "hypergraphs_bad_input")
+  unnamed <- window_hypergraph(list(c("a", "b"), c("c", "d")), window = 2,
+                               collapse = FALSE)
+  expect_identical(unnamed$n_hyperedges, 2L)
+  expect_identical(hg_get(unnamed)$size, c(2L, 2L))
+  # the temporal reading of a list of sequences shares the contract
+  expect_error(temporal_hypergraph(list(s = c("a", "b"), s = c("c", "d"))),
+               class = "hypergraphs_bad_input")
+})

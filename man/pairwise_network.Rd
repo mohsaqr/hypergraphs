@@ -40,7 +40,9 @@ contributes \verb{1 / sum_e |e|} over the hyperedges sourced by \code{u}.}
 \item{edge_source}{The node each hyperedge comes from: the name of a
 column of the hyperedge attributes, a vector of length \code{n_hyperedges}, a
 named vector keyed by hyperedge, or a data frame with columns \code{edge} and
-\code{source}. \code{NULL} uses an attribute column named \code{source}. Used with
+\code{source} (a hyperedge named twice with different sources raises
+\code{hypergraphs_bad_input}). \code{NULL} uses an attribute column named
+\code{source}. Used with
 \code{self_association = TRUE} and \code{type = "citation"}.}
 
 \item{directed}{For \code{type = "citation"}: keep the source-to-member
@@ -108,6 +110,7 @@ Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 
 Zhou, D., Huang, J., & Schoelkopf, B. (2006). Learning with hypergraphs:
 clustering, classification, and embedding. \emph{NeurIPS 19}, 1601-1608.
+\doi{10.7551/mitpress/7503.003.0205}
 }
 \seealso{
 \code{\link[=hg_line_graph]{hg_line_graph()}} for the projection onto hyperedges.

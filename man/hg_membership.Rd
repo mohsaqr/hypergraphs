@@ -44,7 +44,8 @@ hypergraph Laplacian that \code{\link[=hg_cluster]{hg_cluster()}} cuts (the same
 documents, and the membership of a document in a topic is the fuzzy
 c-means weight with fuzziness 2: the inverse squared distance to that
 centre, normalised over the topics. A document at a centre has
-membership 1 there; a document halfway between two centres has 0.5 in
+membership 1 there (shared equally when several centres coincide); a
+document halfway between two centres has 0.5 in
 each. The values sum to one over the topics, so their level depends on
 the number of topics \code{k}: the uniform value is \code{1 / k}, and with many
 topics even a clearly assigned document has a modest membership. Read

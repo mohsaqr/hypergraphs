@@ -44,6 +44,12 @@
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
+  # no nodes: the typed zero-row table the other centralities return, before
+  # any eigensolve (eigen() refuses a 0 x 0 matrix)
+  if (nrow(hg$incidence) == 0L) {
+    return(data.frame(node = character(0L), katz = numeric(0L),
+                      stringsAsFactors = FALSE))
+  }
   adjacency <- .hg_katz_adjacency(hg)
   lambda <- .hg_katz_lambda(adjacency)
   # the eigenvalue carries rounding error: treat the boundary as outside

@@ -20,7 +20,9 @@ hg_mmsbm(
   u_prior = 0,
   max_size = NULL,
   edge_weights = NULL,
-  seed = NULL
+  seed = NULL,
+  parallel = FALSE,
+  n_cores = 2L
 )
 
 \method{hg_get}{net_hg_mmsbm}(
@@ -84,6 +86,13 @@ the stored cell weights (word counts, tf-idf) do not enter the model.}
 
 \item{seed}{\code{NULL} (default: the current random stream) or a whole number
 for the random starts; the caller's stream is restored on exit.}
+
+\item{parallel}{Logical. Fit the \code{nstart} starts with
+\code{parallel::mclapply()} (not on Windows, where they run serially).
+Default \code{FALSE}. All starting values are drawn first, in order, from
+one stream, so the result equals the serial one.}
+
+\item{n_cores}{Integer. Cores when \code{parallel = TRUE} (default 2).}
 
 \item{x}{A \code{net_hg_mmsbm} object.}
 
@@ -170,7 +179,16 @@ hyperedges can still have its memberships driven to zero (or to subnormal
 remnants) by the multiplicative EM updates; any row whose total is below
 the precision of the largest row is treated as having no membership
 (\code{NA}) and reported with a \code{hypergraphs_collapsed_membership} warning,
-rather than normalising remnants into spurious exact mixtures.
+rather than normalising remnants into spurious exact mixtures. This is a
+property of the model, not of the fit: \eqn{\lambda_e} sums over the
+pairs of a hyperedge, so in a hyperedge of three or more nodes the pairs
+that avoid node \eqn{i} can explain it on their own, and \eqn{u_i = 0}
+then costs the likelihood nothing while removing its share of the
+\eqn{-C\sum_{i<j}} term. Documents bound by word hyperedges, nearly all of
+size three or more, are the common case: on a 6,630-document legal
+corpus about a third of the documents collapse for \code{k = 3}, with or
+without stop words and with \code{max_size = 25}. For the topic mixture of
+every document of a corpus use \code{\link[=hg_topics]{hg_topics()}}.
 
 The membership of node \eqn{i} in community \eqn{k} is
 \eqn{u_{ik} / \sum_q u_{iq}}; the hard \code{community} is its largest entry.

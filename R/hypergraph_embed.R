@@ -5,8 +5,9 @@
 #' assignments produced by [hg_cluster()].
 #'
 #' @param hg Any hypergraphs `net_hg`.
-#' @param dimensions Number of embedding coordinates, between 2 and
-#'   `n_nodes - 1`.
+#' @param dimensions Number of embedding coordinates, one whole number
+#'   between 2 and `n_nodes - 1`; anything else raises
+#'   `hypergraphs_bad_input`.
 #' @param type Laplacian type: `"zhou"` or `"random_walk"`.
 #' @param method `"spectral"` (default) or Hayashi et al.'s
 #'   `"symnmf"`. SymNMF requires a dense incidence matrix.
@@ -20,7 +21,7 @@
 #' @references
 #' Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
 #' clustering, classification, and embedding. *Advances in Neural
-#' Information Processing Systems 19*.
+#' Information Processing Systems 19*. \doi{10.7551/mitpress/7503.003.0205}
 #'
 #' Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
 #' random walks, Laplacians, and clustering. *Proceedings of the 29th ACM
@@ -40,12 +41,12 @@ hg_embed <- function(hg, dimensions = 2L,
                      nstart = 25L, max_iter = 500L, tol = 1e-6) {
   type <- match.arg(type)
   method <- match.arg(method)
-  if (!is.numeric(dimensions) || length(dimensions) != 1L ||
-      !is.finite(dimensions) || dimensions != as.integer(dimensions)) {
-    stop("`dimensions` must be one whole number.", call. = FALSE)
-  }
+  # shared count validator: a fraction, NA, Inf or a value beyond the
+  # integer range is refused with `hypergraphs_bad_input` (an as.integer()
+  # comparison would turn an out-of-range value into NA and crash)
+  dimensions <- .ho_check_count(dimensions, "dimensions", min = 2)
   fit <- hg_cluster(
-    hg, k = as.integer(dimensions), type = type, seed = seed,
+    hg, k = dimensions, type = type, seed = seed,
     nstart = nstart, what = "embedding", algorithm = method,
     max_iter = max_iter, tol = tol
   )

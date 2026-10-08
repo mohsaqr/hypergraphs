@@ -167,3 +167,77 @@ test_that("hg_pagerank defaults to window counts like the other walk verbs", {
   explicit <- hg_pagerank(hg, edge_weights = as.numeric(hg$window_counts))
   expect_identical(pr, explicit)
 })
+
+# ---- Audit regressions (2026-10-06) ---------------------------------------
+
+.pr_path <- function(sparse = FALSE) {
+  group_hypergraph(
+    data.frame(node = c("a", "b", "b", "c"), hyperedge = c("X", "X", "Y", "Y")),
+    node = "node", hyperedge = "hyperedge", sparse = sparse
+  )
+}
+
+test_that("A11: personalized refuses non-finite and duplicated weights", {
+  hg <- .pr_path()
+  bad <- list(c(a = Inf), c(a = NaN), c(a = -Inf, b = 1),
+              c(a = 1, a = 9, c = 1), c(a = 9, a = 1, c = 1),
+              stats::setNames(1, NA_character_), c(z = 1),
+              NA_character_, "")
+  lapply(bad, \(p) expect_error(hg_pagerank(hg, personalized = p),
+                                class = "hypergraphs_bad_input"))
+})
+
+test_that("A11: a character personalization is a set; huge weights are finite", {
+  hg <- .pr_path()
+  expect_identical(hg_pagerank(hg, personalized = c("a", "a", "c")),
+                   hg_pagerank(hg, personalized = c("a", "c")))
+  expect_equal(hg_pagerank(hg, personalized = c("a", "c")),
+               hg_pagerank(hg, personalized = c(a = 1, c = 1)),
+               tolerance = 1e-14)
+  # finite weights whose sum overflows a double
+  huge <- hg_pagerank(hg, personalized = c(a = 1e308, c = 1e308))
+  expect_true(all(is.finite(huge$pagerank)))
+  expect_equal(huge, hg_pagerank(hg, personalized = c(a = 1, c = 1)),
+               tolerance = 1e-14)
+})
+
+test_that("A12: undamped PageRank refuses a disconnected hypergraph", {
+  lapply(c(FALSE, TRUE), \(sparse) {
+    hg <- group_hypergraph(
+      data.frame(node = c("a", "b", "c", "d"),
+                 hyperedge = c("X", "X", "Y", "Y")),
+      node = "node", hyperedge = "hyperedge", sparse = sparse
+    )
+    expect_error(hg_pagerank(hg, damping = 1, personalized = "a"),
+                 class = "hypergraphs_hypergraph_disconnected")
+    expect_error(hg_pagerank(hg, damping = 1),
+                 class = "hypergraphs_hypergraph_disconnected")
+    # damped, the disconnected graph is still valid
+    expect_equal(sum(hg_pagerank(hg, damping = 0.85)$pagerank), 1)
+  })
+  # connected undamped input still matches the Laplacian stationary vector
+  hg <- .pr_path()
+  expect_equal(hg_pagerank(hg, damping = 1)$pagerank,
+               unname(attr(hg_laplacian(hg, type = "random_walk"), "pi")),
+               tolerance = 1e-10)
+})
+
+test_that("count and tolerance controls are validated with a classed error", {
+  hg <- .pr_path()
+  lapply(list(1.5, -Inf, 0, NA, "2", c(1, 2)), \(bad) {
+    expect_error(hg_pagerank(hg, n = bad), class = "hypergraphs_bad_input")
+  })
+  lapply(list(Inf, 2.5, 0), \(bad) {
+    expect_error(hg_pagerank(hg, max_iter = bad),
+                 class = "hypergraphs_bad_input")
+  })
+  lapply(list(0, Inf, -1), \(bad) {
+    expect_error(hg_pagerank(hg, tol = bad), class = "hypergraphs_bad_input")
+  })
+  lapply(list(0, 1.5, NA, Inf), \(bad) {
+    expect_error(hg_pagerank(hg, damping = bad),
+                 class = "hypergraphs_bad_input")
+  })
+  expect_identical(nrow(hg_pagerank(hg, n = 2)), 2L)
+  expect_identical(nrow(hg_pagerank(hg, n = Inf)), 3L)
+})

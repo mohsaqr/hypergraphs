@@ -18,6 +18,8 @@
   delta = 0.01,
   max_iter = 50L,
   edge_weights = NULL,
+  parallel = FALSE,
+  n_cores = 2L,
   ...
 )
 }
@@ -67,6 +69,13 @@ table and raises one \code{hypergraphs_no_converge} warning.}
 \item{edge_weights}{For \code{type = "irmm"}: initial positive hyperedge
 weights (one per hyperedge, or one value recycled). \code{NULL} uses the
 window counts of a \code{\link[=window_hypergraph]{window_hypergraph()}}, else unit weights.}
+
+\item{parallel}{Logical. Run the \code{n_runs} independent runs with
+\code{parallel::mclapply} (not on Windows, where they run serially).
+Default \code{FALSE}. Every run is seeded by its own entry of \code{seeds}, so
+the result is identical to the serial one.}
+
+\item{n_cores}{Integer. Cores when \code{parallel = TRUE} (default 2).}
 
 \item{...}{Must be empty: an argument that only the memory-network
 method takes raises \code{hypergraphs_bad_input}.}

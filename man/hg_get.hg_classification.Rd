@@ -103,14 +103,12 @@ predicted label, its split and whether a held-out prediction is correct.
 diagnostic attention of the trained network, computed on request.
 }
 \examples{
-\dontrun{
-# articles contains text and existing subject labels.
-fit <- hg_hypergat(articles, column = "text", labels = "subject",
-                   holdout = 0.2)
+hg <- text_hypergraph(head(forum_posts, 60), column = "text")
+fit <- hg_classify(hg, labels = "topic", holdout = 0.25)
 fit
 hg_get(fit, what = "classes")
-hg_get(fit, what = "documents", split = "test", correct = FALSE, top = 1)
-}
+hg_get(fit, what = "confusion")
+hg_get(fit, split = "test", correct = FALSE)
 }
 \references{
 Brodersen, K. H., Ong, C. S., Stephan, K. E., & Buhmann, J. M. (2010).

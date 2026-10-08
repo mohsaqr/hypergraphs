@@ -15,7 +15,9 @@ hg_cluster(
   n = Inf,
   algorithm = c("spectral", "symnmf"),
   max_iter = 500L,
-  tol = 1e-06
+  tol = 1e-06,
+  parallel = FALSE,
+  n_cores = 2L
 )
 }
 \arguments{
@@ -65,6 +67,14 @@ groups the structure supports. Ignored for the other values of \code{what}.}
 \code{algorithm = "symnmf"}.}
 
 \item{tol}{Relative objective tolerance for \code{algorithm = "symnmf"}.}
+
+\item{parallel}{For \code{algorithm = "symnmf"}: run the \code{nstart} starts with
+\code{parallel::mclapply()} (not on Windows, where they run serially).
+Default \code{FALSE}. Every start's initial factor is drawn first, in order,
+so the result equals the serial one. Supplying it (or \code{n_cores}) with
+\code{algorithm = "spectral"} raises \code{hypergraphs_bad_input}.}
+
+\item{n_cores}{Cores when \code{parallel = TRUE} (default 2).}
 }
 \value{
 A base \code{data.frame}. For \code{what = "clusters"}: one row per node,
@@ -84,6 +94,10 @@ eigenvectors and applies k-means. \code{algorithm = "symnmf"} (RDC-Sym)
 computes a rank-\code{k} non-negative factorization \verb{T ~= U U'} of the
 normalized similarity \code{T = I - L}, then assigns each vertex to the
 largest entry in its row of \code{U}, exactly as Algorithm 2 specifies.
+\code{T} is dense whatever the incidence, so on a sparse hypergraph it is
+built from the sparse Laplacian and factorised dense (8 n^2 bytes:
+350 MB for 6,630 documents); beyond 15,000 nodes this raises
+\code{hypergraphs_sparse_too_large}.
 With \code{type = "random_walk"} and a weighted
 incidence (e.g. from \code{\link[=group_hypergraph]{group_hypergraph()}} with \verb{weight =}), the
 edge-dependent vertex weights genuinely change the partition - with

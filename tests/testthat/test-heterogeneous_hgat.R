@@ -45,3 +45,31 @@ test_that("HGAT validates type-specific feature rows", {
   expect_error(.thg_hgat_inputs(x$A, x$types, x$features),
                "feature rows for type")
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("HGAT refuses duplicated feature rows and node types (TXT-15)", {
+  x <- .hgat_fixture()
+  dup_rows <- x$features
+  dup_rows$document <- rbind(dup_rows$document,
+                             d1 = c(100, 100))
+  expect_error(.thg_hgat_inputs(x$A, x$types, dup_rows),
+               class = "hypergraphs_bad_input")
+  dup_types <- c(x$types, d1 = "topic")
+  expect_error(.thg_hgat_inputs(x$A, dup_types, x$features),
+               class = "hypergraphs_bad_input")
+  # a permutation of unique rows aligns to the adjacency order
+  shuffled <- x$features
+  shuffled$document <- shuffled$document[c("d2", "d1"), , drop = FALSE]
+  expect_identical(.thg_hgat_inputs(x$A, x$types, shuffled)$features,
+                   .thg_hgat_inputs(x$A, x$types, x$features)$features)
+})
+
+test_that("heterogeneous HGAT refuses conflicting labels (TXT-07)", {
+  skip_if_not_installed("torch")
+  x <- .hgat_fixture()
+  expect_error(heterogeneous_hgat(x$A, x$types, x$features,
+                                  labels = c(d1 = "a", d1 = "b", d2 = "b"),
+                                  epochs = 1L, hidden = 4L),
+               class = "hypergraphs_bad_input")
+})

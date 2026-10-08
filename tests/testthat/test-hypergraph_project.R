@@ -215,3 +215,26 @@ test_that("plot() of a pairwise_network() result plots through cograph and retur
   expect_identical(withVisible(plot(net))$visible, FALSE)
   expect_identical(plot(net, layout = "circle", node_fill = "#E69F00"), net)
 })
+
+test_that("A15: a hyperedge given two different sources is refused", {
+  path <- group_hypergraph(
+    data.frame(node = c("a", "b", "b", "c"), hyperedge = c("X", "X", "Y", "Y")),
+    node = "node", hyperedge = "hyperedge"
+  )
+  expect_error(
+    pairwise_network(path, type = "citation",
+                     edge_source = c(X = "s1", X = "s2", Y = "s3")),
+    class = "hypergraphs_bad_input")
+  expect_error(
+    pairwise_network(path, type = "citation",
+                     edge_source = data.frame(edge = c("X", "X", "Y"),
+                                              source = c("s1", "s2", "s3"))),
+    class = "hypergraphs_bad_input")
+  # an identical repeat and a shuffled mapping give the same projection
+  base <- hg_get(pairwise_network(path, type = "citation",
+                                  edge_source = c(X = "s1", Y = "s3")))
+  expect_identical(
+    hg_get(pairwise_network(path, type = "citation",
+                            edge_source = c(Y = "s3", X = "s1", X = "s1"))),
+    base)
+})

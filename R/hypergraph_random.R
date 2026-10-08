@@ -56,8 +56,10 @@
 #'   `$params`; for `"sbm"`, `$blocks` records the planted block of each
 #'   node.
 #' @section Conditions:
-#' `hypergraphs_bad_input` for an argument the chosen type does not take, or
-#' an argument given without a name.
+#' `hypergraphs_bad_input` for an argument the chosen type does not take, an
+#' argument given without a name, or a count (`n`, `m`, `k`, `impurity`,
+#' `seed`) that is not one whole number in range -- fractions, `NA`, `Inf`
+#' and values beyond the integer range are refused, never truncated.
 #' @references
 #' Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
 #' 1.0.0.
@@ -97,7 +99,7 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   .hgr_probability(p, "p")
   if (!is.null(lambda)) {
     if (length(lambda) != 1L || !is.finite(lambda) || lambda < 0) {
-      stop("`lambda` must be one non-negative number.", call. = FALSE)
+      .ho_input_error("`lambda` must be one non-negative number.")
     }
   }
   .hgr_seed(seed)
@@ -121,34 +123,40 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
 .hgr_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
                             variable_size = FALSE, absolute_purity = TRUE,
                             seed = NULL) {
+  # whole-number test by rounding, never by as.integer(): a size beyond the
+  # integer range would coerce to NA and crash the condition
   if (!is.numeric(block_sizes) || !length(block_sizes) ||
       any(!is.finite(block_sizes)) || any(block_sizes < 1) ||
-      any(block_sizes != as.integer(block_sizes))) {
-    stop("`block_sizes` must contain positive integers.", call. = FALSE)
+      any(block_sizes > .Machine$integer.max) ||
+      any(block_sizes != round(block_sizes))) {
+    .ho_input_error("`block_sizes` must contain positive integers.")
   }
   block_sizes <- as.integer(block_sizes)
   n_blocks <- length(block_sizes)
   n <- if (is.null(n)) sum(block_sizes) else .hgr_count(n, "n", 2L)
   if (n != sum(block_sizes)) {
-    stop("`n` must equal sum(`block_sizes`).", call. = FALSE)
+    .ho_input_error("`n` must equal sum(`block_sizes`).")
   }
   if (!is.matrix(P) || !is.numeric(P) ||
       !identical(dim(P), c(n_blocks, n_blocks)) || anyNA(P) ||
       any(P < 0 | P > 1) || !isTRUE(all.equal(P, t(P)))) {
-    stop("`P` must be a symmetric probability matrix matching the blocks.",
-         call. = FALSE)
+    .ho_input_error(
+      "`P` must be a symmetric probability matrix matching the blocks."
+    )
   }
   if (!is.numeric(d) || !length(d) || any(!is.finite(d)) || any(d < 0)) {
-    stop("`d` must contain non-negative finite values.", call. = FALSE)
+    .ho_input_error("`d` must contain non-negative finite values.")
   }
-  if (!variable_size && any(d < 2 | d != as.integer(d))) {
-    stop("fixed `d` values must be integers >= 2.", call. = FALSE)
+  if (!variable_size &&
+      any(d < 2 | d != round(d) | d > .Machine$integer.max)) {
+    .ho_input_error("fixed `d` values must be integers >= 2.")
   }
   impurity <- .hgr_count(impurity, "impurity", 0L)
   if (!is.logical(variable_size) || length(variable_size) != 1L ||
       !is.logical(absolute_purity) || length(absolute_purity) != 1L) {
-    stop("`variable_size` and `absolute_purity` must be single logicals.",
-         call. = FALSE)
+    .ho_input_error(
+      "`variable_size` and `absolute_purity` must be single logicals."
+    )
   }
   .hgr_seed(seed)
 
@@ -163,7 +171,10 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   } else {
     rep(as.integer(d), length.out = m)
   }
-  if (any(target > n)) stop("sampled hyperedge size exceeds `n`.", call. = FALSE)
+  # rpois() returns NA (with a warning) for a mean beyond the integer range
+  if (anyNA(target) || any(target > n)) {
+    .ho_input_error("sampled hyperedge size exceeds `n`.")
+  }
 
   edges <- lapply(seq_len(m), function(j) {
     endpoints <- pairs[, j]
@@ -171,26 +182,32 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
     eligible <- setdiff(which(blocks %in% endpoint_blocks), endpoints)
     need <- target[j] - 2L
     if (need > length(eligible)) {
-      stop("not enough nodes in the endpoint blocks for hyperedge size `d`.",
-           call. = FALSE)
+      .ho_input_error(
+        "not enough nodes in the endpoint blocks for hyperedge size `d`."
+      )
     }
-    added <- if (need) sample(eligible, need) else integer(0)
+    # draw positions, never values: sample(x, size) on a length-one numeric
+    # `x` samples from seq_len(x), which would re-draw an endpoint. For a
+    # pool longer than one, x[sample.int(length(x), size)] consumes the RNG
+    # exactly as sample(x, size) does, so seeded results are unchanged.
+    added <- if (need) .hgr_draw(eligible, need) else integer(0)
     edge <- c(endpoints, added)
     replace_n <- min(length(added), impurity)
     # As in HyperG, cross-block dyads in a two-block model cannot receive an
     # outside-block impurity under the absolute-purity rule.
     if (replace_n && !(n_blocks == 2L && length(endpoint_blocks) == 2L)) {
-      remove <- sample(added, replace_n)
+      remove <- .hgr_draw(added, replace_n)
       candidates <- if (absolute_purity) {
         which(!blocks %in% endpoint_blocks)
       } else {
         setdiff(seq_len(n), edge)
       }
       if (length(candidates) < replace_n) {
-        stop("not enough eligible nodes for the requested `impurity`.",
-             call. = FALSE)
+        .ho_input_error(
+          "not enough eligible nodes for the requested `impurity`."
+        )
       }
-      edge <- c(setdiff(edge, remove), sample(candidates, replace_n))
+      edge <- c(setdiff(edge, remove), .hgr_draw(candidates, replace_n))
     }
     sort(edge)
   })
@@ -209,8 +226,9 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   n <- .hgr_count(n, "n", 1L)
   m <- .hgr_count(m, "m", 0L)
   k <- .hgr_count(k, "k", 0L)
-  if (k > n) stop("`k` cannot exceed `n` for a uniform hypergraph.",
-                  call. = FALSE)
+  if (k > n) {
+    .ho_input_error("`k` cannot exceed `n` for a uniform hypergraph.")
+  }
   prob <- .hgr_sampling_prob(prob, n, k, "n")
   .hgr_seed(seed)
   incidence <- matrix(0L, n, m,
@@ -228,8 +246,9 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   n <- .hgr_count(n, "n", 1L)
   m <- .hgr_count(m, "m", 1L)
   k <- .hgr_count(k, "k", 0L)
-  if (k > m) stop("`k` cannot exceed `m` for a regular hypergraph.",
-                  call. = FALSE)
+  if (k > m) {
+    .ho_input_error("`k` cannot exceed `m` for a regular hypergraph.")
+  }
   prob <- .hgr_sampling_prob(prob, m, k, "m")
   .hgr_seed(seed)
   incidence <- matrix(0L, n, m,
@@ -242,21 +261,25 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   )
 }
 
+# Counts go through the shared validator: fractions, NA, Inf and values
+# beyond the integer range are refused with `hypergraphs_bad_input` (an
+# as.integer() comparison would coerce an out-of-range value to NA).
 #' @noRd
 .hgr_count <- function(x, name, minimum) {
-  if (!is.numeric(x) || length(x) != 1L || !is.finite(x) ||
-      x < minimum || x != as.integer(x)) {
-    stop(sprintf("`%s` must be one integer >= %d.", name, minimum),
-         call. = FALSE)
-  }
-  as.integer(x)
+  .ho_check_count(x, name, min = minimum)
+}
+
+# `size` elements of `pool` drawn without replacement, by position, so a
+# length-one pool is never read as the range seq_len(pool).
+#' @noRd
+.hgr_draw <- function(pool, size) {
+  pool[sample.int(length(pool), size)]
 }
 
 #' @noRd
 .hgr_probability <- function(x, name) {
   if (!is.numeric(x) || length(x) != 1L || !is.finite(x) || x < 0 || x > 1) {
-    stop(sprintf("`%s` must be one probability in [0, 1].", name),
-         call. = FALSE)
+    .ho_input_error(sprintf("`%s` must be one probability in [0, 1].", name))
   }
   invisible(x)
 }
@@ -268,9 +291,11 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   if (is.null(prob)) return(rep(1 / size, size))
   if (!is.numeric(prob) || length(prob) != size || any(!is.finite(prob)) ||
       any(prob < 0) || sum(prob) <= 0 || sum(prob > 0) < k) {
-    stop(sprintf(paste0("`prob` must contain %s non-negative finite weights ",
-                        "with at least `k` positive values."), size_name),
-         call. = FALSE)
+    .ho_input_error(sprintf(
+      paste0("`prob` must contain %s non-negative finite weights ",
+             "with at least `k` positive values."),
+      size_name
+    ))
   }
   prob
 }

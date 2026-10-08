@@ -41,8 +41,13 @@ hg_get.net_markov_order_group <- function(x, what = c("orders", "null"),
   }, x, groups)
   out <- do.call(rbind, parts)
   if (is.null(out)) {
+    # the full schema of the per-group tables, with no rows
     out <- if (identical(what, "orders")) {
-      data.frame(group = character(0), stringsAsFactors = FALSE)
+      data.frame(group = character(0), order = integer(0),
+                 log_likelihood = numeric(0), aic = numeric(0),
+                 bic = numeric(0), df = integer(0), g2 = numeric(0),
+                 p_value = numeric(0), p_asymptotic = numeric(0),
+                 significant = logical(0), stringsAsFactors = FALSE)
     } else {
       data.frame(group = character(0), order = integer(0),
                  replicate = integer(0), g2 = numeric(0),

@@ -211,6 +211,7 @@ hypa.default <- function(x, order = 2L, alpha = 0.05, min_count = 5L,
                              session = session,
                              time_threshold = time_threshold,
                              timezone = timezone)
+  data <- .hon_estimator_input(data)
   fit <- Nestimate::build_hypa(data, order = order, alpha = alpha,
                                min_count = min_count, p_adjust = p_adjust)
   structure(fit, class = c("hypergraphs_hypa", class(fit)),

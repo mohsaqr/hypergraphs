@@ -165,3 +165,20 @@ test_that("covid_embeddings dataset is intact and aligned", {
   expect_false(anyNA(covid_embeddings))
   expect_lt(max(abs(sqrt(rowSums(covid_embeddings^2)) - 1)), 1e-6)
 })
+
+test_that("k is a whole number and embeddings are finite (R18)", {
+  emb <- matrix(c(1, 1, 2, 2, 3, 3.5), 3, dimnames = list(letters[1:3], NULL))
+  lapply(list(1.5, Inf, NA, "1", c(1, 2), 0, 3), function(k) {
+    expect_error(knn_hypergraph(emb, k = k), class = "hypergraphs_bad_input")
+  })
+  bad <- emb
+  bad[1, 1] <- Inf
+  expect_error(knn_hypergraph(bad, k = 1), class = "hypergraphs_bad_input")
+  expect_error(knn_hypergraph(matrix(letters[1:6], 3), k = 1),
+               class = "hypergraphs_bad_input")
+  hg <- knn_hypergraph(emb, k = 2)
+  expect_true(all(hg_get(hg)$size == 3L))
+  # a large but finite embedding is not lost to overflow in the norm
+  big <- emb * 1e200
+  expect_identical(hg_get(knn_hypergraph(big, k = 1)), hg_get(knn_hypergraph(emb, k = 1)))
+})

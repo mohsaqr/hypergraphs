@@ -17,9 +17,10 @@
 #' `sbert::encode()`) gives the conventional kNN structure.
 #'
 #' @param embeddings Numeric matrix, one row per item, with unique non-empty
-#'   rownames (the item IDs). No missing values; no all-zero rows.
-#' @param k Number of neighbors per hyperedge (between 1 and
-#'   `nrow(embeddings) - 1`).
+#'   rownames (the item IDs). Finite values only, none missing; no all-zero
+#'   rows.
+#' @param k Number of neighbors per hyperedge, one whole number between 1
+#'   and `nrow(embeddings) - 1`; a fraction is refused, not truncated.
 #' @param weight `"cosine"` (default) or `"binary"`.
 #'
 #' @return A `net_hg` (from [group_hypergraph()]) with one
@@ -46,14 +47,16 @@
 #' @export
 knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
   weight <- match.arg(weight)
-  stopifnot(
-    "`embeddings` must be a numeric matrix" =
-      is.matrix(embeddings) && is.numeric(embeddings),
-    "`embeddings` must have at least two rows" = nrow(embeddings) >= 2L,
-    "`embeddings` must not contain missing values" = !anyNA(embeddings),
-    "`k` must be a single integer between 1 and nrow(embeddings) - 1" =
-      length(k) == 1L && is.finite(k) && k >= 1 && k <= nrow(embeddings) - 1L
-  )
+  if (!is.matrix(embeddings) || !is.numeric(embeddings)) {
+    .ho_input_error("`embeddings` must be a numeric matrix")
+  }
+  if (nrow(embeddings) < 2L) {
+    .ho_input_error("`embeddings` must have at least two rows")
+  }
+  if (anyNA(embeddings) || any(!is.finite(embeddings))) {
+    .ho_input_error("`embeddings` must hold finite values, with none missing")
+  }
+  k <- .ho_check_count(k, "k", min = 1, max = nrow(embeddings) - 1L)
   ids <- rownames(embeddings)
   if (is.null(ids) || anyNA(ids) || anyDuplicated(ids) > 0L ||
       !all(nzchar(ids))) {
@@ -63,6 +66,13 @@ knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
     ))
   }
   norms <- sqrt(rowSums(embeddings^2))
+  if (any(is.infinite(norms))) {
+    # squaring overflowed a large but finite entry: divide each row by its
+    # largest entry first (cosine similarity does not change with scale)
+    largest <- apply(abs(embeddings), 1L, max)
+    embeddings <- embeddings / ifelse(largest > 0, largest, 1)
+    norms <- sqrt(rowSums(embeddings^2))
+  }
   if (any(norms < sqrt(.Machine$double.eps))) {
     stop(errorCondition(
       "`embeddings` contains all-zero rows; cosine similarity is undefined",

@@ -105,12 +105,8 @@
 #' @noRd
 .ho_top <- function(x, top) {
   if (is.null(top)) return(x)
-  stopifnot(
-    "`top` must be a single whole number >= 1" =
-      is.numeric(top) && length(top) == 1L && is.finite(top) &&
-      top == round(top) && top >= 1
-  )
-  out <- utils::head(x, as.integer(top))
+  top <- .ho_check_count(top, "top")
+  out <- utils::head(x, top)
   rownames(out) <- NULL
   out
 }

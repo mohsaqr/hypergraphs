@@ -139,3 +139,19 @@ test_that("markov_order accepts a single netobject", {
   res <- markov_order(net, max_order = 2L, n_perm = 40L, seed = 1L)
   expect_s3_class(res, "net_markov_order")
 })
+
+# ---- Empty grouped result keeps its schema ---------------------------------
+
+test_that("an empty grouped Markov order result has the full orders schema", {
+  fit <- markov_order(list(c("a", "b", "a", "c", "a", "b"),
+                           c("b", "a", "c", "a", "b", "a")),
+                      max_order = 2L, n_perm = 5L, seed = 1L)
+  empty <- structure(list(), class = "net_markov_order_group")
+  orders <- hg_get(empty)
+  expect_identical(nrow(orders), 0L)
+  expect_identical(names(orders), c("group", names(hg_get(fit))))
+  expect_identical(vapply(orders[-1L], class, character(1L)),
+                   vapply(hg_get(fit), class, character(1L)))
+  expect_identical(names(hg_get(empty, what = "null")),
+                   c("group", names(hg_get(fit, what = "null"))))
+})

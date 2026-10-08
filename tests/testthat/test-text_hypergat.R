@@ -309,3 +309,34 @@ test_that("hg_hypergat(what = \"hyperedge_words\") gives both attention levels",
                    nrow(unique(words[c("node", "hyperedge")])))
   expect_true(all(summary_table$weight > 0 & summary_table$weight <= 1))
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("HyperGAT min_count is the corpus frequency of a word (TXT-17)", {
+  repeated <- .thg_hypergat_corpus(c("apple apple apple", "pear pear pear"),
+                                   c("a", "b"), NULL, 3L, TRUE, warn = FALSE)
+  expect_identical(repeated$vocab, c("apple", "pear"))
+  expect_identical(repeated$doc_id, c("a", "b"))
+  # a sentence binds each of its words once
+  expect_identical(repeated$sentences, list(list(2L), list(3L)))
+  # repeats across sentences and documents count the same way
+  spread <- .thg_hypergat_corpus(c("apple. apple", "apple pear. pear"),
+                                 c("a", "b"), NULL, 3L, TRUE, warn = FALSE)
+  expect_identical(spread$vocab, "apple")
+  # stop words never count
+  stopped <- .thg_hypergat_corpus("the the the apple", "a", "the", 2L, TRUE,
+                                  warn = FALSE)
+  expect_identical(stopped$vocab, character(0))
+  # a frozen vocabulary is used as given
+  frozen <- .thg_hypergat_corpus("pear apple", "a", NULL, 5L, TRUE,
+                                 vocabulary = "pear", warn = FALSE)
+  expect_identical(frozen$vocab, "pear")
+  expect_identical(frozen$sentences, list(list(2L)))
+})
+
+test_that("hg_hypergat refuses conflicting document labels (TXT-07)", {
+  skip_if_not_installed("torch")
+  conflict <- c(hypergat_labels, cooking_1 = "space")
+  expect_error(hg_hypergat(hypergat_docs, labels = conflict, epochs = 1L),
+               class = "hypergraphs_bad_input")
+})

@@ -445,16 +445,19 @@ hg_centrality.net_hon <- function(x,
       is.numeric(damping) && length(damping) == 1L && is.finite(damping) &&
       damping > 0 && damping < 1,
     "`weighted` must be TRUE or FALSE" =
-      is.logical(weighted) && length(weighted) == 1L && !is.na(weighted),
-    "`max_iter` must be a single positive number" =
-      is.numeric(max_iter) && length(max_iter) == 1L && max_iter >= 1,
-    "`tol` must be a single positive number" =
-      is.numeric(tol) && length(tol) == 1L && tol > 0,
-    "`max_paths` must be a single positive number" =
-      is.numeric(max_paths) && length(max_paths) == 1L && max_paths >= 1
+      is.logical(weighted) && length(weighted) == 1L && !is.na(weighted)
   )
+  if (!(is.numeric(tol) && length(tol) == 1L && is.finite(tol) && tol > 0)) {
+    .ho_input_error("`tol` must be a single positive finite number")
+  }
+  max_iter <- .ho_check_count(max_iter, "max_iter")
+  # Inf lifts the cap on enumerated shortest paths
+  max_paths <- .ho_check_count(max_paths, "max_paths", allow_inf = TRUE)
   type <- match.arg(type, several.ok = TRUE)
   projection <- match.arg(projection)
+  # a memory node is split at " -> " into its states, so a state label
+  # holding the arrow would be read as a history
+  .hon_check_states(hon$first_order_states)
 
   mat <- hon$matrix
   nodes <- rownames(mat)
@@ -473,7 +476,7 @@ hg_centrality.net_hon <- function(x,
 
   if ("pagerank" %in% type) {
     pr <- .hoc_pagerank(mat, damping = damping, weighted = weighted,
-                        max_iter = as.integer(max_iter), tol = tol)
+                        max_iter = max_iter, tol = tol)
     out$pagerank <- if (project) {
       as.numeric(.hoc_project(pr, node_paths, states, projection))
     } else {

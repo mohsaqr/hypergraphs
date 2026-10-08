@@ -55,7 +55,9 @@ not tie on words present in every document, as the clique measure
 does), \code{"clique"}, \code{"Z"} or \code{"H"}.}
 
 \item{scores}{An external score table (columns \code{node}, \code{word} and one
-numeric column), summed per cluster and added as its own block.}
+numeric column of finite values), summed per cluster and added as its
+own block. Several rows for one document and word add their scores but
+count as one document in \code{n_docs}.}
 
 \item{collapse}{If \code{TRUE}, return one row per type and cluster with the
 words joined into a single comma-separated string -- a display table,
@@ -82,7 +84,10 @@ cluster's documents), \code{rank}, \code{word}, \code{score} (the selected score
 \code{share} (\code{score} divided by the word's summed score over all
 clusters) and \code{n_docs} (the cluster's documents containing the word),
 ranked by \code{sort_by} within type and cluster; only words with a
-positive score and at least \code{min_docs} documents appear. With
+positive score and at least \code{min_docs} documents appear, so a cluster
+with no such word has no rows (and no row in the collapsed view), and
+a table in which no cluster has one has zero rows and the same
+columns. With
 \code{collapse = TRUE}: one row per type and cluster, columns \code{type},
 \code{cluster}, \code{size} and \code{words}. The print method shows the collapsed
 view, truncated to the console width; the returned table itself is

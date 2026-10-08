@@ -244,3 +244,43 @@ test_that("validation rejects a count threshold and a missing table", {
   expect_error(simplicial(seqs, type = "window", validate = TRUE,
                           null = "binomial"))
 })
+
+# ---- Automatic resolution beyond a feasible run (M04) ----------------------
+
+test_that("an infeasible automatic n_null is refused before any shuffle", {
+  # 100 actions in windows of 10: resolving the size-10 sets needs
+  # choose(100, 10) / 0.05 shuffles, far beyond the integer range
+  seqs <- lapply(0:9, \(i) paste0("n", i * 10 + 1:10))
+  expect_error(simplicial(seqs, type = "window", window = 10L,
+                          validate = TRUE),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("an explicit low n_null warns with a finite requirement", {
+  seqs <- rep(list(c("a", "b", "c"), c("d", "e", "f")), 6L)
+  w <- tryCatch(simplicial(seqs, type = "window", validate = TRUE,
+                           n_null = 19L, seed = 1L),
+                hypergraphs_low_resolution = \(w) w)
+  expect_s3_class(w, "hypergraphs_low_resolution")
+  # choose(6, 3) / 0.05 = 400 resolves every size
+  expect_match(conditionMessage(w), "n_null = 400 resolves", fixed = TRUE)
+  expect_false(grepl("NA", conditionMessage(w), fixed = TRUE))
+})
+
+# ---- Window controls (M13) -------------------------------------------------
+
+test_that("window complexes refuse invalid count and dimension controls", {
+  seqs <- list(c("a", "b", "c"))
+  bad <- list(list(max_dim = -1), list(max_dim = 1.5), list(max_dim = NA),
+              list(min_count = 1.5), list(min_count = c(1, 2)))
+  invisible(lapply(bad, \(arg) {
+    expect_error(do.call(simplicial, c(list(seqs, type = "window"), arg)),
+                 class = "hypergraphs_bad_input")
+  }))
+  expect_error(simplicial(rep(seqs, 3L), type = "window", validate = TRUE,
+                          n_null = 99.5),
+               class = "hypergraphs_bad_input")
+  # max_dim = 0 keeps the actions as vertices
+  vertices <- simplicial(seqs, type = "window", max_dim = 0L)
+  expect_identical(unname(vertices$f_vector), 3L)
+})

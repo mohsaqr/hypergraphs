@@ -204,3 +204,37 @@ test_that("sort_by orders by a computed centrality, largest first", {
   expect_error(hg_centrality(hon, type = "pagerank", sort_by = "closeness"),
                "arg")
 })
+
+# ---- State labels holding the arrow (M07) ----------------------------------
+
+test_that("hg_centrality() refuses a network whose states hold the arrow", {
+  # a net_hon built outside hon(), which refuses such labels itself
+  net <- Nestimate::build_hon(rep(list(c("a -> b", "c", "a -> b", "c")), 2L),
+                              max_order = 1L)
+  expect_error(hg_centrality(net, type = "pagerank", projection = "last"),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("projected PageRank conserves its mass on ordinary labels", {
+  net <- hon(rep(list(c("a", "b", "c", "a", "b", "d")), 3L), max_order = 2L)
+  pr <- hg_centrality(net, type = "pagerank", projection = "last")
+  expect_equal(sum(pr$pagerank), 1)
+})
+
+# ---- Iteration and path controls (M13) -------------------------------------
+
+test_that("hg_centrality() refuses fractional or infinite iteration counts", {
+  net <- hon(rep(list(c("a", "b", "c", "a")), 3L), max_order = 1L)
+  expect_error(hg_centrality(net, type = "pagerank", max_iter = 2.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(net, type = "pagerank", max_iter = Inf),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(net, type = "pagerank", tol = Inf),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(net, type = "betweenness", max_paths = 0.5),
+               class = "hypergraphs_bad_input")
+  # Inf lifts the path cap and is accepted
+  expect_identical(
+    hg_centrality(net, type = "betweenness", max_paths = Inf),
+    hg_centrality(net, type = "betweenness"))
+})

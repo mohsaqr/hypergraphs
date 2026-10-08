@@ -16,7 +16,9 @@
 #'   node: `node` followed by one column per embedding dimension (`dim1`,
 #'   `dim2`, ...). For `what = "variance"`, one row per dimension: `dimension`,
 #'   `singular_value`, `proportion` (that dimension's share of the total
-#'   squared singular value).
+#'   squared singular value; `0` for every dimension when all singular
+#'   values are zero, as for a network without edges, whose embedding
+#'   carries no variance).
 #' @examples
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
 #'              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
@@ -28,11 +30,14 @@ hg_get.net_honem <- function(x, what = c("embeddings", "variance"), ...,
                              top = NULL) {
   what <- .ho_match_what(what)
   if (what == "variance") {
+    energy <- x$singular_values^2
+    total <- sum(energy)
+    # a zero spectrum has no variance to share out: every share is 0
+    proportion <- if (total > 0) energy / total else energy * 0
     return(.ho_top(data.frame(
       dimension      = seq_along(x$singular_values),
       singular_value = as.numeric(x$singular_values),
-      proportion     = as.numeric(x$singular_values^2 /
-                                    sum(x$singular_values^2)),
+      proportion     = as.numeric(proportion),
       stringsAsFactors = FALSE
     ), top))
   }

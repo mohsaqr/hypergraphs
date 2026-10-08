@@ -93,6 +93,8 @@
       is.list(features) && !is.null(names(features)) &&
         setequal(names(features), unique(node_types))
   )
+  .ho_check_ids(names(node_types), "names(node_types)")
+  .ho_check_ids(names(features), "names(features)")
   nodes <- rownames(adjacency)
   node_types <- node_types[nodes]
   type_names <- sort(unique(node_types))
@@ -103,6 +105,8 @@
     stopifnot("each feature block must be a finite numeric matrix" =
                 is.matrix(value) && is.numeric(value) &&
                 all(is.finite(value)) && !is.null(rownames(value)))
+    .ho_check_ids(rownames(value),
+                  sprintf("rownames(features[[\"%s\"]])", type))
     expected <- nodes[type_index[[type]]]
     if (!setequal(rownames(value), expected)) {
       stop(sprintf("feature rows for type `%s` must match its node names", type),
@@ -155,7 +159,7 @@ heterogeneous_hgat <- function(
                         class = "hypergraphs_missing_torch", call = NULL))
   }
   input <- .thg_hgat_inputs(adjacency, node_types, features)
-  labels <- .thg_labels_input(labels)
+  labels <- .thg_check_assignment(.thg_labels_input(labels))
   stopifnot(
     "`labels` must be a named character vector" =
       is.character(labels) && !is.null(names(labels)),
@@ -169,8 +173,8 @@ heterogeneous_hgat <- function(
   )
   unknown <- setdiff(names(labels), input$nodes)
   if (length(unknown)) {
-    stop("Unknown node names in `labels`: ", paste(unknown, collapse = ", "),
-         call. = FALSE)
+    .thg_bad_input(paste0("Unknown node names in `labels`: ",
+                          paste(unknown, collapse = ", ")))
   }
   classes <- sort(unique(as.character(labels)))
   if (length(classes) < 2L) {

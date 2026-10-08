@@ -27,6 +27,37 @@
   is.infinite(p$death) | p$death == 0
 }
 
+# Which rows of a diagram are essential classes. A persistent_homology
+# object says how it writes them: in clique mode (a descending similarity
+# scale, Nestimate's convention and that of window complexes) death = 0 or
+# Inf, the Nestimate rule kept in .is_essential(); in Vietoris-Rips mode
+# death = Inf only, since a Rips class can die at scale 0. A plain data
+# frame carries no mode, so only the standard death = Inf marks an
+# essential class there and death = 0 is an ordinary finite death.
+.ph_essential <- function(x, diagram) {
+  if (inherits(x, "persistent_homology") &&
+      !identical(x$mode %||% "clique", "vr")) {
+    return(.is_essential(diagram))
+  }
+  is.infinite(diagram$death)
+}
+
+# Diagram coordinates a distance can be computed from: integer dimensions,
+# finite births, deaths finite or Inf.
+.ph_check_diagram <- function(diagram, arg) {
+  ok <- is.numeric(diagram$dimension) && is.numeric(diagram$birth) &&
+    is.numeric(diagram$death) && !anyNA(diagram$dimension) &&
+    all(diagram$dimension == round(diagram$dimension)) &&
+    all(is.finite(diagram$birth)) && !anyNA(diagram$death) &&
+    !any(diagram$death == -Inf)
+  if (!ok) {
+    .ho_input_error(sprintf(paste0(
+      "`%s` must hold whole-number dimensions, finite births and deaths ",
+      "that are finite or Inf"), arg))
+  }
+  invisible(NULL)
+}
+
 #' Wasserstein Distance Between Persistence Diagrams
 #'
 #' Computes the finite-order Wasserstein distance between persistence
@@ -36,15 +67,21 @@
 #' \eqn{L_p} ground metric; `internal_p = Inf` gives the usual
 #' \eqn{L_\infty} convention used by GUDHI.
 #'
-#' Finite points may match the diagonal. Essential classes (`death = Inf`
-#' in Vietoris--Rips mode or `death = 0` in clique mode) are matched only to
-#' essential classes. A dimension whose essential counts differ has distance
-#' `Inf`. The finite assignment is solved exactly with a native Hungarian
-#' algorithm, so no optional optimization package is required.
+#' Finite points may match the diagonal. Essential classes are matched only
+#' to essential classes, and a dimension whose essential counts differ has
+#' distance `Inf`. An [hg_homology()] result marks its essential classes
+#' itself (`death = Inf` in Vietoris--Rips mode, `death = 0` in clique mode
+#' and for a window complex); in a data.frame an essential class is written
+#' with `death = Inf`, and `death = 0` is an ordinary finite death. The
+#' finite assignment is solved exactly with a native Hungarian algorithm, so
+#' no optional optimization package is required. Distances are computed on
+#' rescaled coordinates, so large orders and wide coordinate ranges do not
+#' overflow.
 #'
 #' @param d1,d2 `persistent_homology` objects from
 #'   [hg_homology()], or data.frames with columns
-#'   `dimension`, `birth`, `death`.
+#'   `dimension`, `birth`, `death` (finite births; deaths finite or `Inf`).
+#'   An invalid diagram raises `hypergraphs_bad_input`.
 #' @param dimension Integer vector of dimensions to compare. `NULL`
 #'   (default) compares all dimensions appearing in either diagram.
 #' @param order Finite Wasserstein order, a number greater than or equal to
@@ -70,6 +107,10 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
                            internal_p = Inf) {
   df1 <- .ph_as_diagram(d1)
   df2 <- .ph_as_diagram(d2)
+  .ph_check_diagram(df1, "d1")
+  .ph_check_diagram(df2, "d2")
+  ess1 <- .ph_essential(d1, df1)
+  ess2 <- .ph_essential(d2, df2)
   if (length(order) != 1L || !is.finite(order) || order < 1) {
     stop("`order` must be one finite number >= 1.", call. = FALSE)
   }
@@ -89,40 +130,55 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
     return(stats::setNames(numeric(0), character(0)))
   }
   out <- vapply(dims, function(k) {
+    in1 <- df1$dimension == k
+    in2 <- df2$dimension == k
     .wasserstein_one_dim(
-      df1[df1$dimension == k, , drop = FALSE],
-      df2[df2$dimension == k, , drop = FALSE],
+      df1[in1, , drop = FALSE], df2[in2, , drop = FALSE],
+      ess1 = ess1[in1], ess2 = ess2[in2],
       order = order, internal_p = internal_p
     )
   }, numeric(1))
   stats::setNames(out, paste0("dim_", dims))
 }
 
+# The distance of one dimension. Every cost -- an essential pair's birth
+# difference, a point-to-point or point-to-diagonal ground distance -- is
+# divided by the largest of them before it is raised to `order`, and the
+# result is scaled back: s * (sum((c / s)^order))^(1 / order) equals
+# (sum(c^order))^(1 / order) without overflowing for a large order or a
+# wide coordinate range.
 #' @noRd
-.wasserstein_one_dim <- function(p1, p2, order, internal_p) {
-  ess1 <- .is_essential(p1)
-  ess2 <- .is_essential(p2)
+.wasserstein_one_dim <- function(p1, p2, ess1, ess2, order, internal_p) {
   ess_b1 <- sort(p1$birth[ess1])
   ess_b2 <- sort(p2$birth[ess2])
   if (length(ess_b1) != length(ess_b2)) return(Inf)
+  ess_cost <- abs(ess_b1 - ess_b2)
 
-  essential_power <- if (length(ess_b1)) {
-    sum(abs(ess_b1 - ess_b2) ^ order)
-  } else {
-    0
-  }
   fin1 <- as.matrix(p1[!ess1, c("birth", "death"), drop = FALSE])
   fin2 <- as.matrix(p2[!ess2, c("birth", "death"), drop = FALSE])
-  finite_power <- .wasserstein_finite_power(fin1, fin2, order, internal_p)
-  (essential_power + finite_power) ^ (1 / order)
+  costs <- .wasserstein_ground_costs(fin1, fin2, internal_p)
+  scale <- max(0, ess_cost, costs$pair, costs$diag1, costs$diag2)
+  if (!is.finite(scale) || scale == 0) return(scale)
+  essential_power <- sum((ess_cost / scale) ^ order)
+  finite_power <- .wasserstein_assignment(costs, scale, order)
+  scale * (essential_power + finite_power) ^ (1 / order)
 }
 
-#' @noRd
-.wasserstein_finite_power <- function(p1, p2, order, internal_p) {
-  n1 <- nrow(p1)
-  n2 <- nrow(p2)
-  if (n1 + n2 == 0L) return(0)
+# The L_p norm of (a, b) elementwise, computed on max-scaled entries so a
+# large finite p neither overflows nor underflows.
+.lp_norm2 <- function(a, b, p) {
+  if (is.infinite(p)) return(pmax(a, b))
+  m <- pmax(a, b)
+  out <- m * ((a / ifelse(m > 0, m, 1)) ^ p +
+                (b / ifelse(m > 0, m, 1)) ^ p) ^ (1 / p)
+  out[m == 0] <- 0
+  out
+}
 
+# Ground distances of the finite points: point to point (n1 x n2) and each
+# point to the diagonal. The diagonal distance of (b, d) under L_p is
+# |d - b| / 2^(1 - 1/p), and |d - b| / 2 under L_infinity.
+.wasserstein_ground_costs <- function(p1, p2, internal_p) {
   diagonal_cost <- function(p) {
     persistence <- abs(p[, "death"] - p[, "birth"])
     if (is.infinite(internal_p)) {
@@ -131,33 +187,40 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
       persistence / (2 ^ (1 - 1 / internal_p))
     }
   }
-  d1_diag <- if (n1) diagonal_cost(p1) else numeric(0)
-  d2_diag <- if (n2) diagonal_cost(p2) else numeric(0)
-
+  n1 <- nrow(p1)
+  n2 <- nrow(p2)
   pair <- matrix(numeric(0), n1, n2)
   if (n1 && n2) {
     db <- abs(outer(p1[, "birth"], p2[, "birth"], "-"))
     dd <- abs(outer(p1[, "death"], p2[, "death"], "-"))
-    pair <- if (is.infinite(internal_p)) {
-      pmax(db, dd)
-    } else {
-      (db ^ internal_p + dd ^ internal_p) ^ (1 / internal_p)
-    }
+    pair <- matrix(.lp_norm2(db, dd, internal_p), n1, n2)
   }
+  list(pair = pair,
+       diag1 = if (n1) diagonal_cost(p1) else numeric(0),
+       diag2 = if (n2) diagonal_cost(p2) else numeric(0))
+}
 
+# Minimum total of (cost / scale)^order over the matchings of the finite
+# points, each point matched to a point of the other diagram or to the
+# diagonal.
+.wasserstein_assignment <- function(costs, scale, order) {
+  n1 <- length(costs$diag1)
+  n2 <- length(costs$diag2)
+  if (n1 + n2 == 0L) return(0)
   # Augment both diagrams with enough diagonal copies to make the matching
   # square. Diagonal copies are interchangeable: each top-right row has its
   # point's projection cost, each bottom-left column has its point's cost.
   size <- n1 + n2
   cost <- matrix(0, size, size)
-  if (n1 && n2) cost[seq_len(n1), seq_len(n2)] <- pair ^ order
+  if (n1 && n2) cost[seq_len(n1), seq_len(n2)] <- (costs$pair / scale) ^ order
   if (n1) {
     cost[seq_len(n1), n2 + seq_len(n1)] <-
-      matrix(d1_diag ^ order, nrow = n1, ncol = n1)
+      matrix((costs$diag1 / scale) ^ order, nrow = n1, ncol = n1)
   }
   if (n2) {
     cost[n1 + seq_len(n2), seq_len(n2)] <-
-      matrix(d2_diag ^ order, nrow = n2, ncol = n2, byrow = TRUE)
+      matrix((costs$diag2 / scale) ^ order, nrow = n2, ncol = n2,
+             byrow = TRUE)
   }
   .hungarian_min_cost(cost)
 }
@@ -252,9 +315,8 @@ hg_get.persistence_landscape <- function(x, what = "landscape", ...,
   .ho_match_what(what, "landscape")
   out <- x$landscape
   if (!is.null(k)) {
-    stopifnot("`k` must be a single integer >= 1" =
-                is.numeric(k) && length(k) == 1L && k >= 1)
-    out <- out[out$k == as.integer(k), , drop = FALSE]
+    k <- .ho_check_count(k, "k")
+    out <- out[out$k == k, , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)

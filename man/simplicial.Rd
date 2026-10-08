@@ -135,12 +135,14 @@ A \code{simplicial_complex} object. Read it with \code{\link[=hg_get]{hg_get()}}
 per simplex (\code{what = "simplices"}, the default), the face counts
 (\code{"f_vector"}), the per-node simplicial degree (\code{"degree"}) or, for a
 validated window complex, one row per tested set of actions
-(\code{"validation"}), and the Betti numbers (\code{"betti"}). \code{plot()} draws
+(\code{"validation"}), and the Betti numbers (\code{"betti"}, with rational
+coefficients as in \code{\link[=hg_betti]{hg_betti()}}). \code{plot()} draws
 the maximal simplices, those no larger simplex contains, as regions
 around their nodes (\code{cograph::plot_simplicial()}; its arguments pass
-through \code{...}): the most significant first for a validated window
+through \code{...}): the largest simplices first and, among simplices of
+one size, the largest validation z-score first for a validated window
 complex, the most frequent first for a window complex, the closest
-first for a Vietoris-Rips complex. With \code{type = "summary"}, \code{plot()}
+first for a Vietoris-Rips complex, and by node names otherwise. With \code{type = "summary"}, \code{plot()}
 draws the summary of the complex instead: the face counts by dimension,
 the Betti numbers, the simplicial degree of each node and its degree by
 dimension. \code{plot()} returns the figure. For the \code{plot()} method, \code{x} is

@@ -17,7 +17,7 @@ hg_topic_sizes(hg, clusters, weights = NULL)
 column of the hypergraph's document table.}
 
 \item{weights}{\code{NULL} (default), or a numeric vector named by document
-giving each document's weight.}
+giving each document's weight: finite, non-negative, one per document.}
 
 \item{x}{A table returned by the verb.}
 
@@ -26,10 +26,13 @@ giving each document's weight.}
 \value{
 A base \code{data.frame} of class \code{hypergraphs_topic_sizes}, one row per
 topic in natural order: \code{topic}, \code{n}, \code{share}, and with \code{weights}
-also \code{weighted_n} and \code{weighted_share}. \code{plot()} draws the shares as
+also \code{weighted_n} and \code{weighted_share}. When every clustered document
+has weight zero the weighted shares are undefined and reported as
+\code{NA}. \code{plot()} draws the shares as
 horizontal bars, weighted beside unweighted when both exist. Raises
-\code{hypergraphs_bad_input} for unknown node names or weights that do not name
-every clustered document.
+\code{hypergraphs_bad_input} for unknown node names, a node given two
+different clusters, or weights that do not name every clustered
+document once with a finite non-negative value.
 }
 \description{
 Counts the documents of each cluster of a clustered hypergraph, as a

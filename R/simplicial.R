@@ -64,10 +64,8 @@ hg_get.simplicial_complex <- function(x, what = c("simplices", "f_vector",
     }
     out <- x$validation
     if (!is.null(dimension)) {
-      stopifnot("`dimension` must be a single integer >= 1" =
-                  is.numeric(dimension) && length(dimension) == 1L &&
-                  dimension >= 1)
-      out <- out[out$size == as.integer(dimension) + 1L, , drop = FALSE]
+      dimension <- .ho_check_count(dimension, "dimension", min = 1)
+      out <- out[out$size == dimension + 1L, , drop = FALSE]
       rownames(out) <- NULL
     }
     return(.ho_top(out, top))
@@ -93,10 +91,8 @@ hg_get.simplicial_complex <- function(x, what = c("simplices", "f_vector",
     stringsAsFactors = FALSE
   )
   if (!is.null(dimension)) {
-    stopifnot("`dimension` must be a single integer >= 0" =
-                is.numeric(dimension) && length(dimension) == 1L &&
-                dimension >= 0)
-    out <- out[out$dimension == as.integer(dimension), , drop = FALSE]
+    dimension <- .ho_check_count(dimension, "dimension", min = 0)
+    out <- out[out$dimension == dimension, , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)

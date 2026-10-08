@@ -37,3 +37,11 @@ TODO*.md
 EXPANSION-PLAN.md
 MIGRATION-PLAN.md
 *.Rcheck
+
+# local audit report
+codexfixes
+
+# compiled objects
+src/*.o
+src/*.so
+src/*.dll

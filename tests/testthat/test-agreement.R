@@ -251,7 +251,9 @@ test_that("hg_seeds feeds hg_classify directly", {
 test_that("hg_seeds validates its contract", {
   expect_error(hg_seeds(data.frame(node = "a", cluster = "A")), "embedding")
   expect_error(hg_seeds(data.frame(node = "a", cluster = "A", pi = 1),
-                        n = 0), "positive")
+                        n = 0), class = "hypergraphs_bad_input")
+  expect_error(hg_seeds(data.frame(node = "a", cluster = "A", pi = 1),
+                        n = 1.5), class = "hypergraphs_bad_input")
 })
 
 test_that("classifiers accept labels as a tidy data.frame", {
@@ -412,4 +414,65 @@ test_that("hg_agreement refuses objects without labels and repeated nodes", {
                class = "hypergraphs_bad_input")
   expect_error(hg_agreement(repeated, repeated, node = 1),
                class = "hypergraphs_bad_input")
+})
+
+# ---- Missing node identifiers (M09) ----------------------------------------
+
+test_that("hg_agreement() refuses missing or empty node names", {
+  x <- data.frame(node = c(NA, "a"), label = c(1, 2))
+  expect_error(hg_agreement(x, x), class = "hypergraphs_bad_input")
+  expect_error(hg_agreement(x, x, what = "table"),
+               class = "hypergraphs_bad_input")
+  blank <- data.frame(node = c("", "a"), label = c(1, 2))
+  expect_error(hg_agreement(blank, blank), class = "hypergraphs_bad_input")
+})
+
+test_that("summary n, table total and mapping total agree", {
+  x <- data.frame(node = c("a", "b", "c", "d"), label = c(1, 1, 2, 2))
+  y <- data.frame(node = c("a", "b", "c", "e"), label = c(1, 2, 2, 2))
+  n <- hg_agreement(x, y)$n
+  expect_identical(as.integer(n), 3L)
+  expect_identical(sum(hg_agreement(x, y, what = "table")$n), 3L)
+  expect_identical(sum(hg_agreement(x, y, what = "mapping")$n), 3L)
+})
+
+test_that("hg_stability() refuses fractional cluster and resample counts", {
+  hg <- toy_hg()
+  expect_error(hg_stability(hg, k = 2.5), class = "hypergraphs_bad_input")
+  expect_error(hg_stability(hg, k = 2, n_boot = 2.5),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("expected and observed mutual information match the cell-by-cell definition", {
+  # Vinh, Epps & Bailey (2010), eq. for E[MI]: a sum over every pair of
+  # margins (a_i, b_j) and every admissible n_ij, written as the loop.
+  reference_emi <- function(tab) {
+    n <- sum(tab)
+    total <- 0
+    for (ai in rowSums(tab)) for (bj in colSums(tab)) {
+      lo <- max(1, ai + bj - n)
+      hi <- min(ai, bj)
+      if (lo > hi) next
+      nij <- seq.int(lo, hi)
+      total <- total + sum(stats::dhyper(nij, ai, n - ai, bj) * (nij / n) *
+                             log((nij * n) / (ai * bj)))
+    }
+    total
+  }
+  reference_mi <- function(tab) {
+    p <- tab / sum(tab)
+    outer_p <- outer(rowSums(p), colSums(p))
+    sum(p[p > 0] * log(p[p > 0] / outer_p[p > 0]))
+  }
+  set.seed(11)
+  tables <- lapply(1:40, function(r) {
+    n <- sample(c(2, 7, 50, 300), 1)
+    table(sample(sample(1:25, 1), n, TRUE), sample(sample(1:25, 1), n, TRUE))
+  })
+  emi <- vapply(tables, .thg_expected_mi, numeric(1L))
+  expect_identical(emi, vapply(tables, reference_emi, numeric(1L)))
+  expect_equal(vapply(tables, .thg_mutual_information, numeric(1L)),
+               vapply(tables, reference_mi, numeric(1L)), tolerance = 1e-12)
+  # one cluster against one cluster: nothing to share, nothing expected
+  expect_identical(.thg_expected_mi(table(rep(1, 5), rep(1, 5))), 0)
 })

@@ -11,9 +11,14 @@ dual_hypergraph(hg)
 \code{net_hg}.}
 }
 \value{
-A hypergraph whose incidence is the transpose of \code{hg}'s: a
-\code{text_hypergraph} with flipped \code{nodes} for bag constructions, otherwise
-a \code{net_hg}. Accepted by all \verb{hg_*} verbs.
+A hypergraph whose incidence is exactly the transpose of \code{hg}'s,
+sparse when \code{hg} is sparse, with every row and column kept: an isolated
+vertex of \code{hg} becomes an empty hyperedge of the dual and an empty
+hyperedge an isolated vertex, so the dual of the dual is \code{hg}'s
+incidence again. A \code{text_hypergraph} with flipped \code{nodes} for bag
+constructions (dense or sparse), otherwise a \code{net_hg}. Hyperedge
+metadata (\code{edge_data}, window counts) describes hyperedges that become
+vertices, so it is not carried over. Accepted by all \verb{hg_*} verbs.
 }
 \description{
 Returns the dual hypergraph: every hyperedge becomes a vertex and every

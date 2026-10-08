@@ -22,8 +22,10 @@ memory(
 event table (with \code{action}), a wide data.frame, a list of vectors, or a
 model object carrying its sequences.}
 
-\item{order}{Integer >= 2. Length of the conditioning context plus one:
-\code{2} compares two-step memory with one-step. Default \code{2}.}
+\item{order}{Integer >= 2. The number of states in the conditioning
+context: \code{2} conditions on the last two states (contexts such as
+\code{"a -> b"}) and compares that two-step memory with one-step, \code{3} on
+the last three. Default \code{2}.}
 
 \item{min_count}{Integer. Contexts observed fewer times are dropped.
 Default \code{5}.}
@@ -40,17 +42,20 @@ A \code{net_path_dependence} object. Read it with \code{\link[=hg_get]{hg_get()}
 per context (\code{what = "contexts"}), sorted by divergence, largest first.
 }
 \description{
-For every context of \code{order - 1} states, compares the observed
-next-state distribution with the first-order prediction from the most
-recent state alone: the Kullback-Leibler divergence and entropy drop
-say how much the longer history adds, and \code{flips} marks the contexts
-where it changes the most likely next state.
+For every context of \code{order} states (the \code{order} most recent states),
+compares the observed next-state distribution with the first-order
+prediction from the most recent state alone: the Kullback-Leibler
+divergence and entropy drop say how much the longer history adds, and
+\code{flips} marks the contexts where it changes the most likely next state.
 }
 \examples{
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
+# order = 2: two-state contexts ("a -> b")
 pd <- memory(seqs, order = 2, min_count = 1)
 hg_get(pd)
+# order = 3: three-state contexts ("a -> b -> c")
+hg_get(memory(seqs, order = 3, min_count = 1))
 }
 \references{
 Kullback, S., & Leibler, R. A. (1951). On information and sufficiency.

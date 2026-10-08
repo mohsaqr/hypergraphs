@@ -41,7 +41,10 @@
   stubs <- rep.int(seq_len(nrow(m)), rowSums(m))
   slots <- rep.int(seq_len(ncol(m)), colSums(m))
   out <- matrix(0L, nrow(m), ncol(m), dimnames = dimnames(m))
-  out[cbind(sample(stubs), slots)] <- 1L
+  # permute by position: sample() on a single stub (vertex index i > 1)
+  # would draw from seq_len(i) and invent memberships. With two or more
+  # stubs this consumes the RNG exactly as sample(stubs) does.
+  out[cbind(stubs[sample.int(length(stubs))], slots)] <- 1L
   out
 }
 
@@ -68,7 +71,8 @@
         ok <- FALSE
         break
       }
-      chosen <- if (length(open) == 1L) open else sample(open, k)
+      chosen <- if (length(open) == 1L) open else
+        open[sample.int(length(open), k)]
       out[i, chosen] <- 1L
       capacity[chosen] <- capacity[chosen] - 1
     }
@@ -94,8 +98,10 @@
   n_edges <- ncol(m)
   vapply(statistic, \(s) {
     switch(s,
-      density = sum(sizes) / (n_nodes * n_edges),
-      avg_edge_size = mean(sizes),
+      # the definition hg_measures(what = "summary") reports
+      density = .hg_density(sizes, n_nodes),
+      # undefined (NaN) without hyperedges; hg_null_test() reports NA
+      avg_edge_size = if (n_edges) mean(sizes) else NaN,
       # Hyperedges whose member set already occurred: m minus distinct sets.
       repeated_edges = {
         members <- .thg_edge_members(m_sparse)
@@ -111,10 +117,10 @@
       },
       pairwise_participation = {
         co <- methods::as(Matrix::tcrossprod(m_sparse), "TsparseMatrix")
-        sharing <- sum(co@i < co@j & co@x > 0)
-        sharing / (n_nodes * (n_nodes - 1) / 2)
+        .hg_pairwise_participation(sum(co@i < co@j & co@x > 0), n_nodes)
       },
-      avg_jaccard = {
+      # undefined (NaN) with fewer than two hyperedges: no pair to average
+      avg_jaccard = if (n_edges < 2L) NaN else {
         co <- methods::as(Matrix::crossprod(m_sparse), "TsparseMatrix")
         keep <- co@i < co@j & co@x > 0
         inter <- co@x[keep]
@@ -136,8 +142,11 @@
 #' 2000) -- a sequential MCMC with burn-in `10 * nnz` swap attempts and
 #' thinning `nnz` between samples, `nnz` being the number of memberships.
 #' Statistics are evaluated on the binarized hypergraph (weights carry no
-#' meaning under this null), through the same delegated measures as
-#' [hg_measures()].
+#' meaning under this null), with the definitions [hg_measures()] uses:
+#' `"density"`, `"avg_edge_size"` and `"pairwise_participation"` equal the
+#' values of `hg_measures(hg, what = "summary")` (density is
+#' `m / choose(n, k)` for a `k`-uniform hypergraph, `sum(|e|) / (n * m)`
+#' otherwise).
 #'
 #' The permutation p-value is `(1 + extreme) / (n + 1)` (Phipson & Smyth
 #' 2010), two-sided by default around the null mean; `null_lo`/`null_hi`
@@ -167,14 +176,22 @@
 #'   not uniform over configurations. `"swap"` is the stricter null; use
 #'   `"configuration"` to compare against the higher-order network
 #'   literature, which reports it.
-#' @param n Number of null samples (default `199L`).
+#' @param n Number of null samples: one whole number >= 19 (default
+#'   `199L`).
 #' @param seed Seed for the null draws; set it for a reproducible test.
 #'   The global RNG state is restored on exit.
 #' @param alternative `"two_sided"` (default), `"greater"`, or `"less"`.
 #' @return A base `data.frame`, one row per statistic: `statistic`,
 #'   `observed`, `null_mean`, `null_lo`, `null_hi`, `z`, `p_value`, `n`,
 #'   `method`.
-#' @section Conditions: Raises `hypergraphs_bad_input` for broken contracts.
+#' @section Conditions: Raises `hypergraphs_bad_input` for broken contracts,
+#'   including an `n` that is not one whole number >= 19.
+#'   A statistic the hypergraph cannot define -- `"avg_edge_size"` without
+#'   hyperedges, `"avg_jaccard"` with fewer than two hyperedges -- is
+#'   undefined in every null draw as well (the nulls keep the vertex and
+#'   hyperedge counts), so its row is `NA` in every column but `statistic`,
+#'   `n` and `method`, with a `hypergraphs_undefined_statistic` warning; the
+#'   other requested statistics are tested as usual.
 #'   `method = "configuration"` signals a `hypergraphs_configuration_collapse`
 #'   warning when stub matching collapses more than 1% of memberships on
 #'   average, which happens whenever hyperedges are large relative to the
@@ -215,10 +232,9 @@ hg_null_test <- function(hg,
   statistic <- match.arg(statistic, several.ok = TRUE)
   method <- match.arg(method)
   alternative <- match.arg(alternative)
-  stopifnot(
-    "`n` must be a single count >= 19" =
-      length(n) == 1L && is.finite(n) && n >= 19
-  )
+  # one whole count, cast once: a fraction would draw floor(n) samples but
+  # divide the p-value by the unrounded n
+  n <- .ho_check_count(n, "n", min = 19)
 
   if (!is.null(seed)) {
     old_seed <- if (exists(".Random.seed", envir = globalenv())) {
@@ -261,7 +277,8 @@ hg_null_test <- function(hg,
     # it is severe whenever hyperedges are large relative to the vertex set
     # -- the usual case for document-orientation text hypergraphs. Surface it
     # rather than let the margins quietly shrink.
-    lost <- 1 - mean(retained) / nnz
+    # no membership, nothing to collapse (and no 0/0)
+    lost <- if (nnz > 0) 1 - mean(retained) / nnz else 0
     if (lost > 0.01) {
       warning(warningCondition(
         sprintf(paste0("the configuration draws collapse %.1f%% of memberships ",
@@ -275,7 +292,31 @@ hg_null_test <- function(hg,
   }
   draws <- matrix(draws, nrow = length(statistic))
 
+  # A statistic the hypergraph cannot define (avg_edge_size without
+  # hyperedges, avg_jaccard with fewer than two) is undefined in every draw
+  # too, since all three nulls keep the vertex and hyperedge counts: its row
+  # is NA throughout, with a classed warning, and the other statistics are
+  # still tested.
+  undefined <- !is.finite(observed) |
+    apply(draws, 1L, \(d) any(!is.finite(d)))
+  if (any(undefined)) {
+    warning(warningCondition(
+      sprintf(paste0("%s undefined on this hypergraph (%d nodes, %d ",
+                     "hyperedges); reported as NA"),
+              paste0("`", statistic[undefined], "`", collapse = ", "),
+              nrow(membership), ncol(membership)),
+      class = "hypergraphs_undefined_statistic"
+    ))
+  }
+
   rows <- lapply(seq_along(statistic), \(i) {
+    if (undefined[i]) {
+      return(data.frame(
+        statistic = statistic[i], observed = NA_real_, null_mean = NA_real_,
+        null_lo = NA_real_, null_hi = NA_real_, z = NA_real_,
+        p_value = NA_real_, n = n, method = method
+      ))
+    }
     null_draws <- draws[i, ]
     null_mean <- mean(null_draws)
     null_sd <- stats::sd(null_draws)
@@ -294,7 +335,7 @@ hg_null_test <- function(hg,
       null_hi = unname(stats::quantile(null_draws, 0.975)),
       z = if (null_sd > 0) (observed[i] - null_mean) / null_sd else NA_real_,
       p_value = (1 + extreme) / (n + 1),
-      n = as.integer(n),
+      n = n,
       method = method
     )
   })

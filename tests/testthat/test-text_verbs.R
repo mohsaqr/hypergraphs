@@ -173,7 +173,7 @@ test_that("hg_keywords works on sparse hypergraphs and vector input", {
   expect_true(all(kw$rank %in% c(1L, 2L)))
   expect_error(hg_keywords(hg, c(zz = "a", cooking_1 = "b")),
                class = "hypergraphs_bad_input")
-  expect_error(hg_keywords(hg, labels, n = 0), "positive")
+  expect_error(hg_keywords(hg, labels, n = 0), class = "hypergraphs_bad_input")
 })
 
 # ---- hg_keywords type = ------------------------------------------------
@@ -693,4 +693,156 @@ test_that("documents dropped as empty are set aside from `clusters` with a warni
   typo <- rbind(corpus, data.frame(node = "zz", text = "x", label = "sky"))
   expect_error(suppressWarnings(hg_keywords(hg, typo, n = 2)),
                class = "hypergraphs_bad_input")
+})
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+.audit_kw_hg <- function() {
+  text_hypergraph(c(a = "apple pear", b = "apple peach", c = "star moon",
+                    d = "star sky"))
+}
+.audit_kw_groups <- c(a = "food", b = "food", c = "space", d = "space")
+
+test_that("hg_keywords keeps a typed table when a cluster has no eligible word (TXT-01)", {
+  hg <- .audit_kw_hg()
+  # food: apple is in 2 documents, so it passes min_docs = 2; space: star too
+  two <- hg_keywords(hg, .audit_kw_groups, min_docs = 2)
+  expect_identical(two$word, c("apple", "star"))
+  # min_docs = 3 is above every cluster's size: no word passes anywhere
+  none <- hg_keywords(hg, .audit_kw_groups, min_docs = 3)
+  expect_s3_class(none, "hypergraphs_keywords")
+  expect_identical(nrow(none), 0L)
+  expect_named(none, c("type", "cluster", "size", "rank", "word", "score",
+                       "share", "n_docs"))
+  expect_type(none$word, "character")
+  expect_type(none$size, "integer")
+  # one cluster empty, the other not: only the non-empty cluster has rows
+  uneven <- c(a = "food", b = "food", c = "space", d = "other")
+  some <- hg_keywords(hg, uneven, min_docs = 2)
+  expect_identical(unique(some$cluster), "food")
+  for (type in c("mass", "frequency", "ctfidf", "centrality")) {
+    expect_identical(nrow(hg_keywords(hg, .audit_kw_groups, min_docs = 3,
+                                      type = type)), 0L)
+  }
+  scores <- data.frame(node = c("a", "c"), word = c("apple", "star"),
+                       value = c(0.2, 0.5))
+  expect_identical(nrow(hg_keywords(hg, .audit_kw_groups, scores = scores,
+                                    min_docs = 3)), 0L)
+  collapsed <- hg_keywords(hg, .audit_kw_groups, min_docs = 3, collapse = TRUE)
+  expect_identical(nrow(collapsed), 0L)
+  expect_named(collapsed, c("type", "cluster", "size", "words"))
+  expect_output(print(none), "0 rows")
+  # the share ranking of hg_topic_quality() goes through the same path
+  quality <- hg_topic_quality(hg, uneven, sort_by = "share", min_docs = 2,
+                              exclusivity = "none")
+  expect_identical(quality$n_words, c(1L, 0L, 0L))
+})
+
+test_that("hg_keywords names the word of a one-word vocabulary (TXT-02)", {
+  h <- text_hypergraph(c(a = "apple", b = "apple"))
+  kw <- hg_keywords(h, c(a = "x", b = "y"))
+  expect_identical(kw$word, c("apple", "apple"))
+  expect_identical(kw$cluster, c("x", "y"))
+  expect_equal(kw$share, c(0.5, 0.5))
+  hs <- text_hypergraph(c(a = "apple", b = "apple"), sparse = TRUE)
+  expect_identical(hg_keywords(hs, c(a = "x", b = "y"))$word,
+                   c("apple", "apple"))
+  expect_identical(hg_keywords(h, c(a = "x", b = "x"))$word, "apple")
+})
+
+test_that("external keyword support counts a document once per word (TXT-08)", {
+  hg <- .audit_kw_hg()
+  repeated <- data.frame(node = c("a", "a", "c"),
+                         word = c("apple", "apple", "star"),
+                         value = c(0.2, 0.3, 0.5))
+  kw <- hg_keywords(hg, .audit_kw_groups, scores = repeated)
+  apple <- subset(kw, word == "apple")
+  expect_equal(apple$score, 0.5)       # scores still add
+  expect_identical(apple$n_docs, 1)    # but one document supports the word
+  # the threshold now separates a repeat from a second document
+  expect_identical(nrow(hg_keywords(hg, .audit_kw_groups, scores = repeated,
+                                    min_docs = 2)), 0L)
+  spread <- data.frame(node = c("a", "b", "c"),
+                       word = c("apple", "apple", "star"),
+                       value = c(0.2, 0.3, 0.5))
+  two_docs <- hg_keywords(hg, .audit_kw_groups, scores = spread, min_docs = 2)
+  expect_identical(two_docs$word, "apple")
+  expect_identical(two_docs$n_docs, 2)
+  bad <- data.frame(node = "a", word = "apple", value = Inf)
+  expect_error(hg_keywords(hg, .audit_kw_groups, scores = bad),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("topic_network keeps isolated topics and builds an edgeless network (TXT-06)", {
+  h <- text_hypergraph(c(a = "apple pear", b = "apple peach", c = "star moon"))
+  groups <- c(a = "A", b = "B", c = "C")
+  net <- topic_network(h, groups, what = "network")
+  expect_identical(net$nodes$name, c("A", "B", "C"))
+  expect_identical(net$nodes$size, c(1L, 1L, 1L))
+  expect_identical(nrow(net$edges), 1L)
+  edges <- topic_network(h, groups)
+  expect_identical(edges$source, "A")
+  expect_identical(edges$target, "B")
+  # no pair of topics shares a word: a valid network without edges
+  apart <- text_hypergraph(c(a = "apple pear", b = "star moon"))
+  empty <- topic_network(apart, c(a = "A", b = "B"), what = "network")
+  expect_s3_class(empty, "cograph_network")
+  expect_identical(empty$nodes$name, c("A", "B"))
+  expect_identical(nrow(empty$edges), 0L)
+  expect_identical(nrow(topic_network(apart, c(a = "A", b = "B"))), 0L)
+  one <- topic_network(apart, c(a = "A", b = "A"), what = "network")
+  expect_identical(one$nodes$name, "A")
+  expect_identical(one$nodes$size, 2L)
+})
+
+test_that("conflicting duplicate node labels are refused everywhere (TXT-07)", {
+  hg <- .audit_kw_hg()
+  conflict <- c(a = "food", a = "space", b = "food", c = "space", d = "space")
+  expect_error(hg_keywords(hg, conflict), class = "hypergraphs_bad_input")
+  expect_error(topic_network(hg, conflict), class = "hypergraphs_bad_input")
+  bridged <- text_hypergraph(c(a = "apple pear night", b = "apple peach",
+                               c = "star moon night", d = "star sky"))
+  expect_error(hg_classify(bridged, conflict), class = "hypergraphs_bad_input")
+  table_conflict <- data.frame(node = c("a", "a", "c"),
+                               cluster = c("food", "space", "space"))
+  expect_error(hg_keywords(hg, table_conflict), class = "hypergraphs_bad_input")
+  expect_error(hg_keywords(hg, stats::setNames(c("food", "space"), c("a", NA))),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_keywords(hg, stats::setNames(c("food", "space"), c("a", ""))),
+               class = "hypergraphs_bad_input")
+  # an identical repeat is not ambiguous and gives the same result
+  same <- c(a = "food", a = "food", b = "food", c = "space", d = "space")
+  expect_identical(hg_keywords(hg, same), hg_keywords(hg, .audit_kw_groups))
+  # a missing label marks the node unlabelled
+  missing <- c(a = "food", b = "food", c = "space", d = NA)
+  expect_identical(hg_classify(bridged, missing),
+                   hg_classify(bridged, c(a = "food", b = "food", c = "space")))
+})
+
+test_that("hg_centrality and hg_cluster validate the row count `n`", {
+  hg <- .audit_kw_hg()
+  expect_error(hg_centrality(hg, n = 1.5), class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(hg, n = -Inf), class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(hg, n = NA), class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(hg, n = 0), class = "hypergraphs_bad_input")
+  expect_identical(nrow(hg_centrality(hg, n = 2)), 2L)
+  expect_identical(nrow(hg_centrality(hg, n = Inf)), 4L)
+  expect_identical(hg_centrality(hg, n = 2L), hg_centrality(hg, n = 2))
+  bridged <- text_hypergraph(c(a = "apple pear night", b = "apple peach",
+                               c = "star moon night", d = "star sky"))
+  expect_error(hg_cluster(bridged, k = 2, what = "eigenvalues", n = 1.5),
+               class = "hypergraphs_bad_input")
+  expect_identical(nrow(hg_cluster(bridged, k = 2, what = "eigenvalues",
+                                   n = 2)), 2L)
+})
+
+test_that("Katz centrality of a hypergraph without nodes is a typed empty table", {
+  h <- text_hypergraph(c(a = "apple pear", b = "apple star"))
+  empty <- hg_subset(h, nodes = character())
+  out <- hg_centrality(empty, type = "katz", alpha = 0.1)
+  expect_s3_class(out, "data.frame")
+  expect_named(out, c("node", "katz"))
+  expect_identical(nrow(out), 0L)
+  expect_type(out$node, "character")
+  expect_type(out$katz, "double")
 })

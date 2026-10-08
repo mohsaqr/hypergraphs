@@ -224,3 +224,86 @@ test_that("words = takes hg_keywords() output and a terms()-style matrix as they
   expect_error(hg_topic_quality(hg, words = matrix(1:4, 2L), exclusivity = "none"),
                class = "hypergraphs_bad_input")
 })
+
+# ---- audit regressions (2026-10-06) -----------------------------------------
+
+test_that("topic quality reads a one-word vocabulary (TXT-02)", {
+  h <- text_hypergraph(c(a = "apple", b = "apple"))
+  quality <- hg_topic_quality(h, c(a = "x", b = "y"))
+  expect_identical(quality$n_words, c(1L, 1L))
+  expect_equal(quality$exclusivity, c(1, 1))     # FREX of the only word
+  expect_true(all(is.na(quality$coherence)))     # no pair to score
+  hs <- text_hypergraph(c(a = "apple", b = "apple"), sparse = TRUE)
+  expect_equal(hg_topic_quality(hs, c(a = "x", b = "y")), quality)
+  words <- data.frame(topic = "x", word = "apple")
+  asked <- hg_topic_quality(h, c(a = "x", b = "y"), words = words)
+  expect_equal(asked$exclusivity[asked$topic == "x"], 1)
+})
+
+test_that("hg_topic_sizes refuses conflicting assignments (TXT-07)", {
+  hg <- .topic_hg()
+  clusters <- c(cooking_1 = "food", cooking_1 = "other", cooking_2 = "food",
+                space_1 = "sky", space_2 = "sky", space_3 = "sky")
+  expect_error(hg_topic_sizes(hg, clusters), class = "hypergraphs_bad_input")
+  repeated <- c(cooking_1 = "food", cooking_1 = "food", cooking_2 = "food",
+                space_1 = "sky", space_2 = "sky", space_3 = "sky")
+  expect_identical(hg_topic_sizes(hg, repeated),
+                   hg_topic_sizes(hg, .topic_clusters))
+})
+
+test_that("hg_topic_sizes requires finite non-negative unique weights (TXT-14)", {
+  hg <- .topic_hg()
+  w <- c(cooking_1 = 1, cooking_2 = 1, space_1 = 1, space_2 = 1, space_3 = 1)
+  negative <- replace(w, "cooking_1", -4)
+  expect_error(hg_topic_sizes(hg, .topic_clusters, weights = negative),
+               class = "hypergraphs_bad_input")
+  infinite <- replace(w, "space_1", Inf)
+  expect_error(hg_topic_sizes(hg, .topic_clusters, weights = infinite),
+               class = "hypergraphs_bad_input")
+  duplicated_names <- c(w, cooking_1 = 7)
+  expect_error(hg_topic_sizes(hg, .topic_clusters, weights = duplicated_names),
+               class = "hypergraphs_bad_input")
+  some_zero <- replace(w, c("cooking_1", "space_1"), 0)
+  sizes <- hg_topic_sizes(hg, .topic_clusters, weights = some_zero)
+  expect_equal(sizes$weighted_share, c(1, 2) / 3)
+  expect_true(all(sizes$weighted_share >= 0 & sizes$weighted_share <= 1))
+  expect_equal(sum(sizes$weighted_share), 1)
+  all_zero <- hg_topic_sizes(hg, .topic_clusters, weights = w * 0)
+  expect_identical(all_zero$weighted_n, c(0, 0))
+  expect_identical(all_zero$weighted_share, c(NA_real_, NA_real_))
+})
+
+test_that("membership at coincident centres is shared and sums to one (TXT-12)", {
+  hg <- text_hypergraph(c(a = "apple pear night", b = "apple peach",
+                          c = "star moon night", d = "star sky"))
+  embedding <- data.frame(node = c("a", "b", "c", "d"),
+                          dim1 = c(0, 1, 0, -1), dim2 = c(0, 0, 0, 0))
+  local_mocked_bindings(hg_cluster = function(...) embedding,
+                        .package = "hypergraphs")
+  totals <- function(m) {
+    vapply(split(m$membership, m$node), sum, numeric(1L))
+  }
+  # both centres sit at the origin: a and c are at two coincident centres
+  both <- hg_membership(hg, c(a = "A", b = "B", c = "A", d = "B"))
+  expect_equal(unname(totals(both)), rep(1, 4))
+  expect_equal(subset(both, node == "a")$membership, c(0.5, 0.5))
+  # one centre at a document, the others apart: membership 1 there
+  three <- hg_membership(hg, c(a = "A", b = "B", c = "A", d = "C"))
+  expect_equal(unname(totals(three)), rep(1, 4))
+  expect_equal(subset(three, node == "a")$membership, c(1, 0, 0))
+  expect_equal(subset(three, node == "b")$membership, c(0, 1, 0))
+})
+
+test_that("the presence matrix stays sparse and densifies only the words asked", {
+  inc <- Matrix::sparseMatrix(i = c(1, 2, 2, 3), j = c(1, 1, 3, 2),
+                              x = c(2, 1, 5, 0.5), dims = c(3, 4),
+                              dimnames = list(c("d1", "d2", "d3"),
+                                              c("a", "b", "c", "z")))
+  present <- .thg_presence(inc)
+  expect_true(methods::is(present, "sparseMatrix"))
+  expect_identical(.thg_present_words(present, c("c", "a")),
+                   matrix(c(0, 1, 0, 1, 1, 0), 3, 2,
+                          dimnames = list(c("d1", "d2", "d3"), c("c", "a"))))
+  expect_identical(.thg_present_words(.thg_presence(as.matrix(inc)), "b"),
+                   .thg_present_words(present, "b"))
+})

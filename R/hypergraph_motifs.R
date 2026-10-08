@@ -159,11 +159,9 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
     return(data.frame(motif = names(observed), count = as.integer(observed),
                       row.names = NULL))
   }
-  if (length(n) != 1L || !is.finite(n) || n < 2L ||
-      abs(n - round(n)) > sqrt(.Machine$double.eps)) {
-    .thg_bad_input("`n` must be a whole number of at least 2")
-  }
-  n <- as.integer(n)
+  # shared validator: also refuses values beyond the integer range, which
+  # as.integer() would turn into NA
+  n <- .ho_check_count(n, "n", min = 2)
 
   old_seed <- .thg_restore_seed(seed)
   if (!is.null(seed)) on.exit({

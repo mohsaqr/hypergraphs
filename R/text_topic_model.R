@@ -46,15 +46,24 @@
 
 # The model's value W H at the non-zero cells of X, floored as scikit-learn
 # does. The factors are stored transposed (topics x documents, topics x
-# words) so that gathering the cells reads contiguous columns.
+# words) so that a cell reads two contiguous columns. The C kernel computes
+# pmax(colSums(Wt[, i] * Htt[, j]), .TM_EPSILON) cell by cell, adding in the
+# accumulator colSums() uses on this R, so the values are identical to that
+# expression without gathering two k x nnz matrices (2.7 GB each for k = 52
+# on a corpus with 3.2 million non-zero cells).
 .tm_fitted <- function(Wt, Htt, i, j) {
-  pmax(colSums(Wt[, i, drop = FALSE] * Htt[, j, drop = FALSE]), .TM_EPSILON)
+  .Call(hg_tm_fitted, Wt, Htt, as.integer(i), as.integer(j), .TM_EPSILON,
+        isTRUE(capabilities("long.double")))
 }
 
 # Generalised KL divergence D(X || W H) over every cell: the non-zero cells
-# contribute x log(x / wh) - x, and every cell contributes its wh.
+# contribute x log(x / wh) - x, and every cell contributes its wh. The
+# logarithm is taken on the positive cells only (0 log 0 = 0), so a zero
+# stored explicitly in a sparse matrix cannot turn the sum into NaN.
 .tm_divergence <- function(x, wh, Wt, Htt) {
-  sum(x * log(x / wh)) - sum(x) + sum(rowSums(Wt) * rowSums(Htt))
+  positive <- x > 0
+  sum(x[positive] * log(x[positive] / wh[positive])) - sum(x) +
+    sum(rowSums(Wt) * rowSums(Htt))
 }
 
 # One fit from given starting factors (Wt: k x documents, Htt: k x words),
@@ -63,7 +72,9 @@
 # Multiplicative updates are sequential by construction: each step reads
 # the factors the previous step produced, so the loop cannot be vectorised.
 .tm_fit <- function(X, Wt, Htt, max_iter, tol, check_every = 10L) {
-  X <- methods::as(X, "CsparseMatrix")
+  # explicit zeros are dropped, so the stored cells are the non-zero cells
+  # the updates and the divergence are defined on
+  X <- Matrix::drop0(methods::as(X, "CsparseMatrix"))
   i <- X@i + 1L
   j <- rep.int(seq_len(ncol(X)), diff(X@p))
   x <- X@x
@@ -184,11 +195,36 @@
 # Agreement of a fit with the reference: topics matched one to one by the
 # Hungarian method on their average Jaccard, then averaged. Returns the
 # mean agreement and the matched agreement of every reference topic.
+# Average Jaccard of every reference topic against every other topic, all
+# pairs at once: word w is in the first d words of both lists exactly when
+# its rank in each is at most d, so the overlaps at depth d are one product
+# of rank indicators. Each cell is then averaged with mean(), as
+# .tm_average_jaccard() does pair by pair. Top-word lists hold distinct
+# words, so |a u b| = 2d - |a n b|.
+.tm_similarity <- function(reference, other) {
+  depth <- min(lengths(c(reference, other)))
+  vocabulary <- unique(c(unlist(reference), unlist(other)))
+  ranks <- function(tops) {
+    out <- matrix(Inf, length(tops), length(vocabulary))
+    rows <- rep(seq_along(tops), each = depth)
+    words <- unlist(lapply(tops, \(t) t[seq_len(depth)]))
+    out[cbind(rows, match(words, vocabulary))] <- rep(seq_len(depth),
+                                                      length(tops))
+    out
+  }
+  ref_rank <- ranks(reference)
+  other_rank <- ranks(other)
+  # one topics x topics slice per depth (vapply() would drop a 1 x 1 slice
+  # to a vector)
+  jaccard <- array(unlist(lapply(seq_len(depth), \(d) {
+    shared <- tcrossprod((ref_rank <= d) * 1, (other_rank <= d) * 1)
+    shared / (2 * d - shared)
+  })), c(length(reference), length(other), depth))
+  apply(jaccard, c(1L, 2L), mean)
+}
 .tm_agreement <- function(reference, other) {
   k <- length(reference)
-  similarity <- outer(seq_len(k), seq_len(k), Vectorize(\(a, b) {
-    .tm_average_jaccard(reference[[a]], other[[b]])
-  }))
+  similarity <- .tm_similarity(reference, other)
   matched <- .tm_hungarian(max(similarity) - similarity)
   per_topic <- similarity[cbind(seq_len(k), matched)]
   list(mean = mean(per_topic), per_topic = per_topic)
@@ -310,6 +346,10 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
       v == round(v)
   }
   X <- .tm_counts(hg)
+  if (any(!is.finite(X@x)) || any(X@x < 0)) {
+    .thg_bad_input(paste0("the document-word counts of `hg` must be finite ",
+                          "and non-negative"))
+  }
   if (!whole(k, 2) || k >= min(dim(X))) {
     .thg_bad_input(sprintf(paste0(
       "`k` must be a whole number from 2 to %d (smaller than the numbers of ",
@@ -344,11 +384,7 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
     .tm_fit(X, start$Wt, start$Htt, as.integer(max_iter), tol)
   }
   runs <- seq_len(as.integer(nstart))
-  fits <- if (isTRUE(parallel) && .Platform$OS.type != "windows") {
-    parallel::mclapply(runs, one_start, mc.cores = as.integer(n_cores))
-  } else {
-    lapply(runs, one_start)
-  }
+  fits <- .ho_apply(runs, one_start, parallel = parallel, n_cores = n_cores)
   converged <- vapply(fits, \(f) f$converged, logical(1L))
   divergence <- vapply(fits, \(f) f$divergence, numeric(1L))
   best <- which.min(divergence)
@@ -435,8 +471,46 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
                  words = word_table, documents = document_table,
                  restarts = restarts, documents_table = documents,
                  n_documents = length(docs),
-                 n_words = length(words), params = params),
+                 n_words = length(words), params = params,
+                 corpus = .tm_signature(X)),
             class = "net_hg_topics")
+}
+
+# What identifies the corpus a model was fitted on: its document ids, its
+# words, and the token total of each (named, so a reordering of the same
+# corpus matches).
+.tm_signature <- function(X) {
+  list(documents = stats::setNames(as.numeric(Matrix::rowSums(X)),
+                                   rownames(X)),
+       words = stats::setNames(as.numeric(Matrix::colSums(X)), colnames(X)))
+}
+
+# Refuse a topic model that was not fitted on `hg`: the same documents and
+# words (in any order) with the same token totals. A model saved before the
+# signature was kept is checked on its document ids and words only.
+.tm_check_fitted_on <- function(topics, hg) {
+  current <- .tm_signature(.tm_counts(hg))
+  same_set <- function(a, b) {
+    length(a) == length(b) && setequal(a, b) && anyDuplicated(a) == 0L
+  }
+  same_totals <- function(a, b) {
+    isTRUE(all.equal(unname(a[names(b)]), unname(b)))
+  }
+  fitted <- topics$corpus
+  ok <- if (is.null(fitted)) {
+    same_set(unique(topics$shares$node), names(current$documents)) &&
+      same_set(unique(topics$words$word), names(current$words))
+  } else {
+    same_set(names(fitted$documents), names(current$documents)) &&
+      same_set(names(fitted$words), names(current$words)) &&
+      same_totals(fitted$documents, current$documents) &&
+      same_totals(fitted$words, current$words)
+  }
+  if (!ok) {
+    .thg_bad_input(paste0("`topics` was not fitted on `hg`: their documents, ",
+                          "words or counts differ"))
+  }
+  invisible(topics)
 }
 
 #' @rdname hg_topics
@@ -478,9 +552,7 @@ hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
     out <- out[out$topic %in% topic, , drop = FALSE]
   }
   if (identical(what, "words")) {
-    if (!is.numeric(n) || length(n) != 1L || n < 1) {
-      .thg_bad_input("`n` must be a single number of at least 1")
-    }
+    n <- .ho_check_count(n, "n", allow_inf = TRUE)
     out <- out[out$rank <= n, , drop = FALSE]
   }
   rownames(out) <- NULL
@@ -511,6 +583,7 @@ hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
       anyNA(names(groups))) {
     .thg_bad_input("`group` must be a named character vector or a data.frame with a `node` column")
   }
+  groups <- .thg_check_assignment(groups, "group")
   shares <- x$shares
   shares$group <- unname(groups[as.character(shares$node)])
   shares <- shares[!is.na(shares$group), , drop = FALSE]

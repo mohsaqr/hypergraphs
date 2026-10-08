@@ -36,6 +36,17 @@ trailing \code{NA}s end a sequence.}
 These are the conventions of the tna family of packages, and the same
 call builds the same sequences there.
 
+A missing state anywhere but at the end of a wide row is a gap. The
+memory verbs (\code{\link[=hon]{hon()}}, \code{\link[=mogen]{mogen()}}, \code{\link[=hypa]{hypa()}}, \code{\link[=markov_order]{markov_order()}},
+\code{\link[=memory]{memory()}}, \code{\link[=hg_bootstrap]{hg_bootstrap()}}, \code{\link[=hg_compare]{hg_compare()}}) split a sequence at every
+gap into its runs of observed states: no transition is counted across or
+into a gap and no state \code{"NA"} is created (a state spelled \code{"NA"} is an
+ordinary state). \code{\link[=hg_bootstrap]{hg_bootstrap()}} and \code{\link[=hg_compare]{hg_compare()}} still resample the
+original sequences, each with all its runs. Repeats are collapsed within
+a run. State labels containing \code{" -> "} (the notation of memory nodes) are
+refused with \code{hypergraphs_bad_input} by the verbs whose results name
+paths.
+
 A data.frame with columns named like an event table (\code{code}, \code{state},
 \code{user}, \code{timestamp}, ...) that is passed without \verb{action =} and has no
 \code{action} column raises \code{hypergraphs_long_format} (a

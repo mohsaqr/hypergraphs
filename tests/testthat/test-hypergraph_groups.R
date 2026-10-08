@@ -345,3 +345,111 @@ test_that("min_share keeps the sets that reach a minimum support", {
   expect_error(group_hypergraph(events, node = "item", hyperedge = "basket",
                                 min_share = 2), class = "hypergraphs_bad_input")
 })
+
+test_that("a set's members, not its display label, identify it (R02)", {
+  d <- data.frame(node = c("a + b", "a", "b"), edge = c("x", "y", "y"))
+  hg <- group_hypergraph(d, node = "node", hyperedge = "edge", top = Inf)
+  sets <- hg_get(hg, what = "sets")
+  expect_identical(nrow(sets), 2L)
+  expect_identical(sort(sets$size), c(1L, 2L))
+  expect_identical(sets$count, c(1L, 1L))
+  expect_false(anyDuplicated(sets$hyperedge) > 0L)
+  expect_setequal(hg_get(hg)$members, c("a + b", "a, b"))
+  # grouped prefixes: a group name holding ": " cannot merge two hyperedges
+  g <- data.frame(node = c("z", "y: z"), edge = c("t1", "t2"),
+                  grp = c("x: y", "x"))
+  grouped <- group_hypergraph(g, node = "node", hyperedge = "edge",
+                              group = "grp", top = Inf)
+  expect_identical(grouped$n_hyperedges, 2L)
+  expect_identical(nrow(hg_get(grouped, what = "sets")), 2L)
+  # the plot's distinct-set view keeps them apart too
+  repeated <- data.frame(node = c("a + b", "a + b", "a", "b"),
+                         edge = c("x1", "x2", "y", "y"))
+  distinct <- .thg_distinct_sets(group_hypergraph(repeated, node = "node",
+                                                  hyperedge = "edge"))
+  expect_identical(distinct$n_hyperedges, 2L)
+  expect_setequal(hg_get(distinct, what = "sets")$count, c(2L, 1L))
+})
+
+test_that("metadata columns never replace structural columns (R03)", {
+  d <- data.frame(from = c("a", "b"), to = c("b", "c"), edge = c("same", "same"),
+                  actor = c("p", "q"), weight = c(5, 6))
+  hg <- group_hypergraph(d, from = "from", to = "to")
+  expect_identical(hg$n_hyperedges, 2L)
+  expect_setequal(hg_get(hg)$members, c("a, b", "b, c"))
+  # the metadata stay as attributes, under a name that does not clash
+  expect_identical(hg_get(hg, what = "edge_data")$edge, c("e1", "e2"))
+  expect_true("edge_1" %in% names(hg_get(hg, what = "edge_data")))
+  expect_identical(hg$params$node, "actor")
+  # weights still come from the named weight column, not from `weight`
+  w <- data.frame(from = c("a", "b"), to = c("b", "c"), w = c(2, 3),
+                  weight = c(100, 100))
+  weighted <- group_hypergraph(w, from = "from", to = "to", weight = "w")
+  expect_equal(unname(colSums(weighted$incidence)), c(4, 6))
+  # membership data with a metadata column called `edge`
+  m <- data.frame(person = c("a", "b", "c"), meeting = c("m1", "m1", "m2"),
+                  edge = c("k", "k", "l"))
+  mh <- group_hypergraph(m, node = "person", hyperedge = "meeting")
+  ed <- hg_get(mh, what = "edge_data")
+  expect_identical(ed$edge, c("m1", "m2"))
+  expect_identical(ed$edge_1, c("k", "l"))
+})
+
+test_that("membership weights are validated, zero membership is absent (R04)", {
+  base <- data.frame(node = c("a", "b"), edge = "x")
+  bad <- list(c(1, -1), c(1, Inf), factor(c("2", "3")), c("1", "2"))
+  lapply(bad, function(w) {
+    d <- base
+    d$w <- w
+    expect_error(group_hypergraph(d, node = "node", hyperedge = "edge",
+                                  weight = "w"),
+                 class = "hypergraphs_bad_input")
+    expect_error(group_hypergraph(d, node = "node", hyperedge = "edge",
+                                  weight = "w", sparse = TRUE),
+                 class = "hypergraphs_bad_input")
+  })
+  zero <- data.frame(node = c("a", "b", "c"), edge = c("x", "x", "y"),
+                     w = c(1, 0, 2))
+  dense <- group_hypergraph(zero, node = "node", hyperedge = "edge", weight = "w")
+  sparse <- group_hypergraph(zero, node = "node", hyperedge = "edge", weight = "w",
+                             sparse = TRUE)
+  expect_identical(hg_get(dense), hg_get(sparse))
+  expect_identical(hg_get(dense)$members, c("a", "c"))
+  expect_identical(hg_get(dense, what = "nodes")$degree, c(1L, 0L, 1L))
+})
+
+test_that("edge attributes do not depend on row order (R05)", {
+  d <- data.frame(node = c("a", "b", "c", "d"), edge = c("x", "x", "y", "y"),
+                  color = c(NA, "red", "blue", NA),
+                  when = as.Date(c(NA, "2020-01-02", NA, NA)))
+  orders <- list(1:4, 4:1, c(2, 1, 4, 3))
+  tables <- lapply(orders, function(o) {
+    hg_get(group_hypergraph(d[o, ], node = "node", hyperedge = "edge"),
+           what = "edge_data")
+  })
+  lapply(tables, function(t) expect_identical(t, tables[[1L]]))
+  expect_identical(tables[[1L]]$color, c("red", "blue"))
+  expect_s3_class(tables[[1L]]$when, "Date")
+  expect_true(is.na(tables[[1L]]$when[2L]))
+  sparse <- hg_get(group_hypergraph(d[4:1, ], node = "node", hyperedge = "edge",
+                                    sparse = TRUE), what = "edge_data")
+  expect_identical(sparse, tables[[1L]])
+  picked <- hg_subset(group_hypergraph(d[4:1, ], node = "node", hyperedge = "edge"),
+                      where = list(color = "red"))
+  expect_identical(picked$n_hyperedges, 1L)
+})
+
+test_that("the canonical node and hyperedge columns are detected (R20)", {
+  d <- data.frame(node = c("a", "b", "c"), hyperedge = c("e", "e", "f"))
+  detected <- group_hypergraph(d)
+  expect_identical(detected, group_hypergraph(d, node = "node",
+                                              hyperedge = "hyperedge"))
+  mixed <- data.frame(Node = c("a", "b"), HyperEdge = c("e", "e"))
+  expect_identical(group_hypergraph(mixed)$n_hyperedges, 1L)
+  # an explicit name still wins over detection
+  d$team <- c("t1", "t1", "t1")
+  expect_identical(group_hypergraph(d, node = "node", hyperedge = "team")$n_hyperedges,
+                   1L)
+  td <- data.frame(node = c("a", "b"), hyperedge = c("e", "e"), time = c(1, 1))
+  expect_identical(temporal_hypergraph(td)$edges, "e")
+})

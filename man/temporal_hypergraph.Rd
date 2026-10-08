@@ -34,7 +34,9 @@ alias table when neither is given and \code{node}/\code{hyperedge} are not named
 \item{node, hyperedge}{Column names of membership data: the node, and the
 grouping whose shared values bind nodes into one hyperedge. Naming
 either selects the membership format; the other is then detected by
-alias if not given.}
+alias if not given. When no column is named and no edge list is
+detected, both are detected by alias (\code{node}, \code{actor}, \code{person}, ...
+and \code{hyperedge}, \code{group}, \code{event}, ...), as \code{\link[=group_hypergraph]{group_hypergraph()}} does.}
 
 \item{time}{Column with the instant of a contact hyperedge.}
 

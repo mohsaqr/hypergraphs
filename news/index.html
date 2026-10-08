@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,10 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.2" id="hypergraphs-072">hypergraphs 0.7.2<a class="anchor" aria-label="anchor" href="#hypergraphs-072"></a></h2>
+<ul><li>The package has no compiled code again: <code><a href="../reference/hg_topics.html">hg_topics()</a></code> computes its expected counts in R, with the same values as 0.7.1.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.1" id="hypergraphs-071">hypergraphs 0.7.1<a class="anchor" aria-label="anchor" href="#hypergraphs-071"></a></h2>
 <p>Corrections from a function-by-function audit. Results change only where they were wrong; valid input that was handled correctly gives identical output.</p>
 <div class="section level3">
@@ -60,8 +64,6 @@
 <code><a href="../reference/hg_topics.html">hg_topics()</a></code> and <code><a href="../reference/hg_topic_search.html">hg_topic_search()</a></code> no longer exhaust memory on a large corpus. The expected counts are gathered in blocks of about 80 MB (identical values); a 6,630-document, 91,755-word corpus at <code>k = 52</code> allocated about 8 GB per step before. Topic quality keeps the document x word presence sparse and densifies only the top words (it was a dense 4.9 GB matrix on that corpus), and matching topics across starts is computed for all pairs at once (0.53 s to 0.005 s per comparison at <code>k = 52</code>, identical values).</li>
 <li>
 <code>hg_cluster(algorithm = "symnmf")</code> and <code>hg_embed(method = "symnmf")</code> run on a sparse hypergraph instead of refusing it with <code>hypergraphs_dense_required</code>: the dense similarity is built from the sparse Laplacian (up to 15,000 nodes; beyond that <code>hypergraphs_sparse_too_large</code>). On the corpus above, SymNMF graded memberships for <code>k = 16</code> take about a minute per start.</li>
-<li>
-<code><a href="../reference/hg_topics.html">hg_topics()</a></code> computes its expected counts in C (the package’s first compiled code), with values identical to the R expression it replaces: one step on the 6,630-document corpus at <code>k = 52</code> takes 0.78 s instead of 1.55 s.</li>
 <li>
 <code>hg_cluster(algorithm = "symnmf")</code> gains <code>parallel</code> and <code>n_cores</code>: every start’s initial factor is drawn first, so parallel starts give the serial result.</li>
 <li>k-means in <code><a href="../reference/hg_cluster.html">hg_cluster()</a></code> (spectral) and <code><a href="../reference/hg_cocluster.html">hg_cocluster()</a></code> finishes a Hartigan-Wong start that stopped early (“Quick-TRANSfer stage steps exceeded” or the iteration limit) from the centres it reached, instead of comparing it unfinished and warning; when every start finishes the result is identical to <code><a href="https://rdrr.io/r/stats/kmeans.html" class="external-link">stats::kmeans()</a></code>.</li>

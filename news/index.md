@@ -1,5 +1,11 @@
 # Changelog
 
+## hypergraphs 0.7.2
+
+- The package has no compiled code again:
+  [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
+  computes its expected counts in R, with the same values as 0.7.1.
+
 ## hypergraphs 0.7.1
 
 Corrections from a function-by-function audit. Results change only where
@@ -44,10 +50,6 @@ output.
   sparse Laplacian (up to 15,000 nodes; beyond that
   `hypergraphs_sparse_too_large`). On the corpus above, SymNMF graded
   memberships for `k = 16` take about a minute per start.
-- [`hg_topics()`](https://mohsaqr.github.io/hypergraphs/reference/hg_topics.md)
-  computes its expected counts in C (the package’s first compiled code),
-  with values identical to the R expression it replaces: one step on the
-  6,630-document corpus at `k = 52` takes 0.78 s instead of 1.55 s.
 - `hg_cluster(algorithm = "symnmf")` gains `parallel` and `n_cores`:
   every start’s initial factor is drawn first, so parallel starts give
   the serial result.

@@ -88,5 +88,5 @@ hg <- group_hypergraph(events, node = "person", hyperedge = "meeting",
                        weight = "hours")
 L <- hg_laplacian(hg, type = "random_walk")
 range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)
-#> [1] -1.815497e-16  1.001279e+00
+#> [1] -2.899699e-16  1.001279e+00
 ```

@@ -86,13 +86,6 @@ it. Constructors are nouns (`hon()`, `mogen()`, `simplicial()`,
 Bundled data: `covid_abstracts` (165 abstracts)
 and `covid_embeddings`.
 
-### Research sources
-
-The source repository includes an indexed [research paper library](https://github.com/mohsaqr/hypergraphs/tree/main/papers)
-and [method/repository reference notes](https://github.com/mohsaqr/hypergraphs/tree/main/repos). For the projection tier, see
-the local [*Legal hypergraphs* paper](https://github.com/mohsaqr/hypergraphs/blob/main/papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf)
-and its [method mapping and reproducibility links](https://github.com/mohsaqr/hypergraphs/blob/main/repos/legal-hypergraphs.md).
-
 ## The taxonomy
 
 The same naming rules hold in every family, so a verb from one reads like a

@@ -1,3 +1,45 @@
+# hypergraphs 0.7.5
+
+## Breaking changes
+
+* `hypa()` defaults to `p_adjust = "none"` for sequences and for
+  hypergraphs, following LaRock et al. (2020), who classify against `alpha`
+  without a correction for multiple testing. `p_adjust = "BH"` restores the
+  previous correction.
+
+## Bug fixes
+
+* `hypa()` on sequences inherits the corrected HYPA estimator of Nestimate.
+  The null model is fitted on every possible path, observed or not, so that
+  the expected counts preserve every De Bruijn node's in- and out-strength
+  (at order 2 the expected count is the first-order Markov expectation). The
+  previous null was miscalibrated: memoryless sequences produced dozens of
+  anomalies. Unobserved possible paths are scored with a count of 0 and can
+  be under-represented, over-representation uses the paper's strict upper
+  tail `P(X > f)`, and `min_count` and `alpha` are validated. Requires the
+  Nestimate release that contains the fix.
+
+* `hypa()` on a hypergraph uses a strength-preserving null, the undirected
+  analogue of the sequence method. The expected co-occurrence count of a
+  pair is `x_i x_j` over every pair of nodes that take part in a
+  co-occurrence, with the fitness `x` fitted so that each node's expected
+  strength equals its observed one; the fit costs O(n) per sweep and never
+  builds an n x n matrix. The previous version multiplied hyperdegrees on
+  co-occurring pairs only, without fitting, so the expected counts did not
+  preserve the strengths, and a pair that rarely or never co-occurs could not
+  be under-represented. Pairs are now scored when they co-occur at least
+  `min_count` times or are expected to, the under-representation rule is
+  applied first, over-representation uses the strict tail `P(X > f)`, and a
+  requested correction runs over every possible pair. A star-like hypergraph, in which
+  one node takes part in every co-occurring pair, has no fitted null and
+  raises a warning of class `hypergraphs_no_converge`; the fit is recorded in
+  the attribute `"hypa_fit"`. Invalid `min_count`, `alpha` and `top` raise
+  `hypergraphs_bad_input`.
+
+* `hg_get(what = "scores", order_by = "sig")` on a sequence HYPA fit sorts by
+  the smaller of the two tails. It sorted by the lower tail alone, which put
+  the most over-represented paths last.
+
 # hypergraphs 0.7.2
 
 * The package has no compiled code again: `hg_topics()` computes its

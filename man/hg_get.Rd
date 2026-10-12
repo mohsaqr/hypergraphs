@@ -55,8 +55,8 @@ history and optional attention; see \code{\link[=hg_get.hg_hypergat]{hg_get.hg_h
 \item{\code{net_hon} (\code{\link[=hon]{hon()}})}{\code{"rules"} (default), \code{"nodes"},
 \code{"pathways"}.}
 \item{\code{net_honem} (\code{\link[=honem]{honem()}})}{\code{"embeddings"} (default), \code{"variance"}.}
-\item{\code{net_hypa} (\code{\link[=hypa]{hypa()}} on sequences)}{\code{"scores"} (default),
-\code{"over"}, \code{"under"}, \code{"pathways"}.}
+\item{\code{net_hypa} (\code{\link[=hypa]{hypa()}} on sequences)}{\code{"anomalies"} (default),
+\code{"scores"}, \code{"over"}, \code{"under"}, \code{"pathways"}.}
 \item{\code{net_mogen} (\code{\link[=mogen]{mogen()}})}{\code{"orders"} (default), \code{"transitions"},
 \code{"paths"}, \code{"pathways"}.}
 \item{\code{net_markov_order} (\code{\link[=markov_order]{markov_order()}})}{\code{"orders"} (default),

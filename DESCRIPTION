@@ -1,6 +1,6 @@
 Package: hypergraphs
 Title: Higher-Order Network Analysis
-Version: 0.7.4
+Version: 0.7.5
 Authors@R: c(
     person("Mohammed", "Saqr", email = "saqr@saqr.me", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5881-3109"))
@@ -65,7 +65,7 @@ Imports:
     grid,
     Matrix,
     methods,
-    Nestimate (>= 0.9.1),
+    Nestimate (>= 0.9.26),
     parallel,
     RSpectra,
     stats,

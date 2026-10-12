@@ -43,7 +43,15 @@ test_that("hypa rejects invalid input", {
   expect_error(hypa(42), "data.frame or list")
   expect_error(hypa(list(c("A", "B")), order = 0L), "integers >= 1")
   expect_error(hypa(list(c("A", "B")), alpha = 0.6),
-               "alpha.*must be in")
+               "alpha.*must be a single number in \\(0, 0.5\\)")
+  expect_error(hypa(list(c("A", "B", "C")), alpha = 0.5),
+               "alpha.*must be a single number in \\(0, 0.5\\)")
+  expect_error(hypa(list(c("A", "B", "C")), min_count = 1.5),
+               "min_count.*single whole number")
+  expect_error(hypa(list(c("A", "B", "C")), min_count = 0),
+               "min_count.*single whole number")
+  expect_error(hypa(list(c("A", "B", "C")), min_count = c(1, 2)),
+               "min_count.*single whole number")
 })
 
 test_that("hypa takes `order`; the old `k` alias is refused", {
@@ -339,14 +347,29 @@ test_that("p_adjust='none' matches original behavior (no correction)", {
   expect_equal(h$scores$p_adjusted_over, h$scores$p_over)
 })
 
-test_that("default BH adjustment produces p_adjusted columns in scores", {
+test_that("the default applies no correction, as LaRock et al. (2020)", {
   trajs <- c(
     replicate(50, c("A", "B", "C"), simplify = FALSE),
     replicate(5, c("A", "B", "D"), simplify = FALSE),
     replicate(5, c("C", "B", "A"), simplify = FALSE),
     replicate(2, c("D", "B", "C"), simplify = FALSE)
   )
+  expect_identical(formals(hypa.default)$p_adjust, "none")
   h <- hypa(trajs, order = 2L, alpha = 0.05, min_count = 1L)
+  expect_identical(h$p_adjust, "none")
+  expect_identical(h$scores$p_adjusted_under, h$scores$p_under)
+  expect_identical(h$scores$p_adjusted_over, h$scores$p_over)
+  expect_match(capture.output(print(h))[1L], "none\\)$")
+})
+
+test_that("BH adjustment produces p_adjusted columns in scores", {
+  trajs <- c(
+    replicate(50, c("A", "B", "C"), simplify = FALSE),
+    replicate(5, c("A", "B", "D"), simplify = FALSE),
+    replicate(5, c("C", "B", "A"), simplify = FALSE),
+    replicate(2, c("D", "B", "C"), simplify = FALSE)
+  )
+  h <- hypa(trajs, order = 2L, alpha = 0.05, min_count = 1L, p_adjust = "BH")
 
   expect_equal(h$p_adjust, "BH")
   expect_true("p_adjusted_under" %in% names(h$scores))
@@ -483,7 +506,7 @@ test_that("two-sided correction adjusts under and over separately", {
     replicate(3, c("A", "C", "D"), simplify = FALSE),
     replicate(3, c("D", "C", "A"), simplify = FALSE)
   )
-  h <- hypa(trajs, order = 2L, alpha = 0.05, min_count = 1L)
+  h <- hypa(trajs, order = 2L, alpha = 0.05, min_count = 1L, p_adjust = "BH")
 
   # Verify that p_adjusted_under and p_adjusted_over are adjusted separately
   # by checking they equal p.adjust applied to the raw values
@@ -520,4 +543,100 @@ test_that("hypa(type =, order_by =) selects and orders anomalies as Nestimate's 
   expect_output(print(viewed), "count +expected +ratio +p_adj +direction")
   expect_output(print(viewed), "under")
   expect_error(hypa(seqs, order = 2, type = "sideways"))
+})
+
+# ===========================================================================
+# Section 11: the strength-preserving null (LaRock et al. 2020)
+# ===========================================================================
+
+# First-order Markov chains: no path depends on more than the last state, so
+# an order-2 HYPA should flag about alpha of the paths, not dozens.
+.hypa_markov_seqs <- function(seed, n_seq = 150L, len = 20L) {
+  states <- c("a", "b", "c", "d")
+  transition <- matrix(c(.10, .50, .30, .10,
+                         .30, .10, .40, .20,
+                         .25, .25, .25, .25,
+                         .40, .30, .20, .10), 4L, byrow = TRUE,
+                       dimnames = list(states, states))
+  set.seed(seed)
+  lapply(seq_len(n_seq), \(i) {
+    Reduce(\(path, step) c(path, sample(states, 1L,
+                                        prob = transition[path[length(path)], ])),
+           seq_len(len - 1L), sample(states, 1L))
+  })
+}
+
+test_that("order-2 expected counts equal the first-order Markov expectation", {
+  seqs <- .hypa_markov_seqs(1L)
+  scores <- hg_get(hypa(seqs, order = 2L), what = "scores")
+  expect_gt(nrow(scores), 0L)
+  # independent oracle: n(x y .) n(. y z) / n(. y .) over the 3-grams
+  grams <- do.call(rbind, lapply(seqs, \(s) {
+    k <- length(s)
+    data.frame(x = s[seq_len(k - 2L)], y = s[2:(k - 1L)], z = s[3:k])
+  }))
+  n_xy <- table(paste(grams$x, grams$y))
+  n_yz <- table(paste(grams$y, grams$z))
+  n_y <- table(grams$y)
+  parts <- strsplit(scores$path, " -> ", fixed = TRUE)
+  oracle <- vapply(parts, \(p) {
+    n_xy[[paste(p[1L], p[2L])]] * n_yz[[paste(p[2L], p[3L])]] / n_y[[p[2L]]]
+  }, numeric(1L))
+  expect_equal(scores$expected, oracle, tolerance = 1e-10)
+})
+
+test_that("the two tails are complementary: p_under + p_over = 1", {
+  scores <- hg_get(hypa(.hypa_markov_seqs(2L), order = 2L), what = "scores")
+  expect_equal(scores$p_under + scores$p_over, rep(1, nrow(scores)),
+               tolerance = 1e-12)
+  expect_identical(scores$p_value, scores$p_under)
+})
+
+test_that("an unobserved possible path is scored and can be under-represented", {
+  trajs <- c(replicate(40, c("A", "B", "C"), simplify = FALSE),
+             replicate(40, c("X", "B", "D"), simplify = FALSE))
+  h <- hypa(trajs, order = 2L)
+  scores <- hg_get(h, what = "scores", order_by = "path")
+  expect_setequal(scores$path, c("A -> B -> C", "A -> B -> D",
+                                 "X -> B -> C", "X -> B -> D"))
+  never <- subset(scores, count == 0L)
+  expect_setequal(never$path, c("A -> B -> D", "X -> B -> C"))
+  # n(A B .) n(. B D) / n(. B .) = 40 * 40 / 80
+  expect_equal(never$expected, c(20, 20))
+  expect_identical(never$direction, c("under", "under"))
+  seen <- subset(scores, count == 40L)
+  expect_identical(seen$direction, c("over", "over"))
+})
+
+test_that("memoryless sequences give few anomalies across 20 seeds", {
+  fits <- lapply(seq_len(20L), \(seed) .hypa_markov_seqs(seed))
+  counts <- vapply(fits, \(s) {
+    raw <- hypa(s, order = 2L)
+    bh <- hypa(s, order = 2L, p_adjust = "BH")
+    c(paths = raw$n_edges, raw = raw$n_anomalous, bh = bh$n_anomalous)
+  }, numeric(3L))
+  # measured 2026-10-12: 38 of 1280 paths uncorrected (3.0%), 0 with BH; the
+  # miscalibrated null this replaces flagged dozens per fit on such data
+  expect_lt(sum(counts["raw", ]) / sum(counts["paths", ]), 0.08)
+  expect_lte(max(counts["raw", ]), 6)
+  expect_lte(sum(counts["bh", ]), 2)
+})
+
+test_that("hypa is invariant to relabelling the states", {
+  seqs <- .hypa_markov_seqs(3L)
+  relabel <- c(a = "w", b = "x", c = "y", d = "z")
+  renamed <- lapply(seqs, \(s) unname(relabel[s]))
+  a <- hg_get(hypa(seqs, order = 2L), what = "scores", order_by = "path")
+  b <- hg_get(hypa(renamed, order = 2L), what = "scores")
+  b <- b[match(vapply(strsplit(a$path, " -> ", fixed = TRUE),
+                      \(p) paste(relabel[p], collapse = " -> "),
+                      character(1L)), b$path), ]
+  expect_equal(b$expected, a$expected)
+  expect_equal(b$p_under, a$p_under)
+  expect_identical(b$direction, a$direction)
+})
+
+test_that("hg_get(what = 'scores') sorts by the smaller tail when order_by = 'sig'", {
+  scores <- hg_get(hypa(.hypa_markov_seqs(4L), order = 2L), what = "scores")
+  expect_false(is.unsorted(pmin(scores$p_under, scores$p_over)))
 })

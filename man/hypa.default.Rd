@@ -10,7 +10,7 @@
   order = 2L,
   alpha = 0.05,
   min_count = 5L,
-  p_adjust = "BH",
+  p_adjust = "none",
   type = c("all", "over", "under"),
   order_by = c("sig", "ratio", "freq", "path"),
   n = 10L,
@@ -36,11 +36,16 @@ model object carrying its sequences.}
 \item{alpha}{Significance level of the anomaly labels, in (0, 0.5).
 Default \code{0.05}.}
 
-\item{min_count}{Integer. Paths observed fewer times are always labelled
-\code{"normal"}. Default \code{5}.}
+\item{min_count}{Single whole number >= 1. A path is over-represented
+only if it is observed at least \code{min_count} times and under-represented
+only if it is expected at least \code{min_count} times, so a path that never
+occurs can still be under-represented. Default \code{5}.}
 
 \item{p_adjust}{Multiplicity correction: any \link[stats:p.adjust]{stats::p.adjust} method or
-\code{"none"}. Default \code{"BH"}; the two tails are adjusted separately.}
+\code{"none"}. Default \code{"none"}: LaRock et al. (2020) classify against
+\code{alpha} without correction. \code{"BH"} controls the false discovery rate;
+the two tails are adjusted separately, within each order, over every
+possible path.}
 
 \item{type}{Which anomalous paths the printed result lists: \code{"all"}
 (default), \code{"over"} (paths observed more often than expected) or
@@ -72,10 +77,17 @@ ones (\code{"over"}, \code{"under"}), or the anomalous paths as pathways
 }
 \description{
 The sequence method of \code{\link[=hypa]{hypa()}}. Builds the De Bruijn graph of order
-\code{order} from the sequences and scores every path of \code{order + 1} states
-against a hypergeometric null whose propensities are fitted to the
-observed path counts: paths observed far more often than the null
-predicts are over-represented, far less often under-represented.
+\code{order} from the sequences and scores every possible path of
+\code{order + 1} states (every observed path, plus every unobserved path that
+the observed transitions permit) against a hypergeometric null whose
+propensities are fitted so that the expected counts preserve the in- and
+out-strength of every De Bruijn node (LaRock et al. 2020). Paths observed
+far more often than the null predicts are over-represented, far less
+often under-represented. A path is under-represented when the lower
+tail \eqn{P(X \le f)} of its observed count \eqn{f}, adjusted by
+\code{p_adjust}, is below \code{alpha}, and otherwise over-represented when the
+strict upper tail \eqn{P(X > f)}, adjusted the same way, is below
+\code{alpha}.
 }
 \examples{
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),

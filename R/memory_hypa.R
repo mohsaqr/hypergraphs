@@ -20,8 +20,9 @@
 #'   over-represented paths, lowest for under-represented ones, largest
 #'   absolute log ratio when both directions are listed), `"freq"` (most
 #'   observed first) or `"path"` (alphabetical). Default: the `order_by`
-#'   given to [hypa()], else `"sig"`. For `"scores"`, `"sig"` sorts by
-#'   `p_value`.
+#'   given to [hypa()], else `"sig"`. For `"scores"`, `"sig"` sorts by the
+#'   smaller of the two raw tails, `p_under` and `p_over`, so the paths
+#'   that depart most from the null in either direction come first.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `order_by`. Default `NULL`
 #'   returns every row.
@@ -30,10 +31,13 @@
 #'   of the path's own direction), `direction`, and `order` when several
 #'   orders were scored. For `"scores"`, `"over"` and `"under"`, one row per
 #'   path with every column of the fit: `path`, `from`, `to`, `count`,
-#'   `expected`, `ratio`, the p-values (`p_value`, `p_under`, `p_over`,
-#'   `p_adj_under`, `p_adj_over`), the `direction` (`"over"`, `"under"` or
-#'   `"normal"`) and the path `order`. For `"pathways"`, one row per anomalous path with the
-#'   column `pathway`.
+#'   `expected`, `ratio`, the p-values (`p_value`, an alias of `p_under`,
+#'   the lower tail \eqn{P(X \le f)}; `p_over`, the strict upper tail
+#'   \eqn{P(X > f)}; `p_adj_under`, `p_adj_over`), the `direction`
+#'   (`"over"`, `"under"` or `"normal"`) and the path `order`. `"scores"`
+#'   holds every possible path: the observed ones and the unobserved ones
+#'   the observed transitions permit (`count` 0). For `"pathways"`, one row
+#'   per anomalous path with the column `pathway`.
 #' @examples
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
 #'              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
@@ -61,7 +65,7 @@ hg_get.net_hypa <- function(x, what = c("anomalies", "scores", "over",
   if (what == "scores") {
     out <- x$scores
     key <- switch(order_by,
-                  sig = order(out$p_value, out$path),
+                  sig = order(pmin(out$p_under, out$p_over), out$path),
                   ratio = order(-abs(log(out$ratio)), out$path),
                   freq = order(-out$observed, out$path),
                   path = order(out$path))

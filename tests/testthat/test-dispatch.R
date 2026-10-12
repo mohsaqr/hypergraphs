@@ -86,4 +86,9 @@ test_that("the dispatching verbs keep each method's defaults", {
   expect_identical(formals(hg_communities.net_hon)$trials, 10L)
   expect_identical(formals(hypa.net_hg)$min_count, 5L)
   expect_identical(formals(hypa.default)$min_count, 5L)
+  # both HYPA methods follow LaRock et al. (2020): no correction by default
+  expect_identical(formals(hypa.net_hg)$p_adjust, "none")
+  expect_identical(formals(hypa.default)$p_adjust, "none")
+  expect_identical(formals(hypa.default)$p_adjust,
+                   formals(Nestimate::build_hypa)$p_adjust)
 })

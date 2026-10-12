@@ -36,8 +36,9 @@ first), \code{"ratio"} (largest deviation first: highest ratio for
 over-represented paths, lowest for under-represented ones, largest
 absolute log ratio when both directions are listed), \code{"freq"} (most
 observed first) or \code{"path"} (alphabetical). Default: the \code{order_by}
-given to \code{\link[=hypa]{hypa()}}, else \code{"sig"}. For \code{"scores"}, \code{"sig"} sorts by
-\code{p_value}.}
+given to \code{\link[=hypa]{hypa()}}, else \code{"sig"}. For \code{"scores"}, \code{"sig"} sorts by the
+smaller of the two raw tails, \code{p_under} and \code{p_over}, so the paths
+that depart most from the null in either direction come first.}
 
 \item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
 applied after any filter and after \code{order_by}. Default \code{NULL}
@@ -49,10 +50,13 @@ A data.frame. For \code{"anomalies"}, one row per anomalous path:
 of the path's own direction), \code{direction}, and \code{order} when several
 orders were scored. For \code{"scores"}, \code{"over"} and \code{"under"}, one row per
 path with every column of the fit: \code{path}, \code{from}, \code{to}, \code{count},
-\code{expected}, \code{ratio}, the p-values (\code{p_value}, \code{p_under}, \code{p_over},
-\code{p_adj_under}, \code{p_adj_over}), the \code{direction} (\code{"over"}, \code{"under"} or
-\code{"normal"}) and the path \code{order}. For \code{"pathways"}, one row per anomalous path with the
-column \code{pathway}.
+\code{expected}, \code{ratio}, the p-values (\code{p_value}, an alias of \code{p_under},
+the lower tail \eqn{P(X \le f)}; \code{p_over}, the strict upper tail
+\eqn{P(X > f)}; \code{p_adj_under}, \code{p_adj_over}), the \code{direction}
+(\code{"over"}, \code{"under"} or \code{"normal"}) and the path \code{order}. \code{"scores"}
+holds every possible path: the observed ones and the unobserved ones
+the observed transitions permit (\code{count} 0). For \code{"pathways"}, one row
+per anomalous path with the column \code{pathway}.
 }
 \description{
 Tables of a path-anomaly (HYPA) fit

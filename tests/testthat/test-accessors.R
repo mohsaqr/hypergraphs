@@ -93,10 +93,10 @@ test_that("hg_get.net_hypa returns scores, over and under", {
   expect_lte(nrow(over) + nrow(under), nrow(all_s))
   expect_identical(names(over), names(all_s))
 
-  # order_by = "sig" orders scores by the two-sided p_value, smallest first;
-  # "ratio" by the absolute log deviation, largest first
+  # order_by = "sig" orders scores by the smaller of the two tails, smallest
+  # first; "ratio" by the absolute log deviation, largest first
   by_p <- hg_get(hp, what = "scores", order_by = "sig")
-  expect_false(is.unsorted(by_p$p_value))
+  expect_false(is.unsorted(pmin(by_p$p_under, by_p$p_over)))
   by_ratio <- hg_get(hp, what = "scores", order_by = "ratio")
   expect_false(is.unsorted(rev(abs(log(by_ratio$ratio)))))
 })

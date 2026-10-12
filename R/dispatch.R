@@ -114,9 +114,9 @@ hg_communities.default <- function(x, ...) {
 #'
 #' One verb, two estimators, chosen by the class of `x`:
 #' \describe{
-#'   \item{a hypergraph (`net_hg`)}{co-occurring node pairs scored against a
-#'     hypergeometric null built from the hyperdegrees; returns a table. See
-#'     [hypa.net_hg()].}
+#'   \item{a hypergraph (`net_hg`)}{node pairs scored against a
+#'     hypergeometric null fitted to every node's co-occurrence strength;
+#'     returns a table. See [hypa.net_hg()].}
 #'   \item{sequences (a long, wide or list input, or a model object carrying
 #'     sequences; see [sequence-input])}{paths of a De Bruijn graph scored
 #'     against the same null (HYPA); returns a `net_hypa` object. See
@@ -145,10 +145,17 @@ hypa <- function(x, ...) {
 #' Path anomalies (HYPA) in sequences
 #'
 #' The sequence method of [hypa()]. Builds the De Bruijn graph of order
-#' `order` from the sequences and scores every path of `order + 1` states
-#' against a hypergeometric null whose propensities are fitted to the
-#' observed path counts: paths observed far more often than the null
-#' predicts are over-represented, far less often under-represented.
+#' `order` from the sequences and scores every possible path of
+#' `order + 1` states (every observed path, plus every unobserved path that
+#' the observed transitions permit) against a hypergeometric null whose
+#' propensities are fitted so that the expected counts preserve the in- and
+#' out-strength of every De Bruijn node (LaRock et al. 2020). Paths observed
+#' far more often than the null predicts are over-represented, far less
+#' often under-represented. A path is under-represented when the lower
+#' tail \eqn{P(X \le f)} of its observed count \eqn{f}, adjusted by
+#' `p_adjust`, is below `alpha`, and otherwise over-represented when the
+#' strict upper tail \eqn{P(X > f)}, adjusted the same way, is below
+#' `alpha`.
 #'
 #' @param x Sequences in any form described in [sequence-input]: a long
 #'   event table (with `action`), a wide data.frame, a list of vectors, or a
@@ -157,10 +164,15 @@ hypa <- function(x, ...) {
 #'   `2`.
 #' @param alpha Significance level of the anomaly labels, in (0, 0.5).
 #'   Default `0.05`.
-#' @param min_count Integer. Paths observed fewer times are always labelled
-#'   `"normal"`. Default `5`.
+#' @param min_count Single whole number >= 1. A path is over-represented
+#'   only if it is observed at least `min_count` times and under-represented
+#'   only if it is expected at least `min_count` times, so a path that never
+#'   occurs can still be under-represented. Default `5`.
 #' @param p_adjust Multiplicity correction: any [stats::p.adjust] method or
-#'   `"none"`. Default `"BH"`; the two tails are adjusted separately.
+#'   `"none"`. Default `"none"`: LaRock et al. (2020) classify against
+#'   `alpha` without correction. `"BH"` controls the false discovery rate;
+#'   the two tails are adjusted separately, within each order, over every
+#'   possible path.
 #' @param type Which anomalous paths the printed result lists: `"all"`
 #'   (default), `"over"` (paths observed more often than expected) or
 #'   `"under"` (less often).
@@ -196,7 +208,7 @@ hypa <- function(x, ...) {
 #' hg_get(fit)
 #' @export
 hypa.default <- function(x, order = 2L, alpha = 0.05, min_count = 5L,
-                            p_adjust = "BH",
+                            p_adjust = "none",
                             type = c("all", "over", "under"),
                             order_by = c("sig", "ratio", "freq", "path"),
                             n = 10L, action = NULL, actor = NULL,

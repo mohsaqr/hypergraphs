@@ -17,9 +17,9 @@ See the methods.
 \description{
 One verb, two estimators, chosen by the class of \code{x}:
 \describe{
-\item{a hypergraph (\code{net_hg})}{co-occurring node pairs scored against a
-hypergeometric null built from the hyperdegrees; returns a table. See
-\code{\link[=hypa.net_hg]{hypa.net_hg()}}.}
+\item{a hypergraph (\code{net_hg})}{node pairs scored against a
+hypergeometric null fitted to every node's co-occurrence strength;
+returns a table. See \code{\link[=hypa.net_hg]{hypa.net_hg()}}.}
 \item{sequences (a long, wide or list input, or a model object carrying
 sequences; see \link{sequence-input})}{paths of a De Bruijn graph scored
 against the same null (HYPA); returns a \code{net_hypa} object. See

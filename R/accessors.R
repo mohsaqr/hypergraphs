@@ -144,8 +144,8 @@
 #'   \item{`net_hon` ([hon()])}{`"rules"` (default), `"nodes"`,
 #'     `"pathways"`.}
 #'   \item{`net_honem` ([honem()])}{`"embeddings"` (default), `"variance"`.}
-#'   \item{`net_hypa` ([hypa()] on sequences)}{`"scores"` (default),
-#'     `"over"`, `"under"`, `"pathways"`.}
+#'   \item{`net_hypa` ([hypa()] on sequences)}{`"anomalies"` (default),
+#'     `"scores"`, `"over"`, `"under"`, `"pathways"`.}
 #'   \item{`net_mogen` ([mogen()])}{`"orders"` (default), `"transitions"`,
 #'     `"paths"`, `"pathways"`.}
 #'   \item{`net_markov_order` ([markov_order()])}{`"orders"` (default),

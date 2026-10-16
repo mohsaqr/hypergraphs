@@ -196,11 +196,10 @@ NOT_CRAN=true HYPERNETS_EQUIV_TESTS=true Rscript -e \
 
 ## Installation
 
-```r
-# from CRAN
-install.packages("hypergraphs")
+hypergraphs is not yet on CRAN. Install it from r-universe, which serves
+pre-built binaries:
 
-# development version, from r-universe
+```r
 install.packages("hypergraphs",
                  repos = c("https://mohsaqr.r-universe.dev", "https://cloud.r-project.org"))
 ```

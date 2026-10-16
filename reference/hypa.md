@@ -4,8 +4,8 @@ One verb, two estimators, chosen by the class of `x`:
 
 - a hypergraph (`net_hg`):
 
-  co-occurring node pairs scored against a hypergeometric null built
-  from the hyperdegrees; returns a table. See
+  node pairs scored against a hypergeometric null fitted to every node's
+  co-occurrence strength; returns a table. See
   [`hypa.net_hg()`](https://pak.dynasite.org/hypergraphs/reference/hypa.net_hg.md).
 
 - sequences (a long, wide or list input, or a model object carrying
@@ -53,6 +53,7 @@ International Conference on Data Mining*, 460-468.
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
 hg_get(hypa(seqs, order = 2, min_count = 1))
-#> [1] path      count     expected  ratio     p_adj     direction
-#> <0 rows> (or 0-length row.names)
+#>          path count expected ratio      p_adj direction
+#> 1 a -> b -> c     4        2     2 0.03548389      over
+#> 2 x -> b -> d     4        2     2 0.03548389      over
 ```

@@ -3,10 +3,16 @@
 The sequence method of
 [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md).
 Builds the De Bruijn graph of order `order` from the sequences and
-scores every path of `order + 1` states against a hypergeometric null
-whose propensities are fitted to the observed path counts: paths
-observed far more often than the null predicts are over-represented, far
-less often under-represented.
+scores every possible path of `order + 1` states (every observed path,
+plus every unobserved path that the observed transitions permit) against
+a hypergeometric null whose propensities are fitted so that the expected
+counts preserve the in- and out-strength of every De Bruijn node (LaRock
+et al. 2020). Paths observed far more often than the null predicts are
+over-represented, far less often under-represented. A path is
+under-represented when the lower tail \\P(X \le f)\\ of its observed
+count \\f\\, adjusted by `p_adjust`, is below `alpha`, and otherwise
+over-represented when the strict upper tail \\P(X \> f)\\, adjusted the
+same way, is below `alpha`.
 
 ## Usage
 
@@ -17,7 +23,7 @@ hypa(
   order = 2L,
   alpha = 0.05,
   min_count = 5L,
-  p_adjust = "BH",
+  p_adjust = "none",
   type = c("all", "over", "under"),
   order_by = c("sig", "ratio", "freq", "path"),
   n = 10L,
@@ -53,14 +59,19 @@ print(x, n = NULL, ...)
 
 - min_count:
 
-  Integer. Paths observed fewer times are always labelled `"normal"`.
-  Default `5`.
+  Single whole number \>= 1. A path is over-represented only if it is
+  observed at least `min_count` times and under-represented only if it
+  is expected at least `min_count` times, so a path that never occurs
+  can still be under-represented. Default `5`.
 
 - p_adjust:
 
   Multiplicity correction: any
   [stats::p.adjust](https://rdrr.io/r/stats/p.adjust.html) method or
-  `"none"`. Default `"BH"`; the two tails are adjusted separately.
+  `"none"`. Default `"none"`: LaRock et al. (2020) classify against
+  `alpha` without correction. `"BH"` controls the false discovery rate;
+  the two tails are adjusted separately, within each order, over every
+  possible path.
 
 - type:
 
@@ -123,9 +134,12 @@ seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
 fit <- hypa(seqs, order = 2, min_count = 1, type = "over")
 fit
-#> Path anomalies (HYPA, order 2): 0 of 6 paths anomalous at alpha = 0.05 (0 over, 0 under, BH)
-#> (no rows)
+#> Path anomalies (HYPA, order 2): 2 of 8 paths anomalous at alpha = 0.05 (2 over, 0 under, none)
+#>         path count expected ratio      p_adj direction
+#>  a -> b -> c     4        2     2 0.03548389      over
+#>  x -> b -> d     4        2     2 0.03548389      over
 hg_get(fit)
-#> [1] path      count     expected  ratio     p_adj     direction
-#> <0 rows> (or 0-length row.names)
+#>          path count expected ratio      p_adj direction
+#> 1 a -> b -> c     4        2     2 0.03548389      over
+#> 2 x -> b -> d     4        2     2 0.03548389      over
 ```

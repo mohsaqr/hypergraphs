@@ -56,7 +56,9 @@ hg_get(
   when both directions are listed), `"freq"` (most observed first) or
   `"path"` (alphabetical). Default: the `order_by` given to
   [`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md),
-  else `"sig"`. For `"scores"`, `"sig"` sorts by `p_value`.
+  else `"sig"`. For `"scores"`, `"sig"` sorts by the smaller of the two
+  raw tails, `p_under` and `p_over`, so the paths that depart most from
+  the null in either direction come first.
 
 - top:
 
@@ -70,10 +72,13 @@ A data.frame. For `"anomalies"`, one row per anomalous path: `path`,
 path's own direction), `direction`, and `order` when several orders were
 scored. For `"scores"`, `"over"` and `"under"`, one row per path with
 every column of the fit: `path`, `from`, `to`, `count`, `expected`,
-`ratio`, the p-values (`p_value`, `p_under`, `p_over`, `p_adj_under`,
-`p_adj_over`), the `direction` (`"over"`, `"under"` or `"normal"`) and
-the path `order`. For `"pathways"`, one row per anomalous path with the
-column `pathway`.
+`ratio`, the p-values (`p_value`, an alias of `p_under`, the lower tail
+\\P(X \le f)\\; `p_over`, the strict upper tail \\P(X \> f)\\;
+`p_adj_under`, `p_adj_over`), the `direction` (`"over"`, `"under"` or
+`"normal"`) and the path `order`. `"scores"` holds every possible path:
+the observed ones and the unobserved ones the observed transitions
+permit (`count` 0). For `"pathways"`, one row per anomalous path with
+the column `pathway`.
 
 ## Examples
 
@@ -82,6 +87,7 @@ seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
 fit <- hypa(seqs, order = 2, min_count = 1)
 hg_get(fit, type = "over", order_by = "ratio", top = 5)
-#> [1] path      count     expected  ratio     p_adj     direction
-#> <0 rows> (or 0-length row.names)
+#>          path count expected ratio      p_adj direction
+#> 1 a -> b -> c     4        2     2 0.03548389      over
+#> 2 x -> b -> d     4        2     2 0.03548389      over
 ```

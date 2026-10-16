@@ -90,7 +90,8 @@ naming the class.
   ([`hypa()`](https://pak.dynasite.org/hypergraphs/reference/hypa.md) on
   sequences):
 
-  `"scores"` (default), `"over"`, `"under"`, `"pathways"`.
+  `"anomalies"` (default), `"scores"`, `"over"`, `"under"`,
+  `"pathways"`.
 
 - `net_mogen`
   ([`mogen()`](https://pak.dynasite.org/hypergraphs/reference/mogen.md)):

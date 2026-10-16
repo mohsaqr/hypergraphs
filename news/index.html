@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,20 @@
       <small>Source: <a href="https://github.com/mohsaqr/hypergraphs/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.5" id="hypergraphs-075">hypergraphs 0.7.5<a class="anchor" aria-label="anchor" href="#hypergraphs-075"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-0-7-5">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-7-5"></a></h3>
+<ul><li>
+<code><a href="../reference/hypa.html">hypa()</a></code> defaults to <code>p_adjust = "none"</code> for sequences and for hypergraphs, following LaRock et al. (2020), who classify against <code>alpha</code> without a correction for multiple testing. <code>p_adjust = "BH"</code> restores the previous correction.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-7-5">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-7-5"></a></h3>
+<ul><li><p><code><a href="../reference/hypa.html">hypa()</a></code> on sequences inherits the corrected HYPA estimator of Nestimate. The null model is fitted on every possible path, observed or not, so that the expected counts preserve every De Bruijn node’s in- and out-strength (at order 2 the expected count is the first-order Markov expectation). The previous null was miscalibrated: memoryless sequences produced dozens of anomalies. Unobserved possible paths are scored with a count of 0 and can be under-represented, over-representation uses the paper’s strict upper tail <code>P(X &gt; f)</code>, and <code>min_count</code> and <code>alpha</code> are validated. Requires the Nestimate release that contains the fix.</p></li>
+<li><p><code><a href="../reference/hypa.html">hypa()</a></code> on a hypergraph uses a strength-preserving null, the undirected analogue of the sequence method. The expected co-occurrence count of a pair is <code>x_i x_j</code> over every pair of nodes that take part in a co-occurrence, with the fitness <code>x</code> fitted so that each node’s expected strength equals its observed one; the fit costs O(n) per sweep and never builds an n x n matrix. The previous version multiplied hyperdegrees on co-occurring pairs only, without fitting, so the expected counts did not preserve the strengths, and a pair that rarely or never co-occurs could not be under-represented. Pairs are now scored when they co-occur at least <code>min_count</code> times or are expected to, the under-representation rule is applied first, over-representation uses the strict tail <code>P(X &gt; f)</code>, and a requested correction runs over every possible pair. A star-like hypergraph, in which one node takes part in every co-occurring pair, has no fitted null and raises a warning of class <code>hypergraphs_no_converge</code>; the fit is recorded in the attribute <code>"hypa_fit"</code>. Invalid <code>min_count</code>, <code>alpha</code> and <code>top</code> raise <code>hypergraphs_bad_input</code>.</p></li>
+<li><p><code>hg_get(what = "scores", order_by = "sig")</code> on a sequence HYPA fit sorts by the smaller of the two tails. It sorted by the lower tail alone, which put the most over-represented paths last.</p></li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.2" id="hypergraphs-072">hypergraphs 0.7.2<a class="anchor" aria-label="anchor" href="#hypergraphs-072"></a></h2>
 <ul><li>The package has no compiled code again: <code><a href="../reference/hg_topics.html">hg_topics()</a></code> computes its expected counts in R, with the same values as 0.7.1.</li>

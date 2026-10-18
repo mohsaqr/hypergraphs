@@ -43,3 +43,13 @@ A data.frame, one row per rule edge: \code{from}, \code{to}, \code{order},
 \description{
 Inference table of a memory-network bootstrap
 }
+\examples{
+seqs <- list(
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d"),
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d")
+)
+bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+hg_get(bs, sort_by = "support", top = 6)
+}

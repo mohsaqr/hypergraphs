@@ -1009,6 +1009,16 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 #'   records their counts in `edge_multiplicity`.
 #' @return A static `net_hg` usable by every hypergraphs hypergraph verb;
 #'   its `params` record `at`, `window`, `temporal_mode` and the clock.
+#' @examples
+#' seats <- data.frame(
+#'   case = c("A", "A", "A", "B", "B", "B"),
+#'   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
+#'   constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5)
+#' )
+#' thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
+#'                            start = "constituted", end = "concluded")
+#' hg_snapshot(thg, at = 3)
+#' hg_snapshot(thg, mode = "cumulative")
 #' @export
 hg_snapshot <- function(x, at = NULL, window = 0,
                                 mode = c("active", "cumulative"),
@@ -1132,6 +1142,16 @@ summary.net_temporal_hypergraph <- function(object, ...) {
 #'   universe with entry times. Times are on the hypergraph's clock.
 #' @param ... Ignored.
 #' @return A base `data.frame`.
+#' @examples
+#' seats <- data.frame(
+#'   case = c("A", "A", "A", "B", "B", "B"),
+#'   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
+#'   constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5)
+#' )
+#' thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
+#'                            start = "constituted", end = "concluded")
+#' hg_get(thg)
+#' hg_get(thg, what = "edges")
 #' @export
 hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
                                                        "edges", "nodes"),

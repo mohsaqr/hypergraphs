@@ -565,8 +565,8 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #' centrality among the cluster's sentence hyperedges.
 #'
 #' **External scores.** `scores` takes a data.frame with columns `node`,
-#' `word` and one numeric column (for instance the `attention` table from
-#' `hg_hypergat(what = "attention")`). Its values are summed per cluster
+#' `word` and one numeric column (for instance word weights from a model
+#' fitted elsewhere). Its values are summed per cluster
 #' and reported as their own block, labelled by the numeric column's name.
 #'
 #' @param hg The hypergraph the clustering was computed on, or the
@@ -1002,8 +1002,7 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
   if (!ok || length(value_col) == 0L) {
     stop(errorCondition(
       paste0("`scores` must be a data.frame with columns `node`, `word` and ",
-             "one numeric score column (for instance the table from ",
-             "hg_hypergat(what = \"attention\"))"),
+             "one numeric score column"),
       class = "hypergraphs_bad_input", call = NULL
     ))
   }

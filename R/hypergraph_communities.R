@@ -658,6 +658,15 @@ plot.hg_communities <- function(x, ...) {
 #' Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 #' *Philosophical Transactions of the Royal Society A*, 382, 20230141.
 #' \doi{10.1098/rsta.2023.0141}
+#' @examples
+#' meetings <- data.frame(
+#'   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "c", "x"),
+#'   meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
+#'               "m4", "m4")
+#' )
+#' hg <- group_hypergraph(meetings, node = "member", hyperedge = "meeting")
+#' groups <- c(a = "A", b = "A", c = "A", x = "B", y = "B", z = "B")
+#' hg_community_quality(hg, groups)
 #' @export
 hg_community_quality <- function(hg, partition,
                                  method = c("association", "citation"),

@@ -9,8 +9,7 @@
 \usage{
 \method{hg_get}{hg_classification}(
   x,
-  what = c("predictions", "accuracy", "classes", "confusion", "hyperedges",
-    "hyperedge_words", "documents"),
+  what = c("predictions", "accuracy", "classes", "confusion"),
   split = NULL,
   correct = NULL,
   node = NULL,
@@ -23,7 +22,7 @@
 
 \method{summary}{hg_classification}(object, ...)
 
-\method{plot}{hg_classification}(x, y, type = c("confusion", "hyperedges"), node = NULL, top = 8L, ...)
+\method{plot}{hg_classification}(x, y, ...)
 }
 \arguments{
 \item{x}{An \code{hg_classification}.}
@@ -39,68 +38,47 @@ random guess); \code{"classes"}, one row per class: \code{class}, \code{n_test},
 \code{correct}, \code{recall} (the share of the class's test documents predicted
 as the class) and \code{precision} (the share of the test documents
 predicted as the class that belong to it); \code{"confusion"}, one row per
-true and predicted class: \code{label}, \code{predicted}, \code{n}. For a result of
-\code{hg_hypergat()} only: \code{"hyperedges"}, one row per document and
-hyperedge (sentence or topic): \code{node}, \code{label}, \code{predicted},
-\code{hyperedge}, \code{kind}, \code{text}, \code{weight} (the mean edge-level attention
-of the hyperedge's words), \code{top_word} and \code{n_words}, the hyperedges of
-each document from the heaviest; or \code{"hyperedge_words"}, one row per
-document, hyperedge and word: \code{node}, \code{label}, \code{predicted},
-\code{hyperedge}, \code{kind}, \code{text}, \code{word}, \code{word_weight} (the node-level
-attention of the word within the hyperedge) and \code{edge_weight} (the
-edge-level attention of the hyperedge for the word), the quantities of
-Figure 5 of Ding et al. (2020). These internal weights are not
-prediction explanations. Fitted HyperGAT models also support
-\code{"documents"}, the prediction and text of each document.}
+true and predicted class: \code{label}, \code{predicted}, \code{n}.}
 
-\item{split}{For \code{"predictions"} or \code{"documents"}: keep only the \code{"train"}, the \code{"test"}
+\item{split}{For \code{"predictions"}: keep only the \code{"train"}, the \code{"test"}
 or the \code{"unlabelled"} documents, the last being those without a label,
 whose predictions are the classifier's output.}
 
-\item{correct}{For \code{"predictions"} or \code{"documents"}: \code{TRUE} keeps the test documents
+\item{correct}{For \code{"predictions"}: \code{TRUE} keeps the test documents
 predicted correctly, \code{FALSE} those predicted wrongly.}
 
-\item{node}{For \code{"predictions"}, \code{"hyperedges"} and \code{"hyperedge_words"}:
-keep only these documents, given as ids or as a table with a \code{node}
-column, such as a table \code{hg_get()} returned. For \code{"hyperedge_words"}, a
-table that also has a \code{hyperedge} column keeps only those hyperedges.}
+\item{node}{For \code{"predictions"}: keep only these documents, given as
+ids or as a table with a \code{node} column, such as a table \code{hg_get()}
+returned.}
 
 \item{sort_by}{For \code{"predictions"}: \code{"margin"} or \code{"score"}, from the
 largest.}
 
 \item{top}{For \code{"predictions"}: the first \code{top} rows of each true label,
 so \verb{split = "test", correct = TRUE, sort_by = "margin", top = 1} gives
-the most confident correct prediction of each class. For
-\code{"hyperedges"}: the \code{top} heaviest hyperedges of each document. For
-\code{"hyperedge_words"}: the \code{top} words of largest \code{word_weight} in each
-hyperedge.}
+the most confident correct prediction of each class.}
 
 \item{...}{Unused.}
 
 \item{object}{An \code{hg_classification}.}
 
 \item{y}{Unused.}
-
-\item{type}{For \code{plot()}: \code{"confusion"} (default), the counts of true
-against predicted labels on the test documents, or \code{"hyperedges"} (a
-result of \code{hg_hypergat()} only), the \code{top} heaviest hyperedges of each
-document in \code{node}, with its uniform normalization baseline. Without
-\code{node}, the first held-out document of each class is selected (the
-first training document if there is no holdout).}
 }
 \value{
 A base \code{data.frame} as described under \code{what}. \code{print()} shows
 the held-out accuracy and the per-class table and returns \code{x}
 invisibly; \code{summary()} returns the per-class table; \code{plot()} returns a
-ggplot of the confusion table (\code{type = "confusion"}) or of the heaviest
-hyperedges of some documents (\code{type = "hyperedges"}).
+ggplot of the confusion table.
 }
 \description{
-\code{hg_classify()} and \code{hg_hypergat()} with \code{holdout} return an
-\code{hg_classification}: one row per document with its true label, its
-predicted label, its split and whether a held-out prediction is correct.
-\code{hg_get()} reads the evaluation tables, and for \code{hg_hypergat()} the
-diagnostic attention of the trained network, computed on request.
+\code{hg_classify()} with \code{holdout} returns an \code{hg_classification}: one row
+per document with its true label, its predicted label, its split and
+whether a held-out prediction is correct. \code{hg_get()} reads the
+evaluation tables.
+}
+\details{
+\code{plot()} draws the counts of true against predicted labels on
+the test documents.
 }
 \examples{
 hg <- text_hypergraph(head(forum_posts, 60), column = "text")
@@ -115,8 +93,4 @@ Brodersen, K. H., Ong, C. S., Stephan, K. E., & Buhmann, J. M. (2010).
 The balanced accuracy and its posterior distribution. \emph{Proceedings
 of the 20th International Conference on Pattern Recognition}, 3121-3124.
 \doi{10.1109/ICPR.2010.764}
-
-Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with
-less: Hypergraph attention networks for inductive text classification.
-\emph{EMNLP 2020}, 4927-4936.
 }

@@ -277,6 +277,7 @@ print.net_hg_measures <- function(x, ...) {
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
+#' @keywords internal
 #' @export
 hg_get.net_hg_measures <- function(
     x, what = c("nodes", "edges", "global"), ..., sort_by = NULL,

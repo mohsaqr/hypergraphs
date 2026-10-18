@@ -98,10 +98,6 @@
   n_edges <- ncol(m)
   vapply(statistic, \(s) {
     switch(s,
-      # the definition hg_measures(what = "summary") reports
-      density = .hg_density(sizes, n_nodes),
-      # undefined (NaN) without hyperedges; hg_null_test() reports NA
-      avg_edge_size = if (n_edges) mean(sizes) else NaN,
       # Hyperedges whose member set already occurred: m minus distinct sets.
       repeated_edges = {
         members <- .thg_edge_members(m_sparse)
@@ -142,11 +138,13 @@
 #' 2000) -- a sequential MCMC with burn-in `10 * nnz` swap attempts and
 #' thinning `nnz` between samples, `nnz` being the number of memberships.
 #' Statistics are evaluated on the binarized hypergraph (weights carry no
-#' meaning under this null), with the definitions [hg_measures()] uses:
-#' `"density"`, `"avg_edge_size"` and `"pairwise_participation"` equal the
-#' values of `hg_measures(hg, what = "summary")` (density is
-#' `m / choose(n, k)` for a `k`-uniform hypergraph, `sum(|e|) / (n * m)`
-#' otherwise).
+#' meaning under this null). `"pairwise_participation"` equals the value of
+#' `hg_measures(hg, what = "summary")`. The density and the mean hyperedge
+#' size are not tested. The swap and assignment nulls keep the number of
+#' vertices, the number of hyperedges and the hyperedge sizes, so both
+#' statistics are constant under them, and under the configuration null
+#' they change only when stub matching collapses a membership. They are
+#' read with [hg_measures()].
 #'
 #' The permutation p-value is `(1 + extreme) / (n + 1)` (Phipson & Smyth
 #' 2010), two-sided by default around the null mean; `null_lo`/`null_hi`
@@ -156,8 +154,7 @@
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypergraphs
 #'   `net_hg`.
 #' @param statistic Statistics to test; any of `"pairwise_participation"`,
-#'   `"density"`, `"avg_edge_size"`, `"avg_jaccard"` (mean pairwise edge
-#'   Jaccard), `"repeated_edges"` (hyperedges whose member set already
+#'   `"avg_jaccard"` (mean pairwise edge Jaccard), `"repeated_edges"` (hyperedges whose member set already
 #'   occurred: the paper's repeated collaboration trios) and
 #'   `"repeated_pairs"` (member pairs counted with multiplicity minus the
 #'   distinct co-occurring pairs: its repeated collaboration pairs). Several
@@ -185,13 +182,14 @@
 #'   `observed`, `null_mean`, `null_lo`, `null_hi`, `z`, `p_value`, `n`,
 #'   `method`.
 #' @section Conditions: Raises `hypergraphs_bad_input` for broken contracts,
-#'   including an `n` that is not one whole number >= 19.
-#'   A statistic the hypergraph cannot define -- `"avg_edge_size"` without
-#'   hyperedges, `"avg_jaccard"` with fewer than two hyperedges -- is
-#'   undefined in every null draw as well (the nulls keep the vertex and
-#'   hyperedge counts), so its row is `NA` in every column but `statistic`,
-#'   `n` and `method`, with a `hypergraphs_undefined_statistic` warning; the
-#'   other requested statistics are tested as usual.
+#'   including an `n` that is not one whole number >= 19 and a request for
+#'   `"density"` or `"avg_edge_size"` (see Description), whatever the storage
+#'   of the incidence matrix.
+#'   `"avg_jaccard"` on fewer than two hyperedges is undefined in every null
+#'   draw as well (the nulls keep the hyperedge count), so its row is `NA`
+#'   in every column but `statistic`, `n` and `method`, with a
+#'   `hypergraphs_undefined_statistic` warning; the other requested
+#'   statistics are tested as usual.
 #'   `method = "configuration"` signals a `hypergraphs_configuration_collapse`
 #'   warning when stub matching collapses more than 1% of memberships on
 #'   average, which happens whenever hyperedges are large relative to the
@@ -216,13 +214,22 @@
 #' hg_null_test(hg, statistic = "pairwise_participation", n = 49, seed = 1)
 #' @export
 hg_null_test <- function(hg,
-                         statistic = c("pairwise_participation", "density",
-                                       "avg_edge_size", "avg_jaccard",
+                         statistic = c("pairwise_participation", "avg_jaccard",
                                        "repeated_edges", "repeated_pairs"),
                          method = c("swap", "configuration", "assignment"),
                          n = 199L, seed = NULL,
                          alternative = c("two_sided", "greater", "less")) {
   .thg_check_hg(hg)
+  fixed <- intersect(statistic, c("density", "avg_edge_size"))
+  if (length(fixed) > 0L) {
+    .thg_bad_input(sprintf(paste0(
+      "%s cannot be tested: the swap and assignment nulls keep the vertex ",
+      "count, the hyperedge count and the hyperedge sizes, and the ",
+      "configuration null changes the sizes only when stub matching ",
+      "collapses a membership; read it with hg_measures(hg, what = ",
+      "\"summary\")"),
+      paste0("`", fixed, "`", collapse = " and ")))
+  }
   if (.thg_is_sparse(hg)) {
     stop(errorCondition(
       "the null test needs the dense representation for now",
@@ -292,9 +299,9 @@ hg_null_test <- function(hg,
   }
   draws <- matrix(draws, nrow = length(statistic))
 
-  # A statistic the hypergraph cannot define (avg_edge_size without
-  # hyperedges, avg_jaccard with fewer than two) is undefined in every draw
-  # too, since all three nulls keep the vertex and hyperedge counts: its row
+  # A statistic the hypergraph cannot define (avg_jaccard with fewer than
+  # two hyperedges) is undefined in every draw too, since all three nulls
+  # keep the vertex and hyperedge counts: its row
   # is NA throughout, with a classed warning, and the other statistics are
   # still tested.
   undefined <- !is.finite(observed) |

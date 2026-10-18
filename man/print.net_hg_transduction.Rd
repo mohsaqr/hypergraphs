@@ -17,3 +17,4 @@ The input object, invisibly.
 \description{
 Print method for net_hg_transduction
 }
+\keyword{internal}

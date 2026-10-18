@@ -559,6 +559,15 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
+#' @examples
+#' seqs <- list(
+#'   c("a", "b", "c", "a", "b", "c"),
+#'   c("x", "b", "d", "x", "b", "d"),
+#'   c("a", "b", "c", "a", "b", "c"),
+#'   c("x", "b", "d", "x", "b", "d")
+#' )
+#' bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+#' hg_get(bs, sort_by = "support", top = 6)
 #' @export
 hg_get.hypergraphs_bootstrap <- function(x, what = "edges", ...,
                                 min_support = NULL,
@@ -592,6 +601,15 @@ hg_get.hypergraphs_bootstrap <- function(x, what = "edges", ...,
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x`, invisibly.
+#' @examples
+#' seqs <- list(
+#'   c("a", "b", "c", "a", "b", "c"),
+#'   c("x", "b", "d", "x", "b", "d"),
+#'   c("a", "b", "c", "a", "b", "c"),
+#'   c("x", "b", "d", "x", "b", "d")
+#' )
+#' bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+#' print(bs, n = 5)
 #' @export
 print.hypergraphs_bootstrap <- function(x, n = 10L, ...) {
   e <- x$edges
@@ -633,6 +651,15 @@ summary.hypergraphs_bootstrap <- function(object, ...) {
 #'   Default `20`.
 #' @param ... Additional arguments (ignored).
 #' @return A ggplot object, invisibly.
+#' @examples
+#' seqs <- list(
+#'   c("a", "b", "c", "a", "b", "c"),
+#'   c("x", "b", "d", "x", "b", "d"),
+#'   c("a", "b", "c", "a", "b", "c"),
+#'   c("x", "b", "d", "x", "b", "d")
+#' )
+#' bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+#' plot(bs, top = 10)
 #' @export
 plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
   e <- x$edges
@@ -684,6 +711,16 @@ plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
+#' @examples
+#' set.seed(1)
+#' first_order <- replicate(6, sample(c("a", "b", "c"), 12, replace = TRUE),
+#'                          simplify = FALSE)
+#' second_order <- replicate(6, rep(c("a", "b", "c", "b"), 3),
+#'                           simplify = FALSE)
+#' by_group <- hon(c(first_order, second_order),
+#'                 group = rep(c("first", "second"), each = 6), max_order = 2)
+#' comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
+#' hg_get(comparison, sort_by = "p_adj", top = 6)
 #' @export
 hg_get.hypergraphs_comparison <- function(x, what = "edges", ...,
                                    significant = FALSE,
@@ -711,6 +748,16 @@ hg_get.hypergraphs_comparison <- function(x, what = "edges", ...,
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x`, invisibly.
+#' @examples
+#' set.seed(1)
+#' first_order <- replicate(6, sample(c("a", "b", "c"), 12, replace = TRUE),
+#'                          simplify = FALSE)
+#' second_order <- replicate(6, rep(c("a", "b", "c", "b"), 3),
+#'                           simplify = FALSE)
+#' by_group <- hon(c(first_order, second_order),
+#'                 group = rep(c("first", "second"), each = 6), max_order = 2)
+#' comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
+#' print(comparison, n = 5)
 #' @export
 print.hypergraphs_comparison <- function(x, n = 10L, ...) {
   e <- x$edges
@@ -757,6 +804,16 @@ summary.hypergraphs_comparison <- function(object, ...) {
 #'   difference). Default `20`.
 #' @param ... Additional arguments (ignored).
 #' @return A ggplot object, invisibly.
+#' @examples
+#' set.seed(1)
+#' first_order <- replicate(6, sample(c("a", "b", "c"), 12, replace = TRUE),
+#'                          simplify = FALSE)
+#' second_order <- replicate(6, rep(c("a", "b", "c", "b"), 3),
+#'                           simplify = FALSE)
+#' by_group <- hon(c(first_order, second_order),
+#'                 group = rep(c("first", "second"), each = 6), max_order = 2)
+#' comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
+#' plot(comparison, top = 10)
 #' @export
 plot.hypergraphs_comparison <- function(x, top = 20L, ...) {
   e <- x$edges

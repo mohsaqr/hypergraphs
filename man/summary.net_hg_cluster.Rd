@@ -19,3 +19,4 @@ else; assign the result to keep the table.
 \description{
 Summary method for net_hg_cluster
 }
+\keyword{internal}

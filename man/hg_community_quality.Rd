@@ -36,6 +36,16 @@ unweighted coverage, weighted coverage, performance, weighted modularity,
 and conductance. Conductance is the maximum (worst) community conductance
 \eqn{cut(S, \bar S) / min(vol(S), vol(\bar S))}; lower is better.
 }
+\examples{
+meetings <- data.frame(
+  member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "c", "x"),
+  meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
+              "m4", "m4")
+)
+hg <- group_hypergraph(meetings, node = "member", hyperedge = "meeting")
+groups <- c(a = "A", b = "A", c = "A", x = "B", y = "B", z = "B")
+hg_community_quality(hg, groups)
+}
 \references{
 Fortunato, S. (2010). Community detection in graphs. \emph{Physics Reports},
 486(3-5), 75-174. \doi{10.1016/j.physrep.2009.11.002}

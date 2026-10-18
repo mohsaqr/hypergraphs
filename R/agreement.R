@@ -131,7 +131,7 @@
       if (is.null(label)) {
         sprintf(paste0("`%s` has no `predicted`, `cluster`, `community`, `topic`, `block` or `label` ",
                        "column; pass a result from hg_cluster(), ",
-                       "hg_classify(), hg_neural() or hg_hypergat(), a ",
+                       "hg_classify(), a ",
                        "table of known labels, or name the column with `label`"), arg)
       } else {
         sprintf("`%s` has no `%s` column", arg, label)
@@ -191,7 +191,7 @@
 #' Agreement between two labelings of the same nodes
 #'
 #' Compares any two tidy labelings -- partitions from [hg_cluster()],
-#' predictions from [hg_classify()], [hg_neural()] or [hg_hypergat()] --
+#' predictions from [hg_classify()] --
 #' joined on their shared `node` column. `agreement` is the share of
 #' nodes with literally equal labels (meaningful when both labelings use
 #' the same label set, e.g. a classifier scored against the clustering
@@ -595,7 +595,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
 #' Seed labels from a clustering, for spreading or training
 #'
 #' Turns an unsupervised partition into the labeled examples that
-#' [hg_classify()], [hg_neural()] and [hg_hypergat()] take: from each
+#' [hg_classify()] takes: from each
 #' cluster, the `n` nodes with the highest stationary probability `pi`
 #' (the cluster's most representative members under the random walk).
 #' Ties are broken alphabetically by node name so the selection is
@@ -607,7 +607,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
 #'   contribute all their nodes.
 #' @return A named character vector -- names are node identifiers, values
 #'   their cluster labels -- ready to pass as the `labels` argument of
-#'   [hg_classify()], [hg_neural()] or [hg_hypergat()].
+#'   [hg_classify()].
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",

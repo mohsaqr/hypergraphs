@@ -16,11 +16,11 @@ contribute all their nodes.}
 \value{
 A named character vector -- names are node identifiers, values
 their cluster labels -- ready to pass as the \code{labels} argument of
-\code{\link[=hg_classify]{hg_classify()}}, \code{\link[=hg_neural]{hg_neural()}} or \code{\link[=hg_hypergat]{hg_hypergat()}}.
+\code{\link[=hg_classify]{hg_classify()}}.
 }
 \description{
 Turns an unsupervised partition into the labeled examples that
-\code{\link[=hg_classify]{hg_classify()}}, \code{\link[=hg_neural]{hg_neural()}} and \code{\link[=hg_hypergat]{hg_hypergat()}} take: from each
+\code{\link[=hg_classify]{hg_classify()}} takes: from each
 cluster, the \code{n} nodes with the highest stationary probability \code{pi}
 (the cluster's most representative members under the random walk).
 Ties are broken alphabetically by node name so the selection is

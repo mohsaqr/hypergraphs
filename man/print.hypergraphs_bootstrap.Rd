@@ -19,3 +19,13 @@ The input \code{x}, invisibly.
 \description{
 Print method for hypergraphs_bootstrap
 }
+\examples{
+seqs <- list(
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d"),
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d")
+)
+bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+print(bs, n = 5)
+}

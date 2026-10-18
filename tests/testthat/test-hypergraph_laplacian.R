@@ -170,76 +170,6 @@ test_that("RDC-SymNMF is deterministic for a fixed seed", {
   expect_equal(a$params$objective_history, b$params$objective_history)
 })
 
-test_that("J-NMF and JS-NMF implement Eqs. 18 and 19", {
-  hg <- .hl_planted()
-  S <- matrix(0, hg$n_nodes, hg$n_nodes,
-              dimnames = list(hg$nodes, hg$nodes))
-  S[1:3, 1:3] <- 1
-  S[4:6, 4:6] <- 1
-  diag(S) <- 0
-  for (method in c("joint", "joint_symmetric")) {
-    fit <- hg_joint_cluster(
-      hg, S, k = 2, method = method, nstart = 2, seed = 3,
-      max_iter = 1000, tol = 1e-8
-    )
-    expect_s3_class(fit, "net_hg_cluster")
-    expect_identical(fit$algorithm, method)
-    expect_true(all(fit$embedding >= 0))
-    expect_true(tail(fit$params$objective_history, 1) <=
-                  fit$params$objective_history[1])
-    M <- fit$params$M
-    Mt <- fit$params$Mtilde
-    if (method == "joint") {
-      X <- t(hg$incidence * 1.0)
-      expected_objective <- sum((X - fit$params$Z %*% t(M))^2) +
-        sum((S - M %*% t(Mt))^2) + sum((M - Mt)^2)
-      expect_error(plot(fit, what = "spectrum"), "no Laplacian spectrum")
-    } else {
-      rw_laplacian <- hg_laplacian(hg, type = "random_walk")
-      C <- diag(hg$n_nodes) - unclass(rw_laplacian)
-      expected_objective <- sum((C - M %*% t(fit$params$Mhat))^2) +
-        sum((M - fit$params$Mhat)^2) +
-        sum((S - M %*% t(Mt))^2) + sum((M - Mt)^2)
-    }
-    expect_equal(fit$params$objective, expected_objective,
-                 tolerance = 1e-8)
-    expect_length(unique(fit$clusters$cluster[1:3]), 1L)
-    expect_length(unique(fit$clusters$cluster[4:6]), 1L)
-    expect_false(fit$clusters$cluster[1] == fit$clusters$cluster[4])
-  }
-})
-
-test_that("J-NMF Eq. 18 reduces exactly to its ordinary-NMF objective", {
-  hg <- .hl_planted()
-  S <- matrix(0, hg$n_nodes, hg$n_nodes)
-  joint <- .hl_joint_nmf_fit(hg, S, k = 2, method = "joint",
-                             alpha = 0, beta = 0, gamma = 0,
-                             type = "random_walk", edge_weights = NULL,
-                             seed = 17, max_iter = 25, tol = 1e-20)
-  X <- t(hg$incidence * 1.0)
-  expect_equal(joint$objective, sum((X - joint$Z %*% t(joint$M))^2),
-               tolerance = 1e-12)
-  # Mtilde is absent from the reduced objective, as stated after Eq. 18.
-  shifted <- joint$Mtilde + 100
-  expect_equal(joint$objective,
-               sum((X - joint$Z %*% t(joint$M))^2) +
-                 0 * sum((S - joint$M %*% t(shifted))^2) +
-                 0 * sum((joint$M - shifted)^2),
-               tolerance = 1e-12)
-})
-
-test_that("joint clustering aligns named relations and validates inputs", {
-  hg <- .hl_planted()
-  S <- diag(hg$n_nodes)
-  dimnames(S) <- list(rev(hg$nodes), rev(hg$nodes))
-  aligned_fit <- hg_joint_cluster(
-    hg, S, 2, nstart = 1, seed = 1, max_iter = 2
-  )
-  expect_s3_class(aligned_fit, "net_hg_cluster")
-  expect_error(hg_joint_cluster(hg, matrix(-1, 6, 6), 2),
-               "non-negative")
-  expect_error(hg_joint_cluster(hg, diag(5), 2), "n_nodes")
-})
 
 test_that("summary.net_hg_cluster returns tidy shares", {
   cl <- .hg_cluster_fit(.hl_planted(), k = 2, seed = 1)
@@ -490,21 +420,13 @@ test_that("cluster and NMF iteration controls refuse Inf and fractions", {
     expect_error(.hg_cluster_fit(hg, k = 2, algorithm = "symnmf",
                                  max_iter = bad),
                  class = "hypergraphs_bad_input")
-    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), 2, nstart = bad),
-                 class = "hypergraphs_bad_input")
-    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), 2, max_iter = bad),
-                 class = "hypergraphs_bad_input")
   })
   lapply(list(Inf, 0, -1), \(bad) {
     expect_error(.hg_cluster_fit(hg, k = 2, tol = bad),
                  class = "hypergraphs_bad_input")
-    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), 2, tol = bad),
-                 class = "hypergraphs_bad_input")
   })
   lapply(list(Inf, 1, 6, 2.5), \(bad) {
     expect_error(.hg_cluster_fit(hg, k = bad), class = "hypergraphs_bad_input")
-    expect_error(hg_joint_cluster(hg, diag(hg$n_nodes), bad),
-                 class = "hypergraphs_bad_input")
   })
 })
 
@@ -515,8 +437,6 @@ test_that("dense-only engines refuse sparse input with a classed condition", {
   )
   sparse <- group_hypergraph(long, node = "node", hyperedge = "hyperedge",
                              sparse = TRUE)
-  expect_error(hg_joint_cluster(sparse, diag(4), 2),
-               class = "hypergraphs_sparse_unsupported")
   expect_error(.hg_cluster_fit(sparse, k = 2),
                class = "hypergraphs_sparse_unsupported")
   expect_error(.hg_transduction_fit(sparse, c(a = "x", c = "y")),

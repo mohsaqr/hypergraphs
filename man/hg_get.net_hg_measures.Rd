@@ -37,3 +37,4 @@ row per statistic: \code{measure}, \code{value}.
 \description{
 Tables of a hypergraph measures fit
 }
+\keyword{internal}

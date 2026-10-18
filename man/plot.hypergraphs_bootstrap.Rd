@@ -22,3 +22,13 @@ Forest plot of the rule-edge probabilities with their bootstrap
 percentile intervals, the most frequent edges first. Order is encoded
 by both colour (Okabe-Ito) and point shape.
 }
+\examples{
+seqs <- list(
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d"),
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d")
+)
+bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+plot(bs, top = 10)
+}

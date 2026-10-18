@@ -45,15 +45,13 @@
 #'     [random_hypergraph()]; measures [hg_measures()],
 #'     [hg_centrality()]; spectral methods [hg_laplacian()],
 #'     [hg_cluster()], [hg_classify()]; PageRank
-#'     [hg_pagerank()]; embeddings [hg_embed()]; projections [pairwise_network()],
+#'     [hg_pagerank()]; projections [pairwise_network()],
 #'     [hg_line_graph()],
 #'     [dual_hypergraph()]; temporal views [hg_snapshot()],
 #'     [hg_snapshots()]; hyperedge tables [hg_edges()] and
 #'     s-centrality [hg_edge_centrality()]; communities
 #'     [hg_communities()] and [hg_community_quality()]; motifs
-#'     [hg_motifs()]; null models [hg_null_test()]; neural networks
-#'     [hg_neural()], [text_hypergat()], [heterogeneous_hgat()],
-#'     [hg_hypergcn()], [hg_hnhn()], [hg_allset()]; embedding constructor
+#'     [hg_motifs()]; null models [hg_null_test()]; embedding constructor
 #'     [knn_hypergraph()].}
 #'   \item{**Text hypergraphs**}{A corpus is a bipartite document-word
 #'     structure, which is a hypergraph in either orientation: documents as

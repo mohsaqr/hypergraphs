@@ -64,20 +64,6 @@ test_that("holdout output prints, summarises and plots", {
                            seed = NA))
 })
 
-test_that("hg_hypergat() takes a label column and a holdout", {
-  skip_if_not_installed("torch")
-  skip_if_not(torch::torch_is_installed())
-  docs <- transform(corpus, text = paste0(text, ". ", text, "."))
-  fit <- hg_hypergat(docs, labels = "theme", column = "text", epochs = 2L,
-                     embed_dim = 8L, hidden = 4L, validation = 0,
-                     holdout = 1 / 3, seed = 3L)
-  expect_s3_class(fit, "hg_classification")
-  test <- subset(hg_get(fit), split == "test")
-  expect_identical(as.integer(table(test$label)), c(2L, 2L))
-  expect_identical(hg_get(fit, what = "accuracy")$n_test, 4L)
-  expect_error(hg_hypergat(docs, labels = "nope", column = "text",
-                           epochs = 1L), class = "hypergraphs_bad_input")
-})
 
 test_that("keywords, topic sizes and prevalence take a document column", {
   hg <- text_hypergraph(corpus, column = "text")
@@ -118,36 +104,6 @@ test_that("hg_get() filters, sorts and truncates the predictions", {
                class = "hypergraphs_bad_input")
 })
 
-test_that("a hg_hypergat() holdout keeps the attention of its own fit", {
-  skip_if_not_installed("torch")
-  skip_if_not(torch::torch_is_installed())
-  docs <- transform(corpus, text = paste0(text, ". ", text, " night."))
-  settings <- list(column = "text", epochs = 2L, embed_dim = 8L, hidden = 4L,
-                   validation = 0, seed = 3L)
-  fit <- do.call(hg_hypergat, c(list(docs, labels = "theme", holdout = 1 / 3),
-                                settings))
-  known <- hg_get(fit, split = "train")
-  # the same network refitted on the known labels alone gives the same
-  # attention tables, so the stored ones belong to this fit
-  direct_fit <- do.call(hg_hypergat, c(list(docs, labels = stats::setNames(
-    known$label, known$node)), settings))
-  direct <- hg_get(direct_fit, what = "hyperedges")
-  stored <- hg_get(fit, what = "hyperedges")
-  expect_equal(stored[setdiff(names(stored), c("label", "predicted"))],
-               direct[setdiff(names(direct), c("label", "predicted"))],
-               tolerance = 1e-6)
-  words <- hg_get(fit, what = "hyperedge_words")
-  expect_equal(stats::aggregate(word_weight ~ node + hyperedge, words,
-                                sum)$word_weight,
-               rep(1, nrow(stored)), tolerance = 1e-5)
-  example <- hg_get(fit, split = "test", sort_by = "margin", top = 1)
-  heaviest <- hg_get(fit, what = "hyperedges", node = example, top = 1)
-  expect_identical(nrow(heaviest), nrow(example))
-  one_edge <- hg_get(fit, what = "hyperedge_words", node = heaviest)
-  expect_identical(unique(paste(one_edge$node, one_edge$hyperedge)),
-                   paste(heaviest$node, heaviest$hyperedge))
-  expect_s3_class(plot(fit, type = "attention", top = 2), "ggplot")
-})
 
 test_that("plot() draws topic prevalence by a document column", {
   hg <- text_hypergraph(corpus, column = "text")

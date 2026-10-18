@@ -195,7 +195,7 @@ honem <- function(hon, dim = 32L, max_power = 10L) {
 #' Gote, C., Casiraghi, G., Schweitzer, F., & Scholtes, I. (2023). Predicting
 #' variable-length paths in networked systems using multi-order generative
 #' models. \emph{Applied Network Science}, 8, 68.
-#' \doi{10.1007/s41109-023-00596-0}
+#' \doi{10.1007/s41109-023-00596-x}
 #' @seealso [markov_order()], [memory()]
 #' @examples
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),

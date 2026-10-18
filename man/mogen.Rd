@@ -61,7 +61,7 @@ KDD 2017}, 1037--1046. \doi{10.1145/3097983.3098145}
 Gote, C., Casiraghi, G., Schweitzer, F., & Scholtes, I. (2023). Predicting
 variable-length paths in networked systems using multi-order generative
 models. \emph{Applied Network Science}, 8, 68.
-\doi{10.1007/s41109-023-00596-0}
+\doi{10.1007/s41109-023-00596-x}
 }
 \seealso{
 \code{\link[=markov_order]{markov_order()}}, \code{\link[=memory]{memory()}}

@@ -1,3 +1,42 @@
+# hypergraphs 0.7.7
+
+## Breaking changes
+
+* The release keeps the methods that have an independent oracle. These
+  functions are removed from the package and kept in its development
+  sources: `hg_neural()`, `hg_hypergat()`, `text_hypergat()`,
+  `heterogeneous_hgat()`, `hg_hypergcn()`, `hg_hnhn()`, `hg_allset()`,
+  `hg_embed()`, `hg_joint_cluster()` and `hg_dictionary()`. `torch` is no
+  longer a suggested package. Version 0.7.6 with every function is installed
+  with `pak::pak("mohsaqr/hypergraphs@uef")`.
+
+* `hg_get()` on a classification result no longer has the tables
+  `"hyperedges"`, `"hyperedge_words"` and `"documents"`, and `plot()` no
+  longer has `type = "hyperedges"`. They read the attention of
+  `hg_hypergat()`.
+
+* `hg_null_test()` no longer tests `"density"` or `"avg_edge_size"`. Every
+  null model keeps the number of vertices, the number of hyperedges and the
+  hyperedge sizes, so both statistics are constant under the swap and
+  assignment nulls and change under the configuration null only when stub
+  matching collapses a membership. A request for either raises
+  `hypergraphs_bad_input`; `hg_measures()` reports both.
+
+## Bug fixes
+
+* `hg_edge_centrality()` failed on a hypergraph with a sparse incidence
+  matrix. The s-line graph now reaches cograph as an edge list, and the
+  component sizes of the closeness correction no longer need igraph.
+
+## Tests
+
+* Independent oracles for `hg_membership()` (XGI and scikit-fuzzy),
+  `hg_representations()` (Table 2 of Coupette et al. 2024),
+  `hg_line_graph()` and `hg_edge_centrality()` (HyperNetX and NetworkX),
+  `hg_null_test()` (vegan's swap chain, an independent configuration model
+  and the authors' assignment code), and `hg_community_quality()` and
+  `hg_compare_communities()` (NetworkX and scikit-learn).
+
 # hypergraphs 0.7.6
 
 ## Installation

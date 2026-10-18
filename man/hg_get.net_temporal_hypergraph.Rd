@@ -22,3 +22,14 @@ A base \code{data.frame}.
 \description{
 Tidy tables of a temporal hypergraph
 }
+\examples{
+seats <- data.frame(
+  case = c("A", "A", "A", "B", "B", "B"),
+  arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
+  constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5)
+)
+thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
+                           start = "constituted", end = "concluded")
+hg_get(thg)
+hg_get(thg, what = "edges")
+}

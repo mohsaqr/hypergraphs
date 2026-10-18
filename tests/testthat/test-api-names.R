@@ -29,10 +29,6 @@ test_that("hypergraph constructors return net_hg", {
   expect_false(inherits(hg, "net_hypergraph"))
 })
 
-test_that("text_hypergat is the text-family name of hg_hypergat", {
-  expect_identical(text_hypergat, hg_hypergat)
-})
-
 test_that("no hypergraphs export shares a name with a Nestimate export", {
   ours <- getNamespaceExports("hypergraphs")
   theirs <- getNamespaceExports("Nestimate")

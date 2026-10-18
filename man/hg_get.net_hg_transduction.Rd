@@ -25,3 +25,4 @@ A data.frame as selected by \code{what}.
 \description{
 Tables of a hypergraph transduction fit
 }
+\keyword{internal}

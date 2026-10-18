@@ -59,7 +59,7 @@ of \code{label_x}.
 }
 \description{
 Compares any two tidy labelings -- partitions from \code{\link[=hg_cluster]{hg_cluster()}},
-predictions from \code{\link[=hg_classify]{hg_classify()}}, \code{\link[=hg_neural]{hg_neural()}} or \code{\link[=hg_hypergat]{hg_hypergat()}} --
+predictions from \code{\link[=hg_classify]{hg_classify()}} --
 joined on their shared \code{node} column. \code{agreement} is the share of
 nodes with literally equal labels (meaningful when both labelings use
 the same label set, e.g. a classifier scored against the clustering

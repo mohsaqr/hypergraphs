@@ -18,12 +18,19 @@ test_that("checkerboard swaps preserve both margins exactly", {
   expect_gt(sum(swapped != m), 0)
 })
 
-test_that("avg_edge_size is invariant under the null, by construction", {
+test_that("density and avg_edge_size are refused: every null fixes them", {
   hg <- text_hypergraph(blocky)
-  out <- hg_null_test(hg, statistic = "avg_edge_size", n = 29, seed = 1)
-  expect_equal(out$observed, out$null_mean)
-  expect_identical(out$p_value, 1)
-  expect_true(is.na(out$z))
+  lapply(c("density", "avg_edge_size"), \(fixed) {
+    expect_error(hg_null_test(hg, statistic = fixed, n = 29, seed = 1),
+                 class = "hypergraphs_bad_input", info = fixed)
+    expect_error(hg_null_test(hg, statistic = c("avg_jaccard", fixed),
+                              n = 29, seed = 1),
+                 class = "hypergraphs_bad_input", info = fixed)
+  })
+  # the default set no longer contains them
+  expect_identical(hg_null_test(hg, n = 19, seed = 1)$statistic,
+                   c("pairwise_participation", "avg_jaccard",
+                     "repeated_edges", "repeated_pairs"))
 })
 
 test_that("the test is deterministic given a seed and restores the RNG", {
@@ -42,7 +49,7 @@ test_that("the test is deterministic given a seed and restores the RNG", {
 test_that("observed values match hg_measures and p stays in bounds", {
   hg <- text_hypergraph(blocky)
   out <- hg_null_test(hg,
-                      statistic = c("pairwise_participation", "density"),
+                      statistic = c("pairwise_participation", "avg_jaccard"),
                       n = 29, seed = 7)
   summary_tab <- hg_measures(hg, what = "summary")
   expect_equal(
@@ -78,8 +85,7 @@ test_that("direct null statistics equal the delegated measures path", {
                               paste0("w", seq_len(30))))
   # drop empty rows/columns so the rebuilt hypergraph matches exactly
   m <- m[rowSums(m) > 0, colSums(m) > 0]
-  stats <- c("density", "avg_edge_size", "pairwise_participation",
-             "avg_jaccard")
+  stats <- c("pairwise_participation", "avg_jaccard")
   fast <- .thg_null_statistics(m, stats)
   nz <- which(m > 0, arr.ind = TRUE)
   long <- data.frame(vertex = rownames(m)[nz[, "row"]],
@@ -87,12 +93,6 @@ test_that("direct null statistics equal the delegated measures path", {
   ref_hg <- group_hypergraph(long, node = "vertex",
                                         hyperedge = "edge", weight = "w")
   s_tab <- hg_measures(ref_hg, what = "summary")
-  expect_equal(unname(fast["density"]),
-               subset(s_tab, measure == "density")$value,
-               tolerance = 1e-12)
-  expect_equal(unname(fast["avg_edge_size"]),
-               subset(s_tab, measure == "avg_edge_size")$value,
-               tolerance = 1e-12)
   expect_equal(unname(fast["pairwise_participation"]),
                subset(s_tab, measure == "pairwise_participation")$value,
                tolerance = 1e-12)
@@ -157,13 +157,13 @@ test_that("collapse in the configuration null is warned about, not hidden", {
     c = "stars and sky and salt", d = "stars and sky and night"
   ))
   expect_warning(
-    hg_null_test(hg, statistic = "density", method = "configuration",
-                 n = 29, seed = 3),
+    hg_null_test(hg, statistic = "pairwise_participation",
+                 method = "configuration", n = 29, seed = 3),
     class = "hypergraphs_configuration_collapse"
   )
   # The swap null preserves both margins exactly and never warns.
   expect_no_warning(
-    hg_null_test(hg, statistic = "density", method = "swap",
+    hg_null_test(hg, statistic = "pairwise_participation", method = "swap",
                  n = 29, seed = 3)
   )
 })
@@ -241,25 +241,13 @@ test_that("INVARIANT A03: configuration margins never exceed the input", {
 test_that("REGRESSION A08: the sample count is one whole number >= 19", {
   path <- .null_hg(list(e1 = c("a", "b"), e2 = c("b", "c")))
   for (bad in list(19.5, 5, NA_real_, Inf, -Inf, 3e9, c(19, 20), "19")) {
-    expect_error(hg_null_test(path, statistic = "avg_edge_size", n = bad,
+    expect_error(hg_null_test(path, statistic = "pairwise_participation", n = bad,
                               seed = 1),
                  class = "hypergraphs_bad_input", info = format(bad))
   }
 })
 
-test_that("INVARIANT A08: an invariant statistic has p = 1 under every null", {
-  path <- .null_hg(list(e1 = c("a", "b"), e2 = c("b", "c"),
-                        e3 = c("c", "d", "a")))
-  for (method in c("swap", "assignment")) {
-    out <- hg_null_test(path, statistic = c("avg_edge_size", "density"),
-                        method = method, n = 19, seed = 1)
-    expect_identical(out$p_value, c(1, 1), info = method)
-    expect_identical(out$n, c(19L, 19L), info = method)
-    expect_equal(out$observed, out$null_mean, info = method)
-  }
-})
-
-test_that("REGRESSION A09: null density is the hg_measures() density", {
+test_that("REGRESSION A09: null pairwise participation is the hg_measures() value", {
   fixtures <- list(
     triangle = list(e1 = c("a", "b"), e2 = c("a", "c"), e3 = c("b", "c")),
     uniform_3 = list(e1 = c("a", "b", "c"), e2 = c("b", "c", "d"),
@@ -269,25 +257,13 @@ test_that("REGRESSION A09: null density is the hg_measures() density", {
   )
   for (nm in names(fixtures)) {
     hg <- .null_hg(fixtures[[nm]])
-    out <- hg_null_test(hg, statistic = c("density", "avg_edge_size",
-                                          "pairwise_participation"),
-                        n = 19, seed = 2)
+    out <- hg_null_test(hg, statistic = "pairwise_participation", n = 19,
+                        seed = 2)
     summary_tab <- hg_measures(hg, what = "summary")
     expect_equal(out$observed,
-                 summary_tab$value[match(out$statistic,
-                                         summary_tab$measure)],
+                 subset(summary_tab, measure == "pairwise_participation")$value,
                  tolerance = 1e-12, info = nm)
   }
-  # the audit's case: a simple triangle is complete, density 1
-  triangle <- .null_hg(fixtures$triangle)
-  expect_identical(hg_null_test(triangle, statistic = "density", n = 19,
-                                seed = 1)$observed, 1)
-  # an empty hypergraph has density 0 on both paths
-  empty <- hg_subset(triangle, edges = character(0), drop_isolated = FALSE)
-  expect_identical(
-    unname(.thg_null_statistics((empty$incidence > 0) * 1L, "density")),
-    hg_measures(empty, what = "summary")$value[3L]
-  )
 })
 
 test_that("REGRESSION A10: undefined statistics are NA with a classed warning", {
@@ -302,8 +278,8 @@ test_that("REGRESSION A10: undefined statistics are NA with a classed warning", 
   # the defined statistics are still tested
   expect_false(anyNA(out$p_value[out$statistic != "avg_jaccard"]))
   # a well-defined statistic requested on its own raises nothing
-  expect_no_warning(hg_null_test(one, statistic = "density", n = 19,
-                                 seed = 1))
+  expect_no_warning(hg_null_test(one, statistic = "pairwise_participation",
+                                 n = 19, seed = 1))
 })
 
 test_that("REGRESSION A10: degenerate hypergraphs never reach quantile()", {
@@ -319,7 +295,7 @@ test_that("REGRESSION A10: degenerate hypergraphs never reach quantile()", {
         hg_null_test(hg, method = method, n = 19, seed = 1),
         hypergraphs_undefined_statistic = \(w) invokeRestart("muffleWarning")
       )
-      expect_identical(nrow(out), 6L)
+      expect_identical(nrow(out), 4L)
       defined <- !is.na(out$observed)
       expect_true(all(out$p_value[defined] >= 1 / 20 &
                         out$p_value[defined] <= 1))
@@ -329,4 +305,15 @@ test_that("REGRESSION A10: degenerate hypergraphs never reach quantile()", {
   out <- hg_null_test(one_node, statistic = "pairwise_participation",
                       n = 19, seed = 1)
   expect_identical(out$observed, 0)
+})
+
+test_that("a removed statistic is refused with the same class on sparse input", {
+  sparse <- group_hypergraph(data.frame(member = c("a", "b", "b", "c"),
+                                        edge = c("X", "X", "Y", "Y")),
+                             "member", "edge", sparse = TRUE)
+  expect_error(hg_null_test(sparse, statistic = "density"),
+               class = "hypergraphs_bad_input")
+  # a valid statistic still reaches the sparse guard
+  expect_error(hg_null_test(sparse, statistic = "avg_jaccard"),
+               class = "hypergraphs_sparse_unsupported")
 })

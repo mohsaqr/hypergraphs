@@ -1,6 +1,5 @@
-# Classification results with a held-out evaluation. hg_classify() and
-# hg_hypergat() with `holdout` hide a stratified share of the known labels,
-# predict them, and return the per-document table with `split` and `correct`
+# Classification results with a held-out evaluation. hg_classify() with
+# `holdout` hides a stratified share of the known labels, predicts them, and return the per-document table with `split` and `correct`
 # columns as an `hg_classification`, a data.frame whose print shows the
 # evaluation and whose tables are read with hg_get().
 
@@ -52,21 +51,6 @@
                         arg)
 }
 
-# Labels given as the name of a column of a data.frame `x` (the input of
-# hg_hypergat()), over the document ids `ids`.
-.thg_resolve_text_labels <- function(x, labels, ids) {
-  if (!(is.character(labels) && length(labels) == 1L && is.null(names(labels)))) {
-    return(.thg_check_assignment(.thg_labels_input(labels)))
-  }
-  if (!is.data.frame(x) || !labels %in% names(x)) {
-    .thg_bad_input(sprintf("`labels` = \"%s\" must name a column of `x`",
-                           labels))
-  }
-  values <- as.character(x[[labels]])
-  .thg_check_assignment(stats::setNames(values[!is.na(values)],
-                                        ids[!is.na(values)]))
-}
-
 # A stratified held-out share of the known labels: within each class,
 # round(holdout * n) labels are hidden, at least one and leaving at least one
 # known. The caller's random-number stream is restored.
@@ -115,11 +99,10 @@
 
 #' Read a classification result
 #'
-#' `hg_classify()` and `hg_hypergat()` with `holdout` return an
-#' `hg_classification`: one row per document with its true label, its
-#' predicted label, its split and whether a held-out prediction is correct.
-#' `hg_get()` reads the evaluation tables, and for `hg_hypergat()` the
-#' diagnostic attention of the trained network, computed on request.
+#' `hg_classify()` with `holdout` returns an `hg_classification`: one row
+#' per document with its true label, its predicted label, its split and
+#' whether a held-out prediction is correct. `hg_get()` reads the
+#' evaluation tables.
 #'
 #' @param x An `hg_classification`.
 #' @param what `"predictions"` (default), the per-document table: `node`,
@@ -133,51 +116,30 @@
 #'   `correct`, `recall` (the share of the class's test documents predicted
 #'   as the class) and `precision` (the share of the test documents
 #'   predicted as the class that belong to it); `"confusion"`, one row per
-#'   true and predicted class: `label`, `predicted`, `n`. For a result of
-#'   `hg_hypergat()` only: `"hyperedges"`, one row per document and
-#'   hyperedge (sentence or topic): `node`, `label`, `predicted`,
-#'   `hyperedge`, `kind`, `text`, `weight` (the mean edge-level attention
-#'   of the hyperedge's words), `top_word` and `n_words`, the hyperedges of
-#'   each document from the heaviest; or `"hyperedge_words"`, one row per
-#'   document, hyperedge and word: `node`, `label`, `predicted`,
-#'   `hyperedge`, `kind`, `text`, `word`, `word_weight` (the node-level
-#'   attention of the word within the hyperedge) and `edge_weight` (the
-#'   edge-level attention of the hyperedge for the word), the quantities of
-#'   Figure 5 of Ding et al. (2020). These internal weights are not
-#'   prediction explanations. Fitted HyperGAT models also support
-#'   `"documents"`, the prediction and text of each document.
-#' @param split For `"predictions"` or `"documents"`: keep only the `"train"`, the `"test"`
+#'   true and predicted class: `label`, `predicted`, `n`.
+#' @param split For `"predictions"`: keep only the `"train"`, the `"test"`
 #'   or the `"unlabelled"` documents, the last being those without a label,
 #'   whose predictions are the classifier's output.
-#' @param correct For `"predictions"` or `"documents"`: `TRUE` keeps the test documents
+#' @param correct For `"predictions"`: `TRUE` keeps the test documents
 #'   predicted correctly, `FALSE` those predicted wrongly.
-#' @param node For `"predictions"`, `"hyperedges"` and `"hyperedge_words"`:
-#'   keep only these documents, given as ids or as a table with a `node`
-#'   column, such as a table `hg_get()` returned. For `"hyperedge_words"`, a
-#'   table that also has a `hyperedge` column keeps only those hyperedges.
+#' @param node For `"predictions"`: keep only these documents, given as
+#'   ids or as a table with a `node` column, such as a table `hg_get()`
+#'   returned.
 #' @param sort_by For `"predictions"`: `"margin"` or `"score"`, from the
 #'   largest.
 #' @param top For `"predictions"`: the first `top` rows of each true label,
 #'   so `split = "test", correct = TRUE, sort_by = "margin", top = 1` gives
-#'   the most confident correct prediction of each class. For
-#'   `"hyperedges"`: the `top` heaviest hyperedges of each document. For
-#'   `"hyperedge_words"`: the `top` words of largest `word_weight` in each
-#'   hyperedge.
+#'   the most confident correct prediction of each class.
 #' @param ... Unused.
 #' @return A base `data.frame` as described under `what`. `print()` shows
 #'   the held-out accuracy and the per-class table and returns `x`
 #'   invisibly; `summary()` returns the per-class table; `plot()` returns a
-#'   ggplot of the confusion table (`type = "confusion"`) or of the heaviest
-#'   hyperedges of some documents (`type = "hyperedges"`).
+#'   ggplot of the confusion table.
 #' @references
 #' Brodersen, K. H., Ong, C. S., Stephan, K. E., & Buhmann, J. M. (2010).
 #' The balanced accuracy and its posterior distribution. \emph{Proceedings
 #' of the 20th International Conference on Pattern Recognition}, 3121-3124.
 #' \doi{10.1109/ICPR.2010.764}
-#'
-#' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with
-#' less: Hypergraph attention networks for inductive text classification.
-#' \emph{EMNLP 2020}, 4927-4936.
 #' @examples
 #' hg <- text_hypergraph(head(forum_posts, 60), column = "text")
 #' fit <- hg_classify(hg, labels = "topic", holdout = 0.25)
@@ -187,10 +149,7 @@
 #' hg_get(fit, split = "test", correct = FALSE)
 #' @export
 hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
-                                                 "classes", "confusion",
-                                                 "hyperedges",
-                                                 "hyperedge_words",
-                                                 "documents"),
+                                                 "classes", "confusion"),
                                      split = NULL, correct = NULL,
                                      node = NULL, sort_by = NULL, top = NULL,
                                      ...) {
@@ -199,22 +158,13 @@ hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
   attributes(plain) <- attributes(plain)[c("names", "row.names", "class")]
   filters <- list(split = split, correct = correct, sort_by = sort_by)
   filters <- names(filters)[!vapply(filters, is.null, logical(1L))]
-  if (!what %in% c("predictions", "documents") && length(filters) > 0L) {
+  if (!identical(what, "predictions") && length(filters) > 0L) {
     .thg_bad_input(sprintf("`%s` applies only to `what = \"predictions\"`",
                            filters[[1L]]))
   }
-  if (what %in% c("hyperedges", "hyperedge_words")) {
-    return(.thg_classification_attention(x, plain, what, node, top))
-  }
-  if (what %in% c("predictions", "documents")) {
-    out <- .thg_classification_predictions(plain, split, correct, node,
-                                           sort_by, top)
-    if (what == "documents") {
-      documents <- attr(x, "documents")
-      if (is.null(documents)) .thg_bad_input("this result has no document text")
-      out$text <- documents$text[match(out$node, documents$node)]
-    }
-    return(out)
+  if (identical(what, "predictions")) {
+    return(.thg_classification_predictions(plain, split, correct, node,
+                                           sort_by, top))
   }
   if (!is.null(node) || !is.null(top)) {
     .thg_bad_input(sprintf("`node` and `top` do not apply to `what = \"%s\"`",
@@ -307,40 +257,6 @@ hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
   .thg_top_by(out, out$label, top)
 }
 
-# The attention tables of a hg_hypergat() evaluation, with each document's
-# true and predicted label.
-.thg_classification_attention <- function(x, plain, what, node, top) {
-  words <- if (inherits(x, "hg_hypergat")) .thg_hypergat_words(x, node) else
-    attr(x, "hyperedge_words")
-  if (is.null(words)) {
-    .thg_bad_input(paste0("`what = \"", what, "\"` needs a result of ",
-                          "hg_hypergat() with `holdout`"))
-  }
-  out <- if (identical(what, "hyperedges")) {
-    .thg_hypergat_hyperedge_summary(words)
-  } else {
-    words[order(words$node, words$hyperedge, -words$word_weight), ,
-          drop = FALSE]
-  }
-  if (!is.null(node)) {
-    out <- out[out$node %in% .thg_node_filter(node), , drop = FALSE]
-    if (identical(what, "hyperedge_words") && is.data.frame(node) &&
-        "hyperedge" %in% names(node)) {
-      keep <- paste(out$node, out$hyperedge, sep = "\r") %in%
-        paste(node$node, node$hyperedge, sep = "\r")
-      out <- out[keep, , drop = FALSE]
-    }
-  }
-  at <- match(out$node, plain$node)
-  out <- cbind(out["node"], label = plain$label[at],
-               predicted = plain$predicted[at],
-               out[setdiff(names(out), "node")], stringsAsFactors = FALSE)
-  rownames(out) <- NULL
-  group <- if (identical(what, "hyperedges")) out$node else
-    paste(out$node, out$hyperedge, sep = "\r")
-  .thg_top_by(out, group, top)
-}
-
 #' @rdname hg_get.hg_classification
 #' @export
 print.hg_classification <- function(x, ...) {
@@ -365,19 +281,10 @@ summary.hg_classification <- function(object, ...) {
 
 #' @rdname hg_get.hg_classification
 #' @param y Unused.
-#' @param type For `plot()`: `"confusion"` (default), the counts of true
-#'   against predicted labels on the test documents, or `"hyperedges"` (a
-#'   result of `hg_hypergat()` only), the `top` heaviest hyperedges of each
-#'   document in `node`, with its uniform normalization baseline. Without
-#'   `node`, the first held-out document of each class is selected (the
-#'   first training document if there is no holdout).
+#' @details `plot()` draws the counts of true against predicted labels on
+#'   the test documents.
 #' @export
-plot.hg_classification <- function(x, y, type = c("confusion", "hyperedges"),
-                                   node = NULL, top = 8L, ...) {
-  type <- match.arg(type)
-  if (identical(type, "hyperedges")) {
-    return(.thg_plot_classification_hyperedges(x, node, top))
-  }
+plot.hg_classification <- function(x, y, ...) {
   confusion <- hg_get(x, what = "confusion")
   ggplot2::ggplot(confusion, ggplot2::aes(x = .data$predicted,
                                           y = .data$label,
@@ -387,40 +294,4 @@ plot.hg_classification <- function(x, y, type = c("confusion", "hyperedges"),
     ggplot2::scale_fill_gradient(low = "white", high = "#0072B2") +
     ggplot2::labs(x = "predicted", y = "true label", fill = "documents") +
     ggplot2::theme_minimal(base_size = 12)
-}
-
-.thg_plot_classification_hyperedges <- function(x, node, top) {
-  node <- node %||% hg_get(x, split = if (any(x$split == "test"))
-                            "test" else "train", top = 1)
-  edges <- hg_get(x, what = "hyperedges", node = node, top = top)
-  if (nrow(edges) == 0L) {
-    .thg_bad_input("no hyperedge of the documents in `node`")
-  }
-  first_words <- ifelse(nchar(edges$text) > 90,
-                        paste0(substr(edges$text, 1, 87), "..."), edges$text)
-  edges$name <- vapply(paste0(edges$hyperedge, ": ", first_words),
-                       \(t) paste(strwrap(t, 60), collapse = "\n"),
-                       character(1L), USE.NAMES = FALSE)
-  edges$panel <- sprintf("%s (true %s, predicted %s)", edges$node,
-                         edges$label, edges$predicted)
-  # one y position per document and hyperedge, heaviest at the top
-  edges$position <- factor(paste(edges$panel, edges$name, sep = "\r"),
-                           levels = rev(paste(edges$panel, edges$name,
-                                              sep = "\r")))
-  ggplot2::ggplot(edges, ggplot2::aes(x = .data$weight, y = .data$position,
-                                      fill = .data$kind)) +
-    ggplot2::geom_col(width = 0.7) +
-    ggplot2::geom_point(ggplot2::aes(x = .data$uniform_weight),
-                         shape = 4, size = 3, colour = "black") +
-    ggplot2::facet_wrap(ggplot2::vars(.data$panel), ncol = 1,
-                        scales = "free_y") +
-    ggplot2::scale_y_discrete(labels = \(l) sub(".*\r", "", l)) +
-    ggplot2::scale_fill_manual(values = c(sentence = "#0072B2",
-                                          topic = "#E69F00")) +
-    ggplot2::labs(x = "mean edge attention",
-                  y = NULL, fill = "hyperedge",
-                  caption = paste("Crosses: uniform normalization baseline.",
-                    "A word in only one hyperedge gives it weight 1.",
-                    "Attention is not a prediction explanation.")) +
-    ggplot2::theme_minimal(base_size = 10)
 }

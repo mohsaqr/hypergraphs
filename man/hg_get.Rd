@@ -48,8 +48,6 @@ orderings and \verb{top =} are named arguments of the method for that class.
 see \code{\link[=hg_get.net_hg]{hg_get.net_hg()}}.}
 \item{\code{text_hypergraph}}{\code{"weights"} (default), \code{"documents"},
 \code{"vocabulary"}, \code{"sentences"}; see \code{\link[=hg_get.text_hypergraph]{hg_get.text_hypergraph()}}.}
-\item{\code{hg_hypergat}}{Predictions (default), evaluation, document text,
-history and optional attention; see \code{\link[=hg_get.hg_hypergat]{hg_get.hg_hypergat()}}.}
 \item{\code{net_temporal_hypergraph}}{\code{"memberships"} (default), \code{"edges"},
 \code{"nodes"}.}
 \item{\code{net_hon} (\code{\link[=hon]{hon()}})}{\code{"rules"} (default), \code{"nodes"},

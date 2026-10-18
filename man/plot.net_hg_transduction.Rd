@@ -23,3 +23,4 @@ so agreement between seeds, scores, and decisions is visible in one
 panel. Rows whose winning and runner-up scores are close (small
 \code{margin}) are the assignments to distrust.
 }
+\keyword{internal}

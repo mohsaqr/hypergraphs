@@ -41,3 +41,14 @@ active on its closed interval, a contact hyperedge at its instant.
 window, the growing view of a contact log; with \code{at} unset it is the
 static aggregate of everything observed.
 }
+\examples{
+seats <- data.frame(
+  case = c("A", "A", "A", "B", "B", "B"),
+  arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
+  constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5)
+)
+thg <- temporal_hypergraph(seats, node = "arbitrator", hyperedge = "case",
+                           start = "constituted", end = "concluded")
+hg_snapshot(thg, at = 3)
+hg_snapshot(thg, mode = "cumulative")
+}

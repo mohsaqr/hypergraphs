@@ -137,8 +137,8 @@ related by sharing a sentence rather than a document. \code{"mass"} and
 centrality among the cluster's sentence hyperedges.
 
 \strong{External scores.} \code{scores} takes a data.frame with columns \code{node},
-\code{word} and one numeric column (for instance the \code{attention} table from
-\code{hg_hypergat(what = "attention")}). Its values are summed per cluster
+\code{word} and one numeric column (for instance word weights from a model
+fitted elsewhere). Its values are summed per cluster
 and reported as their own block, labelled by the numeric column's name.
 }
 \examples{

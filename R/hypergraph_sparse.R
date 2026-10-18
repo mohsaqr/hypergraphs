@@ -8,6 +8,20 @@
 
 .thg_is_sparse <- function(hg) methods::is(hg$incidence, "sparseMatrix")
 
+# Any Matrix/base matrix -> every stored cell as a general (dgT) triplet.
+# Coercing straight to "TsparseMatrix" keeps Matrix's packed storage: a
+# symmetric matrix becomes a dsTMatrix holding only the upper triangle and a
+# unit-triangular one omits its diagonal, so reading @i/@j/@x would silently
+# drop cells. Going through "generalMatrix" expands them first. A base
+# matrix enters through Matrix::Matrix(): as() alone finds no coercion
+# method until the Matrix namespace is loaded, which an installed package
+# on a dense-only path has not done.
+.thg_general_triplet <- function(x) {
+  if (!methods::is(x, "Matrix")) x <- Matrix::Matrix(x, sparse = TRUE)
+  methods::as(methods::as(methods::as(x, "CsparseMatrix"), "generalMatrix"),
+              "TsparseMatrix")
+}
+
 # Sparse bipartite constructor mirroring group_hypergraph():
 # sorted vertex/edge names, summed weights, same top-level fields
 # (including the `hyperedges` member lists every reader relies on).
@@ -393,8 +407,8 @@
   sizes <- as.numeric(Matrix::colSums(membership))
   n <- hg$n_nodes
   if (identical(what, "nodes")) {
-    # .thg_general_triplet() (text_neural.R) reads every stored cell,
-    # whatever packed storage the Matrix uses
+    # .thg_general_triplet() reads every stored cell, whatever packed
+    # storage the Matrix uses
     triplet <- .thg_general_triplet(membership)
     # an isolated vertex has no hyperedge, so its largest one is size 0
     max_size <- numeric(n)

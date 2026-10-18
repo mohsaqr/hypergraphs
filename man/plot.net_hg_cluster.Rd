@@ -32,3 +32,4 @@ shaped by cluster, sized by stationary probability - the geometry
 k-means actually clustered. \code{"both"} (default) arranges the two side
 by side (via gridExtra when available, base grid viewports otherwise).
 }
+\keyword{internal}

@@ -17,8 +17,8 @@ reads a corpus as a hypergraph.
 | **Text hypergraphs** | a document bound to the words it contains (or a word to its documents) | a corpus: bag of words, token windows, or sentence embeddings |
 
 Base R, ggplot2 and Matrix (with RSpectra for the sparse spectral paths).
-No Python, no NLP dependencies; the neural tier needs `torch`, the sentence
-embeddings `sbert`, both optional.
+No Python, no NLP dependencies; the sentence embeddings need `sbert`, which
+is optional.
 
 ## Verbs
 
@@ -56,7 +56,7 @@ embeddings `sbert`, both optional.
 | `group_hypergraph()` | Hyperedges from bipartite group membership | Perc et al. (2013) |
 | `hg_centrality()` | Tensor eigenvector centralities (clique, Z, H) and EDVW PageRank | Benson (2019); Chitra & Raphael (2019) |
 | `hg_measures()` | Structural measures (hyperdegree, overlap, density) | — |
-| `hg_laplacian()`, `hg_cluster()`, `hg_joint_cluster()`, `hg_classify()` | Weighted normalised Laplacian; RDC-Spec, RDC-SymNMF, J-NMF and JS-NMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hg_laplacian()`, `hg_cluster()`, `hg_classify()` | Weighted normalised Laplacian; RDC-Spec and RDC-SymNMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
 | `hg_pagerank()` | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
 | `knn_hypergraph()`, `dual_hypergraph()` | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
 | `pairwise_network()`, `hg_line_graph()` | Projections: the pairwise network (clique, association or citation weighting) as a network object, and the s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
@@ -64,9 +64,7 @@ embeddings `sbert`, both optional.
 | `hg_edges()`, `hg_edge_centrality()` | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
 | `hg_motifs()` | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
 | `hg_communities()`, `hg_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance (on a memory network: the map equation for memory networks) | Coupette, Hartung & Katz (2024); Rosvall et al. (2014) |
-| `hg_embed()` | Spectral or symmetric-NMF node coordinates | Zhou et al. (2006); Hayashi et al. (2020) |
 | `hg_null_test()` | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
-| `hg_neural()`, `text_hypergat()`, `heterogeneous_hgat()`, `hg_hypergcn()`, `hg_hnhn()`, `hg_allset()` | HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer in native torch | Feng et al. (2019); Linmei et al. (2019); Yadati et al. (2019); Ding et al. (2020); Dong et al. (2020); Chien et al. (2022) |
 
 ### Text hypergraphs
 
@@ -165,7 +163,6 @@ walkthroughs are articles on the
 [package website](https://pak.dynasite.org/hypergraphs/):
 [hypergraph analysis of a text corpus](https://pak.dynasite.org/hypergraphs/articles/text-hypergraphs.html), the
 [constructions of a text hypergraph](https://pak.dynasite.org/hypergraphs/articles/text-constructions.html),
-[document classification](https://pak.dynasite.org/hypergraphs/articles/hypergat-classification.html), the
 [topic structure](https://pak.dynasite.org/hypergraphs/articles/covid-topics.html) and
 [mixed-membership topics](https://pak.dynasite.org/hypergraphs/articles/topic-mixtures.html) of the COVID-19
 education literature, [legal hypergraphs](https://pak.dynasite.org/hypergraphs/articles/legal-hypergraphs.html),

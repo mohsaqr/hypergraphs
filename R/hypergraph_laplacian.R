@@ -345,8 +345,8 @@ hg_laplacian <- function(hg,
 # column by its total spread mass (class-mass normalization, Zhu et al.
 # 2003), which prevents an imbalanced seed set from collapsing every
 # prediction onto the majority class. `score` and `margin` are reported on
-# the matrix the argmax actually used. Shared by .hg_transduction_fit(),
-# its sparse counterpart, and the neural classifiers (hg_neural, hg_hypergat).
+# the matrix the argmax actually used. Shared by .hg_transduction_fit()
+# and its sparse counterpart.
 .hl_score_predictions <- function(F_scores, lab, normalization) {
   decision <- if (identical(normalization, "class_mass")) {
     mass <- colSums(F_scores)
@@ -621,6 +621,7 @@ hg_laplacian <- function(hg,
 #' @param x A `net_hg_cluster` object.
 #' @param ... Additional arguments (ignored).
 #' @return The input object, invisibly.
+#' @keywords internal
 #' @export
 print.net_hg_cluster <- function(x, ...) {
   algorithm <- x$algorithm %||% "spectral"
@@ -650,6 +651,7 @@ print.net_hg_cluster <- function(x, ...) {
 #' @return A data.frame, one row per cluster: `cluster`, `size`, `share`.
 #'   Returned **invisibly**: `summary(x)` prints the summary and nothing
 #'   else; assign the result to keep the table.
+#' @keywords internal
 #' @export
 summary.net_hg_cluster <- function(object, ...) {
   out <- object$sizes
@@ -669,6 +671,7 @@ summary.net_hg_cluster <- function(object, ...) {
 #'   `cluster`, `pi` (stationary probability of the node under the
 #'   Laplacian's random walk) and the spectral-embedding or NMF-factor coordinates
 #'   `dim1..dimk`.
+#' @keywords internal
 #' @export
 hg_get.net_hg_cluster <- function(x, what = "assignments", ..., top = NULL) {
   .ho_match_what(what, "assignments")
@@ -697,6 +700,7 @@ hg_get.net_hg_cluster <- function(x, what = "assignments", ..., top = NULL) {
 #'   `"both"`, the arranged gtable when gridExtra is installed (drawn on
 #'   the current device), otherwise the two panels are drawn via grid
 #'   viewports and the list of the two ggplots is returned invisibly.
+#' @keywords internal
 #' @export
 plot.net_hg_cluster <- function(x,
                                         what = c("both", "spectrum",
@@ -802,6 +806,7 @@ plot.net_hg_cluster <- function(x,
 #' @param x A `net_hg_transduction` object.
 #' @param ... Additional arguments (ignored).
 #' @return The input object, invisibly.
+#' @keywords internal
 #' @export
 print.net_hg_transduction <- function(x, ...) {
   cat("Hypergraph transductive label spreading (", x$type,
@@ -824,6 +829,7 @@ print.net_hg_transduction <- function(x, ...) {
 #'   predicted into the class).
 #'   Returned **invisibly**: `summary(x)` prints the summary and nothing
 #'   else; assign the result to keep the table.
+#' @keywords internal
 #' @export
 summary.net_hg_transduction <- function(object, ...) {
   p <- object$predictions
@@ -852,6 +858,7 @@ summary.net_hg_transduction <- function(object, ...) {
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
 #' @return A data.frame as selected by `what`.
+#' @keywords internal
 #' @export
 hg_get.net_hg_transduction <- function(
     x, what = c("predictions", "scores"), ..., top = NULL) {
@@ -878,6 +885,7 @@ hg_get.net_hg_transduction <- function(
 #' @param x A `net_hg_transduction` object.
 #' @param ... Additional arguments (ignored).
 #' @return A ggplot object, invisibly printable.
+#' @keywords internal
 #' @export
 plot.net_hg_transduction <- function(x, ...) {
   sc <- hg_get(x, what = "scores")

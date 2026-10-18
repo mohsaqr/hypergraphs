@@ -79,8 +79,6 @@ reference:
   contents:
   - hg_laplacian
   - hg_cluster
-  - hg_joint_cluster
-  - hg_embed
   - hg_classify
 - subtitle: Projections
   contents:
@@ -93,17 +91,10 @@ reference:
   - hg_community_quality
   - hg_modularity
   - hg_compare_communities
-- subtitle: Null models and neural networks
+- subtitle: Null models
   contents:
   - hg_null_test
   - hypa.net_hg
-  - hg_neural
-  - hg_hypergat
-  - predict.hg_hypergat
-  - heterogeneous_hgat
-  - hg_hypergcn
-  - hg_hnhn
-  - hg_allset
 
 - title: Text hypergraphs
   desc: A corpus as a weighted document-word hypergraph, analysed with tidy verbs.
@@ -127,7 +118,6 @@ reference:
   - hg_stability
   - hg_agreement
   - hg_seeds
-  - hg_dictionary
   - hg_classify
 
 - title: Methods
@@ -162,7 +152,6 @@ articles:
   - articles/topic-mixtures
   - articles/text-hypergraphs
   - articles/text-constructions
-  - articles/hypergat-classification
 - title: Legal hypergraphs
   navbar: ~
   contents:

@@ -137,8 +137,6 @@
 #'     see [hg_get.net_hg()].}
 #'   \item{`text_hypergraph`}{`"weights"` (default), `"documents"`,
 #'     `"vocabulary"`, `"sentences"`; see [hg_get.text_hypergraph()].}
-#'   \item{`hg_hypergat`}{Predictions (default), evaluation, document text,
-#'     history and optional attention; see [hg_get.hg_hypergat()].}
 #'   \item{`net_temporal_hypergraph`}{`"memberships"` (default), `"edges"`,
 #'     `"nodes"`.}
 #'   \item{`net_hon` ([hon()])}{`"rules"` (default), `"nodes"`,

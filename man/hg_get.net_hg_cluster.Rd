@@ -26,3 +26,4 @@ Laplacian's random walk) and the spectral-embedding or NMF-factor coordinates
 \description{
 Assignment table of a hypergraph clustering fit
 }
+\keyword{internal}

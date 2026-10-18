@@ -84,3 +84,57 @@ test_that("edge centrality counts refuse fractions and overflow by class", {
   # top applies per measure: two measures, two hyperedges each
   expect_identical(nrow(hg_edge_centrality(h, s = 1, top = 2)), 4L)
 })
+
+test_that("a sparse incidence gives the dense s-centralities, isolates at 0", {
+  long <- data.frame(
+    member = c("a", "b", "c", "b", "c", "d", "d", "e", "a", "e", "f", "x", "y"),
+    event = c("X", "X", "X", "Y", "Y", "Y", "Z", "Z", "W", "W", "W", "I", "I")
+  )
+  dense <- group_hypergraph(long, "member", "event")
+  sparse <- group_hypergraph(long, "member", "event", sparse = TRUE)
+  lapply(1:2, \(s) {
+    expect_equal(hg_edge_centrality(sparse, s = s),
+                 hg_edge_centrality(dense, s = s), tolerance = 1e-12)
+  })
+  # hyperedge I shares no member with any other: both measures are 0
+  isolated <- subset(hg_edge_centrality(dense, s = 1), edge == "I")
+  expect_identical(isolated$value, c(0, 0))
+  # s = 3: no pair of hyperedges shares three members, every value is 0
+  expect_true(all(hg_edge_centrality(sparse, s = 3)$value == 0))
+})
+
+test_that("edge-list components equal the adjacency components", {
+  set.seed(3)
+  lapply(1:5, \(i) {
+    n <- 30L
+    pairs <- unique(t(apply(matrix(sample(n, 30, replace = TRUE), ncol = 2), 1,
+                            sort)))
+    pairs <- pairs[pairs[, 1] != pairs[, 2], , drop = FALSE]
+    adjacency <- matrix(0, n, n)
+    adjacency[pairs] <- 1
+    adjacency <- adjacency + t(adjacency)
+    fast <- .thg_edge_list_components(pairs[, 1], pairs[, 2], n)
+    slow <- .thg_components(adjacency)
+    # same partition: the labels pair up one to one
+    expect_identical(nrow(unique(cbind(fast, slow))), length(unique(slow)))
+    expect_identical(length(unique(fast)), length(unique(slow)))
+  })
+  expect_identical(.thg_edge_list_components(integer(), integer(), 4L), 1:4)
+})
+
+test_that("many isolated hyperedges stay cheap and score 0", {
+  skip_on_cran()
+  long <- data.frame(member = paste0("v", 1:1500), event = paste0("e", 1:1500))
+  hg <- group_hypergraph(long, "member", "event")
+  elapsed <- system.time(out <- hg_edge_centrality(hg, s = 1))[["elapsed"]]
+  expect_true(all(out$value == 0))
+  expect_lt(elapsed, 2)
+})
+
+test_that("a temporal hypergraph with an empty snapshot gives zero rows for it", {
+  events <- data.frame(from = c("a", "b"), to = c("b", "c"), time = c(1, 3))
+  thg <- temporal_hypergraph(events, from = "from", to = "to", time = "time")
+  out <- hg_edge_centrality(thg, at = 1:3)
+  expect_identical(sort(unique(out$time)), c(1, 3))
+  expect_identical(names(out), c("time", "edge", "s", "measure", "value"))
+})

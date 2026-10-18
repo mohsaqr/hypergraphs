@@ -19,3 +19,14 @@ The input \code{x}, invisibly.
 \description{
 Print method for hypergraphs_comparison
 }
+\examples{
+set.seed(1)
+first_order <- replicate(6, sample(c("a", "b", "c"), 12, replace = TRUE),
+                         simplify = FALSE)
+second_order <- replicate(6, rep(c("a", "b", "c", "b"), 3),
+                          simplify = FALSE)
+by_group <- hon(c(first_order, second_order),
+                group = rep(c("first", "second"), each = 6), max_order = 2)
+comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
+print(comparison, n = 5)
+}

@@ -54,15 +54,13 @@ Constructors \code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\lin
 \code{\link[=random_hypergraph]{random_hypergraph()}}; measures \code{\link[=hg_measures]{hg_measures()}},
 \code{\link[=hg_centrality]{hg_centrality()}}; spectral methods \code{\link[=hg_laplacian]{hg_laplacian()}},
 \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_classify]{hg_classify()}}; PageRank
-\code{\link[=hg_pagerank]{hg_pagerank()}}; embeddings \code{\link[=hg_embed]{hg_embed()}}; projections \code{\link[=pairwise_network]{pairwise_network()}},
+\code{\link[=hg_pagerank]{hg_pagerank()}}; projections \code{\link[=pairwise_network]{pairwise_network()}},
 \code{\link[=hg_line_graph]{hg_line_graph()}},
 \code{\link[=dual_hypergraph]{dual_hypergraph()}}; temporal views \code{\link[=hg_snapshot]{hg_snapshot()}},
 \code{\link[=hg_snapshots]{hg_snapshots()}}; hyperedge tables \code{\link[=hg_edges]{hg_edges()}} and
 s-centrality \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}; communities
 \code{\link[=hg_communities]{hg_communities()}} and \code{\link[=hg_community_quality]{hg_community_quality()}}; motifs
-\code{\link[=hg_motifs]{hg_motifs()}}; null models \code{\link[=hg_null_test]{hg_null_test()}}; neural networks
-\code{\link[=hg_neural]{hg_neural()}}, \code{\link[=text_hypergat]{text_hypergat()}}, \code{\link[=heterogeneous_hgat]{heterogeneous_hgat()}},
-\code{\link[=hg_hypergcn]{hg_hypergcn()}}, \code{\link[=hg_hnhn]{hg_hnhn()}}, \code{\link[=hg_allset]{hg_allset()}}; embedding constructor
+\code{\link[=hg_motifs]{hg_motifs()}}; null models \code{\link[=hg_null_test]{hg_null_test()}}; embedding constructor
 \code{\link[=knn_hypergraph]{knn_hypergraph()}}.}
 \item{\strong{Text hypergraphs}}{A corpus is a bipartite document-word
 structure, which is a hypergraph in either orientation: documents as

@@ -738,6 +738,10 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Unused.
 #' @return `x`, invisibly.
+#' @examples
+#' hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars",
+#'                         c = "stars and salt"))
+#' print(hg, n = 3)
 #' @export
 print.text_hypergraph <- function(x, n = 10L, ...) {
   head_line <- switch(x$text$construction,

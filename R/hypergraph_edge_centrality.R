@@ -60,8 +60,9 @@ hg_edge_centrality <- function(hg, s = 1L,
     rows <- lapply(seq_along(snaps), function(i) {
       ans <- hg_edge_centrality(snaps[[i]], s = s, measure = measure,
                                 normalized = normalized, top = top)
-      data.frame(time = .thg_snapshot_time(snaps, i), ans, row.names = NULL,
-                 stringsAsFactors = FALSE)
+      # an empty snapshot gives zero rows; the time is repeated to match
+      data.frame(time = rep(.thg_snapshot_time(snaps, i), nrow(ans)), ans,
+                 row.names = NULL, stringsAsFactors = FALSE)
     })
     out <- do.call(rbind, rows)
     rownames(out) <- NULL
@@ -85,23 +86,38 @@ hg_edge_centrality <- function(hg, s = 1L,
     # closeness.  cograph deliberately uses a general max-normalization for
     # most measures, so request raw graph scores here and apply the paper's
     # conventions explicitly.
-    graph <- NULL
+    # The line graph goes to cograph as an edge list, which a sparse
+    # incidence yields without densifying; a hyperedge with no s-neighbour
+    # is absent from it and scores 0 below, as in NetworkX.
+    triplet <- .thg_general_triplet(line)
+    upper <- triplet@i < triplet@j
+    line_edges <- data.frame(from = rownames(line)[triplet@i[upper] + 1L],
+                             to = rownames(line)[triplet@j[upper] + 1L],
+                             weight = rep(1, sum(upper)),
+                             stringsAsFactors = FALSE)
     component_size <- NULL
     if (normalized && "closeness" %in% measure && n_line > 0L) {
-      graph <- cograph::to_igraph(line, directed = FALSE)
-      membership <- igraph::components(graph, mode = "weak")$membership
-      component_size <- unname(table(membership)[as.character(membership)])
+      membership <- .thg_edge_list_components(triplet@i[upper] + 1L,
+                                              triplet@j[upper] + 1L, n_line)
+      component_size <- tabulate(membership)[membership]
       names(component_size) <- rownames(line)
     }
     for (metric in measure) {
-      value <- switch(metric,
-        betweenness = cograph::centrality_betweenness(
-          line, weighted = FALSE, directed = FALSE, normalized = FALSE
-        ),
-        closeness = cograph::centrality_closeness(
-          line, weighted = FALSE, directed = FALSE, normalized = normalized
+      value <- if (nrow(line_edges) == 0L) {
+        stats::setNames(numeric(n_line), rownames(line))
+      } else {
+        switch(metric,
+          betweenness = cograph::centrality_betweenness(
+            line_edges, weighted = FALSE, directed = FALSE, normalized = FALSE
+          ),
+          closeness = cograph::centrality_closeness(
+            line_edges, weighted = FALSE, directed = FALSE,
+            normalized = normalized
+          )
         )
-      )
+      }
+      value <- stats::setNames(as.numeric(value[rownames(line)]),
+                               rownames(line))
       if (normalized && identical(metric, "betweenness")) {
         scale <- if (n_line > 2L) 2 / ((n_line - 1) * (n_line - 2)) else 1
         value <- value * scale
@@ -123,4 +139,29 @@ hg_edge_centrality <- function(hg, s = 1L,
   out <- do.call(rbind, rows)
   rownames(out) <- NULL
   out
+}
+
+# Connected components of an undirected graph on `n` vertices given as an
+# edge list (`from`, `to`: vertex indices), by min-label propagation: every
+# vertex starts with its own index and repeatedly takes the smallest label
+# among itself and its neighbours. Each pass costs O(edges), the number of
+# passes is bounded by the graph diameter plus one, and an isolated vertex
+# costs nothing, so a sparse or mostly disconnected line graph stays cheap.
+# Returns component ids 1, 2, ... in order of first appearance.
+.thg_edge_list_components <- function(from, to, n) {
+  label <- seq_len(n)
+  ends <- c(from, to)
+  other <- c(to, from)
+  # bounded by n passes; each pass either lowers a label or stops the loop
+  for (pass in seq_len(n)) {
+    candidate <- label[other]
+    ord <- order(ends, candidate)
+    first <- !duplicated(ends[ord])
+    target <- ends[ord][first]
+    updated <- label
+    updated[target] <- pmin(label[target], candidate[ord][first])
+    if (identical(updated, label)) break
+    label <- updated
+  }
+  match(label, unique(label))
 }

@@ -19,3 +19,8 @@
 \description{
 Print a text hypergraph
 }
+\examples{
+hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars",
+                        c = "stars and salt"))
+print(hg, n = 3)
+}

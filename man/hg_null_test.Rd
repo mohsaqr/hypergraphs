@@ -6,8 +6,8 @@
 \usage{
 hg_null_test(
   hg,
-  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard",
-    "repeated_edges", "repeated_pairs"),
+  statistic = c("pairwise_participation", "avg_jaccard", "repeated_edges",
+    "repeated_pairs"),
   method = c("swap", "configuration", "assignment"),
   n = 199L,
   seed = NULL,
@@ -19,8 +19,7 @@ hg_null_test(
 \code{net_hg}.}
 
 \item{statistic}{Statistics to test; any of \code{"pairwise_participation"},
-\code{"density"}, \code{"avg_edge_size"}, \code{"avg_jaccard"} (mean pairwise edge
-Jaccard), \code{"repeated_edges"} (hyperedges whose member set already
+\code{"avg_jaccard"} (mean pairwise edge Jaccard), \code{"repeated_edges"} (hyperedges whose member set already
 occurred: the paper's repeated collaboration trios) and
 \code{"repeated_pairs"} (member pairs counted with multiplicity minus the
 distinct co-occurring pairs: its repeated collaboration pairs). Several
@@ -62,11 +61,13 @@ size) and randomizes the memberships by checkerboard swaps (Gotelli
 2000) -- a sequential MCMC with burn-in \code{10 * nnz} swap attempts and
 thinning \code{nnz} between samples, \code{nnz} being the number of memberships.
 Statistics are evaluated on the binarized hypergraph (weights carry no
-meaning under this null), with the definitions \code{\link[=hg_measures]{hg_measures()}} uses:
-\code{"density"}, \code{"avg_edge_size"} and \code{"pairwise_participation"} equal the
-values of \code{hg_measures(hg, what = "summary")} (density is
-\code{m / choose(n, k)} for a \code{k}-uniform hypergraph, \verb{sum(|e|) / (n * m)}
-otherwise).
+meaning under this null). \code{"pairwise_participation"} equals the value of
+\code{hg_measures(hg, what = "summary")}. The density and the mean hyperedge
+size are not tested. The swap and assignment nulls keep the number of
+vertices, the number of hyperedges and the hyperedge sizes, so both
+statistics are constant under them, and under the configuration null
+they change only when stub matching collapses a membership. They are
+read with \code{\link[=hg_measures]{hg_measures()}}.
 }
 \details{
 The permutation p-value is \code{(1 + extreme) / (n + 1)} (Phipson & Smyth
@@ -76,13 +77,14 @@ value, not the p-value alone.
 }
 \section{Conditions}{
  Raises \code{hypergraphs_bad_input} for broken contracts,
-including an \code{n} that is not one whole number >= 19.
-A statistic the hypergraph cannot define -- \code{"avg_edge_size"} without
-hyperedges, \code{"avg_jaccard"} with fewer than two hyperedges -- is
-undefined in every null draw as well (the nulls keep the vertex and
-hyperedge counts), so its row is \code{NA} in every column but \code{statistic},
-\code{n} and \code{method}, with a \code{hypergraphs_undefined_statistic} warning; the
-other requested statistics are tested as usual.
+including an \code{n} that is not one whole number >= 19 and a request for
+\code{"density"} or \code{"avg_edge_size"} (see Description), whatever the storage
+of the incidence matrix.
+\code{"avg_jaccard"} on fewer than two hyperedges is undefined in every null
+draw as well (the nulls keep the hyperedge count), so its row is \code{NA}
+in every column but \code{statistic}, \code{n} and \code{method}, with a
+\code{hypergraphs_undefined_statistic} warning; the other requested
+statistics are tested as usual.
 \code{method = "configuration"} signals a \code{hypergraphs_configuration_collapse}
 warning when stub matching collapses more than 1\% of memberships on
 average, which happens whenever hyperedges are large relative to the

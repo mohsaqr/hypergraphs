@@ -28,3 +28,18 @@ print(x, n = 10L, ...)
 ## Value
 
 `x`, invisibly.
+
+## Examples
+
+``` r
+hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars",
+                        c = "stars and salt"))
+print(hg, n = 3)
+#> Text hypergraph: 3 documents, 4 words (documents as nodes, weight = n)
+#> Hyperedges: 4 (words); sizes 2-3, median 2
+#>  doc word count weight
+#>    a  and     1      1
+#>    a salt     1      1
+#>    a soup     1      1
+#> ... 6 more rows
+```

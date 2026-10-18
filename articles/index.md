@@ -15,8 +15,6 @@
   corpus](https://pak.dynasite.org/hypergraphs/articles/text-hypergraphs.md):
 - [Constructions of a text
   hypergraph](https://pak.dynasite.org/hypergraphs/articles/text-constructions.md):
-- [Classifying documents with existing subject
-  labels](https://pak.dynasite.org/hypergraphs/articles/hypergat-classification.md):
 
 ### Legal hypergraphs
 

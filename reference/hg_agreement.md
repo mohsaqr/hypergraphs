@@ -3,10 +3,7 @@
 Compares any two tidy labelings – partitions from
 [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md),
 predictions from
-[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
-[`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
-or
-[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
+[`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
 – joined on their shared `node` column. `agreement` is the share of
 nodes with literally equal labels (meaningful when both labelings use
 the same label set, e.g. a classifier scored against the clustering that

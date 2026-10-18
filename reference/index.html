@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,7 +23,6 @@
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
-    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
     <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
@@ -102,13 +101,6 @@
 
         <dt>
 
-          <code><a href="hg_get.hg_hypergat.html">hg_get(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">print(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">summary(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">plot(<i>&lt;hg_hypergat&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Read a fitted HyperGAT classifier</dd>
-
-        <dt>
-
           <code><a href="hg_get.hypergraphs_bootstrap.html">hg_get(<i>&lt;hypergraphs_bootstrap&gt;</i>)</a></code>
 
         </dt>
@@ -141,27 +133,6 @@
 
         </dt>
         <dd>Tables of a hypergraph</dd>
-
-        <dt>
-
-          <code><a href="hg_get.net_hg_cluster.html">hg_get(<i>&lt;net_hg_cluster&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Assignment table of a hypergraph clustering fit</dd>
-
-        <dt>
-
-          <code><a href="hg_get.net_hg_measures.html">hg_get(<i>&lt;net_hg_measures&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Tables of a hypergraph measures fit</dd>
-
-        <dt>
-
-          <code><a href="hg_get.net_hg_transduction.html">hg_get(<i>&lt;net_hg_transduction&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Tables of a hypergraph transduction fit</dd>
 
         <dt>
 
@@ -691,20 +662,6 @@
 
         <dt>
 
-          <code><a href="hg_joint_cluster.html">hg_joint_cluster()</a></code>
-
-        </dt>
-        <dd>Joint NMF clustering with an auxiliary vertex relation</dd>
-
-        <dt>
-
-          <code><a href="hg_embed.html">hg_embed()</a></code>
-
-        </dt>
-        <dd>Low-Dimensional Hypergraph Embedding</dd>
-
-        <dt>
-
           <code><a href="hg_classify.html">hg_classify()</a></code>
 
         </dt>
@@ -778,7 +735,7 @@
         <dd>Compare community structure across representations</dd>
       </dl></div><div class="section level2">
 
-      <h3 id="null-models-and-neural-networks">Null models and neural networks<a class="anchor" aria-label="anchor" href="#null-models-and-neural-networks"></a></h3>
+      <h3 id="null-models">Null models<a class="anchor" aria-label="anchor" href="#null-models"></a></h3>
 
 
       <dl></dl></div><div class="section level2">
@@ -799,55 +756,6 @@
 
         </dt>
         <dd>Hypergeometric anomaly detection for co-occurring node pairs</dd>
-
-        <dt>
-
-          <code><a href="hg_neural.html">hg_neural()</a></code>
-
-        </dt>
-        <dd>Hypergraph neural network classifier (HGNN)</dd>
-
-        <dt>
-
-          <code><a href="hg_hypergat.html">hg_hypergat()</a></code> <code><a href="hg_hypergat.html">text_hypergat()</a></code>
-
-        </dt>
-        <dd>HyperGAT document classifier</dd>
-
-        <dt>
-
-          <code><a href="predict.hg_hypergat.html">predict(<i>&lt;hg_hypergat&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Predict documents with a fitted HyperGAT classifier</dd>
-
-        <dt>
-
-          <code><a href="heterogeneous_hgat.html">heterogeneous_hgat()</a></code>
-
-        </dt>
-        <dd>Heterogeneous graph attention classifier (HGAT)</dd>
-
-        <dt>
-
-          <code><a href="hg_hypergcn.html">hg_hypergcn()</a></code>
-
-        </dt>
-        <dd>HyperGCN node classifier</dd>
-
-        <dt>
-
-          <code><a href="hg_hnhn.html">hg_hnhn()</a></code>
-
-        </dt>
-        <dd>HNHN node classifier</dd>
-
-        <dt>
-
-          <code><a href="hg_allset.html">hg_allset()</a></code>
-
-        </dt>
-        <dd>AllSet hypergraph node classifier</dd>
       </dl></div><div class="section level2">
       <h2 id="text-hypergraphs">Text hypergraphs<a class="anchor" aria-label="anchor" href="#text-hypergraphs"></a></h2>
 
@@ -993,13 +901,6 @@
 
         <dt>
 
-          <code><a href="hg_dictionary.html">hg_dictionary()</a></code>
-
-        </dt>
-        <dd>Label nodes with a dictionary of terms</dd>
-
-        <dt>
-
           <code><a href="hg_classify.html">hg_classify()</a></code>
 
         </dt>
@@ -1034,13 +935,6 @@
 
         </dt>
         <dd>Tables of a hypergraph community ensemble</dd>
-
-        <dt>
-
-          <code><a href="hg_get.hg_hypergat.html">hg_get(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">print(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">summary(<i>&lt;hg_hypergat&gt;</i>)</a></code> <code><a href="hg_get.hg_hypergat.html">plot(<i>&lt;hg_hypergat&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Read a fitted HyperGAT classifier</dd>
 
         <dt>
 
@@ -1121,20 +1015,6 @@
 
         <dt>
 
-          <code><a href="print.net_hg_cluster.html">print(<i>&lt;net_hg_cluster&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Print method for net_hg_cluster</dd>
-
-        <dt>
-
-          <code><a href="print.net_hg_transduction.html">print(<i>&lt;net_hg_transduction&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Print method for net_hg_transduction</dd>
-
-        <dt>
-
           <code><a href="print.text_hypergraph.html">print(<i>&lt;text_hypergraph&gt;</i>)</a></code>
 
         </dt>
@@ -1153,20 +1033,6 @@
 
         </dt>
         <dd>Simplicial complex from sequences, a network or a memory network</dd>
-
-        <dt>
-
-          <code><a href="summary.net_hg_cluster.html">summary(<i>&lt;net_hg_cluster&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Summary method for net_hg_cluster</dd>
-
-        <dt>
-
-          <code><a href="summary.net_hg_transduction.html">summary(<i>&lt;net_hg_transduction&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Summary method for net_hg_transduction</dd>
 
         <dt>
 
@@ -1240,24 +1106,10 @@
 
         <dt>
 
-          <code><a href="plot.net_hg_cluster.html">plot(<i>&lt;net_hg_cluster&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Plot method for net_hg_cluster</dd>
-
-        <dt>
-
           <code><a href="plot.net_hg_pairwise.html">plot(<i>&lt;net_hg_pairwise&gt;</i>)</a></code>
 
         </dt>
         <dd>Plot the pairwise network of a hypergraph</dd>
-
-        <dt>
-
-          <code><a href="plot.net_hg_transduction.html">plot(<i>&lt;net_hg_transduction&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Plot method for net_hg_transduction</dd>
 
         <dt>
 

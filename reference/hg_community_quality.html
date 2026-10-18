@@ -13,7 +13,7 @@ and conductance. Conductance is the maximum (worst) community conductance
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +29,6 @@ and conductance. Conductance is the maximum (worst) community conductance
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
-    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
     <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
@@ -114,6 +113,20 @@ structure in networks. <em>Physical Review E</em>, 69, 026113.
 <a href="https://doi.org/10.1098/rsta.2023.0141" class="external-link">doi:10.1098/rsta.2023.0141</a></p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">meetings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  member <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span>, <span class="st">"c"</span>, <span class="st">"x"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  meeting <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"m1"</span>, <span class="st">"m1"</span>, <span class="st">"m1"</span>, <span class="st">"m2"</span>, <span class="st">"m2"</span>, <span class="st">"m2"</span>, <span class="st">"m3"</span>, <span class="st">"m3"</span>, <span class="st">"m3"</span>,</span></span>
+<span class="r-in"><span>              <span class="st">"m4"</span>, <span class="st">"m4"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">meetings</span>, node <span class="op">=</span> <span class="st">"member"</span>, hyperedge <span class="op">=</span> <span class="st">"meeting"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="st">"A"</span>, b <span class="op">=</span> <span class="st">"A"</span>, c <span class="op">=</span> <span class="st">"A"</span>, x <span class="op">=</span> <span class="st">"B"</span>, y <span class="op">=</span> <span class="st">"B"</span>, z <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">hg_community_quality</span><span class="op">(</span><span class="va">hg</span>, <span class="va">groups</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    coverage weighted_coverage performance modularity conductance n_communities</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.8571429         0.8181818   0.9333333  0.2809917        0.25             2</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

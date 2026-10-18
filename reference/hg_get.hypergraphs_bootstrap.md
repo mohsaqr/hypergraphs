@@ -58,3 +58,23 @@ hg_get(
 
 A data.frame, one row per rule edge: `from`, `to`, `order`, `count`,
 `probability`, `ci_lower`, `ci_upper`, `support`, `n_boot_used`.
+
+## Examples
+
+``` r
+seqs <- list(
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d"),
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d")
+)
+bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+hg_get(bs, sort_by = "support", top = 6)
+#>   from to order count probability ci_lower ci_upper support n_boot_used
+#> 1    b  c     1     4         0.5  0.00000  0.94375    1.00          50
+#> 2    b  d     1     4         0.5  0.05625  1.00000    1.00          50
+#> 3    d  x     1     2         1.0  1.00000  1.00000    0.96          48
+#> 4    x  b     1     4         1.0  1.00000  1.00000    0.96          48
+#> 5    a  b     1     4         1.0  1.00000  1.00000    0.94          47
+#> 6    c  a     1     2         1.0  1.00000  1.00000    0.94          47
+```

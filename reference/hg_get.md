@@ -66,12 +66,6 @@ naming the class.
   see
   [`hg_get.text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.text_hypergraph.md).
 
-- `hg_hypergat`:
-
-  Predictions (default), evaluation, document text, history and optional
-  attention; see
-  [`hg_get.hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md).
-
 - `net_temporal_hypergraph`:
 
   `"memberships"` (default), `"edges"`, `"nodes"`.

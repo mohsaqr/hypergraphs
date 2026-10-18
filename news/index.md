@@ -1,5 +1,59 @@
 # Changelog
 
+## hypergraphs 0.7.7
+
+### Breaking changes
+
+- The release keeps the methods that have an independent oracle. These
+  functions are removed from the package and kept in its development
+  sources: `hg_neural()`, `hg_hypergat()`, `text_hypergat()`,
+  `heterogeneous_hgat()`, `hg_hypergcn()`, `hg_hnhn()`, `hg_allset()`,
+  `hg_embed()`, `hg_joint_cluster()` and `hg_dictionary()`. `torch` is
+  no longer a suggested package. Version 0.7.6 with every function is
+  installed with `pak::pak("mohsaqr/hypergraphs@uef")`.
+
+- [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
+  on a classification result no longer has the tables `"hyperedges"`,
+  `"hyperedge_words"` and `"documents"`, and
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) no longer has
+  `type = "hyperedges"`. They read the attention of `hg_hypergat()`.
+
+- [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
+  no longer tests `"density"` or `"avg_edge_size"`. Every null model
+  keeps the number of vertices, the number of hyperedges and the
+  hyperedge sizes, so both statistics are constant under the swap and
+  assignment nulls and change under the configuration null only when
+  stub matching collapses a membership. A request for either raises
+  `hypergraphs_bad_input`;
+  [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
+  reports both.
+
+### Bug fixes
+
+- [`hg_edge_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_edge_centrality.md)
+  failed on a hypergraph with a sparse incidence matrix. The s-line
+  graph now reaches cograph as an edge list, and the component sizes of
+  the closeness correction no longer need igraph.
+
+### Tests
+
+- Independent oracles for
+  [`hg_membership()`](https://pak.dynasite.org/hypergraphs/reference/hg_membership.md)
+  (XGI and scikit-fuzzy),
+  [`hg_representations()`](https://pak.dynasite.org/hypergraphs/reference/hg_representations.md)
+  (Table 2 of Coupette et al. 2024),
+  [`hg_line_graph()`](https://pak.dynasite.org/hypergraphs/reference/hg_line_graph.md)
+  and
+  [`hg_edge_centrality()`](https://pak.dynasite.org/hypergraphs/reference/hg_edge_centrality.md)
+  (HyperNetX and NetworkX),
+  [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
+  (vegan’s swap chain, an independent configuration model and the
+  authors’ assignment code), and
+  [`hg_community_quality()`](https://pak.dynasite.org/hypergraphs/reference/hg_community_quality.md)
+  and
+  [`hg_compare_communities()`](https://pak.dynasite.org/hypergraphs/reference/hg_compare_communities.md)
+  (NetworkX and scikit-learn).
+
 ## hypergraphs 0.7.6
 
 ### Installation
@@ -141,11 +195,8 @@ output.
   constructions and the document classification guide are articles on
   the package website, which keeps the source package small and its
   check short; the saved classification results moved with their
-  article.
-  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
-  [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
-  and the classification reader have runnable examples on the bundled
-  `forum_posts`.
+  article. `hg_hypergat()`, `hg_neural()` and the classification reader
+  have runnable examples on the bundled `forum_posts`.
 
 ### Construction and temporal hypergraphs
 
@@ -306,9 +357,9 @@ output.
   feature row names must be unique.
 - `hg_hypergat(min_count =)` counts token occurrences, as documented,
   rather than sentences.
-- [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
-  restores an absent random seed, HNHN operators are normalised in log
-  space, and the confusion table keeps a class named `(unscored)`.
+- `hg_neural()` restores an absent random seed, HNHN operators are
+  normalised in log space, and the confusion table keeps a class named
+  `(unscored)`.
 
 ### Arguments
 
@@ -505,13 +556,11 @@ output.
   analysis (Callon et al. 1983). Terms are lowercased and trimmed of the
   punctuation exports leave at their edges.
 
-- New
-  [`hg_dictionary()`](https://pak.dynasite.org/hypergraphs/reference/hg_dictionary.md)
-  labels each node by the dictionary category whose terms it carries
-  most (Grimmer & Stewart 2013); the result is the `labels` input of
+- New `hg_dictionary()` labels each node by the dictionary category
+  whose terms it carries most (Grimmer & Stewart 2013); the result is
+  the `labels` input of
   [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
-  and
-  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md).
+  and `hg_hypergat()`.
 
 - Documents without a label are `split = "unlabelled"` in an
   `hg_classification`, so `hg_get(fit, split = "unlabelled")` reads the
@@ -522,20 +571,16 @@ output.
   a `node` column), `sort_by` and `top` (vocabulary).
 
 - [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
-  and
-  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-  gain `holdout`: a share of the labels, drawn within each class with
-  `seed`, is hidden, predicted and scored. The result is an
-  `hg_classification` that prints the held-out accuracy and balanced
-  accuracy (Brodersen et al. 2010).
+  and `hg_hypergat()` gain `holdout`: a share of the labels, drawn
+  within each class with `seed`, is hidden, predicted and scored. The
+  result is an `hg_classification` that prints the held-out accuracy and
+  balanced accuracy (Brodersen et al. 2010).
   [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   reads its `"predictions"`, `"accuracy"`, `"classes"` and `"confusion"`
   tables, and filters the predictions with `split`, `correct`, `node`,
   `sort_by` and `top` (per class).
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
-  confusion table. A
-  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-  result retains its trained network.
+  confusion table. A `hg_hypergat()` result retains its trained network.
   [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   computes attention on request, and `plot(type = "attention")` shows
   its diagnostic weights. `plot(type = "hyperedges")` plots a document’s
@@ -543,9 +588,7 @@ output.
 
 - `labels` of
   [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
-  and
-  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
-  `clusters` of
+  and `hg_hypergat()`, `clusters` of
   [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md),
   [`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md)
   and
@@ -558,8 +601,7 @@ output.
   model gains `type = "prevalence"` with `group`, the prevalence of
   every topic in each group.
 
-- [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-  now returns a reusable fitted classifier in every run.
+- `hg_hypergat()` now returns a reusable fitted classifier in every run.
   [`predict()`](https://rdrr.io/r/stats/predict.html) classifies new
   documents using its trained network, frozen vocabulary and topic
   keywords; optional observed labels evaluate these predictions without
@@ -596,18 +638,13 @@ output.
 
 - Labels or groups that name documents
   [`text_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/text_hypergraph.md)
-  or
-  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-  dropped as empty are set aside with a warning in
+  or `hg_hypergat()` dropped as empty are set aside with a warning in
   [`hg_keywords()`](https://pak.dynasite.org/hypergraphs/reference/hg_keywords.md),
   [`hg_topic_sizes()`](https://pak.dynasite.org/hypergraphs/reference/hg_topic_sizes.md),
   [`topic_network()`](https://pak.dynasite.org/hypergraphs/reference/topic_network.md),
   [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md),
-  [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
-  and
-  [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
-  so the corpus table can be passed back whole; an id that never was a
-  document is still an error.
+  `hg_neural()` and `hg_hypergat()`, so the corpus table can be passed
+  back whole; an id that never was a document is still an error.
 
 - [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on an

@@ -4,7 +4,6 @@
 <url><loc>https://pak.dynasite.org/hypergraphs/articles/argentina-tribunals.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/articles/benchmarks.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/articles/covid-topics.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/articles/hypergat-classification.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/articles/hypergraphs.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/articles/index.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/articles/legal-hypergraphs.html</loc></url>
@@ -23,9 +22,7 @@
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/gfcc_citations.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/gfcc_decisions.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/group_hypergraph.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/heterogeneous_hgat.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_agreement.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_allset.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_assortativity.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_betti.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_bootstrap.html</loc></url>
@@ -44,14 +41,11 @@
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_compare_communities.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_degree.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_degree_correlation.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_dictionary.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_edge_centrality.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_edges.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_embed.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_euler.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_classification.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_communities.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_bootstrap.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_comparison.html</loc></url>
@@ -76,11 +70,7 @@
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.simplicial_complex.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_get.text_hypergraph.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_growth.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_hnhn.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_homology.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_hypergcn.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_joint_cluster.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_keywords.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_landscape.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_laplacian.html</loc></url>
@@ -91,7 +81,6 @@
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_mmsbm.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_modularity.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_motifs.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_neural.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_null_test.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_pagerank.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/hg_qanalysis.html</loc></url>
@@ -133,7 +122,6 @@
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/plot.net_hg_pairwise.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/plot.net_hg_transduction.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/plot.net_temporal_hypergraph.html</loc></url>
-<url><loc>https://pak.dynasite.org/hypergraphs/reference/predict.hg_hypergat.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/print.hypergraphs_bootstrap.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/print.hypergraphs_comparison.html</loc></url>
 <url><loc>https://pak.dynasite.org/hypergraphs/reference/print.hypergraphs_memory_communities.html</loc></url>

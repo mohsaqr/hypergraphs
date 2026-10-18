@@ -67,7 +67,7 @@ model selection in pathways and temporal networks. *Proceedings of KDD
 Gote, C., Casiraghi, G., Schweitzer, F., & Scholtes, I. (2023).
 Predicting variable-length paths in networked systems using multi-order
 generative models. *Applied Network Science*, 8, 68.
-[doi:10.1007/s41109-023-00596-0](https://doi.org/10.1007/s41109-023-00596-0)
+[doi:10.1007/s41109-023-00596-x](https://doi.org/10.1007/s41109-023-00596-x)
 
 ## See also
 

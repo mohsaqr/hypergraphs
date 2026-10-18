@@ -7,20 +7,22 @@ size) and randomizes the memberships by checkerboard swaps (Gotelli
 2000) – a sequential MCMC with burn-in `10 * nnz` swap attempts and
 thinning `nnz` between samples, `nnz` being the number of memberships.
 Statistics are evaluated on the binarized hypergraph (weights carry no
-meaning under this null), with the definitions
-[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
-uses: `"density"`, `"avg_edge_size"` and `"pairwise_participation"`
-equal the values of `hg_measures(hg, what = "summary")` (density is
-`m / choose(n, k)` for a `k`-uniform hypergraph, `sum(|e|) / (n * m)`
-otherwise).
+meaning under this null). `"pairwise_participation"` equals the value of
+`hg_measures(hg, what = "summary")`. The density and the mean hyperedge
+size are not tested. The swap and assignment nulls keep the number of
+vertices, the number of hyperedges and the hyperedge sizes, so both
+statistics are constant under them, and under the configuration null
+they change only when stub matching collapses a membership. They are
+read with
+[`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md).
 
 ## Usage
 
 ``` r
 hg_null_test(
   hg,
-  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard",
-    "repeated_edges", "repeated_pairs"),
+  statistic = c("pairwise_participation", "avg_jaccard", "repeated_edges",
+    "repeated_pairs"),
   method = c("swap", "configuration", "assignment"),
   n = 199L,
   seed = NULL,
@@ -39,12 +41,12 @@ hg_null_test(
 
 - statistic:
 
-  Statistics to test; any of `"pairwise_participation"`, `"density"`,
-  `"avg_edge_size"`, `"avg_jaccard"` (mean pairwise edge Jaccard),
-  `"repeated_edges"` (hyperedges whose member set already occurred: the
-  paper's repeated collaboration trios) and `"repeated_pairs"` (member
-  pairs counted with multiplicity minus the distinct co-occurring pairs:
-  its repeated collaboration pairs). Several allowed.
+  Statistics to test; any of `"pairwise_participation"`, `"avg_jaccard"`
+  (mean pairwise edge Jaccard), `"repeated_edges"` (hyperedges whose
+  member set already occurred: the paper's repeated collaboration trios)
+  and `"repeated_pairs"` (member pairs counted with multiplicity minus
+  the distinct co-occurring pairs: its repeated collaboration pairs).
+  Several allowed.
 
 - method:
 
@@ -91,17 +93,17 @@ value, not the p-value alone.
 ## Conditions
 
 Raises `hypergraphs_bad_input` for broken contracts, including an `n`
-that is not one whole number \>= 19. A statistic the hypergraph cannot
-define – `"avg_edge_size"` without hyperedges, `"avg_jaccard"` with
-fewer than two hyperedges – is undefined in every null draw as well (the
-nulls keep the vertex and hyperedge counts), so its row is `NA` in every
-column but `statistic`, `n` and `method`, with a
-`hypergraphs_undefined_statistic` warning; the other requested
-statistics are tested as usual. `method = "configuration"` signals a
-`hypergraphs_configuration_collapse` warning when stub matching
-collapses more than 1% of memberships on average, which happens whenever
-hyperedges are large relative to the vertex set – the usual case in the
-document orientation.
+that is not one whole number \>= 19 and a request for `"density"` or
+`"avg_edge_size"` (see Description), whatever the storage of the
+incidence matrix. `"avg_jaccard"` on fewer than two hyperedges is
+undefined in every null draw as well (the nulls keep the hyperedge
+count), so its row is `NA` in every column but `statistic`, `n` and
+`method`, with a `hypergraphs_undefined_statistic` warning; the other
+requested statistics are tested as usual. `method = "configuration"`
+signals a `hypergraphs_configuration_collapse` warning when stub
+matching collapses more than 1% of memberships on average, which happens
+whenever hyperedges are large relative to the vertex set – the usual
+case in the document orientation.
 
 ## References
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,7 +23,6 @@
     <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Constructions of a text hypergraph</a></li>
-    <li><a class="dropdown-item" href="../articles/hypergat-classification.html">Classifying documents with existing subject labels</a></li>
     <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Examples</h6></li>
@@ -99,6 +98,33 @@ applied after any filter and after <code>sort_by</code>, so <code>sort_by</code>
 <code><a href="hg_compare.html">hg_compare()</a></code> for the columns).</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">first_order</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span>, <span class="fl">12</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">second_order</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"b"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                          simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">by_group</span> <span class="op">&lt;-</span> <span class="fu"><a href="hon.html">hon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">first_order</span>, <span class="va">second_order</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>, max_order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_compare.html">hg_compare</a></span><span class="op">(</span><span class="va">by_group</span>, n_perm <span class="op">=</span> <span class="fl">99</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">comparison</span>, sort_by <span class="op">=</span> <span class="st">"p_adj"</span>, top <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   from to order count count_first count_second probability_first</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1    a  b     1    23           5           18         0.2500000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2    a  c     1     8           8            0         0.4000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    b  b     1    14          14            0         0.5384615</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    b  c     1    24           6           18         0.2307692</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    c  a     1     6           6            0         0.3000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    c  b     1    26           8           18         0.4000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   probability_second       diff p_value      p_adj significant n_perm_used</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                1.0 -0.7500000    0.01 0.01333333        TRUE          99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                0.0  0.4000000    0.01 0.01333333        TRUE          99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                0.0  0.5384615    0.01 0.01333333        TRUE          99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                0.6 -0.3692308    0.01 0.01333333        TRUE          99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                0.0  0.3000000    0.01 0.01333333        TRUE          99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                1.0 -0.6000000    0.01 0.01333333        TRUE          99</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

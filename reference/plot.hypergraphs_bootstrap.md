@@ -28,3 +28,16 @@ plot(x, top = 20L, ...)
 ## Value
 
 A ggplot object, invisibly.
+
+## Examples
+
+``` r
+seqs <- list(
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d"),
+  c("a", "b", "c", "a", "b", "c"),
+  c("x", "b", "d", "x", "b", "d")
+)
+bs <- hg_bootstrap(seqs, n_boot = 50, max_order = 2, seed = 1)
+plot(bs, top = 10)
+```

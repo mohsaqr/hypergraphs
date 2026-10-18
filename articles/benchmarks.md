@@ -187,130 +187,6 @@ tf-idf class signatures survive subsampling better than spreading does.
 Few labels help the case for structure, but they do not overturn the
 class balance effect.
 
-## The neural tier: HGNN
-
-[`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
-trains the two-layer hypergraph convolutional network of Feng et
-al. (2019) natively in R ({torch}), on the same sparse document–word
-hypergraph and tf-idf features. Its propagation matrix is exactly the
-Zhou operator the transductive classifier spreads with – verified to
-machine precision in the tests, with forward-pass parity against the
-official implementation (DHG) at float32 precision. Training is
-stochastic, so every number is the mean of three seeds (SD and range
-shown); each run holds out 10% of the seeds (stratified) to pick the
-best epoch. Two configurations are reported: the original paper’s
-(`lr = 0.001`, 200 epochs, tuned for citation graphs with dense
-features) and the package default (`lr = 0.01`, 600 epochs, selected by
-validation accuracy for high-dimensional sparse text features).
-
-``` r
-
-neural <- read.csv("benchmark-neural.csv")
-knitr::kable(
-  subset(neural,
-         select = c(dataset, epochs, lr, accuracy, sd, acc_min, acc_max,
-                    macro_f1, fit_s)),
-  digits = 4
-)
-```
-
-| dataset | epochs |    lr | accuracy |     sd | acc_min | acc_max | macro_f1 |    fit_s |
-|:--------|-------:|------:|---------:|-------:|--------:|--------:|---------:|---------:|
-| 20ng    |    600 | 0.010 |   0.5355 | 0.0155 |  0.5260 |  0.5534 |   0.4998 | 840.9963 |
-| 20ng    |    200 | 0.001 |   0.6347 | 0.0089 |  0.6257 |  0.6435 |   0.6031 | 171.4803 |
-| R8      |    600 | 0.010 |   0.9539 | 0.0044 |  0.9511 |  0.9589 |   0.8491 |  79.9967 |
-| R8      |    200 | 0.001 |   0.9202 | 0.0049 |  0.9146 |  0.9237 |   0.6366 |  25.7847 |
-| R52     |    600 | 0.010 |   0.8440 | 0.0013 |  0.8431 |  0.8454 |   0.2168 | 439.9200 |
-| R52     |    200 | 0.001 |   0.7714 | 0.0051 |  0.7667 |  0.7769 |   0.0893 |  33.6647 |
-| ohsumed |    600 | 0.010 |   0.4093 | 0.0306 |  0.3740 |  0.4286 |   0.1611 | 121.4023 |
-| ohsumed |    200 | 0.001 |   0.3814 | 0.0014 |  0.3799 |  0.3826 |   0.1357 |  40.1323 |
-| mr      |    600 | 0.010 |   0.7692 | 0.0045 |  0.7642 |  0.7729 |   0.7684 |  52.3480 |
-| mr      |    200 | 0.001 |   0.7671 | 0.0034 |  0.7648 |  0.7710 |   0.7668 |  17.4503 |
-
-The tuned configuration lifts R8 to 0.9539 (above the centroid’s 0.9246;
-published TextGCN 0.9707) and R52 to 0.8440 (a 32-point jump over
-transduction’s 0.5284, though still under the centroid), and holds MR at
-0.7692 – the best HGNN number in this article for that dataset. On
-Ohsumed and 20NG, however, HGNN underperforms the closed-form
-transduction at every configuration tested (20NG: 0.5355 tuned, 0.6347
-at paper defaults, vs 0.8477 for transduction). The loss curves say this
-is not an optimization failure alone: the corpus-level document-node
-design oversmooths – two rounds of propagation through high-degree word
-hyperedges blur exactly the distinctions 20 newsgroups need. The
-literature’s answer is document-level hypergraphs with attention over
-hyperedges: HyperGAT, next.
-
-## HyperGAT: document-level hypergraphs with dual attention
-
-[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-implements Ding et al. (2020) natively: every document becomes its own
-hypergraph (its unique words as vertices, its sentences as hyperedges),
-a first attention layer aggregates words into sentence representations,
-a second aggregates sentences back into words, and a masked mean pool
-feeds the classifier. The implementation mirrors the official code
-(verified against its source, with forward-pass parity at float32
-precision). `semantic = "none"` uses sentence hyperedges alone;
-`semantic = "lda"` adds the paper’s online-LDA topic hyperedges, trained
-on labeled documents only, and precomputed official keyword lists can be
-passed to replay the upstream preprocessing boundary exactly. The
-benchmark table below predates that implementation and remains
-explicitly sentence-only, so its closest published comparator is the
-paper’s “w/o semantic” ablation. One further honest difference: the
-official preprocessing lemmatizes with WordNet; ours does not. The
-benchmark runs on the official repository’s own corpus files (the
-TextGCN cleaned files used above contain no sentence punctuation at
-all), whose R8 split is 5,501/2,190 rather than TextGCN’s 5,485/2,189.
-Official training protocol throughout: 10 epochs, batch 8, StepLR,
-balanced class weights, 10% validation checkpointing; three torch seeds.
-
-``` r
-
-hypergat <- read.csv("benchmark-hypergat.csv")
-knitr::kable(hypergat, digits = 4)
-```
-
-| dataset | method | semantic | epochs | n_seeds | n_train | n_test | accuracy | sd | acc_min | acc_max | macro_f1 | fit_s |
-|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| R8 | hypergat | none | 10 | 3 | 5501 | 2190 | 0.9665 | 0.0034 | 0.9630 | 0.9699 | 0.9046 | 180.9783 |
-| R52 | hypergat | none | 10 | 3 | 6560 | 2570 | 0.9433 | 0.0018 | 0.9412 | 0.9447 | 0.7604 | 227.9630 |
-
-Every row was run with `semantic = "none"`, so each is set beside the
-published ablation that also drops the semantic hyperedges:
-
-``` r
-
-ablation <- subset(published, model == "HyperGAT w/o semantic",
-                   select = c(dataset, accuracy, sd))
-full <- with(subset(published, model == "HyperGAT"),
-             data.frame(dataset, full_hypergat = accuracy))
-comparison <- merge(
-  subset(hypergat, semantic == "none", select = c(dataset, accuracy, sd)),
-  ablation, by = "dataset", suffixes = c("_ours", "_wo_semantic")
-)
-comparison <- merge(comparison, full, by = "dataset")
-comparison <- transform(comparison,
-                        difference = accuracy_ours - accuracy_wo_semantic)
-knitr::kable(comparison, digits = 4)
-```
-
-| dataset | accuracy_ours | sd_ours | accuracy_wo_semantic | sd_wo_semantic | full_hypergat | difference |
-|:---|---:|---:|---:|---:|---:|---:|
-| R52 | 0.9433 | 0.0018 | 0.9415 | 0.0032 | 0.9498 | 0.0018 |
-| R8 | 0.9665 | 0.0034 | 0.9714 | 0.0026 | 0.9797 | -0.0049 |
-
-This is the package’s strongest result. R8 reaches 0.9665 (SD 0.0034) –
-above every other method in this article, 0.49 points below the matching
-published ablation, HyperGAT w/o semantic (0.9714 +/- 0.0026), and near
-published transductive TextGCN (0.9707). R52 reaches 0.9433 (SD 0.0018),
-0.18 points above the published w/o-semantic ablation (0.9415 +/-
-0.0032) and above published transductive TextGCN (0.9356) – against our
-previous R52 best of 0.8797 (the centroid). Full HyperGAT (0.9797 on R8,
-0.9498 on R52) adds LDA semantic hyperedges these runs did not use, so
-it is not the like-for-like comparator. Wall-clock: under four minutes
-per training run on a laptop CPU. The architecture, not more
-optimization of the corpus-level design, was what the skewed news
-corpora needed.
-
 ## Unsupervised UMAP/HDBSCAN baseline
 
 Classification accuracy is not a valid comparator for unsupervised
@@ -419,32 +295,19 @@ BERTopic’s topic representations are not part of this comparison.
 
 ## When to use which
 
-Use `hg_classify(normalization = "class_mass")` when classes are roughly
-balanced or labels are scarce, and always over the raw argmax: the raw
-rule’s majority-class collapse on skewed seeds is total. Use
-`type = "random_walk"` when tf-idf weights should shape the walk itself;
-it was best on Ohsumed here. Use the neural tier when plentiful labels
-can pay for training, and pick the architecture by corpus shape:
-[`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-for classification of documents with sentence structure – it holds the
-package’s best R8 (0.9665) and R52 (0.9433), both sentence-only and
-within half a point of the paper’s matching “w/o semantic” ablation –
-and
-[`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
-(HGNN) when the corpus-level hypergraph with rich vertex features is the
-natural object (it holds MR at 0.7692). Neither beats the closed-form
-classifier everywhere: on 20NG the transduction’s 0.8477 still leads
-everything we trained. For skewed many-class corpora without training, a
-tf-idf centroid remains a strong, nearly free baseline; the full
-published HyperGAT (with LDA hyperedges) holds the state of the art. The
-package’s contribution is that every non-published row above runs
-natively in R – the transductive ones in seconds, the neural ones in
-minutes on a CPU – each from one verb.
+Label spreading with `normalization = "class_mass"` suits corpora whose
+classes are roughly balanced or whose labels are scarce. The raw argmax
+assigns every document to the majority class when the seeds are skewed.
+The random-walk Laplacian (`type = "random_walk"`) lets the tf-idf
+weights shape the walk, and it gave the best Ohsumed accuracy here. On
+20NG label spreading reached 0.8477, the highest accuracy of the methods
+run for this article. On skewed corpora with many classes, a tf-idf
+centroid is a strong baseline at almost no cost, and the published
+HyperGAT with LDA hyperedges holds the best accuracy reported for these
+corpora. Each row above that is not taken from a publication was
+computed in R in seconds.
 
 ## References
-
-Feng, Y., You, H., Zhang, Z., Ji, R., & Gao, Y. (2019). Hypergraph
-neural networks. *AAAI 33*.
 
 Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with less:
 Hypergraph attention networks for inductive text classification. *EMNLP

@@ -97,8 +97,6 @@ The hypergraph and text families are hypergraphs' own.
   [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md);
   PageRank
   [`hg_pagerank()`](https://pak.dynasite.org/hypergraphs/reference/hg_pagerank.md);
-  embeddings
-  [`hg_embed()`](https://pak.dynasite.org/hypergraphs/reference/hg_embed.md);
   projections
   [`pairwise_network()`](https://pak.dynasite.org/hypergraphs/reference/pairwise_network.md),
   [`hg_line_graph()`](https://pak.dynasite.org/hypergraphs/reference/hg_line_graph.md),
@@ -118,13 +116,6 @@ The hypergraph and text families are hypergraphs' own.
   [`hg_motifs()`](https://pak.dynasite.org/hypergraphs/reference/hg_motifs.md);
   null models
   [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md);
-  neural networks
-  [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md),
-  [`text_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md),
-  [`heterogeneous_hgat()`](https://pak.dynasite.org/hypergraphs/reference/heterogeneous_hgat.md),
-  [`hg_hypergcn()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergcn.md),
-  [`hg_hnhn()`](https://pak.dynasite.org/hypergraphs/reference/hg_hnhn.md),
-  [`hg_allset()`](https://pak.dynasite.org/hypergraphs/reference/hg_allset.md);
   embedding constructor
   [`knn_hypergraph()`](https://pak.dynasite.org/hypergraphs/reference/knn_hypergraph.md).
 

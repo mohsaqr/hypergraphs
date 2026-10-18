@@ -62,3 +62,18 @@ structure in networks. *Physical Review E*, 69, 026113.
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 *Philosophical Transactions of the Royal Society A*, 382, 20230141.
 [doi:10.1098/rsta.2023.0141](https://doi.org/10.1098/rsta.2023.0141)
+
+## Examples
+
+``` r
+meetings <- data.frame(
+  member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "c", "x"),
+  meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
+              "m4", "m4")
+)
+hg <- group_hypergraph(meetings, node = "member", hyperedge = "meeting")
+groups <- c(a = "A", b = "A", c = "A", x = "B", y = "B", z = "B")
+hg_community_quality(hg, groups)
+#>    coverage weighted_coverage performance modularity conductance n_communities
+#> 1 0.8571429         0.8181818   0.9333333  0.2809917        0.25             2
+```

@@ -26,11 +26,6 @@ One reader for every object.
   [`hg_get(`*`<hg_communities>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_communities.md)
   [`plot(`*`<hg_communities>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_communities.md)
   : Tables of a hypergraph community ensemble
-- [`hg_get(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  [`print(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  [`summary(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  [`plot(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  : Read a fitted HyperGAT classifier
 - [`hg_get(`*`<hypergraphs_bootstrap>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_bootstrap.md)
   : Inference table of a memory-network bootstrap
 - [`hg_get(`*`<hypergraphs_comparison>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_comparison.md)
@@ -44,12 +39,6 @@ One reader for every object.
   : Tables of a group model of memory networks
 - [`hg_get(`*`<net_hg>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_hg.md)
   : Tables of a hypergraph
-- [`hg_get(`*`<net_hg_cluster>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_hg_cluster.md)
-  : Assignment table of a hypergraph clustering fit
-- [`hg_get(`*`<net_hg_measures>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_hg_measures.md)
-  : Tables of a hypergraph measures fit
-- [`hg_get(`*`<net_hg_transduction>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_hg_transduction.md)
-  : Tables of a hypergraph transduction fit
 - [`hg_get(`*`<net_hon>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_hon.md)
   : Tables of a higher-order network
 - [`hg_get(`*`<net_honem>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.net_honem.md)
@@ -247,10 +236,6 @@ An arbitrary set of nodes bound as a unit.
   : Normalized hypergraph Laplacian
 - [`hg_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_cluster.md)
   : Spectral or symmetric-NMF clustering of hypergraph vertices
-- [`hg_joint_cluster()`](https://pak.dynasite.org/hypergraphs/reference/hg_joint_cluster.md)
-  : Joint NMF clustering with an auxiliary vertex relation
-- [`hg_embed()`](https://pak.dynasite.org/hypergraphs/reference/hg_embed.md)
-  : Low-Dimensional Hypergraph Embedding
 - [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
   : Transductive label spreading on a hypergraph
 
@@ -277,27 +262,12 @@ An arbitrary set of nodes bound as a unit.
   [`plot(`*`<hypergraphs_community_comparison>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_compare_communities.md)
   : Compare community structure across representations
 
-### Null models and neural networks
+### Null models
 
 - [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
   : Degree-preserving null-model test of hypergraph structure
 - [`hypa(`*`<net_hg>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hypa.net_hg.md)
   : Hypergeometric anomaly detection for co-occurring node pairs
-- [`hg_neural()`](https://pak.dynasite.org/hypergraphs/reference/hg_neural.md)
-  : Hypergraph neural network classifier (HGNN)
-- [`hg_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-  [`text_hypergat()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergat.md)
-  : HyperGAT document classifier
-- [`predict(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/predict.hg_hypergat.md)
-  : Predict documents with a fitted HyperGAT classifier
-- [`heterogeneous_hgat()`](https://pak.dynasite.org/hypergraphs/reference/heterogeneous_hgat.md)
-  : Heterogeneous graph attention classifier (HGAT)
-- [`hg_hypergcn()`](https://pak.dynasite.org/hypergraphs/reference/hg_hypergcn.md)
-  : HyperGCN node classifier
-- [`hg_hnhn()`](https://pak.dynasite.org/hypergraphs/reference/hg_hnhn.md)
-  : HNHN node classifier
-- [`hg_allset()`](https://pak.dynasite.org/hypergraphs/reference/hg_allset.md)
-  : AllSet hypergraph node classifier
 
 ## Text hypergraphs
 
@@ -355,8 +325,6 @@ verbs.
   : Agreement between two labelings of the same nodes
 - [`hg_seeds()`](https://pak.dynasite.org/hypergraphs/reference/hg_seeds.md)
   : Seed labels from a clustering, for spreading or training
-- [`hg_dictionary()`](https://pak.dynasite.org/hypergraphs/reference/hg_dictionary.md)
-  : Label nodes with a dictionary of terms
 - [`hg_classify()`](https://pak.dynasite.org/hypergraphs/reference/hg_classify.md)
   : Transductive label spreading on a hypergraph
 
@@ -376,11 +344,6 @@ verbs.
   [`hg_get(`*`<hg_communities>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_communities.md)
   [`plot(`*`<hg_communities>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_communities.md)
   : Tables of a hypergraph community ensemble
-- [`hg_get(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  [`print(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  [`summary(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  [`plot(`*`<hg_hypergat>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hg_hypergat.md)
-  : Read a fitted HyperGAT classifier
 - [`print(`*`<hypergraphs_memory_group>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
   [`hg_get(`*`<hypergraphs_memory_group>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
   [`print(`*`<hypergraphs_bootstrap_group>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_get.hypergraphs_memory_group.md)
@@ -420,10 +383,6 @@ verbs.
   [`print(`*`<hypergraphs_result>`*`)`](https://pak.dynasite.org/hypergraphs/reference/print.hypergraphs_result.md)
   [`plot(`*`<hypergraphs_result>`*`)`](https://pak.dynasite.org/hypergraphs/reference/print.hypergraphs_result.md)
   : Print a result of an imported estimator
-- [`print(`*`<net_hg_cluster>`*`)`](https://pak.dynasite.org/hypergraphs/reference/print.net_hg_cluster.md)
-  : Print method for net_hg_cluster
-- [`print(`*`<net_hg_transduction>`*`)`](https://pak.dynasite.org/hypergraphs/reference/print.net_hg_transduction.md)
-  : Print method for net_hg_transduction
 - [`print(`*`<text_hypergraph>`*`)`](https://pak.dynasite.org/hypergraphs/reference/print.text_hypergraph.md)
   : Print a text hypergraph
 - [`hg_get(`*`<hypergraphs_summary>`*`)`](https://pak.dynasite.org/hypergraphs/reference/result-summary.md)
@@ -447,10 +406,6 @@ verbs.
   [`hg_get(`*`<hypergraphs_simplicial>`*`)`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
   [`print(`*`<hypergraphs_simplicial>`*`)`](https://pak.dynasite.org/hypergraphs/reference/simplicial.md)
   : Simplicial complex from sequences, a network or a memory network
-- [`summary(`*`<net_hg_cluster>`*`)`](https://pak.dynasite.org/hypergraphs/reference/summary.net_hg_cluster.md)
-  : Summary method for net_hg_cluster
-- [`summary(`*`<net_hg_transduction>`*`)`](https://pak.dynasite.org/hypergraphs/reference/summary.net_hg_transduction.md)
-  : Summary method for net_hg_transduction
 - [`hg_growth()`](https://pak.dynasite.org/hypergraphs/reference/hg_growth.md)
   [`plot(`*`<hypergraphs_series>`*`)`](https://pak.dynasite.org/hypergraphs/reference/hg_growth.md)
   : Growth of a temporal hypergraph over time
@@ -478,12 +433,8 @@ verbs.
   : Plot memory-network communities
 - [`plot(`*`<net_hg>`*`)`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg.md)
   : Plot a hypergraph with hyperedges as pebbles
-- [`plot(`*`<net_hg_cluster>`*`)`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg_cluster.md)
-  : Plot method for net_hg_cluster
 - [`plot(`*`<net_hg_pairwise>`*`)`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg_pairwise.md)
   : Plot the pairwise network of a hypergraph
-- [`plot(`*`<net_hg_transduction>`*`)`](https://pak.dynasite.org/hypergraphs/reference/plot.net_hg_transduction.md)
-  : Plot method for net_hg_transduction
 - [`plot(`*`<net_temporal_hypergraph>`*`)`](https://pak.dynasite.org/hypergraphs/reference/plot.net_temporal_hypergraph.md)
   : Plot a temporal hypergraph
 

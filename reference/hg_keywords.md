@@ -179,9 +179,9 @@ counts; `"centrality"` is the word's centrality among the cluster's
 sentence hyperedges.
 
 **External scores.** `scores` takes a data.frame with columns `node`,
-`word` and one numeric column (for instance the `attention` table from
-`hg_hypergat(what = "attention")`). Its values are summed per cluster
-and reported as their own block, labelled by the numeric column's name.
+`word` and one numeric column (for instance word weights from a model
+fitted elsewhere). Its values are summed per cluster and reported as
+their own block, labelled by the numeric column's name.
 
 ## References
 

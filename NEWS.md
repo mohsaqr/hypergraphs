@@ -1,3 +1,12 @@
+# hypergraphs 0.7.6
+
+## Installation
+
+* `pak::pak("mohsaqr/hypergraphs")` failed with "Can't install dependency
+  Nestimate (>= 0.9.26)", because CRAN has an older Nestimate and pak does
+  not read `Additional_repositories`. `DESCRIPTION` now names
+  `Remotes: mohsaqr/Nestimate`, so pak installs Nestimate from GitHub.
+
 # hypergraphs 0.7.5
 
 ## Breaking changes

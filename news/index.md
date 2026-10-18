@@ -1,16 +1,23 @@
 # Changelog
 
+## hypergraphs 0.7.8
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  classification result raises `hypergraphs_bad_input` for an argument
+  it does not take, such as the removed `type = "hyperedges"`, instead
+  of ignoring it.
+
 ## hypergraphs 0.7.7
 
 ### Breaking changes
 
 - The release keeps the methods that have an independent oracle. These
-  functions are removed from the package and kept in its development
-  sources: `hg_neural()`, `hg_hypergat()`, `text_hypergat()`,
-  `heterogeneous_hgat()`, `hg_hypergcn()`, `hg_hnhn()`, `hg_allset()`,
-  `hg_embed()`, `hg_joint_cluster()` and `hg_dictionary()`. `torch` is
-  no longer a suggested package. Version 0.7.6 with every function is
-  installed with `pak::pak("mohsaqr/hypergraphs@uef")`.
+  functions are removed: `hg_neural()`, `hg_hypergat()`,
+  `text_hypergat()`, `heterogeneous_hgat()`, `hg_hypergcn()`,
+  `hg_hnhn()`, `hg_allset()`, `hg_embed()`, `hg_joint_cluster()` and
+  `hg_dictionary()`. `torch` is no longer a suggested package. Version
+  0.7.6 with every function is installed with
+  `pak::pak("mohsaqr/hypergraphs@uef")`.
 
 - [`hg_get()`](https://pak.dynasite.org/hypergraphs/reference/hg_get.md)
   on a classification result no longer has the tables `"hyperedges"`,
@@ -19,12 +26,11 @@
   `type = "hyperedges"`. They read the attention of `hg_hypergat()`.
 
 - [`hg_null_test()`](https://pak.dynasite.org/hypergraphs/reference/hg_null_test.md)
-  no longer tests `"density"` or `"avg_edge_size"`. Every null model
-  keeps the number of vertices, the number of hyperedges and the
-  hyperedge sizes, so both statistics are constant under the swap and
-  assignment nulls and change under the configuration null only when
-  stub matching collapses a membership. A request for either raises
-  `hypergraphs_bad_input`;
+  no longer tests `"density"` or `"avg_edge_size"`. The swap and
+  assignment nulls keep the number of vertices, the number of hyperedges
+  and the hyperedge sizes, so both statistics are constant under them;
+  the configuration null changes them only when stub matching collapses
+  a membership. A request for either raises `hypergraphs_bad_input`;
   [`hg_measures()`](https://pak.dynasite.org/hypergraphs/reference/hg_measures.md)
   reports both.
 
@@ -37,7 +43,8 @@
 
 ### Tests
 
-- Independent oracles for
+- The development sources, which are not shipped with the package,
+  compare these functions with independent implementations:
   [`hg_membership()`](https://pak.dynasite.org/hypergraphs/reference/hg_membership.md)
   (XGI and scikit-fuzzy),
   [`hg_representations()`](https://pak.dynasite.org/hypergraphs/reference/hg_representations.md)

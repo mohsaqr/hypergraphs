@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypergraphs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,12 +47,17 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.8" id="hypergraphs-078">hypergraphs 0.7.8<a class="anchor" aria-label="anchor" href="#hypergraphs-078"></a></h2>
+<ul><li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a classification result raises <code>hypergraphs_bad_input</code> for an argument it does not take, such as the removed <code>type = "hyperedges"</code>, instead of ignoring it.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.7" id="hypergraphs-077">hypergraphs 0.7.7<a class="anchor" aria-label="anchor" href="#hypergraphs-077"></a></h2>
 <div class="section level3">
 <h3 id="breaking-changes-0-7-7">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-7-7"></a></h3>
-<ul><li><p>The release keeps the methods that have an independent oracle. These functions are removed from the package and kept in its development sources: <code>hg_neural()</code>, <code>hg_hypergat()</code>, <code>text_hypergat()</code>, <code>heterogeneous_hgat()</code>, <code>hg_hypergcn()</code>, <code>hg_hnhn()</code>, <code>hg_allset()</code>, <code>hg_embed()</code>, <code>hg_joint_cluster()</code> and <code>hg_dictionary()</code>. <code>torch</code> is no longer a suggested package. Version 0.7.6 with every function is installed with <code>pak::pak("mohsaqr/hypergraphs@uef")</code>.</p></li>
+<ul><li><p>The release keeps the methods that have an independent oracle. These functions are removed: <code>hg_neural()</code>, <code>hg_hypergat()</code>, <code>text_hypergat()</code>, <code>heterogeneous_hgat()</code>, <code>hg_hypergcn()</code>, <code>hg_hnhn()</code>, <code>hg_allset()</code>, <code>hg_embed()</code>, <code>hg_joint_cluster()</code> and <code>hg_dictionary()</code>. <code>torch</code> is no longer a suggested package. Version 0.7.6 with every function is installed with <code>pak::pak("mohsaqr/hypergraphs@uef")</code>.</p></li>
 <li><p><code><a href="../reference/hg_get.html">hg_get()</a></code> on a classification result no longer has the tables <code>"hyperedges"</code>, <code>"hyperedge_words"</code> and <code>"documents"</code>, and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> no longer has <code>type = "hyperedges"</code>. They read the attention of <code>hg_hypergat()</code>.</p></li>
-<li><p><code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> no longer tests <code>"density"</code> or <code>"avg_edge_size"</code>. Every null model keeps the number of vertices, the number of hyperedges and the hyperedge sizes, so both statistics are constant under the swap and assignment nulls and change under the configuration null only when stub matching collapses a membership. A request for either raises <code>hypergraphs_bad_input</code>; <code><a href="../reference/hg_measures.html">hg_measures()</a></code> reports both.</p></li>
+<li><p><code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> no longer tests <code>"density"</code> or <code>"avg_edge_size"</code>. The swap and assignment nulls keep the number of vertices, the number of hyperedges and the hyperedge sizes, so both statistics are constant under them; the configuration null changes them only when stub matching collapses a membership. A request for either raises <code>hypergraphs_bad_input</code>; <code><a href="../reference/hg_measures.html">hg_measures()</a></code> reports both.</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-0-7-7">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-7-7"></a></h3>
@@ -61,7 +66,7 @@
 </ul></div>
 <div class="section level3">
 <h3 id="tests-0-7-7">Tests<a class="anchor" aria-label="anchor" href="#tests-0-7-7"></a></h3>
-<ul><li>Independent oracles for <code><a href="../reference/hg_membership.html">hg_membership()</a></code> (XGI and scikit-fuzzy), <code><a href="../reference/hg_representations.html">hg_representations()</a></code> (Table 2 of Coupette et al. 2024), <code><a href="../reference/hg_line_graph.html">hg_line_graph()</a></code> and <code><a href="../reference/hg_edge_centrality.html">hg_edge_centrality()</a></code> (HyperNetX and NetworkX), <code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> (vegan’s swap chain, an independent configuration model and the authors’ assignment code), and <code><a href="../reference/hg_community_quality.html">hg_community_quality()</a></code> and <code><a href="../reference/hg_compare_communities.html">hg_compare_communities()</a></code> (NetworkX and scikit-learn).</li>
+<ul><li>The development sources, which are not shipped with the package, compare these functions with independent implementations: <code><a href="../reference/hg_membership.html">hg_membership()</a></code> (XGI and scikit-fuzzy), <code><a href="../reference/hg_representations.html">hg_representations()</a></code> (Table 2 of Coupette et al. 2024), <code><a href="../reference/hg_line_graph.html">hg_line_graph()</a></code> and <code><a href="../reference/hg_edge_centrality.html">hg_edge_centrality()</a></code> (HyperNetX and NetworkX), <code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> (vegan’s swap chain, an independent configuration model and the authors’ assignment code), and <code><a href="../reference/hg_community_quality.html">hg_community_quality()</a></code> and <code><a href="../reference/hg_compare_communities.html">hg_compare_communities()</a></code> (NetworkX and scikit-learn).</li>
 </ul></div>
 </div>
     <div class="section level2">

@@ -14,43 +14,37 @@
 
 #' Structural measures for a hypergraph
 #'
-#' Computes a comprehensive structural-statistics suite for a
-#' [net_hg][network_hypergraph]: node-level, hyperedge-level, and
-#' global measures. All measures are derived in a few BLAS calls on the
-#' incidence matrix.
+#' Node, hyperedge and whole-hypergraph measures of a
+#' [net_hg][network_hypergraph], read from its incidence matrix. `what`
+#' selects the table.
 #'
-#' `what =` selects which table is returned, as a tidy data.frame.
 #' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`).
 #' @param what Which table: `"nodes"` (default; one row per node with
 #'   `hyperdegree`, `strength`, `max_edge_size` and `n_neighbors`, the
 #'   distinct nodes it shares a hyperedge with), `"edges"` (one row per
-#'   hyperedge with its `size`), `"overlap"` (one row per hyperedge pair with
-#'   `overlap`, `overlap_coefficient`, `jaccard`), `"summary"` (one row per
-#'   scalar measure), `"distribution"` (the empirical distribution of
-#'   `measure`, as a `hypergraphs_distribution` table whose `plot()` draws the
-#'   CCDF), or `"components"` (one row per connected component through shared
-#'   hyperedges, with its `n_nodes`, `n_edges`, `share` of nodes and
-#'   `diameter`).
+#'   hyperedge with its `size`), `"overlap"` (one row per pair of hyperedges,
+#'   `edge_1` and `edge_2`, with `overlap`, `overlap_coefficient` and
+#'   `jaccard`), `"summary"` (one row per scalar `measure` with its `value`:
+#'   `n_nodes`, `n_hyperedges`, `density`, `avg_edge_size` and
+#'   `pairwise_participation`), `"distribution"` (the empirical distribution
+#'   of `measure`, as a `hypergraphs_distribution` table whose `plot()` shows
+#'   the complementary cumulative distribution), or `"components"` (one row
+#'   per connected component through shared hyperedges, with its `n_nodes`,
+#'   `n_edges`, `share` of nodes and `diameter`).
 #' @param measure For `what = "distribution"`: `"hyperdegree"` (default),
 #'   `"strength"`, `"n_neighbors"` (node measures) or `"size"` (hyperedge
 #'   cardinality).
 #' @details
-#' All measures are computed via standard matrix operations on the binary
-#' incidence \eqn{B = (b_{ij})} where \eqn{b_{ij} = 1} iff node \eqn{i}
-#' is in hyperedge \eqn{j}:
-#' \itemize{
-#'   \item `hyperdegree = rowSums(B)`,
-#'         `edge_sizes = colSums(B)`
-#'   \item `co_degree = tcrossprod(B)` (with zero diagonal)
-#'   \item `edge_pairwise_overlap = crossprod(B)` (with zero diagonal)
-#'   \item `overlap_coefficient[i, j] = overlap[i, j] /
-#'         min(edge_sizes[i], edge_sizes[j])`
-#'   \item `jaccard[i, j] = overlap[i, j] /
-#'         (edge_sizes[i] + edge_sizes[j] - overlap[i, j])`
-#' }
+#' Let \eqn{B = (b_{ij})} be the binary incidence matrix, with
+#' \eqn{b_{ij} = 1} when node \eqn{i} is in hyperedge \eqn{j}. The
+#' hyperdegree of a node is its row sum, and the size of a hyperedge is its
+#' column sum. The overlap of hyperedges \eqn{i} and \eqn{j} is the
+#' \eqn{(i, j)} entry of \eqn{B^\top B}; the overlap coefficient divides it
+#' by the smaller of the two sizes, and the Jaccard index by the size of
+#' their union.
 #'
-#' Empty hypergraph (`n_hyperedges == 0`) returns trivial zeros and
-#' empty matrices.
+#' A hypergraph with no hyperedges gives zero measures and tables with no
+#' rows.
 #'
 #' @return A base `data.frame`, one row per node, edge, edge pair, measure,
 #'   distinct value, or component according to `what`.
@@ -244,6 +238,11 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #'
 #' @return A base `data.frame`, one row per node (or the `n` requested rows),
 #'   with one column per requested centrality.
+#' @section Conditions: Raises `hypergraphs_bad_input` for a broken argument
+#'   contract, and `hypergraphs_sparse_unsupported` for a type other than
+#'   `"katz"` on a hypergraph stored as a sparse matrix. Warns with
+#'   `hypergraphs_no_converge` when an eigenvector iteration stops at
+#'   `max_iter`; the last iterate is returned.
 #' @seealso [network_hypergraph()], [pairwise_network()],
 #'   [hg_measures()].
 #'
@@ -1285,10 +1284,9 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
 #' scores `F = (1 - xi) * (I - xi * S)^{-1} Y` spread the labels over the
 #' hypergraph, where `S = I - L` is the normalized similarity operator of
 #' the chosen Laplacian and `Y` is the label indicator matrix. Each node is
-#' assigned the class with the highest score. This is the non-neural
-#' ancestor of hypergraph-attention text classifiers: with documents as
-#' hyperedges over words (or vice versa) it classifies unlabeled nodes from
-#' a handful of labeled ones.
+#' assigned the class with the highest score. With documents as hyperedges
+#' over words, or words as hyperedges over documents, it classifies
+#' unlabeled nodes from a few labeled ones.
 #'
 #' The result is one row per node with its given and predicted label.
 #' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`).

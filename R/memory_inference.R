@@ -245,14 +245,12 @@
 #' @param n_cores Integer. Cores when `parallel = TRUE`.
 #' @param seed Optional integer seed.
 #'
-#' @return An object of class `hypergraphs_bootstrap`: a list with `edges` (the
-#'   tidy inference table, one row per rule edge of the observed network:
-#'   `from`, `to`, `order`, `count`, `probability`, `ci_lower`,
-#'   `ci_upper`, `support`, `n_boot_used`), `n_boot`, `level`,
-#'   `max_order`, `min_freq`, `n_trajectories`, and `seed`. Has `print`,
-#'   `summary` and `plot` methods; [hg_get()] returns the inference table
-#'   (optionally filtered with `min_support =` or restricted with
-#'   `order_min =`).
+#' @return An object of class `hypergraphs_bootstrap` with `print`,
+#'   `summary` and `plot` methods. [hg_get()] returns its inference table,
+#'   one row per rule edge of the observed network, with `from`, `to`,
+#'   `order`, `count`, `probability`, `ci_lower`, `ci_upper`, `support` and
+#'   `n_boot_used`; `min_support =` filters it and `order_min =` restricts
+#'   it to higher orders.
 #'
 #' @references
 #' Xu, J., Wickramarathne, T. L., & Chawla, N. V. (2016). Representing
@@ -694,10 +692,14 @@ plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
 # S3 methods: hypergraphs_comparison
 # ---------------------------------------------------------------------------
 
-#' Edge table of a memory-network comparison
+#' Tables of a memory-network comparison
 #'
 #' @param x A `hypergraphs_comparison` object from [hg_compare()].
-#' @param what `"edges"`, the only table: one row per pooled rule edge.
+#' @param what `"edges"` (default), one row per pooled rule edge, or
+#'   `"global"`, one row with the global permutation test: `statistic` (the
+#'   weighted mean absolute difference), `p_value`, `n_comparable` (rules
+#'   estimated in both groups), `n_rules` and `n_perm_used`, the
+#'   permutations with a defined statistic.
 #' @param ... Additional arguments (ignored).
 #' @param significant Logical. `TRUE` restricts to edges whose adjusted
 #'   p-value falls below the object's `alpha`. Default `FALSE` (all
@@ -706,8 +708,8 @@ plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
 #'   `"count"`, or `"p_adj"` - sort by absolute difference or count
 #'   (largest first) or adjusted p-value (smallest first), ties broken by
 #'   from/to.
-#' @return A data.frame, one row per pooled rule edge (see
-#'   [hg_compare()] for the columns).
+#' @return A data.frame: for `"edges"` one row per pooled rule edge (see
+#'   [hg_compare()] for the columns), for `"global"` one row.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
@@ -721,11 +723,19 @@ plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
 #'                 group = rep(c("first", "second"), each = 6), max_order = 2)
 #' comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
 #' hg_get(comparison, sort_by = "p_adj", top = 6)
+#' hg_get(comparison, what = "global")
 #' @export
-hg_get.hypergraphs_comparison <- function(x, what = "edges", ...,
+hg_get.hypergraphs_comparison <- function(x, what = c("edges", "global"), ...,
                                    significant = FALSE,
                                    sort_by = NULL, top = NULL) {
-  .ho_match_what(what, "edges")
+  what <- .ho_match_what(what, c("edges", "global"))
+  if (identical(what, "global")) {
+    return(data.frame(statistic = x$global$statistic,
+                      p_value = x$global$p_value,
+                      n_comparable = x$global$n_comparable,
+                      n_rules = x$global$n_rules,
+                      n_perm_used = as.integer(x$global$n_perm_used)))
+  }
   out <- x$edges
   if (isTRUE(significant)) {
     out <- out[out$significant, , drop = FALSE]

@@ -112,8 +112,8 @@
 #' the same pairs, and `type = "uniform", scale = "degree"` is Newman's
 #' degree assortativity (tested against `igraph::assortativity_degree()`).
 #'
-#' **Convention differences with XGI 0.10.2** (`degree_assortativity(exact =
-#' TRUE)`), documented and tested: XGI's exact `"uniform"` weights every
+#' The conventions differ from XGI 0.10.2 (`degree_assortativity(exact =
+#' TRUE)`) in three places, all tested. XGI's exact `"uniform"` weights every
 #' hyperedge by its number of member pairs \eqn{m(m-1)} instead of counting
 #' each hyperedge once, so the two agree only on uniform hypergraphs (XGI's
 #' Monte Carlo sampler, `exact = FALSE`, samples Chodrow's edge-weighted
@@ -125,13 +125,13 @@
 #' The coefficient is undefined (`NA`) when either chosen score has zero
 #' variance across hyperedges, e.g. on a regular hypergraph.
 #'
-#' **Zero is not the null value for `"top_2"` and `"top_bottom"`.** Both
-#' pair order statistics of a hyperedge (its two largest scores, or its
-#' largest and smallest), which are correlated even when members are drawn
-#' at random, so random hypergraphs give positive values (Chodrow 2020
-#' compares against a null model for this reason). Judge them against
-#' coefficients on degree-matched random hypergraphs, not against 0;
-#' `"uniform"` is centred near 0 under random mixing.
+#' For `"top_2"` and `"top_bottom"` the value expected under random mixing
+#' is positive. Both pair order statistics of a hyperedge (its two largest
+#' scores, or its largest and smallest), which are correlated even when
+#' members are drawn at random (Chodrow 2020 compares against a null model
+#' for this reason). These two coefficients are judged against coefficients
+#' on degree-matched random hypergraphs; `"uniform"` is centred near 0
+#' under random mixing.
 #'
 #' @param hg A hypergraphs `net_hg`, dense or sparse.
 #' @param type One or more of `"uniform"` (default), `"top_2"`,

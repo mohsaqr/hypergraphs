@@ -48,7 +48,7 @@ On a graph (every hyperedge of size two) the three choice functions give
 the same pairs, and \verb{type = "uniform", scale = "degree"} is Newman's
 degree assortativity (tested against \code{igraph::assortativity_degree()}).
 
-\strong{Convention differences with XGI 0.10.2} (\code{degree_assortativity(exact = TRUE)}), documented and tested: XGI's exact \code{"uniform"} weights every
+The conventions differ from XGI 0.10.2 (\code{degree_assortativity(exact = TRUE)}) in three places, all tested. XGI's exact \code{"uniform"} weights every
 hyperedge by its number of member pairs \eqn{m(m-1)} instead of counting
 each hyperedge once, so the two agree only on uniform hypergraphs (XGI's
 Monte Carlo sampler, \code{exact = FALSE}, samples Chodrow's edge-weighted
@@ -60,13 +60,13 @@ undefined. \code{"top_2"} agrees with XGI exactly.
 The coefficient is undefined (\code{NA}) when either chosen score has zero
 variance across hyperedges, e.g. on a regular hypergraph.
 
-\strong{Zero is not the null value for \code{"top_2"} and \code{"top_bottom"}.} Both
-pair order statistics of a hyperedge (its two largest scores, or its
-largest and smallest), which are correlated even when members are drawn
-at random, so random hypergraphs give positive values (Chodrow 2020
-compares against a null model for this reason). Judge them against
-coefficients on degree-matched random hypergraphs, not against 0;
-\code{"uniform"} is centred near 0 under random mixing.
+For \code{"top_2"} and \code{"top_bottom"} the value expected under random mixing
+is positive. Both pair order statistics of a hyperedge (its two largest
+scores, or its largest and smallest), which are correlated even when
+members are drawn at random (Chodrow 2020 compares against a null model
+for this reason). These two coefficients are judged against coefficients
+on degree-matched random hypergraphs; \code{"uniform"} is centred near 0
+under random mixing.
 }
 \section{Conditions}{
  Raises \code{hypergraphs_bad_input} when \code{hg} is not a

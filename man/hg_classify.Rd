@@ -60,10 +60,9 @@ framework of Zhou et al. (2006): given labels for a subset of nodes, the
 scores \verb{F = (1 - xi) * (I - xi * S)^\{-1\} Y} spread the labels over the
 hypergraph, where \code{S = I - L} is the normalized similarity operator of
 the chosen Laplacian and \code{Y} is the label indicator matrix. Each node is
-assigned the class with the highest score. This is the non-neural
-ancestor of hypergraph-attention text classifiers: with documents as
-hyperedges over words (or vice versa) it classifies unlabeled nodes from
-a handful of labeled ones.
+assigned the class with the highest score. With documents as hyperedges
+over words, or words as hyperedges over documents, it classifies
+unlabeled nodes from a few labeled ones.
 }
 \details{
 The result is one row per node with its given and predicted label.

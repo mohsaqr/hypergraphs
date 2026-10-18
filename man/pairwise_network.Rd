@@ -33,8 +33,8 @@ contribute once (the binary hypergraph).}
 
 \item{self_association}{For \code{type = "association"}: add the
 source-to-member association term of Coupette et al. (2024). Requires one
-source node per hyperedge through \code{edge_source} or
-\code{hg$edge_data$source}. For source \code{u}, every membership of target \code{v}
+source node per hyperedge through \code{edge_source} or a \code{source} column of
+the hyperedge attributes (\code{hg_get(hg, what = "edge_data")}). For source \code{u}, every membership of target \code{v}
 contributes \verb{1 / sum_e |e|} over the hyperedges sourced by \code{u}.}
 
 \item{edge_source}{The node each hyperedge comes from: the name of a

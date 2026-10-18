@@ -77,7 +77,7 @@ whether a held-out prediction is correct. \code{hg_get()} reads the
 evaluation tables.
 }
 \details{
-\code{plot()} draws the counts of true against predicted labels on
+\code{plot()} plots the counts of true against predicted labels on
 the test documents.
 }
 \examples{

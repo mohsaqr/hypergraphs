@@ -157,7 +157,7 @@
 #'              "c", "x"),
 #'   edge = c(rep(paste0("e", 1:4), each = 3), "e5", "e5")
 #' )
-#' h <- group_hypergraph(dat, "member", "edge")
+#' h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 #' split <- data.frame(node = c("a", "b", "c", "x", "y", "z"),
 #'                     community = c(1, 1, 1, 2, 2, 2))
 #' hg_modularity(h, split)

@@ -6,121 +6,96 @@
 \alias{hypergraphs-package}
 \title{hypergraphs: Higher-Order Network Analysis}
 \description{
-A higher-order network is one in which a relation reaches beyond a single
-pair of nodes at a single moment: either it \emph{binds more than two nodes at
-once}, or it \emph{depends on more than the current node}. The literature
-(Battiston et al. 2020; Bianconi 2021) organizes that idea into three
-structure families, and hypergraphs implements all three behind one taxonomy.
+A higher-order network is a network in which a relation binds more than
+two nodes at once or depends on more than the current node. The
+literature describes three structures for such relations: memory
+networks, simplicial complexes and hypergraphs. The package covers all
+three, together with text hypergraphs, which represent a corpus as a
+hypergraph. The works that define the structures are listed under
+References.
 }
-\section{Ownership}{
-
-
-The memory-network and simplicial-complex estimators are imported from a
-sibling estimation package; hypergraphs wraps them under its own names
-(\code{\link[=hon]{hon()}}, \code{\link[=honem]{honem()}}, \code{\link[=mogen]{mogen()}}, \code{\link[=hypa]{hypa()}}, \code{\link[=markov_order]{markov_order()}},
-\code{\link[=memory]{memory()}}, \code{\link[=hg_markov_stability]{hg_markov_stability()}}, \code{\link[=simplicial]{simplicial()}},
-\code{\link[=hg_homology]{hg_homology()}}, \code{\link[=hg_landscape]{hg_landscape()}}, \code{\link[=hg_bottleneck]{hg_bottleneck()}}, \code{\link[=hg_betti]{hg_betti()}},
-\code{\link[=hg_euler]{hg_euler()}}, \code{\link[=hg_qanalysis]{hg_qanalysis()}}, \code{\link[=hg_degree]{hg_degree()}}) and returns their result
-objects unchanged, so every number is the estimator's own. The wrappers
-add one sequence-input contract (long, wide, list or model input; see
-\link{sequence-input}), the \code{\link[=hg_get]{hg_get()}} reader for every result class, and the
-verbs hypergraphs computes itself on top of them (\code{\link[=hg_bootstrap]{hg_bootstrap()}},
-\code{\link[=hg_compare]{hg_compare()}}, \code{\link[=hg_centrality]{hg_centrality()}}, \code{\link[=hg_communities]{hg_communities()}},
-\code{\link[=hg_wasserstein]{hg_wasserstein()}}). The hypergraph and text families are hypergraphs' own.
-}
-
-\section{The three families}{
+\section{Families}{
 
 
 \describe{
-\item{\strong{Memory networks}}{A node is a state \emph{plus the memory of how it
-was reached}, so a relation depends on history rather than only on the
-present state. Built from categorical sequences.
-Constructors \code{\link[=hon]{hon()}}, \code{\link[=honem]{honem()}}, \code{\link[=hypa]{hypa()}},
-\code{\link[=mogen]{mogen()}}; diagnostics \code{\link[=markov_order]{markov_order()}},
-\code{\link[=memory]{memory()}}; inference \code{\link[=hg_bootstrap]{hg_bootstrap()}}, \code{\link[=hg_compare]{hg_compare()}};
-measures \code{\link[=hg_centrality]{hg_centrality()}}.}
-\item{\strong{Simplicial complexes}}{A relation is a set of nodes that are
-\emph{all} mutually related, together with every one of its subsets, which
-gives the object a geometry and hence a topology.
-Constructor \code{\link[=simplicial]{simplicial()}}; measures \code{\link[=hg_betti]{hg_betti()}},
-\code{\link[=hg_euler]{hg_euler()}}, \code{\link[=hg_degree]{hg_degree()}}, \code{\link[=hg_qanalysis]{hg_qanalysis()}};
-topology \code{\link[=hg_homology]{hg_homology()}}, \code{\link[=hg_landscape]{hg_landscape()}},
-\code{\link[=hg_bottleneck]{hg_bottleneck()}}, \code{\link[=hg_wasserstein]{hg_wasserstein()}}.}
-\item{\strong{Hypergraphs}}{A relation is an arbitrary set of nodes bound as
-a unit, with no requirement that its subsets also be relations.
-Constructors \code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\link[=window_hypergraph]{window_hypergraph()}},
-\code{\link[=group_hypergraph]{group_hypergraph()}}, \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}; random models
-\code{\link[=random_hypergraph]{random_hypergraph()}}; measures \code{\link[=hg_measures]{hg_measures()}},
-\code{\link[=hg_centrality]{hg_centrality()}}; spectral methods \code{\link[=hg_laplacian]{hg_laplacian()}},
-\code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_classify]{hg_classify()}}; PageRank
-\code{\link[=hg_pagerank]{hg_pagerank()}}; projections \code{\link[=pairwise_network]{pairwise_network()}},
-\code{\link[=hg_line_graph]{hg_line_graph()}},
-\code{\link[=dual_hypergraph]{dual_hypergraph()}}; temporal views \code{\link[=hg_snapshot]{hg_snapshot()}},
-\code{\link[=hg_snapshots]{hg_snapshots()}}; hyperedge tables \code{\link[=hg_edges]{hg_edges()}} and
-s-centrality \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}; communities
-\code{\link[=hg_communities]{hg_communities()}} and \code{\link[=hg_community_quality]{hg_community_quality()}}; motifs
-\code{\link[=hg_motifs]{hg_motifs()}}; null models \code{\link[=hg_null_test]{hg_null_test()}}; embedding constructor
-\code{\link[=knn_hypergraph]{knn_hypergraph()}}.}
-\item{\strong{Text hypergraphs}}{A corpus is a bipartite document-word
-structure, which is a hypergraph in either orientation: documents as
-nodes bound by shared words, or words as nodes bound by shared
+\item{Memory networks}{A node is a state paired with the states visited
+just before it, so the probability of the next step depends on the
+path by which the current state was reached. The networks are
+estimated from categorical sequences given in long, wide, list or
+model form (see \link{sequence-input}). Constructors \code{\link[=hon]{hon()}}, \code{\link[=honem]{honem()}},
+\code{\link[=mogen]{mogen()}} and \code{\link[=hypa]{hypa()}}; order selection \code{\link[=markov_order]{markov_order()}}, \code{\link[=memory]{memory()}}
+and \code{\link[=hg_markov_stability]{hg_markov_stability()}}; inference \code{\link[=hg_bootstrap]{hg_bootstrap()}} and
+\code{\link[=hg_compare]{hg_compare()}}; measures \code{\link[=hg_centrality]{hg_centrality()}} and \code{\link[=hg_communities]{hg_communities()}}.}
+\item{Simplicial complexes}{A simplex is a set of nodes that are all
+related to each other, and a complex contains every subset of each of
+its simplices. Constructor \code{\link[=simplicial]{simplicial()}}; measures \code{\link[=hg_betti]{hg_betti()}},
+\code{\link[=hg_euler]{hg_euler()}}, \code{\link[=hg_degree]{hg_degree()}} and \code{\link[=hg_qanalysis]{hg_qanalysis()}}; persistent homology
+\code{\link[=hg_homology]{hg_homology()}}, \code{\link[=hg_landscape]{hg_landscape()}}, \code{\link[=hg_bottleneck]{hg_bottleneck()}} and
+\code{\link[=hg_wasserstein]{hg_wasserstein()}}.}
+\item{Hypergraphs}{A hyperedge is an arbitrary set of nodes, and its
+subsets need not be hyperedges. The main constructor \code{\link[=hypergraph]{hypergraph()}}
+selects one of \code{\link[=group_hypergraph]{group_hypergraph()}}, \code{\link[=window_hypergraph]{window_hypergraph()}},
+\code{\link[=network_hypergraph]{network_hypergraph()}} and \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} from its input;
+\code{\link[=knn_hypergraph]{knn_hypergraph()}}, \code{\link[=dual_hypergraph]{dual_hypergraph()}}, \code{\link[=random_hypergraph]{random_hypergraph()}} and
+\code{\link[=hg_subset]{hg_subset()}} build further hypergraphs. Descriptive measures
+\code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_representations]{hg_representations()}}, \code{\link[=hg_edges]{hg_edges()}},
+\code{\link[=hg_line_graph]{hg_line_graph()}}, \code{\link[=hg_transitivity]{hg_transitivity()}}, \code{\link[=hg_assortativity]{hg_assortativity()}},
+\code{\link[=hg_degree_correlation]{hg_degree_correlation()}} and \code{\link[=hg_motifs]{hg_motifs()}}; centrality
+\code{\link[=hg_centrality]{hg_centrality()}}, \code{\link[=hg_pagerank]{hg_pagerank()}} and \code{\link[=hg_edge_centrality]{hg_edge_centrality()}};
+spectral methods \code{\link[=hg_laplacian]{hg_laplacian()}}, \code{\link[=hg_cluster]{hg_cluster()}} and \code{\link[=hg_classify]{hg_classify()}};
+communities \code{\link[=hg_communities]{hg_communities()}}, \code{\link[=hg_modularity]{hg_modularity()}}, \code{\link[=hg_mmsbm]{hg_mmsbm()}},
+\code{\link[=hg_community_quality]{hg_community_quality()}} and \code{\link[=hg_compare_communities]{hg_compare_communities()}}; null models
+\code{\link[=hg_null_test]{hg_null_test()}} and \code{\link[=hypa]{hypa()}}; time \code{\link[=hg_snapshot]{hg_snapshot()}}, \code{\link[=hg_snapshots]{hg_snapshots()}}
+and \code{\link[=hg_growth]{hg_growth()}}; projection \code{\link[=pairwise_network]{pairwise_network()}}.}
+\item{Text hypergraphs}{A corpus is a bipartite structure of documents
+and words, and so a hypergraph in either orientation: documents as
+nodes joined by shared words, or words as nodes joined by shared
 documents. Constructor \code{\link[=text_hypergraph]{text_hypergraph()}} (bag of words, token
-windows, or embedding nearest neighbours); tidy verbs
-\code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_centrality]{hg_centrality()}}, \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_keywords]{hg_keywords()}},
-\code{\link[=hg_classify]{hg_classify()}}, \code{\link[=hg_stability]{hg_stability()}}, \code{\link[=hg_agreement]{hg_agreement()}}, \code{\link[=hg_seeds]{hg_seeds()}}.
-Every verb also accepts any \code{net_hg}.}
+windows, sentences or embedding nearest neighbours), with
+\code{\link[=clean_text]{clean_text()}} and \code{\link[=stop_words_en]{stop_words_en()}} for preparation; keywords
+\code{\link[=hg_keywords]{hg_keywords()}}; topic models \code{\link[=hg_topics]{hg_topics()}} and \code{\link[=hg_topic_search]{hg_topic_search()}};
+clusters and their diagnostics \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_cocluster]{hg_cocluster()}},
+\code{\link[=hg_stability]{hg_stability()}}, \code{\link[=hg_agreement]{hg_agreement()}}, \code{\link[=hg_membership]{hg_membership()}},
+\code{\link[=hg_topic_quality]{hg_topic_quality()}} and \code{\link[=hg_topic_sizes]{hg_topic_sizes()}}; classification
+\code{\link[=hg_classify]{hg_classify()}} with \code{\link[=hg_seeds]{hg_seeds()}}; topic relations \code{\link[=topic_network]{topic_network()}};
+sequences of topics \code{\link[=hg_sequences]{hg_sequences()}}.}
 }
 }
 
-\section{Verb grammar}{
+\section{Naming}{
 
 
-The same naming rules hold across all families:
-
-\describe{
-\item{Constructors are nouns}{\code{\link[=hon]{hon()}}, \code{\link[=honem]{honem()}}, \code{\link[=mogen]{mogen()}},
-\code{\link[=simplicial]{simplicial()}}, \code{\link[=markov_order]{markov_order()}}, \code{\link[=memory]{memory()}},
-\code{\link[=text_hypergraph]{text_hypergraph()}},
-\code{\link[=window_hypergraph]{window_hypergraph()}}, \code{\link[=group_hypergraph]{group_hypergraph()}}, ... Where a family admits
-several construction routes, they are selected with \verb{type =}.}
-\item{Everything else is \verb{hg_*()}}{Measures return a tidy
-\code{data.frame}, one row per node or per structure
-(\code{\link[=hg_centrality]{hg_centrality()}}, \code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_degree]{hg_degree()}}); inference
-returns a result object carrying estimates, intervals and p-values
-(\code{\link[=hg_bootstrap]{hg_bootstrap()}}, \code{\link[=hg_compare]{hg_compare()}}, \code{\link[=hg_null_test]{hg_null_test()}}). One verb
-names one idea and dispatches on its input: \code{\link[=hg_centrality]{hg_centrality()}},
-\code{\link[=hg_communities]{hg_communities()}} and \code{\link[=hypa]{hypa()}} take a memory network or a
-hypergraph.}
-\item{\code{\link[=hg_get]{hg_get()}} is the one reader}{Every result object hands over its
-tables through \code{hg_get(x, what = )} -- never through \code{$}. \verb{what =}
-selects a secondary table; filters, \code{sort_by} and \code{top} are named
-arguments. hypergraphs' result classes also have \code{print()},
-\code{summary()} and \code{plot()} methods.}
-}
+Constructors are nouns: \code{\link[=hon]{hon()}}, \code{\link[=simplicial]{simplicial()}}, \code{\link[=hypergraph]{hypergraph()}},
+\code{\link[=text_hypergraph]{text_hypergraph()}} and the \verb{<source>_hypergraph()} functions. Where a
+family has several construction routes, \verb{type =} selects one. All other
+functions begin with \code{hg_}. A measure returns a data frame with one row
+per node or per structure, and an inference function returns a result
+object with estimates, intervals and p-values. \code{\link[=hg_centrality]{hg_centrality()}},
+\code{\link[=hg_communities]{hg_communities()}} and \code{\link[=hypa]{hypa()}} take a memory network or a hypergraph.
+The tables of every result object are read with
+\code{hg_get(x, what = )}, where \code{what} names a secondary table and the
+named arguments \code{sort_by} and \code{top} order and shorten it.
 }
 
-\section{Crossing between families}{
+\section{Links between families}{
 
 
-The families are entry points into one another, not islands. The text
-family is the corpus front end of the hypergraph family: a
-\code{text_hypergraph} \emph{is} a \code{net_hg}, so every hypergraph verb takes
-it, and every \verb{hg_*()} verb takes any \code{net_hg} in return.
-\code{\link[=simplicial]{simplicial()}} with \code{type = "pathway"} turns a memory network into a
-simplicial complex; \code{\link[=window_hypergraph]{window_hypergraph()}} turns the same sequences into a
-hypergraph; \code{\link[=pairwise_network]{pairwise_network()}} projects a hypergraph back to a pairwise
-network that any of the first-order tools accept.
-\code{hg_get(x, what = "pathways")} on a memory network hands its
-sequence-derived path strings to the other two.
+A text hypergraph is a hypergraph, so every hypergraph function accepts
+it. \code{\link[=simplicial]{simplicial()}} with \code{type = "pathway"} builds a simplicial complex
+from a memory network, and \code{\link[=window_hypergraph]{window_hypergraph()}} builds a hypergraph from
+the same sequences. \code{\link[=pairwise_network]{pairwise_network()}} projects a hypergraph to a
+pairwise network. \code{\link[=hg_sequences]{hg_sequences()}} turns a clustered corpus into
+sequences for the memory family.
 }
 
 \references{
 Battiston, F., Cencetti, G., Iacopini, I., Latora, V., Lucas, M.,
 Patania, A., Young, J.-G., & Petri, G. (2020). Networks beyond pairwise
 interactions: Structure and dynamics. \emph{Physics Reports}, 874, 1-92.
+\doi{10.1016/j.physrep.2020.05.004}
 
 Bianconi, G. (2021). \emph{Higher-Order Networks}. Cambridge University Press.
+\doi{10.1017/9781108770996}
 }
 \seealso{
 Useful links:

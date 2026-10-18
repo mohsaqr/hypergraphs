@@ -122,6 +122,13 @@ test_that("hg_compare detects a planted rule difference", {
   expect_true(all(c("c", "d") %in% sig$to))
   expect_equal(subset(sig, to == "c")$diff, 1, tolerance = 1e-12)
   expect_identical(names(cmp$n_trajectories), c("early", "late"))
+  # the global test is one row of hg_get(), equal to the stored values
+  global <- hg_get(cmp, what = "global")
+  expect_identical(names(global), c("statistic", "p_value", "n_comparable",
+                                    "n_rules", "n_perm_used"))
+  expect_identical(global$p_value, cmp$global$p_value)
+  expect_identical(global$statistic, cmp$global$statistic)
+  expect_error(hg_get(cmp, what = "nodes"), class = "hypergraphs_bad_input")
 })
 
 test_that("hg_compare is calibrated under the null", {

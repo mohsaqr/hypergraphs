@@ -708,6 +708,8 @@ plot.net_hg_topics <- function(x, y, n = 8L, type = c("words", "prevalence"),
 #'
 #' @inheritParams hg_topics
 #' @param k Numbers of topics to compare, at least two whole numbers.
+#' @param nstart Number of random starts for each number of topics
+#'   (default `1`).
 #' @param n Top words per topic scored (default `10`).
 #' @param frexw Weight on exclusivity in FREX, in (0, 1) (default `0.7`).
 #' @param parallel Fit the numbers of topics with `parallel::mclapply()`
@@ -718,9 +720,9 @@ plot.net_hg_topics <- function(x, y, n = 8L, type = c("words", "prevalence"),
 #'   per number of topics: `k`, `coherence` and `exclusivity` (means over
 #'   the topics), `divergence` (of the kept start), `agreement` (mean
 #'   agreement of the topics across the starts; `NA` with `nstart = 1`),
-#'   `converged` and `frontier`. `plot()` draws exclusivity against
+#'   `converged` and `frontier`. `plot()` plots exclusivity against
 #'   coherence, one labelled point per number of topics, the frontier
-#'   joined by a line and drawn as filled points. Conditions are those of
+#'   joined by a line and plotted as filled points. Conditions are those of
 #'   [hg_topics()]; a start that does not converge raises
 #'   `hypergraphs_no_converge`.
 #' @references

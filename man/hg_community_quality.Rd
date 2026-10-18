@@ -28,7 +28,8 @@ passed to \code{\link[=pairwise_network]{pairwise_network()}}. Together these re
 binary/multi and self-association representations.}
 }
 \value{
-A one-row data frame.
+A one-row data frame with \code{coverage}, \code{weighted_coverage},
+\code{performance}, \code{modularity}, \code{conductance} and \code{n_communities}.
 }
 \description{
 Reports graph-partition diagnostics on the association projection:

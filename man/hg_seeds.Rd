@@ -8,23 +8,23 @@ hg_seeds(embedding, n = 5L)
 }
 \arguments{
 \item{embedding}{The data.frame from
-\code{hg_cluster(what = "embedding")} -- columns \code{node}, \code{cluster}, \code{pi}.}
+\code{hg_cluster(what = "embedding")}, with columns \code{node}, \code{cluster} and
+\code{pi}.}
 
 \item{n}{Seeds per cluster (default \code{5L}); clusters smaller than \code{n}
 contribute all their nodes.}
 }
 \value{
-A named character vector -- names are node identifiers, values
-their cluster labels -- ready to pass as the \code{labels} argument of
-\code{\link[=hg_classify]{hg_classify()}}.
+A named character vector, the cluster label of each seed named
+by the seed node, in the form the \code{labels} argument of \code{\link[=hg_classify]{hg_classify()}}
+takes.
 }
 \description{
-Turns an unsupervised partition into the labeled examples that
-\code{\link[=hg_classify]{hg_classify()}} takes: from each
-cluster, the \code{n} nodes with the highest stationary probability \code{pi}
-(the cluster's most representative members under the random walk).
-Ties are broken alphabetically by node name so the selection is
-deterministic.
+The seeds of a cluster are its \code{n} nodes with the highest stationary
+probability \code{pi} under the hypergraph random walk (Zhou et al. 2006;
+Hayashi et al. 2020), the members the walk visits most often. Ties are
+broken alphabetically by node name. The seeds serve as the labeled
+examples that \code{\link[=hg_classify]{hg_classify()}} takes.
 }
 \examples{
 hg <- text_hypergraph(c(
@@ -35,4 +35,13 @@ hg <- text_hypergraph(c(
 ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
 pool <- hg_cluster(hg, k = 2, seed = 1, what = "embedding")
 hg_seeds(pool, n = 1)
+}
+\references{
+Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+Clustering, classification, and embedding. \emph{NeurIPS 19}.
+\doi{10.7551/mitpress/7503.003.0205}
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.
+\doi{10.1145/3340531.3412034}
 }

@@ -28,7 +28,7 @@ A base \code{data.frame} of class \code{hypergraphs_topic_sizes}, one row per
 topic in natural order: \code{topic}, \code{n}, \code{share}, and with \code{weights}
 also \code{weighted_n} and \code{weighted_share}. When every clustered document
 has weight zero the weighted shares are undefined and reported as
-\code{NA}. \code{plot()} draws the shares as
+\code{NA}. \code{plot()} plots the shares as
 horizontal bars, weighted beside unweighted when both exist. Raises
 \code{hypergraphs_bad_input} for unknown node names, a node given two
 different clusters, or weights that do not name every clustered
@@ -51,4 +51,9 @@ topics <- hg_cluster(hg, k = 2, seed = 1)
 hg_topic_sizes(hg, topics)
 hg_topic_sizes(hg, topics, weights = c(cooking_1 = 3, cooking_2 = 1,
                                        space_1 = 1, space_2 = 1))
+}
+\references{
+Roberts, M. E., Stewart, B. M., & Tingley, D. (2019). stm: An R package
+for structural topic models. \emph{Journal of Statistical Software},
+91(2), 1-40. \doi{10.18637/jss.v091.i02}
 }

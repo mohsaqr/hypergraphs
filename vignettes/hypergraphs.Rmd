@@ -103,7 +103,7 @@ common_cover <- round(100 * sum(hg_get(common_trials, what = "sets")$share))
 plot(common_trials)
 ```
 
-The `r common_trials$n_hyperedges` sets cover `r common_cover`% of the
+The `r nrow(hg_get(common_trials))` sets cover `r common_cover`% of the
 trials. The sets of a stopped step, with `Comfort`, `GiveUp` and `Stopped`,
 lie apart from the sets of the first trial and the reattempts.
 
@@ -130,13 +130,15 @@ trial_set_table
 
 ```{r sets-values, include = FALSE}
 top_share <- round(100 * sum(trial_set_table$share))
+most_frequent_set <- hg_get(trial_sets, what = "sets", top = 1)$set
 ```
 
 The eight sets account for `r top_share`% of the trials. The most frequent
-set, `r trial_set_table$set[1]`, is a step completed on its first trial. The
+set, `r most_frequent_set`, is a step completed on its first trial. The
 next are a first trial with an incorrect answer, a correct first trial that
-opens with `Begin`, and reattempts after guidance or a question, which are
-correct or incorrect.
+opens with `Begin`, incorrect and correct reattempts after guidance, an
+incorrect first trial that opens with `Begin`, and reattempts after a
+question.
 
 ```{r sets-plot, fig.width = 10, fig.height = 7}
 plot(trial_sets)
@@ -194,7 +196,7 @@ n_windows <- sum(hg_get(window_hg)$weight)
 ```
 
 The `r format(n_windows, big.mark = ",")` windows give
-`r window_hg$n_hyperedges` distinct hyperedges. A window with a repeated
+`r nrow(hg_get(window_hg))` distinct hyperedges. A window with a repeated
 event contains fewer distinct events than its length, so some hyperedges
 have two nodes or one. With `min_weight`, only hyperedges produced by at
 least that many windows are kept, and `hg_subset()` with `size = 3` keeps
@@ -272,11 +274,11 @@ n_true <- sum(inferred_keys %in% observed_keys)
 n_found <- sum(observed_keys %in% inferred_keys)
 ```
 
-The network has `r n_pairs` pairs, and its cliques of three to
-`r max(hg_get(clique_hg)$size)` events give `r clique_hg$n_hyperedges`
+The network has `r n_pairs` pairs, and its cliques of 3 to
+`r max(hg_get(clique_hg)$size)` events give `r nrow(hg_get(clique_hg))`
 hyperedges. The trials contain `r length(observed_keys)` distinct sets of
 three or more events, and `r n_found` of them are among the cliques. The
-other `r clique_hg$n_hyperedges - n_true` cliques are sets whose pairs each
+other `r nrow(hg_get(clique_hg)) - n_true` cliques are sets whose pairs each
 occur in some trial while the whole set occurs in none. Identifying the
 observed groups among the cliques requires the hypergraph. The cliques cover
 the events so densely that their hulls hide one another in the plot.
@@ -318,23 +320,22 @@ the same trial.
 
 An eigenvector centrality gives a node a score that depends on the scores of
 the nodes it shares hyperedges with. The clique centrality is the
-eigenvector centrality of the projection. The Z and H centralities score a
-node by the product of the scores of the other members of each of its
-hyperedges. In the H centrality the score of the node itself is raised to the
-power k - 1, where k is the size of the largest hyperedge, and the scores are
-more even.
+eigenvector centrality of the projection. The H centrality scores a node by
+the product of the scores of the other members of each of its hyperedges,
+with the score of the node itself raised to the power k - 1, where k is the
+size of the largest hyperedge.
 
 ```{r centrality}
-event_centrality <- hg_centrality(trial_hg, sort_by = "H")
+event_centrality <- hg_centrality(trial_hg, type = c("clique", "H"),
+                                  sort_by = "H")
 event_centrality
 ```
 
 The clique centrality is highest for the events of a correct first trial,
 `Task`, `Attempt`, `Correct` and `Completed`, which occur together in most
-steps. The Z and H centralities rank `Incorrect` third. An incorrect first
-trial contains `Incorrect` with `Task` and `Attempt`, the two
-highest-scoring events, and the product of their scores raises the score of
-`Incorrect`.
+steps. The H centrality ranks `Incorrect` third. An incorrect first trial
+contains `Incorrect` with `Task` and `Attempt`, the two highest-scoring
+events, and the product of their scores raises the score of `Incorrect`.
 
 PageRank on a hypergraph is the stationary distribution of a random walk that
 moves from a node to a hyperedge that contains it and from the hyperedge to
@@ -348,7 +349,7 @@ event_pagerank
 `Comfort`, `GiveUp` and `Stopped` occur mostly together in the last trial of
 a stopped step, so a walk that reaches one of them moves among the three for
 several moves before it leaves. They rank seventh to ninth by PageRank and
-close to zero by the clique and Z centralities.
+close to zero by the clique centrality.
 
 ## Communities and clusters
 
@@ -392,10 +393,14 @@ partition_table <- hg_agreement(event_communities, event_clusters,
 partition_table
 ```
 
-The map equation separates the end of a stopped step from the other events.
-Spectral clustering divides the other events into those of a correct first
-trial and those of the reattempts. The adjusted Rand index between the two
-partitions is `r sprintf("%.2f", partition_agreement$ari)`.
+```{r agreement-text, echo = FALSE, results = "asis", eval = has_igraph}
+cat(sprintf(paste(
+  "The map equation separates the end of a stopped step from the other",
+  "events. Spectral clustering divides the other events into those of a",
+  "correct first trial and those of the reattempts. The adjusted Rand index",
+  "between the two partitions is %.2f."),
+  partition_agreement$ari))
+```
 
 ## Null models
 

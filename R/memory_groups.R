@@ -135,18 +135,16 @@ hg_get.hypergraphs_memory_group <- function(x, ...) {
 #' @param alpha Significance level for the `significant` flag on the
 #'   adjusted p-values. Default `0.05`.
 #' @param parallel,n_cores,seed As in [hg_bootstrap()].
-#' @return An object of class `hypergraphs_comparison`: a list with `edges` (one
-#'   row per pooled rule: `from`, `to`, `order`, `count`, the two groups'
-#'   counts and probabilities (columns named after the groups), `diff`
-#'   (probability difference, first minus second), `p_value`, `p_adj` (BH),
-#'   `significant`, `n_perm_used`), `global` (`statistic`, the
-#'   pooled-count-weighted mean absolute difference over the comparable
-#'   rules, `p_value`, `n_comparable` and `n_rules`, the comparable and
-#'   pooled rules, and `n_perm_used`, the permutations with a defined
-#'   statistic),
-#'   `names`, `n_perm`, `alpha`, `max_order`, `min_freq`, `n_trajectories`
-#'   (per group) and `seed`. Has `print`, `summary` and `plot` methods;
-#'   [hg_get()] returns the rule table (`significant = TRUE` restricts it).
+#' @return An object of class `hypergraphs_comparison` with `print`,
+#'   `summary` and `plot` methods. [hg_get()] returns its rule table, one
+#'   row per pooled rule, with `from`, `to`, `order`, `count`, the two
+#'   groups' counts and probabilities (columns named after the groups),
+#'   `diff` (probability difference, first minus second), `p_value`, `p_adj`
+#'   (Benjamini-Hochberg), `significant` and `n_perm_used`;
+#'   `significant = TRUE` restricts it to the significant rules.
+#'   `hg_get(x, what = "global")` returns the global test, whose `statistic`
+#'   is the pooled-count-weighted mean absolute difference over the rules
+#'   estimated in both groups.
 #' @references
 #' Xu, J., Wickramarathne, T. L., & Chawla, N. V. (2016). Representing
 #' higher-order dependencies in networks. \emph{Science Advances} 2(5),

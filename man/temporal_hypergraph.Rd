@@ -19,8 +19,7 @@ temporal_hypergraph(
   observation_start = NULL,
   observation_end = NULL,
   sparse = FALSE,
-  separator = NULL,
-  cooccur_by = NULL
+  separator = NULL
 )
 }
 \arguments{
@@ -72,9 +71,6 @@ Scopus and Web of Science reference and keyword fields -- so
 \code{separator = ";"} replaces the caller's own split, trim and
 drop-empties. Members empty after trimming are dropped, and a row left
 with no member contributes no hyperedge.}
-
-\item{cooccur_by}{Deprecated name of \code{group}; using it warns with a
-\code{hypergraphs_deprecated} condition.}
 }
 \value{
 A \code{net_temporal_hypergraph} holding the membership table (\code{node},

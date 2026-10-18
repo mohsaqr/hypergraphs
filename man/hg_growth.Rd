@@ -35,8 +35,7 @@ measures the whole period as one window.}
 
 \item{at}{Instants to measure instead of a grid; may be a vector.}
 
-\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description. The
-former \code{"all"} is deprecated: it is \code{"cumulative"} with \code{at} unset.}
+\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description.}
 
 \item{components}{Also report the connectivity of the measured hypergraph
 at each time: the number of connected components, the share of its nodes
@@ -59,7 +58,7 @@ with \code{time} (the window start on the hypergraph's clock), \code{n_nodes},
 \code{mode = "active"} also \code{n_nodes_cumulative}, \code{n_edges_cumulative} and
 \code{n_edges_distinct_cumulative}. With \code{components = TRUE}, further
 \code{n_components}, \code{largest_component} (share of active nodes) and
-\code{diameter}. \code{plot()} draws each count against time, on the calendar
+\code{diameter}. \code{plot()} plots each count against time, on the calendar
 when the hypergraph has one.
 
 For \code{plot}, a ggplot object.

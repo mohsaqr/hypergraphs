@@ -37,13 +37,12 @@ hyperedges the tribunals, and each hyperedge is active from the
 constitution of the tribunal to the conclusion of its case. A hypergraph
 keeps the tribunal as a unit, where a network of pairs of arbitrators
 dissolves it into three ties, and its temporal form keeps apart tribunals
-that never sat at the same time. This document asks three questions of the
-tribunals in the claims against Argentina. The first is who decided the
-claims, and how concentrated the seats were. The second is whether the same
-panels sat again more often than the numbers of tribunals of the
-arbitrators imply. The third is how the structure of the docket changed
-over two decades, and which tribunals connected it at each time. The
-tribunals are analysed over time and compared with the other ICSID cases.
+that never sat at the same time. The analysis below describes who decided
+the claims against Argentina and how concentrated the seats were, tests
+whether the same panels sat again more often than the numbers of tribunals
+of the arbitrators imply, and follows the structure of the docket and the
+tribunals that connected it over two decades. The tribunals are compared
+with those of the other ICSID cases.
 
 ## Data
 
@@ -74,8 +73,8 @@ year_of <- function(t) format(origin_date + t, "%Y")
 The `r n_cases` cases were heard by `r n_arbitrators` arbitrators. Their
 tribunals were constituted between `r first_tribunal` and
 `r last_tribunal`, `r early` of them before 2006 and `r wave` in 2003 and
-2004 alone. `r n_pending` cases are marked as pending on 15 June 2023, the
-end of observation. One of these, `r dated_pending$case`, also carries a
+2004 alone. On 15 June 2023, the end of observation, `r n_pending` cases are
+marked as pending. One of these, `r dated_pending$case`, also carries a
 conclusion date, `r day(dated_pending$concluded)`, and its tribunal is
 treated as concluded on that date.
 
@@ -226,7 +225,7 @@ Degree assortativity asks whether arbitrators with many tribunals sit with
 other arbitrators with many tribunals. From each tribunal a pair of
 arbitrators is chosen at random, and the coefficient is the rank
 correlation of their numbers of tribunals over all tribunals, a
-generalised Spearman coefficient.
+generalized Spearman coefficient (Chodrow 2020).
 
 ```{r assortativity}
 hg_assortativity(argentina_all)
@@ -252,9 +251,11 @@ distinct pairs, and `repeated_edges` is the number of tribunals whose set of
 arbitrators sat before. Whether these counts exceed what the numbers of
 tribunals of the arbitrators imply is tested against a null model. The swap
 null keeps the number of tribunals of every arbitrator and the size of
-every tribunal exactly and randomises the memberships by checkerboard
-swaps. The assignment null is a looser alternative, in which the arbitrators are taken in decreasing order of hyperdegree and
-assigned at random to tribunals with a free seat. Both are reported, each
+every tribunal exactly and randomizes the memberships by checkerboard
+swaps (Gotelli 2000). The assignment null of Coupette, Hartung and Katz
+(2024) is a looser alternative, in which the arbitrators are taken in
+decreasing order of hyperdegree and assigned at random to tribunals with a
+free seat. Both are reported, each
 with 999 draws.
 
 ```{r repeats}
@@ -322,9 +323,10 @@ repetition in the claims against Argentina.
 
 In a hypergraph whose hyperedges all have three nodes, four nodes can hold
 up to four hyperedges. The motif Y has two of them, two tribunals that share
-two arbitrators; T has three and O has all four. A motif count is compared
-with its distribution under a configuration model that keeps the hyperdegree
-of every node and the size of every hyperedge. The census of the aggregate
+two arbitrators; T has three and O has all four (Coupette, Hartung and
+Katz 2024). A motif count is compared with its distribution under a
+configuration model (Chodrow 2020) that keeps the hyperdegree of every node
+and the size of every hyperedge. The census of the aggregate
 uses 1,000 draws.
 
 ```{r motifs}
@@ -432,7 +434,7 @@ The mean neighbourhood of an active tribunal peaks at
 `r num(largest_neighbourhood$mean, 1)` arbitrators in
 `r year_of(largest_neighbourhood$time)`.
 
-The storyline plots the eight arbitrators with the most tribunals as lines
+The storyline (Tanahashi and Ma 2012) plots the eight arbitrators with the most tribunals as lines
 across their tribunals, in the order the tribunals were constituted. A line
 runs from an arbitrator's first tribunal to the last, and a grey bar at a
 tribunal gathers the lines of its members among the eight. Two neighbouring
@@ -495,8 +497,14 @@ hold the highest betweenness in at least one year. From
 `r format(first_quiet, "%Y")` on, no active tribunal lies between two
 others, because the active tribunals no longer share arbitrators.
 
-On 1 June 2006, near the peak of the docket, the backbone is the ten
-tribunals of highest betweenness in the snapshot of that day.
+```{r peak-values, include = FALSE}
+busiest <- head(subset(docket, n_edges == max(n_edges)), 1)
+```
+
+The docket was largest in `r year_of(busiest$time)`, with
+`r busiest$n_edges` active tribunals. On 1 June 2006 the backbone is the
+ten tribunals of highest s-betweenness (Aksoy et al. 2020) in the snapshot
+of that day.
 
 ```{r backbone}
 peak <- hg_snapshot(tribunals, at = as.Date("2006-06-01"))
@@ -579,14 +587,15 @@ ten.
 
 ## Communities of arbitrators
 
-Hypergraph modularity measures the quality of a partition of the nodes into
-communities, counting a hyperedge for a community when a majority of its
-nodes belong to it. Iteratively reweighted modularity maximisation (IRMM)
-finds a partition of high modularity, and Infomap partitions the
-association graph by minimising the description length of a random walk on
-it. Both are run from 20 seeds, and the partition reported is the
-medoid, the run with the largest summed adjusted mutual information with
-the other runs.
+Hypergraph modularity (Kamiński et al. 2019) measures the quality of a
+partition of the nodes into communities, counting a hyperedge for a
+community when a majority of its nodes belong to it. Iteratively reweighted
+modularity maximization (IRMM; Kumar et al. 2020) finds a partition of high
+modularity, and Infomap (Rosvall and Bergstrom 2008) partitions the
+association graph by minimizing the description length of a random walk on
+it. Both are run from 20 seeds, and the partition reported is the medoid,
+the run with the largest summed adjusted mutual information (Vinh, Epps and
+Bailey 2010) with the other runs.
 
 ```{r communities}
 irmm <- hg_communities(argentina_all, type = "irmm", seeds = 1:20,
@@ -660,3 +669,42 @@ knitr::kable(data.frame(
             num(test_value(repeats_other, "repeated_edges", "z"), 1))
 ), col.names = c("", "claims against Argentina", "cases against other states"))
 ```
+
+## References
+
+Aksoy, S. G., Joslyn, C., Ortiz Marrero, C., Praggastis, B., & Purvine, E.
+(2020). Hypernetwork science via high-order hypergraph walks. *EPJ Data
+Science*, 9, 16. https://doi.org/10.1140/epjds/s13688-020-00231-0
+
+Chodrow, P. S. (2020). Configuration models of random hypergraphs.
+*Journal of Complex Networks*, 8(3), cnaa018.
+https://doi.org/10.1093/comnet/cnaa018
+
+Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
+*Philosophical Transactions of the Royal Society A*, 382(2270), 20230141.
+https://doi.org/10.1098/rsta.2023.0141
+
+Gotelli, N. J. (2000). Null model analysis of species co-occurrence
+patterns. *Ecology*, 81(9), 2606–2621.
+
+Kamiński, B., Poulin, V., Prałat, P., Szufel, P., & Théberge, F. (2019).
+Clustering via hypergraph modularity. *PLOS ONE*, 14(11), e0224307.
+https://doi.org/10.1371/journal.pone.0224307
+
+Kumar, T., Vaidyanathan, S., Ananthapadmanabhan, H., Parthasarathy, S., &
+Ravindran, B. (2020). Hypergraph clustering by iteratively reweighted
+modularity maximization. *Applied Network Science*, 5, 52.
+https://doi.org/10.1007/s41109-020-00300-3
+
+Rosvall, M., & Bergstrom, C. T. (2008). Maps of random walks on complex
+networks reveal community structure. *Proceedings of the National Academy
+of Sciences*, 105(4), 1118–1123. https://doi.org/10.1073/pnas.0706851105
+
+Tanahashi, Y., & Ma, K.-L. (2012). Design considerations for optimizing
+storyline visualizations. *IEEE Transactions on Visualization and Computer
+Graphics*, 18(12), 2679–2688. https://doi.org/10.1109/TVCG.2012.212
+
+Vinh, N. X., Epps, J., & Bailey, J. (2010). Information theoretic measures
+for clusterings comparison: Variants, properties, normalization and
+correction for chance. *Journal of Machine Learning Research*, 11,
+2837–2854.

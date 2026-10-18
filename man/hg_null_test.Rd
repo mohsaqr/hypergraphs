@@ -71,9 +71,9 @@ read with \code{\link[=hg_measures]{hg_measures()}}.
 }
 \details{
 The permutation p-value is \code{(1 + extreme) / (n + 1)} (Phipson & Smyth
-2010), two-sided by default around the null mean; \code{null_lo}/\code{null_hi}
-are the 2.5\% and 97.5\% null quantiles -- report them with the observed
-value, not the p-value alone.
+2010), two-sided by default around the null mean. \code{null_lo} and
+\code{null_hi} are the 2.5\% and 97.5\% null quantiles, which place the
+observed value within the null distribution.
 }
 \section{Conditions}{
  Raises \code{hypergraphs_bad_input} for broken contracts,
@@ -89,6 +89,8 @@ statistics are tested as usual.
 warning when stub matching collapses more than 1\% of memberships on
 average, which happens whenever hyperedges are large relative to the
 vertex set -- the usual case in the document orientation.
+A hypergraph stored as a sparse matrix (\code{sparse = TRUE}) raises
+\code{hypergraphs_sparse_unsupported}.
 }
 
 \examples{
@@ -102,10 +104,15 @@ hg_null_test(hg, statistic = "pairwise_participation", n = 49, seed = 1)
 }
 \references{
 Gotelli, N. J. (2000). Null model analysis of species co-occurrence
-patterns. \emph{Ecology}, 81(9).
+patterns. \emph{Ecology}, 81(9), 2606-2621.
 
 Phipson, B., & Smyth, G. K. (2010). Permutation p-values should never be
-zero. \emph{Statistical Applications in Genetics and Molecular Biology}, 9(1).
+zero. \emph{Statistical Applications in Genetics and Molecular Biology}, 9(1),
+Article 39. \doi{10.2202/1544-6115.1585}
+
+Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
+\emph{Philosophical Transactions of the Royal Society A}, 382(2270),
+20230141. \doi{10.1098/rsta.2023.0141}
 
 Chodrow, P. S. (2020). Configuration models of random hypergraphs.
 \emph{Journal of Complex Networks}, 8(3), cnaa018.

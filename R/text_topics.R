@@ -37,11 +37,15 @@
 #'   topic in natural order: `topic`, `n`, `share`, and with `weights`
 #'   also `weighted_n` and `weighted_share`. When every clustered document
 #'   has weight zero the weighted shares are undefined and reported as
-#'   `NA`. `plot()` draws the shares as
+#'   `NA`. `plot()` plots the shares as
 #'   horizontal bars, weighted beside unweighted when both exist. Raises
 #'   `hypergraphs_bad_input` for unknown node names, a node given two
 #'   different clusters, or weights that do not name every clustered
 #'   document once with a finite non-negative value.
+#' @references
+#' Roberts, M. E., Stewart, B. M., & Tingley, D. (2019). stm: An R package
+#' for structural topic models. \emph{Journal of Statistical Software},
+#' 91(2), 1-40. \doi{10.18637/jss.v091.i02}
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -214,7 +218,7 @@ plot.hypergraphs_topic_sizes <- function(x, ...) {
 #'   order): `topic`, `size` (the cluster's documents; `NA` without
 #'   `clusters`), `n_words` (top words scored), `coherence`, `exclusivity`
 #'   (`NA` for fewer than two words, or `exclusivity = "none"`),
-#'   `coherence_type` and `exclusivity_type`. `plot()` draws exclusivity
+#'   `coherence_type` and `exclusivity_type`. `plot()` plots exclusivity
 #'   against coherence with one labelled point per topic. Raises
 #'   `hypergraphs_bad_input` for unknown node names, a malformed `words`
 #'   table, words outside the vocabulary, topics of `words` that are not
@@ -608,7 +612,7 @@ plot.hypergraphs_topic_quality <- function(x, ...) {
 #'   embedding the partition was cut in (defaults as there).
 #' @return A base `data.frame` of class `hypergraphs_membership`, one row per
 #'   document and topic: `node`, `cluster` (the hard label), `topic`,
-#'   `membership` (rows of one document sum to one). `plot()` draws, per
+#'   `membership` (rows of one document sum to one). `plot()` plots, per
 #'   topic, the distribution of its documents' membership in it: a topic
 #'   whose documents sit near 1 is compact, one whose documents spread
 #'   towards 0.5 overlaps its neighbours. Raises `hypergraphs_bad_input` for

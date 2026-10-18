@@ -442,7 +442,7 @@
 #' its number of copies, with each node sized by the hyperedges that contain
 #' it. A call that styles or labels the hyperedges one by one (`titles`,
 #' `color_by`, `linetype_by`, `edge_labels`, `notes`, `dismantled`), or
-#' groups the nodes (`node_groups`), draws every hyperedge.
+#' groups the nodes (`node_groups`), plots every hyperedge.
 #'
 #' A hypergraph that falls into several disconnected pieces is laid out one
 #' piece at a time and the pieces are then packed into a roughly square frame.
@@ -533,13 +533,13 @@
 #' @param detail How much of the hull's shape the smoothing keeps: the width,
 #'   in harmonics, of the Gaussian low-pass applied to the outline. The
 #'   default `5` gives rounded, tapering petals; `3` is rounder still, `8`
-#'   stays close to the members, and `Inf` draws the unsmoothed rounded hull.
-#' @param outline Outline colour: `"white"` (default) draws seams that part
+#'   stays close to the members, and `Inf` plots the unsmoothed rounded hull.
+#' @param outline Outline colour: `"white"` (default) gives seams that part
 #'   overlapping hyperedges; `"fill"` outlines each hyperedge in its own
 #'   colour (pair it with a lower `alpha`, e.g. `0.15`); any other colour is
 #'   used as given.
 #' @param alpha Fill transparency (default `0.5`); the outline is always
-#'   drawn at full strength.
+#'   plotted at full strength.
 #' @param linewidth Width of the outlines (default `1.1`).
 #' @param padding Room around the member positions as a fraction of the layout
 #'   extent (default `0.045`). It also sets how far apart the layout packs
@@ -561,7 +561,7 @@
 #'   data units (the figure has a fixed 1:1 aspect): the largest has a radius
 #'   of 4% of the layout extent and none is smaller than 30% of that radius,
 #'   so the rarest nodes stay visible, and a caption says what area and
-#'   triangle show. `NULL` (default) draws plain points.
+#'   triangle show. `NULL` (default) plots plain points.
 #' @param direction Mark on each circle where the walk goes next: a
 #'   data.frame with columns `from`, `to` and a weight -- `weight`, or else
 #'   the one other numeric column, such as `trials` (how often `to` follows
@@ -585,7 +585,7 @@
 #'   (default) plots every node alike. Raises `hypergraphs_bad_input` with
 #'   `node_sizes`, `direction`, `transitions`, `dismantled = TRUE` or
 #'   `outline = "fill"`.
-#' @param node_fill Colour of the circles drawn by `node_sizes` with
+#' @param node_fill Colour of the circles plotted by `node_sizes` with
 #'   `direction` (default black).
 #' @param arrow_fill Colour of the `direction` triangles. `NULL` (default) is
 #'   a dark slate (`"#1F3A44"`) for `"inside"` and `node_fill` for
@@ -643,14 +643,14 @@
 #'   `group` attribute (a hypergraph of counted sets with a single group is
 #'   drawn as that group without it), such as `"Cluster 1"` of a [group_hypergraph()] built
 #'   from a clustering of sequences. Only that group's hyperedges and their
-#'   members are drawn; for clustered sequences each node is sized by the
+#'   members are plotted; for clustered sequences each node is sized by the
 #'   sequences of the group containing it (unless `node_sizes` is given),
 #'   each set is named by the states it adds to those every drawn set
 #'   shares (listed in the subtitle), the figure is titled with the group
 #'   and its number of sequences, `titles` defaults to `FALSE` and the
 #'   legends are stacked. A
 #'   name that is not a group, or a hypergraph without a `group` attribute,
-#'   raises `hypergraphs_bad_input`. `NULL` (default) draws every hyperedge.
+#'   raises `hypergraphs_bad_input`. `NULL` (default) plots every hyperedge.
 #' @param type `"hulls"` (default) plots each hyperedge as a pebble around
 #'   its members; `"incidence"` plots the incidence matrix; `"storyline"`
 #'   plots the hyperedges in order as columns and the nodes as lines (see
@@ -665,7 +665,7 @@
 #'   `type = "storyline"` it is the order of the columns, always ascending;
 #'   `NULL` keeps the stored order of the hyperedges.
 #' @param ... For `type = "storyline"`: `top` (the number of nodes with the
-#'   most hyperedges drawn as lines, default `8`, `NULL` for all), `spacing`
+#'   most hyperedges plotted as lines, default `8`, `NULL` for all), `spacing`
 #'   (`"even"` or `"strength"`), `width_by` (`NULL` or `"degree"`) and
 #'   `point_size`, as in [plot.net_temporal_hypergraph()]. Otherwise unused.
 #' @return A ggplot object (with `dismantled = TRUE`, one facet per
@@ -705,7 +705,7 @@
 #'   member = c("a", "b", "c", "b", "c", "d", "d", "e", "f"),
 #'   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e4")
 #' )
-#' hg <- group_hypergraph(dat, "member", "event")
+#' hg <- group_hypergraph(dat, node = "member", hyperedge = "event")
 #' plot(hg, color_by = "size", edge_labels = TRUE)
 #' plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 #' plot(hg, center = c("b", "c"))
@@ -731,7 +731,7 @@
 #' apart <- group_hypergraph(
 #'   data.frame(member = c("a", "b", "c", "b", "c", "d", "x", "y", "z"),
 #'              event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e3")),
-#'   "member", "event"
+#'   node = "member", hyperedge = "event"
 #' )
 #' plot(apart, color_by = "size")
 #'

@@ -97,10 +97,12 @@
 #'   Default `FALSE`. Every run is seeded by its own entry of `seeds`, so
 #'   the result is identical to the serial one.
 #' @param n_cores Integer. Cores when `parallel = TRUE` (default 2).
-#' @return An `hg_communities` object containing `medoid` (a tidy node/community
-#'   table), all `partitions`, AMI/ARI/NMI similarity matrices, run metadata,
-#'   community sizes, and the graph `projection` Infomap ran on. For
-#'   `type = "irmm"` the `"runs"` table has `run`, `seed`, `n_communities`,
+#' @return An `hg_communities` object with `print` and `plot` methods.
+#'   [hg_get()] returns the medoid partition, one row per node with its
+#'   `community`, and through `what` every run's partition, the runs, the
+#'   community sizes and the AMI, ARI and NMI between runs (see
+#'   [hg_get.hg_communities()]). For Infomap the `"runs"` table has `run`,
+#'   `seed`, `n_communities` and `codelength`; for `type = "irmm"` it has `run`, `seed`, `n_communities`,
 #'   `iterations`, `converged`, `max_weight_change` and `modularity` (the
 #'   linear hypergraph modularity of [hg_modularity()]), `projection` is the
 #'   reweighted clique reduction of the medoid run, and
@@ -124,7 +126,7 @@
 #'   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
 #'   edge = rep(paste0("e", 1:4), each = 3)
 #' )
-#' h <- group_hypergraph(dat, "member", "edge")
+#' h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 #' if (requireNamespace("igraph", quietly = TRUE)) {
 #'   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
 #'   hg_get(fit)
@@ -282,9 +284,6 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   graph cannot be scored (the measures are defined on undirected graphs):
 #'   its quality row is `NA` and a `hypergraphs_undefined_statistic` warning
 #'   is raised.
-#' @param edge_source Deprecated and unused: the saved projections already
-#'   carry the hyperedge sources. Supplying it warns with class
-#'   `hypergraphs_deprecated`.
 #' @return A `hypergraphs_community_comparison` object. `hg_get()` returns
 #'   its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
 #'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest_size`,
@@ -296,7 +295,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   warning is raised), `"sizes"` (one row per community of every medoid
 #'   with `model`, `rank`, `n_nodes`) or, when `hg` was given, `"quality"`
 #'   (one row per fit with the columns of [hg_community_quality()]).
-#'   `plot()` draws the cluster-size distributions (`what = "sizes"`, the
+#'   `plot()` plots the cluster-size distributions (`what = "sizes"`, the
 #'   number of communities at least as large as each size, on logarithmic
 #'   axes) or the similarity matrix (`what = "similarity"`, AMI below and
 #'   ARI above the diagonal, values printed in the cells, on a diverging
@@ -310,7 +309,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
 #'   edge = rep(paste0("e", 1:4), each = 3)
 #' )
-#' h <- group_hypergraph(dat, "member", "edge")
+#' h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 #' if (requireNamespace("igraph", quietly = TRUE)) {
 #'   multi <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
 #'   binary <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2,
@@ -320,7 +319,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   hg_get(comparison, what = "similarity")
 #' }
 #' @export
-hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
+hg_compare_communities <- function(..., hg = NULL) {
   fits <- list(...)
   if (length(fits) == 1L && is.list(fits[[1L]]) &&
       !inherits(fits[[1L]], "hg_communities")) {
@@ -381,13 +380,6 @@ hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
                             similarity$model_b[undefined]),
                     collapse = ", ")),
       class = "hypergraphs_undefined_statistic"
-    ))
-  }
-  if (!is.null(edge_source)) {
-    warning(warningCondition(
-      paste0("`edge_source` is no longer used: each medoid is scored on the ",
-             "projection its own fit saved."),
-      class = "hypergraphs_deprecated"
     ))
   }
   directed <- vapply(fits, \(fit) isTRUE(fit$params$directed), logical(1L))
@@ -542,7 +534,10 @@ print.hg_communities <- function(x, n = 10L, ...) {
 #' @param what Table to return: `"medoid"` (default: one row per node with
 #'   its community in the AMI-medoid run), `"partitions"`, `"runs"`,
 #'   `"sizes"`, `"ami"`, `"ari"`, `"nmi"`, or (IRMM fits only) `"weights"`.
-#'   The three similarity tables have one row per distinct pair of runs
+#'   `"partitions"` has one row per node and run (`node`, `community`,
+#'   `run`, `seed`), `"runs"` one row per run (for Infomap `run`, `seed`,
+#'   `n_communities` and `codelength`), and `"sizes"` one row per community
+#'   of the medoid (`community`, `n_nodes`). The three similarity tables have one row per distinct pair of runs
 #'   (`run_a`, `run_b`, and the similarity), without the diagonal.
 #' @param converged For `what = "runs"` of an IRMM fit: `TRUE` keeps the
 #'   runs whose weights settled, `FALSE` the runs that reached `max_iter`.
@@ -565,7 +560,7 @@ print.hg_communities <- function(x, n = 10L, ...) {
 #'   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
 #'   edge = rep(paste0("e", 1:4), each = 3)
 #' )
-#' h <- group_hypergraph(dat, "member", "edge")
+#' h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 #' if (requireNamespace("igraph", quietly = TRUE)) {
 #'   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
 #'   hg_get(fit, what = "runs")
@@ -646,7 +641,8 @@ plot.hg_communities <- function(x, ...) {
 #' @param method The projection the partition is scored on: the
 #'   `"association"` graph (default) or the undirected `"citation"` graph.
 #' @inheritParams hg_communities.net_hg
-#' @return A one-row data frame.
+#' @return A one-row data frame with `coverage`, `weighted_coverage`,
+#'   `performance`, `modularity`, `conductance` and `n_communities`.
 #' @references
 #' Fortunato, S. (2010). Community detection in graphs. *Physics Reports*,
 #' 486(3-5), 75-174. \doi{10.1016/j.physrep.2009.11.002}

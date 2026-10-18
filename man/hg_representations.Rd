@@ -42,7 +42,7 @@ tribunals <- data.frame(
   member = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a1", "a2"),
   case = rep(c("A", "B", "C"), each = 3)
 )
-hg <- group_hypergraph(tribunals, "member", "case")
+hg <- group_hypergraph(tribunals, node = "member", hyperedge = "case")
 hg_representations(hg)
 }
 \references{

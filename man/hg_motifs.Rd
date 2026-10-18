@@ -36,7 +36,8 @@ restored on exit.}
 \item{what}{\code{"test"} for observed/null summaries, \code{"counts"} for observed
 counts only, or \code{"draws"} for every null count.}
 
-\item{alternative}{Empirical permutation-test direction.}
+\item{alternative}{Direction of the empirical permutation test:
+\code{"two_sided"} (default), \code{"greater"} or \code{"less"}.}
 
 \item{start, end, step, window, at}{Measurement grid passed to
 \code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal.}
@@ -81,7 +82,7 @@ cardinality before duplicate-edge collapse.
 dat <- data.frame(
   member = c(1, 2, 3, 1, 2, 4), edge = rep(c("e1", "e2"), each = 3)
 )
-h <- group_hypergraph(dat, "member", "edge")
+h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 hg_motifs(h, what = "counts")
 }
 \references{

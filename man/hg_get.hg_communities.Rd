@@ -30,7 +30,10 @@
 \item{what}{Table to return: \code{"medoid"} (default: one row per node with
 its community in the AMI-medoid run), \code{"partitions"}, \code{"runs"},
 \code{"sizes"}, \code{"ami"}, \code{"ari"}, \code{"nmi"}, or (IRMM fits only) \code{"weights"}.
-The three similarity tables have one row per distinct pair of runs
+\code{"partitions"} has one row per node and run (\code{node}, \code{community},
+\code{run}, \code{seed}), \code{"runs"} one row per run (for Infomap \code{run}, \code{seed},
+\code{n_communities} and \code{codelength}), and \code{"sizes"} one row per community
+of the medoid (\code{community}, \code{n_nodes}). The three similarity tables have one row per distinct pair of runs
 (\code{run_a}, \code{run_b}, and the similarity), without the diagonal.}
 
 \item{converged}{For \code{what = "runs"} of an IRMM fit: \code{TRUE} keeps the
@@ -60,7 +63,7 @@ dat <- data.frame(
   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
   edge = rep(paste0("e", 1:4), each = 3)
 )
-h <- group_hypergraph(dat, "member", "edge")
+h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 if (requireNamespace("igraph", quietly = TRUE)) {
   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
   hg_get(fit, what = "runs")

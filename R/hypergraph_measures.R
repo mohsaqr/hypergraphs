@@ -226,7 +226,7 @@
 #' @param x A `hg_measures` object.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x` invisibly.
-#' @rdname hg_measures
+#' @noRd
 #' @export
 print.net_hg_measures <- function(x, ...) {
   cat(sprintf("Hypergraph measures: %d nodes, %d hyperedges\n",
@@ -277,7 +277,7 @@ print.net_hg_measures <- function(x, ...) {
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
-#' @keywords internal
+#' @noRd
 #' @export
 hg_get.net_hg_measures <- function(
     x, what = c("nodes", "edges", "global"), ..., sort_by = NULL,

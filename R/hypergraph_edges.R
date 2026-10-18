@@ -42,11 +42,11 @@
 #'   table with one row per distinct observed value of `measure`, ascending,
 #'   with columns `value`, `n`, `proportion` and `ccdf` — the complementary
 #'   cumulative distribution \eqn{P(X \ge value)}, so the first row's `ccdf`
-#'   is always 1; its `plot()` draws the CCDF. With `what = "summary"`, one
+#'   is always 1; its `plot()` plots the CCDF. With `what = "summary"`, one
 #'   row with `n_edges`, `mean`, `sd`, `min`, `q25`, `median`, `q75` and
 #'   `max`. Several `s` values add an `s` column; temporal input adds a
 #'   leading `time` column, and the summary is then a `hypergraphs_series` whose
-#'   `plot()` draws each statistic against time.
+#'   `plot()` plots each statistic against time.
 #' @references
 #' Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 #' *Philosophical Transactions of the Royal Society A*, 382(2270), 20230141.

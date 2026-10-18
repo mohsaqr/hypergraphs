@@ -52,9 +52,9 @@
 #'   }
 #' @param seed Optional seed; the random number state of the caller is
 #'   restored on exit.
-#' @return A `net_hg` with binary incidence and the model parameters in
-#'   `$params`; for `"sbm"`, `$blocks` records the planted block of each
-#'   node.
+#' @return A `net_hg` with binary incidence. For `"sbm"`,
+#'   `hg_get(x, what = "nodes")` has a `block` column with the planted block
+#'   of each node.
 #' @section Conditions:
 #' `hypergraphs_bad_input` for an argument the chosen type does not take, an
 #' argument given without a name, or a count (`n`, `m`, `k`, `impurity`,

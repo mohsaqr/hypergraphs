@@ -70,7 +70,7 @@ topic (cluster labels in natural order, or topics of \code{words} in natural
 order): \code{topic}, \code{size} (the cluster's documents; \code{NA} without
 \code{clusters}), \code{n_words} (top words scored), \code{coherence}, \code{exclusivity}
 (\code{NA} for fewer than two words, or \code{exclusivity = "none"}),
-\code{coherence_type} and \code{exclusivity_type}. \code{plot()} draws exclusivity
+\code{coherence_type} and \code{exclusivity_type}. \code{plot()} plots exclusivity
 against coherence with one labelled point per topic. Raises
 \code{hypergraphs_bad_input} for unknown node names, a malformed \code{words}
 table, words outside the vocabulary, topics of \code{words} that are not

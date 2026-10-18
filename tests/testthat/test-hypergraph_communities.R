@@ -97,10 +97,6 @@ test_that("A14: comparison quality scores each fit's saved projection", {
                                       select = -model)))))
   expect_false(anyNA(subset(mixed_quality, model == "info",
                             select = c(coverage, modularity))))
-  # edge_source is deprecated: the saved projection carries the sources
-  expect_warning(hg_compare_communities(irmm = irmm, info = info, hg = h,
-                                        edge_source = "source"),
-                 class = "hypergraphs_deprecated")
 })
 
 test_that("A15: conflicting repeated partition entries are refused", {

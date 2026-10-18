@@ -26,8 +26,8 @@ hypergraph. Each hyperedge of a temporal hypergraph carries a time: an
 interval, during which the hyperedge is active, or an instant, at which it
 occurs. Coupette, Hartung and Katz (2024) model two legal systems in this
 way and compare what the hypergraph and the graph built from the same data
-show about them. This document reproduces their analyses on the released
-data and extends them with hypergraph modularity. The methods are the
+show about them. Their analyses are reproduced below on the released data
+and extended with hypergraph modularity. The methods are the
 construction of temporal hypergraphs and their snapshots, descriptive
 measures of growth, a null-model test of repeated collaboration, hyperedge
 centrality, motifs, and communities.

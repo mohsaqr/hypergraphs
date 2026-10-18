@@ -8,13 +8,6 @@
   stop(errorCondition(message, class = c(class, "hypergraphs_bad_input"), call = NULL))
 }
 
-.thg_deprecated <- function(old, new, fn) {
-  warning(warningCondition(
-    sprintf("`%s` is deprecated in %s(); use `%s` instead", old, fn, new),
-    class = c("hypergraphs_deprecated", "deprecatedWarning"), call = NULL
-  ))
-}
-
 # ---------------------------------------------------------------------------
 # Column detection: Dynet's alias table (R/detect.R), checked case-
 # insensitively after stripping non-alphanumerics; order is priority order.
@@ -406,8 +399,6 @@
 #'   with no member contributes no hyperedge.
 #' @param sparse Store every snapshot's incidence as a sparse `Matrix`?
 #'   Default `FALSE`.
-#' @param cooccur_by Deprecated name of `group`; using it warns with a
-#'   `hypergraphs_deprecated` condition.
 #' @return A `net_temporal_hypergraph` holding the membership table (`node`,
 #'   `edge`, `start`, `end`, `weight`), the edge metadata (`edge`, `start`,
 #'   `end` and the hyperedge attributes), the node universe with entry
@@ -443,8 +434,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
                                 end = NULL, weight = NULL, nodes = NULL,
                                 time_unit = "auto",
                                 observation_start = NULL, observation_end = NULL,
-                                sparse = FALSE, separator = NULL,
-                                cooccur_by = NULL) {
+                                sparse = FALSE, separator = NULL) {
   if (.thg_is_sequence_input(data, from, to, node, hyperedge, time, start, end)) {
     data <- .thg_sequence_memberships(data)
     node <- "state"
@@ -459,10 +449,6 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   }
   if (!is.logical(sparse) || length(sparse) != 1L || is.na(sparse)) {
     .thg_bad_input("`sparse` must be TRUE or FALSE")
-  }
-  if (!is.null(cooccur_by)) {
-    .thg_deprecated("cooccur_by", "hyperedge", "temporal_hypergraph")
-    if (is.null(hyperedge)) hyperedge <- cooccur_by
   }
   roles <- .thg_resolve_roles(data, from, to, node, hyperedge, time, start, end,
                               weight)
@@ -972,12 +958,6 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 }
 
 .thg_check_mode <- function(mode, fn, arg = "mode") {
-  if (identical(mode, "all")) {
-    .thg_deprecated(sprintf("%s = \"all\"", arg),
-                    sprintf("%s = \"cumulative\" (with `at` unset for the whole period)", arg),
-                    fn)
-    return("cumulative")
-  }
   match.arg(mode, c("active", "cumulative"))
 }
 
@@ -1002,8 +982,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 #' @param window How much time the snapshot covers, in the hypergraph's time
 #'   unit: `0` (default) evaluates the instant `at`; a positive width covers
 #'   `[at, at + window)`; `"all"` covers the whole observation period.
-#' @param mode `"active"` (default) or `"cumulative"`, see Description. The
-#'   former `"all"` is deprecated: it is `"cumulative"` with `at` unset.
+#' @param mode `"active"` (default) or `"cumulative"`, see Description.
 #' @param multiedges Keep distinct edge identities with identical member sets?
 #'   `TRUE` matches a multi-hypergraph; `FALSE` collapses them to one edge and
 #'   records their counts in `edge_multiplicity`.
@@ -1190,15 +1169,12 @@ hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
 #' @param type `"hulls"` (default) or `"incidence"` plot the snapshot at
 #'   `at` (see [plot.net_hg()]); `"storyline"` plots the whole history.
 #' @param top For `type = "storyline"`: the number of nodes with the most
-#'   hyperedges to draw as lines (default `8`, one Okabe-Ito colour each;
+#'   hyperedges to plot as lines (default `8`, one Okabe-Ito colour each;
 #'   ties broken by name), or
 #'   `NULL` for every node.
-#' @param start,end For `type = "storyline"`: draw only the hyperedges that
+#' @param start,end For `type = "storyline"`: plot only the hyperedges that
 #'   begin in this period, as dates for a calendar hypergraph or numbers on
 #'   its clock. `NULL` (default) leaves the period open.
-#' @param method Deprecated. The snapshot used to be projected to a pairwise
-#'   network; `plot(pairwise_network(hg_snapshot(x, at), type = method))`
-#'   plots that network.
 #' @param ... For `"hulls"` and `"incidence"`, arguments passed to
 #'   [plot.net_hg()], such as `color_by` or `labels`. For `"storyline"`,
 #'   `edge_labels` (`TRUE` writes the hyperedge and its start under each
@@ -1208,17 +1184,17 @@ hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
 #'   hyperedges their nodes share: a full row apart for none, 0.35 of a row
 #'   for the largest number shared by any pair in the plot, and linearly in
 #'   between, so lines that often meet run together. Spacing never changes
-#'   the order of the lines. `width_by = "degree"` draws each line with a
+#'   the order of the lines. `width_by = "degree"` plots each line with a
 #'   width that grows linearly with its node's number of hyperedges in the
 #'   period, the count `top` ranks by, and adds a width legend; `NULL`
-#'   (default) draws every line alike.
+#'   (default) plots every line alike.
 #' @return A ggplot object.
 #' @section Conditions:
 #' `hypergraphs_bad_input` when the snapshot has no active nodes, when no
 #' hyperedge begins between `start` and `end`, for an invalid `top`, for
 #' `at`, `mode` or an argument of [plot.net_hg()] with `type = "storyline"`,
 #' for `top`, `start` or `end` with another type, and as [plot.net_hg()]
-#' raises it; `hypergraphs_deprecated` (a warning) for `method`.
+#' raises it.
 #' @references
 #' Tanahashi, Y., & Ma, K.-L. (2012). Design considerations for optimizing
 #' storyline visualizations. *IEEE Transactions on Visualization and
@@ -1245,13 +1221,9 @@ plot.net_temporal_hypergraph <- function(x, at = NULL,
                                          mode = c("active", "cumulative"),
                                          type = c("hulls", "incidence", "storyline"),
                                          top = 8L, start = NULL, end = NULL,
-                                         method = NULL, ...) {
+                                         ...) {
   type <- match.arg(type)
   given <- names(match.call())[-1L]
-  if (!is.null(method)) {
-    .thg_deprecated("method", "plot(pairwise_network(hg_snapshot(x, at), type = method))",
-                    "plot")
-  }
   if (identical(type, "storyline")) {
     snapshot_only <- intersect(given, c("at", "mode"))
     dots <- list(...)

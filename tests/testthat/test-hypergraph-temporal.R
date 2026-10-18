@@ -101,25 +101,14 @@ test_that("temporal constructors reject invalid spells and read per-row times as
 
 # ---- Dynet vocabulary -------------------------------------------------------
 
-test_that("deprecated argument names still work and warn with a class", {
+test_that("the argument names removed in 0.7.9 are refused", {
   dat <- data.frame(member = c("a", "b"), event = "e1", time = 1)
-  expect_warning(
-    old <- temporal_hypergraph(dat, node = "member", cooccur_by = "event", time = "time"),
-    class = "hypergraphs_deprecated"
-  )
-  new <- temporal_hypergraph(dat, node = "member", hyperedge = "event", time = "time")
-  expect_identical(old, new)
-  new_group <- group_hypergraph(dat, node = "member", hyperedge = "event")
-  expect_warning(
-    old_member <- group_hypergraph(dat, member = "member", hyperedge = "event"),
-    class = "hypergraphs_deprecated"
-  )
-  expect_warning(
-    old_by <- group_hypergraph(dat, node = "member", cooccur_by = "event"),
-    class = "hypergraphs_deprecated"
-  )
-  expect_identical(old_member, new_group)
-  expect_identical(old_by, new_group)
+  expect_error(temporal_hypergraph(dat, node = "member", cooccur_by = "event",
+                                   time = "time"), "unused argument")
+  expect_error(group_hypergraph(dat, member = "member", hyperedge = "event"),
+               "unused argument")
+  expect_error(group_hypergraph(dat, node = "member", cooccur_by = "event"),
+               "unused argument")
 })
 
 test_that("columns are detected from Dynet's alias table, case-insensitively", {
@@ -198,9 +187,7 @@ test_that("`time` is a contact clock and the cumulative view is a mode", {
   printed <- capture.output(print(contact))
   expect_true(any(grepl("contact", printed)))
   expect_true(any(grepl("cumulative", printed)))
-  expect_warning(old <- hg_snapshot(contact, mode = "all"),
-                 class = "hypergraphs_deprecated")
-  expect_identical(old$incidence, at_end$incidence)
+  expect_error(hg_snapshot(contact, mode = "all"), "should be one of")
 })
 
 test_that("observation bounds clip the grid without rewriting memberships", {

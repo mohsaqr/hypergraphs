@@ -83,8 +83,8 @@
 #'   contribute once (the binary hypergraph).
 #' @param self_association For `type = "association"`: add the
 #'   source-to-member association term of Coupette et al. (2024). Requires one
-#'   source node per hyperedge through `edge_source` or
-#'   `hg$edge_data$source`. For source `u`, every membership of target `v`
+#'   source node per hyperedge through `edge_source` or a `source` column of
+#'   the hyperedge attributes (`hg_get(hg, what = "edge_data")`). For source `u`, every membership of target `v`
 #'   contributes `1 / sum_e |e|` over the hyperedges sourced by `u`.
 #' @param edge_source The node each hyperedge comes from: the name of a
 #'   column of the hyperedge attributes, a vector of length `n_hyperedges`, a

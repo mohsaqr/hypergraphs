@@ -74,9 +74,7 @@ test_that("a snapshot's numeric clock column sorts the incidence columns in time
   expect_identical(cols$edge[order(cols$col)], c("A", "B"))
 })
 
-test_that("method is deprecated and an empty snapshot is refused", {
+test_that("an empty snapshot is refused", {
   thg <- .seats()
-  expect_warning(plot(thg, at = 2.5, method = "clique"),
-                 class = "hypergraphs_deprecated")
   expect_error(plot(thg, at = 100), class = "hypergraphs_bad_input")
 })

@@ -123,50 +123,59 @@
 
 #' Read a table from any hypergraphs object
 #'
-#' `hg_get()` is the single reader of the package. Every object a
-#' constructor or a verb returns -- a hypergraph, a memory network, a
-#' simplicial complex, an inference or a community result -- hands over its
-#' tables through `hg_get()`, never through `$`. `what =` selects the table;
-#' `what = NULL` (the default) returns the object's primary table. Filters,
-#' orderings and `top =` are named arguments of the method for that class.
+#' `hg_get()` reads the tables of every object the package returns: a
+#' hypergraph, a memory network, a simplicial complex, an inference result
+#' or a community result. `what` selects the table, and `what = NULL` (the
+#' default) returns the object's primary table. Filters, orderings and `top`
+#' are named arguments of the method for the object's class.
 #'
 #' @section Tables by class:
+#' The first table listed is the default.
 #' \describe{
-#'   \item{`net_hg` (hypergraphs)}{`"edges"` (default), `"nodes"`,
-#'     `"memberships"`, `"sets"`, `"state_counts"`, `"edge_data"`;
-#'     see [hg_get.net_hg()].}
-#'   \item{`text_hypergraph`}{`"weights"` (default), `"documents"`,
-#'     `"vocabulary"`, `"sentences"`; see [hg_get.text_hypergraph()].}
-#'   \item{`net_temporal_hypergraph`}{`"memberships"` (default), `"edges"`,
+#'   \item{`net_hg` (hypergraphs)}{`"edges"`, `"nodes"`, `"memberships"`,
+#'     `"sets"`, `"state_counts"`, `"edge_data"`; see [hg_get.net_hg()].}
+#'   \item{`text_hypergraph`}{`"weights"`, `"documents"`, `"vocabulary"`,
+#'     `"sentences"`; see [hg_get.text_hypergraph()].}
+#'   \item{`net_temporal_hypergraph`}{`"memberships"`, `"edges"`,
 #'     `"nodes"`.}
-#'   \item{`net_hon` ([hon()])}{`"rules"` (default), `"nodes"`,
+#'   \item{`net_hg_pairwise` ([pairwise_network()])}{`"edges"`, `"nodes"`.}
+#'   \item{`net_hg_topics` ([hg_topics()])}{`"topics"`, `"shares"`,
+#'     `"words"`, `"documents"`, `"restarts"`, `"prevalence"`.}
+#'   \item{`net_hg_mmsbm` ([hg_mmsbm()])}{`"membership"`, `"nodes"`,
+#'     `"affinity"`, `"restarts"`.}
+#'   \item{`hg_classification` ([hg_classify()] with `holdout`)}{
+#'     `"predictions"`, `"accuracy"`, `"classes"`, `"confusion"`.}
+#'   \item{`hg_communities` ([hg_communities()] on a hypergraph)}{
+#'     `"medoid"`, `"partitions"`, `"runs"`, `"sizes"`, `"ami"`, `"ari"`,
+#'     `"nmi"`, `"weights"`; see [hg_get.hg_communities()].}
+#'   \item{`hypergraphs_community_comparison` ([hg_compare_communities()])}{
+#'     `"summary"`, `"similarity"`, `"sizes"`, `"quality"`.}
+#'   \item{`hypergraphs_motifs` ([hg_motifs()])}{`"test"`, `"draws"`.}
+#'   \item{`net_hon` ([hon()])}{`"rules"`, `"nodes"`, `"pathways"`.}
+#'   \item{`net_honem` ([honem()])}{`"embeddings"`, `"variance"`.}
+#'   \item{`net_hypa` ([hypa()] on sequences)}{`"anomalies"`, `"scores"`,
+#'     `"over"`, `"under"`, `"pathways"`.}
+#'   \item{`net_mogen` ([mogen()])}{`"orders"`, `"transitions"`, `"paths"`,
 #'     `"pathways"`.}
-#'   \item{`net_honem` ([honem()])}{`"embeddings"` (default), `"variance"`.}
-#'   \item{`net_hypa` ([hypa()] on sequences)}{`"anomalies"` (default),
-#'     `"scores"`, `"over"`, `"under"`, `"pathways"`.}
-#'   \item{`net_mogen` ([mogen()])}{`"orders"` (default), `"transitions"`,
-#'     `"paths"`, `"pathways"`.}
-#'   \item{`net_markov_order` ([markov_order()])}{`"orders"` (default),
-#'     `"null"`.}
+#'   \item{`net_markov_order` and `net_markov_order_group`
+#'     ([markov_order()])}{`"orders"`, `"null"`.}
 #'   \item{`net_path_dependence` ([memory()])}{`"contexts"`.}
-#'   \item{`net_markov_stability` ([hg_markov_stability()])}{`"states"`
-#'     (default), `"passage_time"`, `"stationary"`.}
+#'   \item{`net_markov_stability` ([hg_markov_stability()])}{`"states"`,
+#'     `"passage_time"`, `"stationary"`.}
 #'   \item{`hypergraphs_bootstrap` ([hg_bootstrap()])}{`"edges"`.}
-#'   \item{`hypergraphs_comparison` ([hg_compare()])}{`"edges"`.}
+#'   \item{`hypergraphs_comparison` ([hg_compare()])}{`"edges"`,
+#'     `"global"`.}
 #'   \item{`hypergraphs_memory_communities` ([hg_communities()] on a memory
-#'     network)}{`"states"` (default), `"physical"`, `"modules"`,
-#'     `"codelength"`, `"trials"`.}
-#'   \item{`simplicial_complex` ([simplicial()])}{`"simplices"` (default),
-#'     `"f_vector"`, `"degree"`.}
-#'   \item{`q_analysis` ([hg_qanalysis()])}{`"q_levels"` (default),
-#'     `"nodes"`.}
-#'   \item{`persistent_homology` ([hg_homology()])}{`"persistence"`
-#'     (default), `"betti"`.}
+#'     network)}{`"states"`, `"physical"`, `"modules"`, `"trials"`,
+#'     `"first_order"`, `"codelength"`.}
+#'   \item{`hypergraphs_summary` (`summary()` of a result)}{one table per
+#'     part of the summary, named as printed.}
+#'   \item{`simplicial_complex` ([simplicial()])}{`"simplices"`,
+#'     `"f_vector"`, `"betti"`, `"degree"`, `"validation"`.}
+#'   \item{`q_analysis` ([hg_qanalysis()])}{`"q_levels"`, `"nodes"`.}
+#'   \item{`persistent_homology` ([hg_homology()])}{`"persistence"`,
+#'     `"betti"`.}
 #'   \item{`persistence_landscape` ([hg_landscape()])}{`"landscape"`.}
-#'   \item{`hg_communities` ([hg_communities()] on a hypergraph)}{see
-#'     [hg_get.hg_communities()].}
-#'   \item{`hypergraphs_community_comparison`, `hypergraphs_motifs`,
-#'     `net_hg_mmsbm`}{see their methods.}
 #' }
 #'
 #' @param x A hypergraphs object.
@@ -400,12 +409,12 @@ print.hypergraphs_summary <- function(x, n = 5L, ...) {
 
 #' Summaries of results
 #'
-#' `summary()` on a result returns every table of the result as a list of
-#' data frames, named after the `what` values of [hg_get()], so
-#' `summary(x)$validation` is the same data frame as
-#' `hg_get(x, what = "validation")`. Results with overall figures add them
-#' as further one-row or per-group tables. Tables that a particular result
-#' does not hold are left out. The result itself is not changed.
+#' `summary()` on a result collects every table of the result, named after
+#' the `what` values of [hg_get()]. `hg_get(summary(x), what = "validation")`
+#' is the same data frame as `hg_get(x, what = "validation")`. Results with
+#' overall figures add them as further one-row or per-group tables. Tables
+#' that a particular result does not hold are left out. The result itself is
+#' not changed.
 #'
 #' @name result-summary
 #' @param object A result: from [hon()], [honem()], [mogen()],
@@ -413,14 +422,14 @@ print.hypergraphs_summary <- function(x, n = 5L, ...) {
 #'   sequences, [hg_bootstrap()], [hg_compare()], [hg_communities()],
 #'   [hg_compare_communities()], [hg_mmsbm()], [hg_motifs()], [simplicial()],
 #'   [hg_homology()], [hg_landscape()] or [hg_qanalysis()].
-#' @return A `hypergraphs_summary`: a named list of data frames. Its print
-#'   method shows the first rows of each.
+#' @return A `hypergraphs_summary` holding data frames, read with
+#'   [hg_get()]. Its print method shows the first rows of each.
 #' @examples
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
 #'              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
 #' fit_summary <- summary(memory(seqs, order = 2, min_count = 1))
 #' fit_summary
-#' fit_summary$contexts
+#' hg_get(fit_summary, what = "contexts")
 NULL
 
 #' @rdname result-summary

@@ -2,161 +2,171 @@
 
 Higher-order network analysis in R.
 
-A network is *higher-order* when a relation reaches beyond a single pair of
-nodes at a single moment — either it binds **more than two nodes at once**, or
-it depends on **more than the current node**. The literature (Battiston et al.
-2020; Bianconi 2021) organises that idea into three structure families.
-hypergraphs implements all three behind one taxonomy, plus a text family that
-reads a corpus as a hypergraph.
+A higher-order network is a network in which a relation binds more than two
+nodes at once or depends on more than the current node. The literature
+describes three structures for such relations, and hypergraphs covers all
+three, together with text hypergraphs, which represent a corpus as a
+hypergraph.
 
-| Family | A relation is… | Built from |
+| Family | A relation is | Built from |
 |---|---|---|
-| **Memory networks** | a state *plus the memory of how it was reached* | categorical sequences |
-| **Simplicial complexes** | a set of nodes that are *all* mutually related, plus every subset | a network, a distance matrix, or a memory network |
-| **Hypergraphs** | an arbitrary set of nodes bound as a unit | network cliques, sliding windows over sequences, group membership, or embedding neighbours |
-| **Text hypergraphs** | a document bound to the words it contains (or a word to its documents) | a corpus: bag of words, token windows, or sentence embeddings |
+| Memory networks | a state paired with the states visited just before it | categorical sequences |
+| Simplicial complexes | a set of nodes that are all related to each other, with every subset | a network, a distance matrix or a memory network |
+| Hypergraphs | an arbitrary set of nodes | group memberships, sliding windows over sequences, network cliques, interval or contact records, or embedding neighbours |
+| Text hypergraphs | a document and the words it contains, or a word and its documents | a corpus: bag of words, token windows, sentences or sentence embeddings |
 
-Base R, ggplot2 and Matrix (with RSpectra for the sparse spectral paths).
-No Python, no NLP dependencies; the sentence embeddings need `sbert`, which
-is optional.
+The package depends on base R, ggplot2 and Matrix, with RSpectra for the
+sparse spectral computations. Sentence embeddings need the optional `sbert`
+package.
 
-## Verbs
+## Functions
 
 ### Memory networks
 
-| Verb | Method | Reference |
+| Function | Method | Reference |
 |---|---|---|
 | `hon()` | Higher-order network with rule extraction (BuildHON+) | Xu, Wickramarathne & Chawla (2016) |
 | `honem()` | Higher-order network embedding | Saebi, Ciampaglia, Kaplan & Chawla (2020) |
 | `hypa()` | Hypergeometric path anomaly detection | LaRock et al. (2020) |
 | `mogen()` | Multi-order generative model | Scholtes (2017) |
-| `hg_centrality()` | PageRank / betweenness / closeness on the higher-order topology, projected to states | Scholtes, Wider & Garas (2016) |
-| `hg_bootstrap()` | Bootstrap CIs + rule support | Efron & Tibshirani (1993) |
-| `hg_compare()` | Two-sample permutation comparison of rules | Good (2005) |
-| `markov_order()` | Permutation-based Markov order test | Anderson & Goodman (1957) |
+| `markov_order()` | Permutation test of the Markov order | Anderson & Goodman (1957) |
+| `memory()` | Per-context divergence of order-k from order-1 transitions | Cover & Thomas (2006) |
 | `hg_markov_stability()` | Persistence, stationary flow and first-passage times per state | Kemeny & Snell (1976) |
-| `memory()` | Per-context order-k vs order-1 KL diagnostic | Cover & Thomas (2006) |
+| `hg_bootstrap()` | Bootstrap confidence intervals and support of rules | Efron & Tibshirani (1993) |
+| `hg_compare()` | Two-sample permutation comparison of rules | Good (2005) |
+| `hg_centrality()` | PageRank, betweenness and closeness on the higher-order topology, projected to states | Scholtes, Wider & Garas (2016) |
+| `hg_communities()` | Map equation for memory networks | Rosvall et al. (2014) |
 
 ### Simplicial complexes
 
-| Verb | Method | Reference |
+| Function | Method | Reference |
 |---|---|---|
-| `simplicial()` | Clique, Vietoris-Rips, or pathway complex, verified against igraph's cliques and Euler-Poincaré on construction | Hatcher (2002) |
-| `hg_betti()`, `hg_euler()` | Homology ranks and the Euler characteristic | Hatcher (2002) |
-| `hg_homology()` | Betti curves and persistence diagrams over a filtration | Edelsbrunner & Harer (2010) |
-| `hg_landscape()`, `hg_bottleneck()`, `hg_wasserstein()` | Comparable summaries of persistence diagrams | Bubenik (2015); Cohen-Steiner et al. (2007); Kerber et al. (2017) |
-| `hg_degree()`, `hg_qanalysis()` | Higher-order degree and q-connectivity | Atkin (1974) |
+| `simplicial()` | Clique, Vietoris-Rips or pathway complex, checked against the cliques of the graph and the Euler-Poincaré formula | Hatcher (2002) |
+| `hg_betti()`, `hg_euler()` | Betti numbers and the Euler characteristic | Hatcher (2002) |
+| `hg_homology()` | Persistence diagrams and Betti curves over a filtration | Edelsbrunner & Harer (2010) |
+| `hg_landscape()`, `hg_bottleneck()`, `hg_wasserstein()` | Persistence landscapes and distances between persistence diagrams | Bubenik (2015); Cohen-Steiner et al. (2007); Kerber et al. (2017) |
+| `hg_degree()`, `hg_qanalysis()` | Simplicial degree and q-connectivity | Atkin (1974) |
 
 ### Hypergraphs
 
-| Verb | Method | Reference |
+| Function | Method | Reference |
 |---|---|---|
-| `network_hypergraph()` | Hyperedges from a network's cliques | Burgio et al. (2020) |
+| `hypergraph()` | Main constructor: selects one of the constructors below from its input | Battiston et al. (2020) |
+| `group_hypergraph()` | Hyperedges from group memberships or from the most frequent sets | Perc et al. (2013) |
 | `window_hypergraph()` | Hyperedges from sliding windows over sequences | Ding et al. (2020) |
-| `group_hypergraph()` | Hyperedges from bipartite group membership | Perc et al. (2013) |
-| `hg_centrality()` | Tensor eigenvector centralities (clique, Z, H) and EDVW PageRank | Benson (2019); Chitra & Raphael (2019) |
-| `hg_measures()` | Structural measures (hyperdegree, overlap, density) | — |
-| `hg_laplacian()`, `hg_cluster()`, `hg_classify()` | Weighted normalised Laplacian; RDC-Spec and RDC-SymNMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
-| `hg_pagerank()` | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
-| `knn_hypergraph()`, `dual_hypergraph()` | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
-| `pairwise_network()`, `hg_line_graph()` | Projections: the pairwise network (clique, association or citation weighting) as a network object, and the s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
-| `temporal_hypergraph()`, `hg_snapshot()`, `hg_snapshots()` | Interval and contact hypergraphs in a standard vocabulary (`node`/`group` or `from`/`to`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
-| `hg_edges()`, `hg_edge_centrality()` | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
-| `hg_motifs()` | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
-| `hg_communities()`, `hg_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance (on a memory network: the map equation for memory networks) | Coupette, Hartung & Katz (2024); Rosvall et al. (2014) |
-| `hg_null_test()` | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
+| `network_hypergraph()` | Hyperedges from the cliques of a network | Burgio et al. (2020) |
+| `temporal_hypergraph()`, `hg_snapshot()`, `hg_snapshots()`, `hg_growth()` | Interval and contact hypergraphs (`node`/`hyperedge` or `from`/`to`, calendar clocks, observation bounds), their active and cumulative snapshots, and growth over time | Coupette, Hartung & Katz (2024) |
+| `knn_hypergraph()` | Hyperedges from the nearest neighbours in an embedding | Feng et al. (2019) |
+| `dual_hypergraph()` | Exchange of the roles of nodes and hyperedges | Berge (1989) |
+| `random_hypergraph()` | Uniform, regular, G(n, p) and stochastic block random hypergraphs | Marchette (2021) |
+| `hg_subset()` | Sub-hypergraph by hyperedges, nodes, hyperedge attributes, size or component | Coupette, Hartung & Katz (2024) |
+| `hg_measures()`, `hg_edges()` | Node, hyperedge and overlap measures, and hyperedge distributions | Lee et al. (2025); Do et al. (2020); Coupette, Hartung & Katz (2024) |
+| `hg_representations()` | Graph and hypergraph representations of the same data, compared by size | Coupette, Hartung & Katz (2024) |
+| `hg_transitivity()`, `hg_assortativity()`, `hg_degree_correlation()` | Clustering coefficients, degree assortativity and degree correlation | Klimm, Deane & Reinert (2021); Chodrow (2020); Lotito et al. (2023) |
+| `hg_motifs()` | Census of Y, T and O motifs of three hyperedges, against a configuration model | Coupette, Hartung & Katz (2024) |
+| `hg_centrality()`, `hg_pagerank()` | Clique, Z and H eigenvector centralities; PageRank of the random walk with edge-dependent vertex weights | Benson (2019); Chitra & Raphael (2019) |
+| `hg_line_graph()`, `hg_edge_centrality()` | s-line graph and s-betweenness and s-closeness of hyperedges | Aksoy et al. (2020) |
+| `pairwise_network()` | Pairwise projection with clique, association or citation weights | Coupette, Hartung & Katz (2024) |
+| `hg_laplacian()`, `hg_cluster()`, `hg_classify()` | Hypergraph Laplacians, spectral and symmetric-NMF clustering, label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hg_communities()`, `hg_community_quality()`, `hg_compare_communities()` | Repeated Infomap with medoid selection, iteratively reweighted modularity maximization, and the quality and agreement of partitions | Coupette, Hartung & Katz (2024); Kumar et al. (2020) |
+| `hg_modularity()` | Linear hypergraph modularity | Kamiński et al. (2019) |
+| `hg_mmsbm()` | Mixed-membership stochastic block model | Ruggeri et al. (2023) |
+| `hg_null_test()` | Swap, configuration and assignment null models | Gotelli (2000); Chodrow (2020); Coupette, Hartung & Katz (2024) |
+| `hypa()` | Hypergeometric anomaly detection for co-occurring node pairs | LaRock et al. (2020) |
 
 ### Text hypergraphs
 
-| Verb | Method | Reference |
+| Function | Method | Reference |
 |---|---|---|
-| `text_hypergraph()` | Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, or embedding kNN | Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan & Schütze (2008) |
-| `hg_measures()`, `hg_centrality()` | Structural measures and tensor centralities as tidy tables | Benson (2019) |
-| `hg_cluster()`, `hg_keywords()` | Spectral or symmetric-NMF topic clustering and per-cluster keywords | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
-| `hg_stability()`, `hg_agreement()`, `hg_seeds()` | Subsampling cluster stability (per-cluster Jaccard) with the eigengap, partition agreement (ARI/AMI/NMI), seed selection | Hennig (2007); von Luxburg (2007); Hubert & Arabie (1985); Vinh et al. (2010) |
-| `hg_topic_quality()` | Topic coherence (UMass, NPMI) and FREX exclusivity, as in stm; scores external topic word lists too | Mimno et al. (2011); Lau, Newman & Baldwin (2014); Roberts, Stewart & Tingley (2019) |
-| `hg_cocluster()` | Spectral co-clustering of documents and words together | Dhillon (2001) |
-| `hg_classify()` | Few-label transductive classification, with class-mass normalization | Zhou et al. (2006); Zhu, Ghahramani & Lafferty (2003) |
+| `text_hypergraph()` | Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, sentences or embedding nearest neighbours | Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan & Schütze (2008) |
+| `clean_text()`, `stop_words_en()` | Text normalization and an English stop-word list | Manning, Raghavan & Schütze (2008) |
+| `hg_cluster()`, `hg_keywords()` | Spectral or symmetric-NMF clustering of documents and the keywords of each cluster | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hg_topics()`, `hg_topic_search()` | Mixed-membership topic model (KL-divergence NMF) and the choice of the number of topics | Lee & Seung (2001); Roberts, Stewart & Tingley (2019) |
+| `hg_topic_quality()`, `hg_topic_sizes()` | Topic coherence (UMass, NPMI), exclusivity (FREX) and topic sizes | Mimno et al. (2011); Lau, Newman & Baldwin (2014); Roberts, Stewart & Tingley (2019) |
+| `hg_stability()`, `hg_agreement()`, `hg_membership()` | Subsampling stability of clusters, agreement between partitions (ARI, AMI, NMI) and soft memberships | Hennig (2007); Hubert & Arabie (1985); Vinh et al. (2010); Bezdek (1981) |
+| `hg_cocluster()` | Spectral co-clustering of documents and words | Dhillon (2001) |
+| `hg_classify()`, `hg_seeds()` | Transductive classification from a few labels, with class-mass normalization, and seed selection | Zhou, Huang & Schölkopf (2006); Zhu, Ghahramani & Lafferty (2003) |
+| `topic_network()` | Network of topics that share documents | Roberts, Stewart & Tingley (2019); Cassi et al. (2017) |
+| `hg_sequences()` | Per-actor sequences of clusters from a clustered corpus, for the memory family | Xu, Wickramarathne & Chawla (2016) |
 
-A `text_hypergraph` *is* a `net_hg`, so every hypergraph verb takes
-it. Constructors are nouns (`hon()`, `mogen()`, `simplicial()`,
-`<source>_hypergraph()`); every other verb is `hg_*()`.
-Bundled data: `covid_abstracts` (165 abstracts)
-and `covid_embeddings`.
+## Naming
 
-## The taxonomy
+Constructors are nouns: `hon()`, `mogen()`, `simplicial()`, `hypergraph()`,
+`text_hypergraph()` and the `<source>_hypergraph()` functions. Where a family
+has several construction routes, `type =` selects one. All other functions
+begin with `hg_`. A measure returns a data frame with one row per node or per
+structure, and an inference function returns a result object with estimates,
+intervals and p-values. `hg_centrality()`, `hg_communities()` and `hypa()`
+take a memory network or a hypergraph.
 
-The same naming rules hold in every family, so a verb from one reads like a
-verb from another:
-
-- **Constructors are nouns**: `hon()`, `honem()`, `mogen()`, `simplicial()`,
-  `markov_order()`, `memory()`, `text_hypergraph()`, `window_hypergraph()`, ... Where a
-  family admits several construction routes, they are selected with `type =`.
-- **Everything else is `hg_*()`**. Measures (`hg_centrality()`,
-  `hg_measures()`, `hg_degree()`) return a tidy `data.frame`, one row per node
-  or per structure; inference (`hg_bootstrap()`, `hg_compare()`,
-  `hg_null_test()`) returns a result carrying estimates, intervals and
-  p-values. One verb names one idea and dispatches on its input:
-  `hg_centrality()`, `hg_communities()` and `hypa()` take a memory network
-  or a hypergraph.
-- **`hg_get()` is the one reader.** Every object hands over its tables through
-  `hg_get(x, what = )` — reaching into a result with `$` is never required.
-  `what =` selects a secondary table; filters, `sort_by` and `top` are named
-  arguments:
-
-```r
-hg_get(net)                                # the rules of a memory network
-hg_get(net, what = "nodes")                # its higher-order nodes
-hg_get(net, what = "pathways")             # its higher-order pathways
-hg_get(mg,  what = "paths", k = 3)         # path counts of a MOGen model
-hg_get(ph,  what = "betti")                # Betti curves, not the diagram
-hg_get(hg,  what = "memberships")          # one row per node in a hyperedge
-```
-
-Every sequence-taking verb reads a long event table (`action =`, `actor =`,
-`time =`, `session =`), a wide data frame, a list of sequences, or a network
-model object carrying its sequences.
-
-## Crossing between families
-
-The families are entry points into one another, not islands. The same coded
-sessions can be read all three ways:
+The tables of every result are read with `hg_get(x, what = )`, where `what`
+names a secondary table and the named arguments `sort_by` and `top` order and
+shorten it:
 
 ```r
 library(hypergraphs)
 
-# memory network: what follows what, given how you got here
+net <- hon(human_long, action = "code", actor = "session_id",
+           time = "timestamp", max_order = 3)
+hg_get(net)                                # the rules
+hg_get(net, what = "nodes")                # the higher-order nodes
+hg_get(net, what = "pathways")             # the higher-order pathways
+
+mg <- mogen(human_long, action = "code", actor = "session_id",
+            time = "timestamp", max_order = 3)
+hg_get(mg, what = "paths", k = 3)          # counts of paths of length 3
+
+hg <- group_hypergraph(human_long, node = "code", hyperedge = "session_id")
+hg_get(hg, what = "memberships")           # one row per node in a hyperedge
+```
+
+Every function that takes sequences accepts a data frame in long format with
+one row per event (`action =`, `actor =`, `time =`, `session =`), a wide data
+frame with one sequence per row, a list of sequences, or a fitted network
+object that carries its sequences.
+
+## Links between families
+
+The same coded sessions can be read as a memory network, a simplicial complex
+and a hypergraph:
+
+```r
 net <- hon(human_long, action = "code", actor = "session_id",
            time = "timestamp", max_order = 3)
 hg_centrality(net, sort_by = "pagerank")
 
-# simplicial complex: the same sessions as a pathway complex
 sc <- simplicial(net, type = "pathway")
 hg_betti(sc)
 
-# hypergraph: each session as one multi-way interaction over its codes
 hg <- group_hypergraph(human_long, node = "code", hyperedge = "session_id")
 hg_centrality(hg, type = "pagerank")
 
-# text: a corpus as a document-word hypergraph, clustered into topics
 thg <- text_hypergraph(covid_abstracts, column = "abstract", id = "doc",
                        weight = "tfidf", stop_words = stop_words_en(),
                        min_count = 3L)
 topics <- hg_cluster(thg, k = 4, type = "random_walk", seed = 1)
-hg_keywords(thg, topics, n = 5, collapse = TRUE)                    # tf-idf mass
-hg_keywords(thg, topics, n = 5, type = "ctfidf", collapse = TRUE)  # BERTopic's c-TF-IDF
-hg_keywords(thg, topics, n = 5, type = "centrality", collapse = TRUE)
+hg_keywords(thg, topics, n = 5, collapse = TRUE)
+hg_keywords(thg, topics, n = 5, type = "ctfidf", collapse = TRUE)
 ```
 
-`pairwise_network()` projects a hypergraph back to a pairwise network that any
-first-order tool accepts; `hg_get(net, what = "pathways")` hands
-sequence-derived path strings from the memory family to the other two.
+A text hypergraph is a hypergraph, so every hypergraph function accepts it.
+`pairwise_network()` projects a hypergraph to a pairwise network, and
+`hg_sequences()` turns a clustered corpus into sequences for the memory
+family.
 
-Bundled data: `human_long`, `ai_long` (coded human-AI pair-programming
-sessions); `covid_abstracts`, `covid_embeddings` (COVID-19 education
-research abstracts and their sentence embeddings).
+## Data
 
-## Vignettes
+| Dataset | Content |
+|---|---|
+| `tutoring_events` | Problem steps of learners with a tutor, one row per event |
+| `human_long`, `ai_long` | Coded actions of human-AI pair-programming sessions |
+| `covid_abstracts`, `covid_embeddings`, `covid_sample` | COVID-19 education research abstracts (165), their sentence embeddings, and a random sample of 1,000 abstracts |
+| `icsid_tribunals` | ICSID arbitration tribunals, one row per seat |
+| `gfcc_decisions`, `gfcc_citations` | Decisions of the German Federal Constitutional Court and their citation blocks |
+| `forum_posts` | Simulated forum posts whose topics follow second-order memory |
+| `ring_sequences`, `ring_communities` | Simulated sequences with planted memory modules, and the planted modules |
+
+## Documentation
 
 The package ships one vignette, `vignette("hypergraphs")`. The other
 walkthroughs are articles on the
@@ -169,27 +179,13 @@ education literature, [legal hypergraphs](https://pak.dynasite.org/hypergraphs/a
 the [Argentina tribunals example](https://pak.dynasite.org/hypergraphs/articles/argentina-tribunals.html) and the
 [benchmarks](https://pak.dynasite.org/hypergraphs/articles/benchmarks.html).
 
-## Provenance
+## Related packages
 
-hypergraphs is the home package for higher-order structure in its family of
-network packages, alongside
-[psychnets](https://github.com/mohsaqr/psychnets) (cross-sectional psychometric
-networks) and [idiographic](https://github.com/mohsaqr/idiographic)
-(person-specific temporal models). The memory-network and simplicial-complex
-estimators are imported from a sibling estimation package and returned
-unchanged under hypergraphs' names, so every number is that estimator's own;
-identity is proven by exact `identical()` tests. The text family arrived in
-0.3.0 (2026-09-01) from the retired `texthypergraph` package. See `NEWS.md`
-for every rename.
-
-The inherited external-equivalence suites (pyHON, pathpy multi-order models,
-Wallenius / Monte-Carlo HYPA references, igraph, HyperNetX) live in
-`local_testing_and_equivalence/`, which is build-ignored and gated:
-
-```sh
-NOT_CRAN=true HYPERNETS_EQUIV_TESTS=true Rscript -e \
-  'library(hypergraphs); testthat::test_dir("local_testing_and_equivalence")'
-```
+hypergraphs covers higher-order structure in a family of network packages
+that also includes [psychnets](https://github.com/mohsaqr/psychnets)
+(cross-sectional psychometric networks) and
+[idiographic](https://github.com/mohsaqr/idiographic) (person-specific
+temporal models).
 
 ## Installation
 
@@ -206,5 +202,7 @@ install.packages("hypergraphs",
 Battiston, F., Cencetti, G., Iacopini, I., Latora, V., Lucas, M., Patania, A.,
 Young, J.-G., & Petri, G. (2020). Networks beyond pairwise interactions:
 Structure and dynamics. *Physics Reports*, 874, 1-92.
+<https://doi.org/10.1016/j.physrep.2020.05.004>
 
 Bianconi, G. (2021). *Higher-Order Networks*. Cambridge University Press.
+<https://doi.org/10.1017/9781108770996>

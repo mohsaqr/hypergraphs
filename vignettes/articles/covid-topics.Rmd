@@ -17,20 +17,17 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
 library(hypergraphs)
 ```
 
-The text hypergraph pipeline in hypergraphs represents a corpus as a
-document-word hypergraph and partitions it with a spectral method. This
-vignette applies the pipeline to the `covid` corpus of the sbert package,
-a Scopus export of 4,170 records on COVID-19 and education published
-between 2020 and 2024. Each record has an abstract and a publication year.
-The analysis proceeds in eight steps: text cleaning, hypergraph
-construction, selection of the number of topics, partitioning, topic
-description, topic sizes, topic quality, soft membership, and the network
-of relations between topics.
+A corpus can be represented as a hypergraph with documents as nodes and
+words as hyperedges, and a spectral partition of that hypergraph divides the
+documents into topics. The corpus here is the `covid` data of the sbert
+package, a Scopus export of `r format(nrow(sbert::covid), big.mark = ",")`
+records on COVID-19 and education published between 2020 and 2024. Each
+record has an abstract and a publication year.
 
 ## Text cleaning
 
-`clean_text()` removes the non-content that a bibliographic export carries
-in its abstracts. It decodes HTML entities, strips tags, normalises
+A bibliographic export carries text in its abstracts that is not part of
+the abstract. `clean_text()` decodes HTML entities, strips tags, normalizes
 typographic characters, and removes bracketed citation numbers, list
 markers, URLs, DOIs, trailing copyright notices and bare numbers. It takes
 a character vector or a data frame with a text column and returns an
@@ -45,11 +42,19 @@ abstracts <- clean_text(sbert::covid, column = "Abstract",
 abstracts <- unique(abstracts)
 ```
 
-The result is a data frame with the same columns as the input. The 323
-placeholder rows and four low-content rows now hold empty abstracts, and
-`unique()` has collapsed the records that appear twice in the export.
-Empty abstracts are retained at this stage so that the year column stays
-aligned with the text.
+```{r clean-values, include = FALSE}
+n_placeholder <- sum(grepl("no abstract available", sbert::covid$Abstract,
+                           ignore.case = TRUE))
+n_unique <- nrow(abstracts)
+n_empty <- sum(!nzchar(abstracts$Abstract))
+```
+
+The result is a data frame with the same columns as the input. The
+`r n_placeholder` placeholder abstracts are now empty, and `unique()` has
+collapsed the records that appear more than once, which leaves
+`r format(n_unique, big.mark = ",")` records, `r n_empty` of them with an
+empty abstract. Empty abstracts are retained at this stage so that the year
+column stays aligned with the text.
 
 ## Hypergraph construction
 
@@ -70,26 +75,36 @@ hg
 
 The stop list contains the English function words of `stop_words_en()`
 and the two words that name the subject of every abstract; a word present
-in every document does not separate any two documents. Words used in
-fewer than five abstracts are excluded by `min_count`. The incidence
+in every document does not separate any two documents. Words that occur
+fewer than five times in the corpus are excluded by `min_count`. The incidence
 matrix has more than a million cells, so the default `sparse = NULL`
 stores it as a sparse matrix.
 
 ## Number of topics
 
 `hg_cluster()` with `what = "eigenvalues"` returns the leading eigenvalues
-of the normalised hypergraph Laplacian (Zhou, Huang and Schölkopf, 2007)
-and the gap after each. A large gap between consecutive eigenvalues
-indicates a partition that the structure supports.
+of the normalized hypergraph Laplacian (Zhou, Huang and Schölkopf 2006)
+and the gap after each. A large gap after the k-th eigenvalue indicates a
+partition into k clusters that the structure supports. The first gap
+separates the zero eigenvalue of a connected hypergraph from the rest and
+says nothing about a partition.
 
 ```{r count}
-hg_cluster(hg, k = 18, seed = 1, what = "eigenvalues")
+spectrum <- hg_cluster(hg, k = 18, seed = 1, what = "eigenvalues")
+spectrum
 ```
 
-The gap after the second eigenvalue is the largest, followed by the gaps
-after the third and fourth. The gaps after the fifth and later eigenvalues
-are an order of magnitude smaller. The spectrum therefore supports two or
-four clusters. The partition below uses sixteen clusters, the number of
+```{r count-values, include = FALSE}
+informative <- subset(spectrum, index >= 2 & !is.na(gap))
+ranked_gaps <- informative[order(-informative$gap), ]
+best_k <- ranked_gaps$index[1:2]
+```
+
+The largest gap after the first is the gap after eigenvalue
+`r best_k[1]`, `r sprintf("%.4f", ranked_gaps$gap[1])`, followed by the gap
+after eigenvalue `r best_k[2]`, `r sprintf("%.4f", ranked_gaps$gap[2])`.
+The spectrum therefore supports `r best_k[1]` or `r best_k[2]` clusters.
+The partition below uses sixteen clusters, the number of
 topics in the structural topic model of this literature reported by Saqr
 et al. (2023), so that the two sets of topics can be compared. Sixteen is
 a finer partition than the spectrum supports on its own; its justification
@@ -155,8 +170,8 @@ technology acceptance models, dental and surgical assessment,
 disadvantaged households, the spring campus transition, and residency
 training.
 
-`plot()` on the keyword table draws one panel per cluster and score, with
-one bar per word.
+The keyword table plots as one panel per cluster and score, with one bar
+per word.
 
 ```{r name-plot, fig.width = 7, fig.height = 40}
 plot(words, value = "share")
@@ -183,11 +198,11 @@ definitions the structural topic model uses (Roberts, Stewart & Tingley
 compared on the same numbers. The top words are the most probable words of
 the topic's documents.
 
-* **Coherence** is UMass (Mimno et al. 2011): for every pair of top words,
+* Coherence is UMass (Mimno et al. 2011): for every pair of top words,
   the log of how often the rarer word's documents also contain the other,
   counted over the whole corpus and summed. It is never positive; closer to
   zero means the words turn up in the same documents.
-* **Exclusivity** is FREX (Bischof & Airoldi 2012): a weighted harmonic
+* Exclusivity is FREX (Bischof & Airoldi 2012): a weighted harmonic
   mean of how frequent each top word is in the topic and how exclusive it is
   to the topic, summed over the top words. Higher means the topic owns its
   words rather than sharing them with the rest of the corpus.
@@ -200,7 +215,7 @@ plot(quality)
 
 A topic high on both axes has a vocabulary that co-occurs and that no
 other topic uses; a topic low on coherence gathers abstracts that share
-words but not a subject. `coherence = "npmi"` gives normalised PMI instead
+words but not a subject. `coherence = "npmi"` gives normalized PMI instead
 (Bouma 2009; Lau, Newman & Baldwin 2014), and `words =` scores the top
 words of a topic model fitted elsewhere with the same measures.
 
@@ -210,8 +225,8 @@ words of a topic model fitted elsewhere with the same measures.
 document in every topic. Documents are placed in the spectral embedding
 that `hg_cluster()` cut, each topic's centre is the mean position of its
 documents, and a document's membership in a topic is the fuzzy c-means
-weight with fuzziness 2, the inverse squared distance to the centre
-normalised over topics. A document at a centre has membership 1 there;
+weight with fuzziness 2 (Bezdek 1981), the inverse squared distance to
+the centre normalized over topics. A document at a centre has membership 1 there;
 one halfway between two centres has 0.5 in each. One row per document and
 topic.
 
@@ -221,13 +236,31 @@ head(membership, 16)
 plot(membership)
 ```
 
-The memberships sum to one over the sixteen topics, so the uniform value
-is 0.0625 and a document's own-topic membership of 0.15 is 2.3 times that.
-They are read as ratios between topics: the first document above is 1.3
-times closer to topic 1 than to topic 2 and four times closer than to
-topic 3. For the median document the nearest centre is 17% closer than
-the second nearest, so most abstracts lie near a boundary between topics;
-the hard label records the side they fell on. The plot shows, per topic,
+```{r membership-values, include = FALSE}
+uniform <- 1 / 16
+own <- subset(membership, cluster == topic)$membership
+first_doc <- subset(membership, node == "doc_1")
+first_m <- setNames(first_doc$membership, first_doc$topic)
+distance_ratio <- function(a, b) sqrt(first_m[[a]] / first_m[[b]])
+ranked_m <- tapply(membership$membership, membership$node,
+                   \(m) sort(m, decreasing = TRUE)[1:2])
+closeness <- vapply(ranked_m, \(m) 1 - sqrt(m[2] / m[1]), numeric(1))
+```
+
+The memberships of a document sum to one over the sixteen topics, so the
+uniform value is `r uniform`. The median membership of a document in its
+own topic is `r sprintf("%.2f", median(own))`,
+`r sprintf("%.1f", median(own) / uniform)` times the uniform value. With
+fuzziness 2 a membership is proportional to the inverse squared distance,
+so the square root of the ratio of two memberships is the ratio of the
+distances. The first document above is
+`r sprintf("%.1f", distance_ratio("Cluster 1", "Cluster 2"))` times closer
+to topic 1 than to topic 2 and
+`r sprintf("%.1f", distance_ratio("Cluster 1", "Cluster 3"))` times closer
+than to topic 3. For the median document the nearest centre is
+`r round(100 * median(closeness))`% closer than the second nearest, so most
+abstracts lie near a boundary between topics, and the hard label records
+the side they fell on. The plot shows, per topic,
 the distribution of its own documents' membership in it. A compact topic
 has its documents well above the uniform value; a diffuse topic sits
 close to it.
@@ -238,7 +271,7 @@ close to it.
 shared vocabulary. For each pair of topics it sums, over all words, the
 product of the number of documents in each topic that contain the word,
 the full-counting aggregation of bibliometric keyword networks. The
-`similarity` argument normalises that sum by the measures of van Eck and
+`similarity` argument normalizes that sum by the measures of van Eck and
 Waltman (2009); `"cosine"` divides it by the geometric mean of the two
 topics' totals and lies in [0, 1]. The function returns an edge list with
 `source`, `target` and `weight`, the columns Gephi reads, and with
@@ -249,23 +282,32 @@ relations <- topic_network(hg, clusters = topics, similarity = "cosine")
 head(relations)
 ```
 
-Every pair of topics shares the corpus vocabulary, so all 120 cosine
-weights lie between 0.58 and 0.90. The plot keeps the upper quartile of
-the edges (`minimum = 0.82`), places the topics with a spring layout and
-scales line width by weight.
+```{r relations-values, include = FALSE}
+all_relations <- topic_network(hg, clusters = topics, similarity = "cosine")
+upper_quartile <- unname(quantile(all_relations$weight, 0.75))
+```
+
+Every pair of topics shares the corpus vocabulary, so all
+`r nrow(all_relations)` cosine weights lie between
+`r sprintf("%.2f", min(all_relations$weight))` and
+`r sprintf("%.2f", max(all_relations$weight))`. The plot keeps the upper
+quartile of the edges, those of weight
+`r sprintf("%.2f", upper_quartile)` or more, places the topics with a spring
+layout and scales line width by weight.
 
 ```{r relations-plot, fig.width = 7, fig.height = 7}
 network <- topic_network(hg, clusters = topics, similarity = "cosine",
-                            what = "network")
-cograph::splot(network, layout = "spring", minimum = 0.82,
+                         what = "network")
+cograph::splot(network, layout = "spring", minimum = upper_quartile,
                edge_width_range = c(0.5, 8))
 ```
 
 ## Summary
 
-The pipeline produced sixteen document clusters from 3,666 abstracts
-without embeddings or truncation. The spectrum of the hypergraph Laplacian
-supports two or four clusters; the finer partition was chosen to match a
+The analysis divided `r format(hg$n_nodes, big.mark = ",")` abstracts into
+sixteen clusters without embeddings or truncation. The spectrum of the
+hypergraph Laplacian supports `r best_k[1]` or `r best_k[2]` clusters; the
+finer partition was chosen to match a
 published topic model. Ranking words by the share of their corpus count
 that falls in a cluster, with a support floor, yields a distinct
 vocabulary for each cluster, whereas ranking by frequency yields the corpus
@@ -273,24 +315,41 @@ vocabulary for all of them.
 
 ## References
 
+Bezdek, J. C. (1981). *Pattern Recognition with Fuzzy Objective Function
+Algorithms*. Plenum.
+
+Bischof, J. M., & Airoldi, E. M. (2012). Summarizing topical content with
+word frequency and exclusivity. *Proceedings of the 29th International
+Conference on Machine Learning*, 201-208.
+
+Bouma, G. (2009). Normalized (pointwise) mutual information in collocation
+extraction. *Proceedings of GSCL*, 31-40.
+
 Grootendorst, M. (2022). BERTopic: Neural topic modeling with a class-based
 TF-IDF procedure. arXiv:2203.05794.
 
+Lau, J. H., Newman, D., & Baldwin, T. (2014). Machine reading tea leaves:
+Automatically evaluating topic coherence and topic model quality.
+*Proceedings of the 14th Conference of the European Chapter of the
+Association for Computational Linguistics*, 530-539.
+
+Mimno, D., Wallach, H. M., Talley, E., Leenders, M., & McCallum, A. (2011).
+Optimizing semantic coherence in topic models. *Proceedings of the 2011
+Conference on Empirical Methods in Natural Language Processing*, 262-272.
+
+Roberts, M. E., Stewart, B. M., & Tingley, D. (2019). stm: An R package for
+structural topic models. *Journal of Statistical Software*, 91(2), 1-40.
+<https://doi.org/10.18637/jss.v091.i02>
+
 Saqr, M., Raspopovic Milic, M., Pancheva, K., Jovic, J., Peltekova, E. V.,
-and Conde, M. Á. (2023). A multimethod synthesis of Covid-19 education
-research: the tightrope between covidization and meaningfulness.
-Universal Access in the Information Society.
+& Conde, M. Á. (2023). A multimethod synthesis of Covid-19 education
+research: The tightrope between covidization and meaningfulness.
+*Universal Access in the Information Society*.
 
-van Eck, N. J., and Waltman, L. (2009). How to normalize cooccurrence
-data? An analysis of some well-known similarity measures. Journal of the
-American Society for Information Science and Technology, 60(8), 1635-1651.
+van Eck, N. J., & Waltman, L. (2009). How to normalize cooccurrence data?
+An analysis of some well-known similarity measures. *Journal of the
+American Society for Information Science and Technology*, 60(8), 1635-1651.
 
-Bezdek, J. C. (1981). Pattern Recognition with Fuzzy Objective Function
-Algorithms. Plenum.
-
-Bouma, G. (2009). Normalized (pointwise) mutual information in
-collocation extraction. Proceedings of GSCL, 31-40.
-
-Zhou, D., Huang, J., and Schölkopf, B. (2007). Learning with hypergraphs:
-clustering, classification, and embedding. Advances in Neural Information
-Processing Systems 19.
+Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+Clustering, classification, and embedding. *Advances in Neural Information
+Processing Systems 19*.

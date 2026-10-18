@@ -34,7 +34,7 @@
 #'   `mode = "active"` also `n_nodes_cumulative`, `n_edges_cumulative` and
 #'   `n_edges_distinct_cumulative`. With `components = TRUE`, further
 #'   `n_components`, `largest_component` (share of active nodes) and
-#'   `diameter`. `plot()` draws each count against time, on the calendar
+#'   `diameter`. `plot()` plots each count against time, on the calendar
 #'   when the hypergraph has one.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #'   hypergraphs. *Philosophical Transactions of the Royal Society A*,

@@ -7,7 +7,7 @@
 \alias{plot.hypergraphs_community_comparison}
 \title{Compare community structure across representations}
 \usage{
-hg_compare_communities(..., hg = NULL, edge_source = NULL)
+hg_compare_communities(..., hg = NULL)
 
 \method{print}{hypergraphs_community_comparison}(x, n = 10L, ...)
 
@@ -26,10 +26,6 @@ are available as \code{what = "quality"}. A fit run on a directed citation
 graph cannot be scored (the measures are defined on undirected graphs):
 its quality row is \code{NA} and a \code{hypergraphs_undefined_statistic} warning
 is raised.}
-
-\item{edge_source}{Deprecated and unused: the saved projections already
-carry the hyperedge sources. Supplying it warns with class
-\code{hypergraphs_deprecated}.}
 
 \item{x}{A \code{hypergraphs_community_comparison} object.}
 
@@ -50,7 +46,7 @@ nodes the three scores are \code{NA} and a \code{hypergraphs_undefined_statistic
 warning is raised), \code{"sizes"} (one row per community of every medoid
 with \code{model}, \code{rank}, \code{n_nodes}) or, when \code{hg} was given, \code{"quality"}
 (one row per fit with the columns of \code{\link[=hg_community_quality]{hg_community_quality()}}).
-\code{plot()} draws the cluster-size distributions (\code{what = "sizes"}, the
+\code{plot()} plots the cluster-size distributions (\code{what = "sizes"}, the
 number of communities at least as large as each size, on logarithmic
 axes) or the similarity matrix (\code{what = "similarity"}, AMI below and
 ARI above the diagonal, values printed in the cells, on a diverging
@@ -71,7 +67,7 @@ dat <- data.frame(
   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
   edge = rep(paste0("e", 1:4), each = 3)
 )
-h <- group_hypergraph(dat, "member", "edge")
+h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 if (requireNamespace("igraph", quietly = TRUE)) {
   multi <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
   binary <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2,

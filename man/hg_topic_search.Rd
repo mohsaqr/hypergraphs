@@ -25,7 +25,8 @@ hg_topic_search(
 
 \item{k}{Numbers of topics to compare, at least two whole numbers.}
 
-\item{nstart}{Number of random starts (default \code{10}).}
+\item{nstart}{Number of random starts for each number of topics
+(default \code{1}).}
 
 \item{n}{Top words per topic scored (default \code{10}).}
 
@@ -56,9 +57,9 @@ A base \code{data.frame} of class \code{hypergraphs_topic_search}, one row
 per number of topics: \code{k}, \code{coherence} and \code{exclusivity} (means over
 the topics), \code{divergence} (of the kept start), \code{agreement} (mean
 agreement of the topics across the starts; \code{NA} with \code{nstart = 1}),
-\code{converged} and \code{frontier}. \code{plot()} draws exclusivity against
+\code{converged} and \code{frontier}. \code{plot()} plots exclusivity against
 coherence, one labelled point per number of topics, the frontier
-joined by a line and drawn as filled points. Conditions are those of
+joined by a line and plotted as filled points. Conditions are those of
 \code{\link[=hg_topics]{hg_topics()}}; a start that does not converge raises
 \code{hypergraphs_no_converge}.
 }

@@ -32,20 +32,11 @@
 #' @param seed Optional integer for reproducible Bernoulli sampling when
 #'   `0 < p < 1`.
 #'
-#' @return A `net_hg` object: a list with components
-#' \describe{
-#'   \item{`hyperedges`}{List of integer vectors. Each entry is a hyperedge
-#'     given as the sorted node indices it spans.}
-#'   \item{`incidence`}{Numeric matrix of size `n_nodes` x `n_hyperedges`.
-#'     `incidence[i, j] = 1` iff node i belongs to hyperedge j. Row names
-#'     are node names; column names are `h1`, `h2`, ...}
-#'   \item{`nodes`}{Character vector of node names.}
-#'   \item{`n_nodes`, `n_hyperedges`}{Scalar counts.}
-#'   \item{`size_distribution`}{Named integer vector: number of hyperedges
-#'     of each size, named `size_2`, `size_3`, ...}
-#'   \item{`params`}{Recorded call parameters: `source`, `type`, `p`,
-#'     `include_pairwise`, `max_size`, `threshold`, `seed`.}
-#' }
+#' @return A `net_hg` with `print`, `summary` and `plot` methods.
+#'   [hg_get()] returns one row per hyperedge (named `h1`, `h2`, ...), and
+#'   `what = "nodes"` and `what = "memberships"` return the nodes and the
+#'   node-hyperedge pairs; [hg_measures()] gives the distribution of
+#'   hyperedge sizes.
 #'
 #' @details
 #' The construction follows Burgio, Matamalas, Gomez & Arenas (2020) on
@@ -483,7 +474,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
 }
 
 #' @return A data.frame, one row per node: `node`, `degree` (the number of
-#'   hyperedges the node belongs to). Returned **invisibly**: `summary(x)`
+#'   hyperedges the node belongs to), returned invisibly: `summary(x)`
 #'   prints the summary and nothing else; assign the result to keep the table.
 #' @rdname network_hypergraph
 #' @export

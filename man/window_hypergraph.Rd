@@ -40,9 +40,9 @@ after collapsing. The default \code{1} keeps everything.}
 \item{min_weight}{Integer >= 1. Drop hyperedges observed in fewer than
 \code{min_weight} windows, keeping only recurrent state combinations (the
 role \code{min_freq} plays in rule extraction). The default \code{1} keeps
-everything. The total dropped by \code{min_size} and \code{min_weight} together
-is recorded in \code{params$n_dropped}; with both at their defaults,
-\code{sum(window_counts)} equals the number of non-empty full windows.}
+everything. With \code{min_size} and \code{min_weight} at their defaults, the
+\code{weight} column of \code{\link[=hg_get]{hg_get()}} sums to the number of non-empty full
+windows.}
 
 \item{collapse}{\code{TRUE} (default) merges windows with the same set of
 states into one hyperedge weighted by its number of windows. \code{FALSE}
@@ -55,16 +55,11 @@ apply. The ordered windows of one sequence are the input of
 \code{plot(type = "storyline")}.}
 }
 \value{
-A \code{net_hg} object (as from \code{\link[=network_hypergraph]{network_hypergraph()}} and
-\code{\link[=group_hypergraph]{group_hypergraph()}}): a list with \code{hyperedges} (list of sorted node
-index vectors), \code{incidence} (numeric node x hyperedge matrix of
-within-window occurrence totals), \code{nodes}, \code{n_nodes}, \code{n_hyperedges},
-\code{window_counts} (integer, one weight per hyperedge: the number of
-windows collapsed into it), \code{size_distribution}, and \code{params}
-(\code{source = "window_hypergraph"}, \code{window}, \code{step}, \code{min_size},
-\code{n_sequences}, \code{n_short_sequences}, \code{n_windows}, \code{n_empty_windows},
-\code{n_dropped}). Use \code{\link[=hg_get]{hg_get()}} for the tidy one-row-per-hyperedge
-table.
+A \code{net_hg}, as from \code{\link[=network_hypergraph]{network_hypergraph()}} and
+\code{\link[=group_hypergraph]{group_hypergraph()}}, whose incidence holds the number of occurrences
+of each state within the windows of a hyperedge. \code{\link[=hg_get]{hg_get()}} returns one
+row per hyperedge, with \code{weight}, the number of windows that share its
+member set.
 }
 \description{
 Builds a hypergraph from categorical sequence data: a fixed-size window
@@ -82,10 +77,10 @@ family (\code{\link[=hg_laplacian]{hg_laplacian()}}, \code{\link[=hg_cluster]{hg
 \details{
 \code{step = 1} (default) gives sliding windows; \code{step = window} gives
 tumbling (non-overlapping) windows. Only full windows are formed: a
-sequence shorter than \code{window} contributes none and is counted in
-\code{params$n_short_sequences}. \code{NA} states are excluded from a window's
-set; a window containing only \code{NA}s is skipped and counted in
-\code{params$n_empty_windows}.
+sequence shorter than \code{window} contributes none. \code{NA} states are
+excluded from a window's set, and a window containing only \code{NA}s is
+skipped. The printed hypergraph reports how many windows were formed
+from how many sequences.
 
 Whole-sequence hyperedges (each complete sequence as one hyperedge) are
 the special case already covered by \code{\link[=group_hypergraph]{group_hypergraph()}} on long-format

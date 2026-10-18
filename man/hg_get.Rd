@@ -33,51 +33,60 @@ table. An object of a class without a method raises
 \code{hypergraphs_bad_input}, naming the class.
 }
 \description{
-\code{hg_get()} is the single reader of the package. Every object a
-constructor or a verb returns -- a hypergraph, a memory network, a
-simplicial complex, an inference or a community result -- hands over its
-tables through \code{hg_get()}, never through \code{$}. \verb{what =} selects the table;
-\code{what = NULL} (the default) returns the object's primary table. Filters,
-orderings and \verb{top =} are named arguments of the method for that class.
+\code{hg_get()} reads the tables of every object the package returns: a
+hypergraph, a memory network, a simplicial complex, an inference result
+or a community result. \code{what} selects the table, and \code{what = NULL} (the
+default) returns the object's primary table. Filters, orderings and \code{top}
+are named arguments of the method for the object's class.
 }
 \section{Tables by class}{
 
+The first table listed is the default.
 \describe{
-\item{\code{net_hg} (hypergraphs)}{\code{"edges"} (default), \code{"nodes"},
-\code{"memberships"}, \code{"sets"}, \code{"state_counts"}, \code{"edge_data"};
-see \code{\link[=hg_get.net_hg]{hg_get.net_hg()}}.}
-\item{\code{text_hypergraph}}{\code{"weights"} (default), \code{"documents"},
-\code{"vocabulary"}, \code{"sentences"}; see \code{\link[=hg_get.text_hypergraph]{hg_get.text_hypergraph()}}.}
-\item{\code{net_temporal_hypergraph}}{\code{"memberships"} (default), \code{"edges"},
+\item{\code{net_hg} (hypergraphs)}{\code{"edges"}, \code{"nodes"}, \code{"memberships"},
+\code{"sets"}, \code{"state_counts"}, \code{"edge_data"}; see \code{\link[=hg_get.net_hg]{hg_get.net_hg()}}.}
+\item{\code{text_hypergraph}}{\code{"weights"}, \code{"documents"}, \code{"vocabulary"},
+\code{"sentences"}; see \code{\link[=hg_get.text_hypergraph]{hg_get.text_hypergraph()}}.}
+\item{\code{net_temporal_hypergraph}}{\code{"memberships"}, \code{"edges"},
 \code{"nodes"}.}
-\item{\code{net_hon} (\code{\link[=hon]{hon()}})}{\code{"rules"} (default), \code{"nodes"},
+\item{\code{net_hg_pairwise} (\code{\link[=pairwise_network]{pairwise_network()}})}{\code{"edges"}, \code{"nodes"}.}
+\item{\code{net_hg_topics} (\code{\link[=hg_topics]{hg_topics()}})}{\code{"topics"}, \code{"shares"},
+\code{"words"}, \code{"documents"}, \code{"restarts"}, \code{"prevalence"}.}
+\item{\code{net_hg_mmsbm} (\code{\link[=hg_mmsbm]{hg_mmsbm()}})}{\code{"membership"}, \code{"nodes"},
+\code{"affinity"}, \code{"restarts"}.}
+\item{\code{hg_classification} (\code{\link[=hg_classify]{hg_classify()}} with \code{holdout})}{
+\code{"predictions"}, \code{"accuracy"}, \code{"classes"}, \code{"confusion"}.}
+\item{\code{hg_communities} (\code{\link[=hg_communities]{hg_communities()}} on a hypergraph)}{
+\code{"medoid"}, \code{"partitions"}, \code{"runs"}, \code{"sizes"}, \code{"ami"}, \code{"ari"},
+\code{"nmi"}, \code{"weights"}; see \code{\link[=hg_get.hg_communities]{hg_get.hg_communities()}}.}
+\item{\code{hypergraphs_community_comparison} (\code{\link[=hg_compare_communities]{hg_compare_communities()}})}{
+\code{"summary"}, \code{"similarity"}, \code{"sizes"}, \code{"quality"}.}
+\item{\code{hypergraphs_motifs} (\code{\link[=hg_motifs]{hg_motifs()}})}{\code{"test"}, \code{"draws"}.}
+\item{\code{net_hon} (\code{\link[=hon]{hon()}})}{\code{"rules"}, \code{"nodes"}, \code{"pathways"}.}
+\item{\code{net_honem} (\code{\link[=honem]{honem()}})}{\code{"embeddings"}, \code{"variance"}.}
+\item{\code{net_hypa} (\code{\link[=hypa]{hypa()}} on sequences)}{\code{"anomalies"}, \code{"scores"},
+\code{"over"}, \code{"under"}, \code{"pathways"}.}
+\item{\code{net_mogen} (\code{\link[=mogen]{mogen()}})}{\code{"orders"}, \code{"transitions"}, \code{"paths"},
 \code{"pathways"}.}
-\item{\code{net_honem} (\code{\link[=honem]{honem()}})}{\code{"embeddings"} (default), \code{"variance"}.}
-\item{\code{net_hypa} (\code{\link[=hypa]{hypa()}} on sequences)}{\code{"anomalies"} (default),
-\code{"scores"}, \code{"over"}, \code{"under"}, \code{"pathways"}.}
-\item{\code{net_mogen} (\code{\link[=mogen]{mogen()}})}{\code{"orders"} (default), \code{"transitions"},
-\code{"paths"}, \code{"pathways"}.}
-\item{\code{net_markov_order} (\code{\link[=markov_order]{markov_order()}})}{\code{"orders"} (default),
-\code{"null"}.}
+\item{\code{net_markov_order} and \code{net_markov_order_group}
+(\code{\link[=markov_order]{markov_order()}})}{\code{"orders"}, \code{"null"}.}
 \item{\code{net_path_dependence} (\code{\link[=memory]{memory()}})}{\code{"contexts"}.}
-\item{\code{net_markov_stability} (\code{\link[=hg_markov_stability]{hg_markov_stability()}})}{\code{"states"}
-(default), \code{"passage_time"}, \code{"stationary"}.}
+\item{\code{net_markov_stability} (\code{\link[=hg_markov_stability]{hg_markov_stability()}})}{\code{"states"},
+\code{"passage_time"}, \code{"stationary"}.}
 \item{\code{hypergraphs_bootstrap} (\code{\link[=hg_bootstrap]{hg_bootstrap()}})}{\code{"edges"}.}
-\item{\code{hypergraphs_comparison} (\code{\link[=hg_compare]{hg_compare()}})}{\code{"edges"}.}
+\item{\code{hypergraphs_comparison} (\code{\link[=hg_compare]{hg_compare()}})}{\code{"edges"},
+\code{"global"}.}
 \item{\code{hypergraphs_memory_communities} (\code{\link[=hg_communities]{hg_communities()}} on a memory
-network)}{\code{"states"} (default), \code{"physical"}, \code{"modules"},
-\code{"codelength"}, \code{"trials"}.}
-\item{\code{simplicial_complex} (\code{\link[=simplicial]{simplicial()}})}{\code{"simplices"} (default),
-\code{"f_vector"}, \code{"degree"}.}
-\item{\code{q_analysis} (\code{\link[=hg_qanalysis]{hg_qanalysis()}})}{\code{"q_levels"} (default),
-\code{"nodes"}.}
-\item{\code{persistent_homology} (\code{\link[=hg_homology]{hg_homology()}})}{\code{"persistence"}
-(default), \code{"betti"}.}
+network)}{\code{"states"}, \code{"physical"}, \code{"modules"}, \code{"trials"},
+\code{"first_order"}, \code{"codelength"}.}
+\item{\code{hypergraphs_summary} (\code{summary()} of a result)}{one table per
+part of the summary, named as printed.}
+\item{\code{simplicial_complex} (\code{\link[=simplicial]{simplicial()}})}{\code{"simplices"},
+\code{"f_vector"}, \code{"betti"}, \code{"degree"}, \code{"validation"}.}
+\item{\code{q_analysis} (\code{\link[=hg_qanalysis]{hg_qanalysis()}})}{\code{"q_levels"}, \code{"nodes"}.}
+\item{\code{persistent_homology} (\code{\link[=hg_homology]{hg_homology()}})}{\code{"persistence"},
+\code{"betti"}.}
 \item{\code{persistence_landscape} (\code{\link[=hg_landscape]{hg_landscape()}})}{\code{"landscape"}.}
-\item{\code{hg_communities} (\code{\link[=hg_communities]{hg_communities()}} on a hypergraph)}{see
-\code{\link[=hg_get.hg_communities]{hg_get.hg_communities()}}.}
-\item{\code{hypergraphs_community_comparison}, \code{hypergraphs_motifs},
-\code{net_hg_mmsbm}}{see their methods.}
 }
 }
 

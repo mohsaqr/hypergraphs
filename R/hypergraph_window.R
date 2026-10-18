@@ -123,10 +123,10 @@
 #'
 #' `step = 1` (default) gives sliding windows; `step = window` gives
 #' tumbling (non-overlapping) windows. Only full windows are formed: a
-#' sequence shorter than `window` contributes none and is counted in
-#' `params$n_short_sequences`. `NA` states are excluded from a window's
-#' set; a window containing only `NA`s is skipped and counted in
-#' `params$n_empty_windows`.
+#' sequence shorter than `window` contributes none. `NA` states are
+#' excluded from a window's set, and a window containing only `NA`s is
+#' skipped. The printed hypergraph reports how many windows were formed
+#' from how many sequences.
 #'
 #' Whole-sequence hyperedges (each complete sequence as one hyperedge) are
 #' the special case already covered by [group_hypergraph()] on long-format
@@ -157,20 +157,15 @@
 #' @param min_weight Integer >= 1. Drop hyperedges observed in fewer than
 #'   `min_weight` windows, keeping only recurrent state combinations (the
 #'   role `min_freq` plays in rule extraction). The default `1` keeps
-#'   everything. The total dropped by `min_size` and `min_weight` together
-#'   is recorded in `params$n_dropped`; with both at their defaults,
-#'   `sum(window_counts)` equals the number of non-empty full windows.
+#'   everything. With `min_size` and `min_weight` at their defaults, the
+#'   `weight` column of [hg_get()] sums to the number of non-empty full
+#'   windows.
 #'
-#' @return A `net_hg` object (as from [network_hypergraph()] and
-#'   [group_hypergraph()]): a list with `hyperedges` (list of sorted node
-#'   index vectors), `incidence` (numeric node x hyperedge matrix of
-#'   within-window occurrence totals), `nodes`, `n_nodes`, `n_hyperedges`,
-#'   `window_counts` (integer, one weight per hyperedge: the number of
-#'   windows collapsed into it), `size_distribution`, and `params`
-#'   (`source = "window_hypergraph"`, `window`, `step`, `min_size`,
-#'   `n_sequences`, `n_short_sequences`, `n_windows`, `n_empty_windows`,
-#'   `n_dropped`). Use [hg_get()] for the tidy one-row-per-hyperedge
-#'   table.
+#' @return A `net_hg`, as from [network_hypergraph()] and
+#'   [group_hypergraph()], whose incidence holds the number of occurrences
+#'   of each state within the windows of a hyperedge. [hg_get()] returns one
+#'   row per hyperedge, with `weight`, the number of windows that share its
+#'   member set.
 #'
 #' @references
 #' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with less:

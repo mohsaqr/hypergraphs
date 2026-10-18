@@ -12,7 +12,6 @@
   top = 8L,
   start = NULL,
   end = NULL,
-  method = NULL,
   ...
 )
 }
@@ -29,17 +28,13 @@ storyline.}
 \code{at} (see \code{\link[=plot.net_hg]{plot.net_hg()}}); \code{"storyline"} plots the whole history.}
 
 \item{top}{For \code{type = "storyline"}: the number of nodes with the most
-hyperedges to draw as lines (default \code{8}, one Okabe-Ito colour each;
+hyperedges to plot as lines (default \code{8}, one Okabe-Ito colour each;
 ties broken by name), or
 \code{NULL} for every node.}
 
-\item{start, end}{For \code{type = "storyline"}: draw only the hyperedges that
+\item{start, end}{For \code{type = "storyline"}: plot only the hyperedges that
 begin in this period, as dates for a calendar hypergraph or numbers on
 its clock. \code{NULL} (default) leaves the period open.}
-
-\item{method}{Deprecated. The snapshot used to be projected to a pairwise
-network; \code{plot(pairwise_network(hg_snapshot(x, at), type = method))}
-plots that network.}
 
 \item{...}{For \code{"hulls"} and \code{"incidence"}, arguments passed to
 \code{\link[=plot.net_hg]{plot.net_hg()}}, such as \code{color_by} or \code{labels}. For \code{"storyline"},
@@ -50,10 +45,10 @@ column), \code{point_size} (size of the points, default \code{2.5}) and
 hyperedges their nodes share: a full row apart for none, 0.35 of a row
 for the largest number shared by any pair in the plot, and linearly in
 between, so lines that often meet run together. Spacing never changes
-the order of the lines. \code{width_by = "degree"} draws each line with a
+the order of the lines. \code{width_by = "degree"} plots each line with a
 width that grows linearly with its node's number of hyperedges in the
 period, the count \code{top} ranks by, and adds a width legend; \code{NULL}
-(default) draws every line alike.}
+(default) plots every line alike.}
 }
 \value{
 A ggplot object.
@@ -86,7 +81,7 @@ lines differ in their pair of colour and shape.
 hyperedge begins between \code{start} and \code{end}, for an invalid \code{top}, for
 \code{at}, \code{mode} or an argument of \code{\link[=plot.net_hg]{plot.net_hg()}} with \code{type = "storyline"},
 for \code{top}, \code{start} or \code{end} with another type, and as \code{\link[=plot.net_hg]{plot.net_hg()}}
-raises it; \code{hypergraphs_deprecated} (a warning) for \code{method}.
+raises it.
 }
 
 \examples{

@@ -121,8 +121,7 @@
 #'   sub-matrix of the input, sparse if the input is sparse. Edge metadata
 #'   (`edge_data`), duplicate multiplicities (`edge_multiplicity`) and the
 #'   window counts of a [window_hypergraph()] are subset alongside. The
-#'   nodes the subset removes are recorded in `params$subset$removed`, and
-#'   the labels of removed nodes are set aside with a
+#'   labels of removed nodes are set aside with a
 #'   `hypergraphs_dropped_documents` warning by [hg_classify()],
 #'   [hg_keywords()] and the other verbs that take labels, so the table that
 #'   built the hypergraph can be passed back whole.

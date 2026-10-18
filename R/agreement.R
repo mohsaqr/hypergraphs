@@ -594,20 +594,28 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
 
 #' Seed labels from a clustering, for spreading or training
 #'
-#' Turns an unsupervised partition into the labeled examples that
-#' [hg_classify()] takes: from each
-#' cluster, the `n` nodes with the highest stationary probability `pi`
-#' (the cluster's most representative members under the random walk).
-#' Ties are broken alphabetically by node name so the selection is
-#' deterministic.
+#' The seeds of a cluster are its `n` nodes with the highest stationary
+#' probability `pi` under the hypergraph random walk (Zhou et al. 2006;
+#' Hayashi et al. 2020), the members the walk visits most often. Ties are
+#' broken alphabetically by node name. The seeds serve as the labeled
+#' examples that [hg_classify()] takes.
 #'
 #' @param embedding The data.frame from
-#'   `hg_cluster(what = "embedding")` -- columns `node`, `cluster`, `pi`.
+#'   `hg_cluster(what = "embedding")`, with columns `node`, `cluster` and
+#'   `pi`.
 #' @param n Seeds per cluster (default `5L`); clusters smaller than `n`
 #'   contribute all their nodes.
-#' @return A named character vector -- names are node identifiers, values
-#'   their cluster labels -- ready to pass as the `labels` argument of
-#'   [hg_classify()].
+#' @return A named character vector, the cluster label of each seed named
+#'   by the seed node, in the form the `labels` argument of [hg_classify()]
+#'   takes.
+#' @references
+#' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+#' Clustering, classification, and embedding. \emph{NeurIPS 19}.
+#' \doi{10.7551/mitpress/7503.003.0205}
+#'
+#' Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+#' random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.
+#' \doi{10.1145/3340531.3412034}
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",

@@ -50,8 +50,7 @@ A \code{net_hg} whose incidence matrix is the selected
 sub-matrix of the input, sparse if the input is sparse. Edge metadata
 (\code{edge_data}), duplicate multiplicities (\code{edge_multiplicity}) and the
 window counts of a \code{\link[=window_hypergraph]{window_hypergraph()}} are subset alongside. The
-nodes the subset removes are recorded in \code{params$subset$removed}, and
-the labels of removed nodes are set aside with a
+labels of removed nodes are set aside with a
 \code{hypergraphs_dropped_documents} warning by \code{\link[=hg_classify]{hg_classify()}},
 \code{\link[=hg_keywords]{hg_keywords()}} and the other verbs that take labels, so the table that
 built the hypergraph can be passed back whole.

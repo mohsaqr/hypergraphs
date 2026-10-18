@@ -22,7 +22,7 @@
 }
 \value{
 For \code{"physical"}, a ggplot object (print it to draw). For
-\code{"network"} and \code{"states"}, \code{x}, invisibly (cograph draws with base
+\code{"network"} and \code{"states"}, \code{x}, invisibly (cograph plots with base
 graphics).
 }
 \description{
@@ -40,14 +40,14 @@ every state a circle whose area follows its flow, coloured
 (Okabe-Ito) by the community that holds most of its flow, and every
 community a blob around its states, so a shared state lies in two
 blobs.}
-\item{\code{type = "states"}}{the network of memory nodes drawn in the same
+\item{\code{type = "states"}}{the network of memory nodes plotted in the same
 way, laid out by the walk's transitions between them so that the nodes
 of a community sit together. Memory nodes with no flow are left out
 unless \code{show_zero_flow = TRUE}, and the title says how many. With more
 than 20 nodes the probabilities are not printed on the arrows.}
 }
 Memory nodes with no flow (reached only by random jumps, see
-\code{\link[=hg_communities]{hg_communities()}}) carry no flow of their states and are never drawn in
+\code{\link[=hg_communities]{hg_communities()}}) carry no flow of their states and are never plotted in
 the physical view. The tables returned by
 \code{\link[=hg_get.hypergraphs_memory_communities]{hg_get.hypergraphs_memory_communities()}} are unaffected.
 }

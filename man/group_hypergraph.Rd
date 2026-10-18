@@ -14,8 +14,6 @@ group_hypergraph(
   separator = NULL,
   from = NULL,
   to = NULL,
-  member = NULL,
-  cooccur_by = NULL,
   top = NULL,
   states = NULL,
   threshold = NULL,
@@ -64,9 +62,6 @@ with no member contributes no hyperedge.}
 \item{from, to}{Column names of a pairwise edge list, as an alternative to
 \code{node} and \code{hyperedge}.}
 
-\item{member, cooccur_by}{Deprecated names of \code{node} and \code{hyperedge}; using
-them warns with a \code{hypergraphs_deprecated} condition.}
-
 \item{top}{The number of most frequent sets kept as hyperedges, in each
 value of \code{group} or over all hyperedges; \code{Inf} keeps every set. For a
 data frame, giving \code{top}, \code{group} or \code{min_share} counts sets (see
@@ -103,15 +98,10 @@ reaches the share is kept (Agrawal & Srikant 1994). \code{NULL} (default)
 applies no minimum.}
 }
 \value{
-A \code{net_hg} object with the same structure produced by
-\code{\link[=network_hypergraph]{network_hypergraph()}} (\code{hyperedges}, \code{incidence}, \code{nodes}, \code{n_nodes},
-\code{n_hyperedges}, \code{size_distribution}, \code{params}), plus \code{edge_data} when
-\code{data} carries hyperedge attributes (see Details). The \code{params} list
-records \code{source = "group_hypergraph"} and the original column names.
-For clustered sequences the object also has \code{group_sizes} and
-\code{state_counts} (read them with \code{hg_get()}) and \code{params} records
-\code{source = "clustered_sequences"}, \code{top}, \code{states} and
-\code{unit = "sequences"}.
+A \code{net_hg}, as from \code{\link[=network_hypergraph]{network_hypergraph()}}. \code{\link[=hg_get]{hg_get()}} returns
+one row per hyperedge; \code{what = "edge_data"} returns the hyperedge
+attributes when \code{data} carries them (see Details), and for counted sets
+\code{what = "sets"} and \code{what = "state_counts"} return the counts.
 }
 \description{
 Constructs a \link[=network_hypergraph]{net_hg} the way a network is
@@ -163,7 +153,7 @@ and \code{hg_get(hg, what = "sets")} reads them with their \code{count} and \cod
 of the value's sets. Without \code{group}, the sets are counted over all
 hyperedges together, under one value named after \code{hyperedge}
 (\code{"All sessions"}).
-\code{plot(hg, group = )} draws the sets of one value, every node sized by the
+\code{plot(hg, group = )} plots the sets of one value, every node sized by the
 sets that contain it. \code{states} keeps only
 the listed \code{node} values, and \code{min_size} the sets of at least that many.
 }
@@ -204,7 +194,7 @@ by their structure; the package that fitted them is not needed.
 The hyperedges are named \code{"<group>: <set>"} and carry \code{group}, \code{set} and
 \code{count} (sequences with exactly that set) as hyperedge attributes, so
 \code{plot()} colours and titles them by \code{count} in \code{"sequences"}, and
-\code{plot(hg, group = "Cluster 1")} draws one group's sets with each node
+\code{plot(hg, group = "Cluster 1")} plots one group's sets with each node
 sized by the sequences of that group containing the state. Read the
 tables with \code{hg_get(hg, what = "sets")} (one row per hyperedge:
 its group, set, size, count and share of the group's sequences) and

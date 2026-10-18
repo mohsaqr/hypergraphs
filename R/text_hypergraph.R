@@ -245,14 +245,16 @@
 #'   weight table, and its `what` argument for the document and vocabulary
 #'   tables.
 #'
-#' @section Conditions: Raises `hypergraphs_bad_input` (broken argument contract,
-#'   including bag-only arguments passed to other constructions, and a
-#'   data.frame column other than `column` and `id` named like a column of
-#'   the document table: `doc`, and for the token-based constructions also
-#'   `n_tokens` or `n_types`),
-#'   `hypergraphs_empty_corpus` (no document survives tokenization and filtering),
-#'   `hypergraphs_missing_embeddings` (`construction = "knn"` with neither
-#'   `embeddings` nor the sbert package), and warns with
+#' @section Conditions: A data.frame column other than `column` and `id`
+#'   that shares a name with a column of the document table (`doc`, and for
+#'   the token-based constructions also `n_tokens` and `n_types`) is kept as
+#'   metadata under `input_<name>`, with a `hypergraphs_renamed_column`
+#'   warning. Raises `hypergraphs_bad_input` for a broken argument contract,
+#'   including bag-only arguments passed to other constructions and a
+#'   clashing column whose `input_<name>` is also taken;
+#'   `hypergraphs_empty_corpus` when no document survives tokenization and
+#'   filtering; `hypergraphs_missing_embeddings` for `construction = "knn"`
+#'   with neither `embeddings` nor the sbert package. Warns with
 #'   `hypergraphs_dropped_documents` when some documents end up empty.
 #'
 #' @references

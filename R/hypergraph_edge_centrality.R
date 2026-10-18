@@ -31,7 +31,7 @@
 #' h <- group_hypergraph(
 #'   data.frame(member = c("a", "b", "c", "b", "c", "d"),
 #'              event = rep(c("e1", "e2"), each = 3)),
-#'   "member", "event"
+#'   node = "member", hyperedge = "event"
 #' )
 #' hg_edge_centrality(h, s = 1)
 #' @export

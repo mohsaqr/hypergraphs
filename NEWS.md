@@ -1,3 +1,39 @@
+# hypergraphs 0.7.9
+
+## Breaking changes
+
+* The deprecated arguments are removed: `member` and `cooccur_by` of
+  `group_hypergraph()`, `cooccur_by` of `temporal_hypergraph()`,
+  `edge_source` of `hg_compare_communities()`, `method` of `plot()` on a
+  temporal hypergraph, and `mode = "all"` of `hg_snapshot()` and the other
+  snapshot functions (use `mode = "cumulative"`).
+
+* The print, summary, plot and `hg_get()` methods of the internal classes
+  `net_hg_cluster`, `net_hg_transduction` and `net_hg_measures`, which no
+  exported function returns, no longer have help pages.
+
+## New features
+
+* `hg_get(x, what = "global")` on an `hg_compare()` result returns the
+  global permutation test, which was only shown by `print()` and
+  `summary()`.
+
+## Documentation
+
+* The help pages describe their results through `hg_get()` tables. Return
+  values, conditions and defaults were corrected where they disagreed with
+  the code, among them the conditions of `text_hypergraph()`, the default
+  `nstart` of `hg_topic_search()` and the `hypergraphs_sparse_unsupported`
+  error of `hg_null_test()` and `hg_centrality()`. `hg_seeds()`,
+  `hg_topic_sizes()` and the assignment null of `hg_null_test()` cite their
+  references.
+
+* The README lists every exported function and dataset. The vignette builds
+  without igraph and no longer reports the Z centrality, which does not
+  converge on its data. The articles compute their numbers from the
+  results they show, and the article on ICSID tribunals has a list of
+  references.
+
 # hypergraphs 0.7.8
 
 * `plot()` on a classification result raises `hypergraphs_bad_input` for an

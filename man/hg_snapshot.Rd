@@ -22,8 +22,7 @@ for a calendar hypergraph. \code{NULL} (default) is the end of observation.}
 unit: \code{0} (default) evaluates the instant \code{at}; a positive width covers
 \verb{[at, at + window)}; \code{"all"} covers the whole observation period.}
 
-\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description. The
-former \code{"all"} is deprecated: it is \code{"cumulative"} with \code{at} unset.}
+\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description.}
 
 \item{multiedges}{Keep distinct edge identities with identical member sets?
 \code{TRUE} matches a multi-hypergraph; \code{FALSE} collapses them to one edge and

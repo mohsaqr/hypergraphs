@@ -994,14 +994,14 @@ summary.hypergraphs_memory_communities <- function(object, ...) .ho_summary(obje
 #'     (Okabe-Ito) by the community that holds most of its flow, and every
 #'     community a blob around its states, so a shared state lies in two
 #'     blobs.}
-#'   \item{`type = "states"`}{the network of memory nodes drawn in the same
+#'   \item{`type = "states"`}{the network of memory nodes plotted in the same
 #'     way, laid out by the walk's transitions between them so that the nodes
 #'     of a community sit together. Memory nodes with no flow are left out
 #'     unless `show_zero_flow = TRUE`, and the title says how many. With more
 #'     than 20 nodes the probabilities are not printed on the arrows.}
 #' }
 #' Memory nodes with no flow (reached only by random jumps, see
-#' [hg_communities()]) carry no flow of their states and are never drawn in
+#' [hg_communities()]) carry no flow of their states and are never plotted in
 #' the physical view. The tables returned by
 #' [hg_get.hypergraphs_memory_communities()] are unaffected.
 #'
@@ -1015,7 +1015,7 @@ summary.hypergraphs_memory_communities <- function(object, ...) .ho_summary(obje
 #'   [cograph::splot()] (e.g. `layout`, `edge_label_style`, `threshold`,
 #'   `blob_alpha`). They override the defaults set here.
 #' @return For `"physical"`, a ggplot object (print it to draw). For
-#'   `"network"` and `"states"`, `x`, invisibly (cograph draws with base
+#'   `"network"` and `"states"`, `x`, invisibly (cograph plots with base
 #'   graphics).
 #' @section Conditions:
 #' `hypergraphs_bad_input` from [plot.net_hg()] for arguments passed

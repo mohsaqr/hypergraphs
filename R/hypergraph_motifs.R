@@ -100,7 +100,8 @@
 #'   restored on exit.
 #' @param what `"test"` for observed/null summaries, `"counts"` for observed
 #'   counts only, or `"draws"` for every null count.
-#' @param alternative Empirical permutation-test direction.
+#' @param alternative Direction of the empirical permutation test:
+#'   `"two_sided"` (default), `"greater"` or `"less"`.
 #' @param start,end,step,window,at Measurement grid passed to
 #'   [hg_snapshots()] when `hg` is temporal.
 #' @param snapshot_mode,multiedges Snapshot `mode` (`"active"` or
@@ -120,7 +121,7 @@
 #' dat <- data.frame(
 #'   member = c(1, 2, 3, 1, 2, 4), edge = rep(c("e1", "e2"), each = 3)
 #' )
-#' h <- group_hypergraph(dat, "member", "edge")
+#' h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 #' hg_motifs(h, what = "counts")
 #' @export
 hg_motifs <- function(hg, n = 1000L, seed = NULL,

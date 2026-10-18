@@ -281,7 +281,7 @@ summary.hg_classification <- function(object, ...) {
 
 #' @rdname hg_get.hg_classification
 #' @param y Unused.
-#' @details `plot()` draws the counts of true against predicted labels on
+#' @details `plot()` plots the counts of true against predicted labels on
 #'   the test documents.
 #' @export
 plot.hg_classification <- function(x, y, ...) {

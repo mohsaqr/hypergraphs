@@ -58,25 +58,16 @@ an edge).}
 \item{object}{A \code{net_hg} object (for \code{summary}).}
 }
 \value{
-A \code{net_hg} object: a list with components
-\describe{
-\item{\code{hyperedges}}{List of integer vectors. Each entry is a hyperedge
-given as the sorted node indices it spans.}
-\item{\code{incidence}}{Numeric matrix of size \code{n_nodes} x \code{n_hyperedges}.
-\code{incidence[i, j] = 1} iff node i belongs to hyperedge j. Row names
-are node names; column names are \code{h1}, \code{h2}, ...}
-\item{\code{nodes}}{Character vector of node names.}
-\item{\code{n_nodes}, \code{n_hyperedges}}{Scalar counts.}
-\item{\code{size_distribution}}{Named integer vector: number of hyperedges
-of each size, named \code{size_2}, \code{size_3}, ...}
-\item{\code{params}}{Recorded call parameters: \code{source}, \code{type}, \code{p},
-\code{include_pairwise}, \code{max_size}, \code{threshold}, \code{seed}.}
-}
+A \code{net_hg} with \code{print}, \code{summary} and \code{plot} methods.
+\code{\link[=hg_get]{hg_get()}} returns one row per hyperedge (named \code{h1}, \code{h2}, ...), and
+\code{what = "nodes"} and \code{what = "memberships"} return the nodes and the
+node-hyperedge pairs; \code{\link[=hg_measures]{hg_measures()}} gives the distribution of
+hyperedge sizes.
 
 The input \code{x} invisibly.
 
 A data.frame, one row per node: \code{node}, \code{degree} (the number of
-hyperedges the node belongs to). Returned \strong{invisibly}: \code{summary(x)}
+hyperedges the node belongs to), returned invisibly: \code{summary(x)}
 prints the summary and nothing else; assign the result to keep the table.
 }
 \description{

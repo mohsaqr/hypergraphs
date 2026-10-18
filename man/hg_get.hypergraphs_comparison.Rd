@@ -2,14 +2,25 @@
 % Please edit documentation in R/memory_inference.R
 \name{hg_get.hypergraphs_comparison}
 \alias{hg_get.hypergraphs_comparison}
-\title{Edge table of a memory-network comparison}
+\title{Tables of a memory-network comparison}
 \usage{
-\method{hg_get}{hypergraphs_comparison}(x, what = "edges", ..., significant = FALSE, sort_by = NULL, top = NULL)
+\method{hg_get}{hypergraphs_comparison}(
+  x,
+  what = c("edges", "global"),
+  ...,
+  significant = FALSE,
+  sort_by = NULL,
+  top = NULL
+)
 }
 \arguments{
 \item{x}{A \code{hypergraphs_comparison} object from \code{\link[=hg_compare]{hg_compare()}}.}
 
-\item{what}{\code{"edges"}, the only table: one row per pooled rule edge.}
+\item{what}{\code{"edges"} (default), one row per pooled rule edge, or
+\code{"global"}, one row with the global permutation test: \code{statistic} (the
+weighted mean absolute difference), \code{p_value}, \code{n_comparable} (rules
+estimated in both groups), \code{n_rules} and \code{n_perm_used}, the
+permutations with a defined statistic.}
 
 \item{...}{Additional arguments (ignored).}
 
@@ -27,11 +38,11 @@ applied after any filter and after \code{sort_by}, so \code{sort_by} and
 \code{top} compose. Default \code{NULL} returns every row.}
 }
 \value{
-A data.frame, one row per pooled rule edge (see
-\code{\link[=hg_compare]{hg_compare()}} for the columns).
+A data.frame: for \code{"edges"} one row per pooled rule edge (see
+\code{\link[=hg_compare]{hg_compare()}} for the columns), for \code{"global"} one row.
 }
 \description{
-Edge table of a memory-network comparison
+Tables of a memory-network comparison
 }
 \examples{
 set.seed(1)
@@ -43,4 +54,5 @@ by_group <- hon(c(first_order, second_order),
                 group = rep(c("first", "second"), each = 6), max_order = 2)
 comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
 hg_get(comparison, sort_by = "p_adj", top = 6)
+hg_get(comparison, what = "global")
 }

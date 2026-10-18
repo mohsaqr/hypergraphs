@@ -143,6 +143,14 @@ XGI's \code{katz_centrality()} is the same vector for its fixed
 \eqn{\alpha = 2^{-n}}, rescaled to sum to one (tested). It is the only
 type that also runs on a sparse incidence.
 }
+\section{Conditions}{
+ Raises \code{hypergraphs_bad_input} for a broken argument
+contract, and \code{hypergraphs_sparse_unsupported} for a type other than
+\code{"katz"} on a hypergraph stored as a sparse matrix. Warns with
+\code{hypergraphs_no_converge} when an eigenvector iteration stops at
+\code{max_iter}; the last iterate is returned.
+}
+
 \examples{
 hg <- text_hypergraph(c(
   a = "salt and soup and onions",

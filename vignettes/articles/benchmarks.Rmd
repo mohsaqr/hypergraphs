@@ -6,45 +6,70 @@ title: "Benchmarks: R8, R52, MR, Ohsumed, 20NG"
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-How far does closed-form hypergraph label spreading go on the five standard
-text-classification benchmarks? This article reports test-set accuracy of
-`text_hypergraph(sparse = TRUE)` + `hg_classify()` on R8, R52, MR, Ohsumed,
-and 20-Newsgroups, against a tf-idf nearest-centroid baseline and against
-the published accuracy tables in Ding et al. (2020). Every number below was
-produced by running the package on these corpora; nothing is copied from
-memory.
+```{r values, include = FALSE}
+results <- read.csv("benchmark-results.csv")
+published <- read.csv("benchmark-published.csv")
+lowlabel <- read.csv("benchmark-lowlabel.csv")
+unsupervised_effects <- read.csv("benchmark-umap-hdbscan-effects.csv")
+bertopic_seeds <- read.csv("benchmark-bertopic-seeds.csv")
+bertopic_effects <- read.csv("benchmark-bertopic-effects.csv")
+
+result_of <- function(data, m, column = "accuracy") {
+  subset(results, dataset == data & method == m)[[column]]
+}
+fmt <- function(x) sprintf("%.4f", x)
+pub <- function(data, m) fmt(subset(published, dataset == data & model == m)$accuracy)
+low_at <- function(data, frac, m) {
+  rows <- lowlabel[lowlabel$dataset == data & lowlabel$method == m, ]
+  rows[abs(rows$fraction - frac) < 1e-9, ]
+}
+effect <- function(data, comp, metric, ref = NULL) {
+  rows <- data[data$comparator == comp & data$metric == metric, ]
+  if (!is.null(ref)) rows <- rows[rows$reference == ref, ]
+  rows
+}
+largest <- subset(results, dataset == "20ng" & method == "hypergraph_zhou_cmn")
+```
+
+Label spreading on a hypergraph (Zhou et al. 2006) classifies documents in
+closed form, without trained parameters. This article reports its test-set
+accuracy on five standard text-classification benchmarks, R8, R52, MR,
+Ohsumed and 20-Newsgroups, against a tf-idf nearest-centroid baseline and
+the published accuracies of Ding et al. (2020). Every number not taken from
+a publication was computed with the package on these corpora.
 
 ## Setup
 
-The corpora and train/test splits are the exact files of Yao, Mao & Luo
-(2019), which Ding et al. (2020) also use -- any other cleaning would make
-the numbers incomparable. Each
-dataset becomes a sparse document--word hypergraph (documents are vertices,
-words are hyperedges, tf-idf incidence weights); the training documents are
-the labeled seeds; the spreading solution classifies every test document in
-one conjugate-gradient solve per class.
+The corpora and their training and test splits are the files of Yao, Mao and
+Luo (2019), which Ding et al. (2020) also use. Each dataset becomes a sparse
+document-word hypergraph with documents as nodes, words as hyperedges and
+tf-idf incidence weights. The training documents are the labelled seeds, and
+the spreading solution classifies every test document with one
+conjugate-gradient solve per class.
 
 ```{r, eval = FALSE}
 hg <- text_hypergraph(docs, weight = "tfidf", sparse = TRUE)
 fit <- hg_classify(hg, labels = train_labels, normalization = "class_mass")
 ```
 
-Two checks tie the pipeline to the published setup. The split sizes match
-Ding et al.'s Table 1 exactly on all five datasets. The vocabulary sizes
-match exactly on R8 (7,688 hyperedges) and R52 (8,892); on MR, Ohsumed and
-20NG ours are smaller (18,151 vs 18,764; 13,349 vs 14,157; 36,970 vs
-42,757) because the package tokenizer drops digit-containing tokens. MR has
-one document unreachable from the rest of the corpus; the harness runs on
-the giant component and would score unreachable test documents as errors
-(here that document is not in the test set).
+The split sizes match Table 1 of Ding et al. on all five datasets. The
+vocabulary sizes match on R8 (`r format(result_of("R8", "hypergraph_zhou_cmn", "n_edges"), big.mark = ",")` hyperedges)
+and R52 (`r format(result_of("R52", "hypergraph_zhou_cmn", "n_edges"), big.mark = ",")`).
+On MR, Ohsumed and 20NG the vocabularies are smaller than the published ones
+(`r format(result_of("mr", "hypergraph_zhou_cmn", "n_edges"), big.mark = ",")` against 18,764,
+`r format(result_of("ohsumed", "hypergraph_zhou_cmn", "n_edges"), big.mark = ",")` against 14,157 and
+`r format(result_of("20ng", "hypergraph_zhou_cmn", "n_edges"), big.mark = ",")` against 42,757), because
+the tokenizer drops tokens that contain digits. One MR document is
+unreachable from the rest of the corpus. It is in the training set, so no
+test document is affected.
 
 ## Full-split results
 
-`accuracy` is test-set accuracy with a 1,000-resample percentile bootstrap
-CI; `fit_s` is the wall-clock seconds for the transductive solve itself.
+`accuracy` is the test-set accuracy with a 1,000-resample percentile
+bootstrap interval, and `fit_s` is the time in seconds of the transductive
+solve.
 
 ```{r}
-results <- read.csv("benchmark-results.csv")
 knitr::kable(
   subset(results,
          select = c(dataset, method, accuracy, ci_low, ci_high, macro_f1,
@@ -53,75 +78,85 @@ knitr::kable(
 )
 ```
 
-Three findings. First, on the two class-balanced datasets the hypergraph
-classifier beats the centroid baseline outright: 0.8477 vs 0.7796 on 20NG
-and 0.7684 vs 0.6851 on MR. Second, on the skewed multi-class corpora (R8,
-R52, Ohsumed) the centroid wins; label spreading pays for class imbalance
-even after normalization, and R52's 52 heavily skewed classes are its worst
-case (0.5284 vs 0.8797). Third, the `hypergraph_zhou` rows -- the raw Zhou
-(2006) argmax with no normalization -- collapse onto the majority class
-(0.4947 on R8 is exactly the majority-class rate; 0.1020 on 20NG), which is
-why `normalization = "class_mass"` (Zhu, Ghahramani & Lafferty 2003) exists
-and is used everywhere else in this article. The EDVW walk
-(`hypergraph_random_walk_cmn`) is best on Ohsumed (0.5110 vs 0.4702) and
-second elsewhere.
+On the two datasets with balanced classes, label spreading is more accurate
+than the centroid baseline: `r fmt(result_of("20ng", "hypergraph_zhou_cmn"))`
+against `r fmt(result_of("20ng", "tfidf_centroid"))` on 20NG and
+`r fmt(result_of("mr", "hypergraph_zhou_cmn"))` against
+`r fmt(result_of("mr", "tfidf_centroid"))` on MR. On R8, R52 and Ohsumed,
+whose classes are unbalanced, the centroid is more accurate. The largest
+difference is on R52, with 52 unbalanced classes
+(`r fmt(result_of("R52", "hypergraph_zhou_cmn"))` against
+`r fmt(result_of("R52", "tfidf_centroid"))`).
 
-The cost side: the largest solve -- 20 classes over 18,846 documents x
-36,970 hyperedges -- fits in 1.2 seconds on a laptop CPU, with no training,
-no gradient steps and no GPU. Ding et al.'s Table 3 reports 1,479 MB of GPU
-memory for TextGCN and 180 MB for HyperGAT on the same corpus.
+The rows `hypergraph_zhou` use the argmax of Zhou et al. (2006) without
+normalization. They assign most documents to the largest class: on R8 the
+accuracy is `r fmt(result_of("R8", "hypergraph_zhou"))`, the share of the
+largest class, and on 20NG it is `r fmt(result_of("20ng", "hypergraph_zhou"))`.
+The class-mass normalization of Zhu, Ghahramani and Lafferty (2003) corrects
+this and is used in every other row. Among the hypergraph methods, the random
+walk with edge-dependent vertex weights (Chitra and Raphael 2019; Hayashi et
+al. 2020), `hypergraph_random_walk_cmn`, is the most accurate on Ohsumed
+(`r fmt(result_of("ohsumed", "hypergraph_random_walk_cmn"))` against
+`r fmt(result_of("ohsumed", "hypergraph_zhou_cmn"))`).
 
-## Against the published tables
+The largest solve, 20NG with
+`r format(largest$n_nodes, big.mark = ",")` documents,
+`r format(largest$n_edges, big.mark = ",")` hyperedges and 20 classes,
+takes `r sprintf("%.1f", largest$fit_s)` seconds on a laptop CPU. Table 3 of
+Ding et al. reports 1,479 MB of GPU memory for TextGCN and 180 MB for
+HyperGAT on the same corpus.
 
-Published rows are means over 10 runs from Ding et al. (2020), Table 2,
-plus the HyperGAT "w/o semantic" ablation from their Table 4 (the
-comparator for the sentence-only HyperGAT runs below); our transductive
-rows are deterministic given the split.
+## Comparison with published results
+
+The published rows are means over 10 runs from Table 2 of Ding et al.
+(2020). The rows computed here are deterministic for a given split.
 
 ```{r}
-published <- read.csv("benchmark-published.csv")
 knitr::kable(published, digits = 4)
 ```
 
-On 20NG the hypergraph classifier (0.8477) is within two points of
-transductive TextGCN (0.8643) and HyperGAT (0.8662), and above fastText
-(0.7938). On MR (0.7684) it edges out published transductive TextGCN
-(0.7674) and trails HyperGAT (0.7832). On R8, R52 and Ohsumed the trained
-models are clearly ahead. The honest summary: a closed-form spectral method
-with zero trained parameters recovers most of the accuracy of trained
-graph neural networks on balanced corpora and is not competitive on
-skewed ones.
+On 20NG, label spreading (`r fmt(result_of("20ng", "hypergraph_zhou_cmn"))`)
+is within two points of transductive TextGCN (`r pub("20ng", "TextGCN (transductive)")`)
+and HyperGAT (`r pub("20ng", "HyperGAT")`) and above fastText
+(`r pub("20ng", "fastText")`). On MR (`r fmt(result_of("mr", "hypergraph_zhou_cmn"))`)
+it is close to transductive TextGCN (`r pub("mr", "TextGCN (transductive)")`)
+and below HyperGAT (`r pub("mr", "HyperGAT")`). On R8, R52 and Ohsumed the
+trained models are more accurate. A closed-form spectral method reaches
+most of the accuracy of trained graph neural networks on corpora with
+balanced classes and falls well short of it on corpora with unbalanced
+classes.
 
-## The low-label regime
+## Few labels
 
-Label spreading is designed for few labels, so the full-split table above
-is its worst case. Here the training seeds are subsampled (stratified, at
-least one per class, five draws per fraction; the SD column is over
-draws) and both methods receive the same seeds.
+Label spreading is designed for few labels. In this experiment the training
+seeds are subsampled, stratified by class with at least one seed per class
+and five draws per fraction, and both methods receive the same seeds. The
+`sd` column is the standard deviation over the draws.
 
 ```{r}
-lowlabel <- read.csv("benchmark-lowlabel.csv")
 knitr::kable(lowlabel, digits = 4)
 ```
 
-On MR the hypergraph classifier leads at every fraction, from 72 seeds
-(0.5675 vs 0.5541) to 1,422 seeds (0.6984 vs 0.6677): with few labels, the
-document--word structure carries information the centroid cannot use. On R8
-and Ohsumed the centroid stays ahead at every fraction -- strong tf-idf
-class signatures survive subsampling better than spreading does. Few
-labels help the case for structure, but they do not overturn the class
-balance effect.
+On MR, label spreading is more accurate at every fraction, from
+`r low_at("mr", 0.01, "hypergraph_zhou_cmn")$n_seeds` seeds
+(`r fmt(low_at("mr", 0.01, "hypergraph_zhou_cmn")$accuracy)` against
+`r fmt(low_at("mr", 0.01, "tfidf_centroid")$accuracy)`) to
+`r format(low_at("mr", 0.2, "hypergraph_zhou_cmn")$n_seeds, big.mark = ",")`
+seeds (`r fmt(low_at("mr", 0.2, "hypergraph_zhou_cmn")$accuracy)` against
+`r fmt(low_at("mr", 0.2, "tfidf_centroid")$accuracy)`). On R8 and Ohsumed
+the centroid is more accurate at every fraction. With unbalanced classes,
+the tf-idf profile of each class survives the subsampling better than the
+spreading solution does.
 
-## Unsupervised UMAP/HDBSCAN baseline
+## Unsupervised clustering against UMAP and HDBSCAN
 
-Classification accuracy is not a valid comparator for unsupervised
-clustering, so a separate R8 experiment compares `hg_cluster()` with fixed
-TF-IDF/SVD embeddings followed by UMAP and either HDBSCAN or a matched
-eight-cluster k-means control. This is explicitly **not** an execution of the
-BERTopic package; the actual BERTopic run follows in the next section.
+Clustering is compared on R8 without labels. `hg_cluster()` with eight
+clusters is compared with TF-IDF/SVD embeddings reduced by UMAP (McInnes,
+Healy and Melville 2018) and clustered either by HDBSCAN (Campello, Moulavi
+and Sander 2013) or by k-means with eight clusters. This experiment does not
+run the BERTopic package, which the next section does.
 
 ```{r}
-unsupervised_effects <- read.csv("benchmark-umap-hdbscan-effects.csv")
 knitr::kable(
   subset(unsupervised_effects,
          select = c(comparator, metric, hypergraphs_mean, baseline_mean,
@@ -131,34 +166,38 @@ knitr::kable(
 )
 ```
 
-Default HDBSCAN over-splits R8 (142--170 clusters and 17.5--23.0% outliers),
-so hypergraphs leads all three external metrics. At matched cluster count, hypergraphs
-leads ARI by 0.0372 (95% paired bootstrap CI 0.0270--0.0478), while the
-UMAP+k-means baseline leads AMI and NMI by about 0.0219. Both sides of the
-result are reported.
+HDBSCAN with its default settings divides R8 into many more than eight
+clusters and leaves part of the corpus as outliers, so `hg_cluster()` agrees
+more with the labels on all three measures. Against k-means with eight
+clusters, `hg_cluster()` has the higher adjusted Rand index, by
+`r fmt(effect(unsupervised_effects, "umap_kmeans_k8", "ari")$mean_difference)`
+(95% paired bootstrap interval
+`r fmt(effect(unsupervised_effects, "umap_kmeans_k8", "ari")$difference_ci_low)` to
+`r fmt(effect(unsupervised_effects, "umap_kmeans_k8", "ari")$difference_ci_high)`),
+and the lower adjusted mutual information and normalized mutual
+information, by
+`r fmt(-effect(unsupervised_effects, "umap_kmeans_k8", "ami")$mean_difference)`.
 
-## BERTopic baseline (the actual package)
+## BERTopic
 
-The same R8 experiment was then run through `bertopic.BERTopic` 0.17.4 with
-its own defaults (`all-MiniLM-L6-v2` sentence embeddings, seeded UMAP,
-contrib HDBSCAN, c-TF-IDF), ten UMAP seeds. Three BERTopic variants are
-scored: the package as shipped (HDBSCAN picks the topic count and leaves
-outliers as -1), the fitted model reduced with `reduce_topics()` to eight
-real topics, and that model with `reduce_outliers(strategy = "embeddings")`
-so every document is assigned. Two hypergraphs arms cluster with the same k = 8
-through `hg_cluster()` + k-means: the tf-idf document--word hypergraph and a
-kNN hypergraph (`text_hypergraph(construction = "knn")`) built on the
-identical MiniLM vectors, which isolates the clustering paradigm from the
-embedding.
+The same R8 experiment was run with `bertopic.BERTopic` 0.17.4 (Grootendorst
+2022) at its defaults: `all-MiniLM-L6-v2` sentence embeddings, UMAP with ten
+seeds, HDBSCAN and c-TF-IDF. Three BERTopic variants are scored: the package
+as shipped, where HDBSCAN chooses the number of topics and marks outliers;
+the fitted model reduced to eight topics with `reduce_topics()`; and that
+model with `reduce_outliers(strategy = "embeddings")`, which assigns every
+document. Two hypergraph variants cluster into eight clusters with
+`hg_cluster()`: the tf-idf document-word hypergraph, and a nearest-neighbour
+hypergraph (`text_hypergraph(construction = "knn")`) built on the same
+MiniLM vectors, which holds the embedding fixed and changes only the
+clustering.
 
 ```{r}
-bertopic_seeds <- read.csv("benchmark-bertopic-seeds.csv")
 knitr::kable(
   aggregate(cbind(ari, ami, nmi, n_clusters, outlier_fraction) ~ method,
             data = bertopic_seeds, FUN = mean),
   digits = 4, caption = "Means over ten seeds"
 )
-bertopic_effects <- read.csv("benchmark-bertopic-effects.csv")
 knitr::kable(
   subset(bertopic_effects, comparator == "bertopic_k_assigned",
          select = c(reference, metric, hypergraphs_mean, baseline_mean,
@@ -168,41 +207,78 @@ knitr::kable(
 )
 ```
 
-BERTopic as shipped finds 121--138 topics and leaves a third of R8 as
-outliers, so it trails on every metric. At matched topic count with every
-document assigned, the tf-idf hypergraph leads ARI by 0.0207 (95% paired
-bootstrap CI 0.0176--0.0230) and AMI/NMI by under 0.01 with intervals that
-narrowly exclude zero. On the same sentence embeddings, the kNN hypergraph
-leads ARI by 0.1026 (0.0992--0.1050) and AMI/NMI by about 0.077. The hypergraphs
-arms have essentially no seed variance (the spectral embedding is
-deterministic), so the intervals reflect BERTopic's UMAP seed variance.
-Only cluster assignments are scored; BERTopic's topic representations are
-not part of this comparison.
+```{r bertopic-values, include = FALSE}
+shipped <- subset(bertopic_seeds, method == "bertopic_default")
+tfidf_ari <- effect(bertopic_effects, "bertopic_k_assigned", "ari",
+                    "hypergraphs_hypergraph")
+knn_ari <- effect(bertopic_effects, "bertopic_k_assigned", "ari",
+                  "hypergraphs_knn_sbert")
+knn_ami <- effect(bertopic_effects, "bertopic_k_assigned", "ami",
+                  "hypergraphs_knn_sbert")
+```
 
-## When to use which
+BERTopic as shipped finds `r min(shipped$n_clusters)` to
+`r max(shipped$n_clusters)` topics and leaves
+`r round(100 * mean(shipped$outlier_fraction))`% of R8 as outliers, so it
+agrees least with the labels on every measure. Against the eight-topic
+BERTopic that assigns every document, the tf-idf hypergraph has the higher
+adjusted Rand index, by `r fmt(tfidf_ari$mean_difference)` (95% paired
+bootstrap interval `r fmt(tfidf_ari$difference_ci_low)` to
+`r fmt(tfidf_ari$difference_ci_high)`), and the nearest-neighbour hypergraph
+on the same embeddings by `r fmt(knn_ari$mean_difference)`
+(`r fmt(knn_ari$difference_ci_low)` to `r fmt(knn_ari$difference_ci_high)`),
+with adjusted mutual information higher by `r fmt(knn_ami$mean_difference)`.
+The spectral embedding is deterministic, so the hypergraph variants vary
+little between seeds and the intervals reflect the seed variance of UMAP in
+BERTopic. Only the cluster assignments are scored; the topic
+representations of BERTopic are not compared.
+
+## Choice of method
 
 Label spreading with `normalization = "class_mass"` suits corpora whose
-classes are roughly balanced or whose labels are scarce. The raw argmax
-assigns every document to the majority class when the seeds are skewed.
-The random-walk Laplacian (`type = "random_walk"`) lets the tf-idf weights
-shape the walk, and it gave the best Ohsumed accuracy here. On 20NG label
-spreading reached 0.8477, the highest accuracy of the methods run for this
-article. On skewed corpora with many classes, a tf-idf centroid is a strong
-baseline at almost no cost, and the published HyperGAT with LDA hyperedges
-holds the best accuracy reported for these corpora. Each row above that is
-not taken from a publication was computed in R in seconds.
+classes are roughly balanced or whose labels are few. The argmax without
+normalization assigns most documents to the largest class when the seeds are
+unbalanced. The random-walk Laplacian (`type = "random_walk"`) uses the
+tf-idf weights in the walk and was the most accurate hypergraph method on
+Ohsumed. On corpora with many unbalanced classes, a tf-idf centroid is a
+strong baseline at almost no cost, and the published HyperGAT holds the
+highest accuracy reported for these corpora.
 
 ## References
 
+Campello, R. J. G. B., Moulavi, D., & Sander, J. (2013). Density-based
+clustering based on hierarchical density estimates. *Advances in Knowledge
+Discovery and Data Mining (PAKDD 2013)*, 160-172.
+<https://doi.org/10.1007/978-3-642-37456-2_14>
+
+Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
+edge-dependent vertex weights. *Proceedings of the 36th International
+Conference on Machine Learning*, PMLR 97, 1172-1181.
+
 Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with less:
 Hypergraph attention networks for inductive text classification.
-*EMNLP 2020*.
+*Proceedings of the 2020 Conference on Empirical Methods in Natural
+Language Processing*, 4927-4936.
+
+Grootendorst, M. (2022). BERTopic: Neural topic modeling with a class-based
+TF-IDF procedure. arXiv:2203.05794.
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph random
+walks, Laplacians, and clustering. *Proceedings of the 29th ACM
+International Conference on Information and Knowledge Management*, 495-504.
+<https://doi.org/10.1145/3340531.3412034>
+
+McInnes, L., Healy, J., & Melville, J. (2018). UMAP: Uniform manifold
+approximation and projection for dimension reduction. arXiv:1802.03426.
 
 Yao, L., Mao, C., & Luo, Y. (2019). Graph convolutional networks for text
-classification. *AAAI 2019*.
+classification. *Proceedings of the AAAI Conference on Artificial
+Intelligence*, 33, 7370-7377.
 
-Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
-Clustering, classification, and embedding. *NeurIPS 19*.
+Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+Clustering, classification, and embedding. *Advances in Neural Information
+Processing Systems 19*.
 
 Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
-using Gaussian fields and harmonic functions. *ICML 20*.
+using Gaussian fields and harmonic functions. *Proceedings of the 20th
+International Conference on Machine Learning*, 912-919.

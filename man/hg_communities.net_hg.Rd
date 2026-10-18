@@ -81,10 +81,12 @@ the result is identical to the serial one.}
 method takes raises \code{hypergraphs_bad_input}.}
 }
 \value{
-An \code{hg_communities} object containing \code{medoid} (a tidy node/community
-table), all \code{partitions}, AMI/ARI/NMI similarity matrices, run metadata,
-community sizes, and the graph \code{projection} Infomap ran on. For
-\code{type = "irmm"} the \code{"runs"} table has \code{run}, \code{seed}, \code{n_communities},
+An \code{hg_communities} object with \code{print} and \code{plot} methods.
+\code{\link[=hg_get]{hg_get()}} returns the medoid partition, one row per node with its
+\code{community}, and through \code{what} every run's partition, the runs, the
+community sizes and the AMI, ARI and NMI between runs (see
+\code{\link[=hg_get.hg_communities]{hg_get.hg_communities()}}). For Infomap the \code{"runs"} table has \code{run},
+\code{seed}, \code{n_communities} and \code{codelength}; for \code{type = "irmm"} it has \code{run}, \code{seed}, \code{n_communities},
 \code{iterations}, \code{converged}, \code{max_weight_change} and \code{modularity} (the
 linear hypergraph modularity of \code{\link[=hg_modularity]{hg_modularity()}}), \code{projection} is the
 reweighted clique reduction of the medoid run, and
@@ -102,7 +104,7 @@ dat <- data.frame(
   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
   edge = rep(paste0("e", 1:4), each = 3)
 )
-h <- group_hypergraph(dat, "member", "edge")
+h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
 if (requireNamespace("igraph", quietly = TRUE)) {
   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
   hg_get(fit)

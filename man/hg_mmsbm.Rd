@@ -107,7 +107,7 @@ return.}
 
 \item{type}{For \code{plot()}: \code{"membership"} (default) stacks each node's
 memberships in a bar, nodes grouped in panels by hard community;
-\code{"affinity"} draws \code{w} as a labelled tile map; \code{"restarts"} the
+\code{"affinity"} plots \code{w} as a labelled tile map; \code{"restarts"} the
 log-likelihood of every start, shaped by convergence.}
 
 \item{labels}{For \code{plot(type = "membership")}: show node names on the axis

@@ -30,8 +30,7 @@ when a step is given (a partition of the period) and to \code{0} otherwise
 (a point sample); larger than \code{step} gives a rolling window; \code{"all"}
 measures the whole period as one window.}
 
-\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description. The
-former \code{"all"} is deprecated: it is \code{"cumulative"} with \code{at} unset.}
+\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description.}
 
 \item{at}{Instants to measure instead of a grid; may be a vector.}
 

@@ -50,14 +50,12 @@ wide or list input.}
 \item{seed}{Optional integer seed.}
 }
 \value{
-An object of class \code{hypergraphs_bootstrap}: a list with \code{edges} (the
-tidy inference table, one row per rule edge of the observed network:
-\code{from}, \code{to}, \code{order}, \code{count}, \code{probability}, \code{ci_lower},
-\code{ci_upper}, \code{support}, \code{n_boot_used}), \code{n_boot}, \code{level},
-\code{max_order}, \code{min_freq}, \code{n_trajectories}, and \code{seed}. Has \code{print},
-\code{summary} and \code{plot} methods; \code{\link[=hg_get]{hg_get()}} returns the inference table
-(optionally filtered with \verb{min_support =} or restricted with
-\verb{order_min =}).
+An object of class \code{hypergraphs_bootstrap} with \code{print},
+\code{summary} and \code{plot} methods. \code{\link[=hg_get]{hg_get()}} returns its inference table,
+one row per rule edge of the observed network, with \code{from}, \code{to},
+\code{order}, \code{count}, \code{probability}, \code{ci_lower}, \code{ci_upper}, \code{support} and
+\code{n_boot_used}; \verb{min_support =} filters it and \verb{order_min =} restricts
+it to higher orders.
 }
 \description{
 Nonparametric bootstrap over sequences for the rules of a higher-order

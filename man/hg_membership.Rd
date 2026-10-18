@@ -30,7 +30,7 @@ embedding the partition was cut in (defaults as there).}
 \value{
 A base \code{data.frame} of class \code{hypergraphs_membership}, one row per
 document and topic: \code{node}, \code{cluster} (the hard label), \code{topic},
-\code{membership} (rows of one document sum to one). \code{plot()} draws, per
+\code{membership} (rows of one document sum to one). \code{plot()} plots, per
 topic, the distribution of its documents' membership in it: a topic
 whose documents sit near 1 is compact, one whose documents spread
 towards 0.5 overlaps its neighbours. Raises \code{hypergraphs_bad_input} for

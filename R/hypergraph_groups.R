@@ -74,8 +74,6 @@
 #'   large, sparse event data such as the full GFCC citation-block corpus.
 #' @param from,to Column names of a pairwise edge list, as an alternative to
 #'   `node` and `hyperedge`.
-#' @param member,cooccur_by Deprecated names of `node` and `hyperedge`; using
-#'   them warns with a `hypergraphs_deprecated` condition.
 #' @param top The number of most frequent sets kept as hyperedges, in each
 #'   value of `group` or over all hyperedges; `Inf` keeps every set. For a
 #'   data frame, giving `top`, `group` or `min_share` counts sets (see
@@ -106,15 +104,10 @@
 #'   counted (default `1`); `2` keeps only the sets of two or more. The share
 #'   of a set is still taken over all sets of its group.
 #'
-#' @return A `net_hg` object with the same structure produced by
-#'   [network_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
-#'   `n_hyperedges`, `size_distribution`, `params`), plus `edge_data` when
-#'   `data` carries hyperedge attributes (see Details). The `params` list
-#'   records `source = "group_hypergraph"` and the original column names.
-#'   For clustered sequences the object also has `group_sizes` and
-#'   `state_counts` (read them with `hg_get()`) and `params` records
-#'   `source = "clustered_sequences"`, `top`, `states` and
-#'   `unit = "sequences"`.
+#' @return A `net_hg`, as from [network_hypergraph()]. [hg_get()] returns
+#'   one row per hyperedge; `what = "edge_data"` returns the hyperedge
+#'   attributes when `data` carries them (see Details), and for counted sets
+#'   `what = "sets"` and `what = "state_counts"` return the counts.
 #'
 #' @details
 #' The bipartite representation preserves the full group structure without
@@ -146,7 +139,7 @@
 #' of the value's sets. Without `group`, the sets are counted over all
 #' hyperedges together, under one value named after `hyperedge`
 #' (`"All sessions"`).
-#' `plot(hg, group = )` draws the sets of one value, every node sized by the
+#' `plot(hg, group = )` plots the sets of one value, every node sized by the
 #' sets that contain it. `states` keeps only
 #' the listed `node` values, and `min_size` the sets of at least that many.
 #'
@@ -183,7 +176,7 @@
 #' The hyperedges are named `"<group>: <set>"` and carry `group`, `set` and
 #' `count` (sequences with exactly that set) as hyperedge attributes, so
 #' `plot()` colours and titles them by `count` in `"sequences"`, and
-#' `plot(hg, group = "Cluster 1")` draws one group's sets with each node
+#' `plot(hg, group = "Cluster 1")` plots one group's sets with each node
 #' sized by the sequences of that group containing the state. Read the
 #' tables with `hg_get(hg, what = "sets")` (one row per hyperedge:
 #' its group, set, size, count and share of the group's sequences) and
@@ -263,7 +256,6 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
                              weight = NULL,
                              nodes = NULL, sparse = FALSE, separator = NULL,
                              from = NULL, to = NULL,
-                             member = NULL, cooccur_by = NULL,
                              top = NULL, states = NULL, threshold = NULL,
                              min_size = 1L, group = NULL, min_share = NULL) {
   if (!is.null(min_share) &&
@@ -300,15 +292,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   }
   stopifnot(is.data.frame(data))
   if (!is.null(separator)) {
-    data <- .thg_expand_delimited(data, node %||% member, separator)
-  }
-  if (!is.null(member)) {
-    .thg_deprecated("member", "node", "group_hypergraph")
-    if (is.null(node)) node <- member
-  }
-  if (!is.null(cooccur_by)) {
-    .thg_deprecated("cooccur_by", "hyperedge", "group_hypergraph")
-    if (is.null(hyperedge)) hyperedge <- cooccur_by
+    data <- .thg_expand_delimited(data, node, separator)
   }
   member <- node
   labels <- NULL

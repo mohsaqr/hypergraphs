@@ -587,7 +587,7 @@ summary.net_hg_mmsbm <- function(object, ...) {
 #' @rdname hg_mmsbm
 #' @param type For `plot()`: `"membership"` (default) stacks each node's
 #'   memberships in a bar, nodes grouped in panels by hard community;
-#'   `"affinity"` draws `w` as a labelled tile map; `"restarts"` the
+#'   `"affinity"` plots `w` as a labelled tile map; `"restarts"` the
 #'   log-likelihood of every start, shaped by convergence.
 #' @param labels For `plot(type = "membership")`: show node names on the axis
 #'   (default: when there are at most 40 nodes).

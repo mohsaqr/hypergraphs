@@ -44,9 +44,9 @@ of the pair (\code{"sbm"}, default \code{TRUE}).}
 restored on exit.}
 }
 \value{
-A \code{net_hg} with binary incidence and the model parameters in
-\verb{$params}; for \code{"sbm"}, \verb{$blocks} records the planted block of each
-node.
+A \code{net_hg} with binary incidence. For \code{"sbm"},
+\code{hg_get(x, what = "nodes")} has a \code{block} column with the planted block
+of each node.
 }
 \description{
 Samples a hypergraph from one of four random models, chosen with \code{type}.

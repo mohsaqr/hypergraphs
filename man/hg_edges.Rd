@@ -55,11 +55,11 @@ without being one). With \code{what = "distribution"}, a \code{hypergraphs_distr
 table with one row per distinct observed value of \code{measure}, ascending,
 with columns \code{value}, \code{n}, \code{proportion} and \code{ccdf} — the complementary
 cumulative distribution \eqn{P(X \ge value)}, so the first row's \code{ccdf}
-is always 1; its \code{plot()} draws the CCDF. With \code{what = "summary"}, one
+is always 1; its \code{plot()} plots the CCDF. With \code{what = "summary"}, one
 row with \code{n_edges}, \code{mean}, \code{sd}, \code{min}, \code{q25}, \code{median}, \code{q75} and
 \code{max}. Several \code{s} values add an \code{s} column; temporal input adds a
 leading \code{time} column, and the summary is then a \code{hypergraphs_series} whose
-\code{plot()} draws each statistic against time.
+\code{plot()} plots each statistic against time.
 }
 \description{
 One row per hyperedge. \code{hg_measures(what = "edges")} reports cardinality

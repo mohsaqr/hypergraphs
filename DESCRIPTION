@@ -1,6 +1,6 @@
 Package: hypergraphs
 Title: Higher-Order Network Analysis
-Version: 0.7.8
+Version: 0.7.9
 Authors@R: c(
     person("Mohammed", "Saqr", email = "saqr@saqr.me", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5881-3109"))
@@ -8,25 +8,25 @@ Authors@R: c(
 Description: Build and analyze higher-order networks, in which a relation
     can involve more than two nodes or can depend on more than the current
     node. Covers the three structure families of the higher-order network
-    literature Battiston et al. (2020) <doi:10.1016/j.physrep.2020.05.004>,
-    plus a text family that reads a corpus as a hypergraph. Every object
-    is read through one accessor, and every sequence-taking verb reads long,
-    wide, list or model input.
-    Memory networks from categorical sequences: higher-order networks with
-    rule extraction Xu, Wickramarathne, and Chawla (2016)
-    <doi:10.1126/sciadv.1600028>, higher-order network embedding Saebi et
-    al. (2020) <doi:10.1089/big.2019.0169>, hypergeometric path anomaly
-    detection LaRock et al. (2020) <doi:10.1137/1.9781611976236.52>, the
-    multi-order generative model Scholtes (2017)
-    <doi:10.1145/3097983.3098145>, higher-order centralities Scholtes,
-    Wider, and Garas (2016) <doi:10.1140/epjb/e2016-60663-0>, a
-    permutation-based Markov order test, a path-dependence diagnostic, and
-    bootstrap and permutation inference for extracted rules. Simplicial
-    complexes: clique, Vietoris-Rips and pathway complexes, Betti numbers,
-    persistent homology, persistence landscapes, bottleneck and Wasserstein
-    distances,
-    and q-analysis. Hypergraphs: construction from network cliques, sliding
-    windows over sequences, bipartite group membership, or embedding
+    literature reviewed by Battiston et al. (2020)
+    <doi:10.1016/j.physrep.2020.05.004>, together with text hypergraphs,
+    which represent a corpus as a hypergraph. The tables of every result are
+    read with one accessor, and every function that takes sequences accepts
+    long, wide, list or model input. Memory networks from categorical
+    sequences: higher-order networks with rule extraction Xu,
+    Wickramarathne, and Chawla (2016) <doi:10.1126/sciadv.1600028>,
+    higher-order network embedding Saebi et al. (2020)
+    <doi:10.1089/big.2019.0169>, hypergeometric path anomaly detection
+    LaRock et al. (2020) <doi:10.1137/1.9781611976236.52>, the multi-order
+    generative model Scholtes (2017) <doi:10.1145/3097983.3098145>,
+    higher-order centralities Scholtes, Wider, and Garas (2016)
+    <doi:10.1140/epjb/e2016-60663-0>, a permutation test of the Markov
+    order, a path-dependence diagnostic, and bootstrap and permutation
+    inference for extracted rules. Simplicial complexes: clique,
+    Vietoris-Rips and pathway complexes, Betti numbers, persistent homology,
+    persistence landscapes, bottleneck and Wasserstein distances, and
+    q-analysis. Hypergraphs: construction from group memberships, sliding
+    windows over sequences, network cliques, interval records or embedding
     nearest neighbours; structural measures; tensor eigenvector
     centralities Benson (2019) <doi:10.1137/18M1203031>; PageRank with
     edge-dependent vertex weights Chitra and Raphael (2019)
@@ -35,15 +35,16 @@ Description: Build and analyze higher-order networks, in which a relation
     <doi:10.7551/mitpress/7503.003.0205> with spectral and symmetric
     non-negative matrix factorization (NMF) clustering Hayashi et al. (2020)
     <doi:10.1145/3340531.3412034> and transductive label spreading;
-    projections to weighted graphs and s-line graphs; Bernoulli-incidence,
-    stochastic-block, uniform and regular random generators; temporal snapshots;
-    hyperedge betweenness and closeness; Infomap ensembles with adjusted-
-    mutual-information medoid selection; Y/T/O motif profiles and null models
-    by degree-preserving swaps and the configuration model. Text hypergraphs: a
-    corpus becomes a weighted document-word hypergraph in either
-    orientation (bag of words with smoothed term frequency-inverse document frequency (tf-idf), token windows, or
-    embedding nearest neighbours), analysed with tidy verbs for clustering,
-    keyword extraction, few-label classification, and null testing.
+    projections to weighted graphs and s-line graphs; random hypergraphs;
+    temporal snapshots; hyperedge betweenness and closeness; community
+    detection with Infomap ensembles and the quality of partitions; motifs
+    of three hyperedges; and null models by degree-preserving swaps and the
+    configuration model. Text hypergraphs: a corpus becomes a weighted
+    document-word hypergraph in either orientation (bag of words with
+    smoothed term frequency-inverse document frequency (tf-idf) weights,
+    token windows, sentences, or embedding nearest neighbors), analyzed by
+    clustering, keyword extraction, topic models and few-label
+    classification.
 License: MIT + file LICENSE
 URL: https://github.com/mohsaqr/hypergraphs, https://pak.dynasite.org/hypergraphs/
 BugReports: https://github.com/mohsaqr/hypergraphs/issues

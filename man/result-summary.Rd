@@ -70,21 +70,21 @@ sequences, \code{\link[=hg_bootstrap]{hg_bootstrap()}}, \code{\link[=hg_compare]
 \code{\link[=hg_homology]{hg_homology()}}, \code{\link[=hg_landscape]{hg_landscape()}} or \code{\link[=hg_qanalysis]{hg_qanalysis()}}.}
 }
 \value{
-A \code{hypergraphs_summary}: a named list of data frames. Its print
-method shows the first rows of each.
+A \code{hypergraphs_summary} holding data frames, read with
+\code{\link[=hg_get]{hg_get()}}. Its print method shows the first rows of each.
 }
 \description{
-\code{summary()} on a result returns every table of the result as a list of
-data frames, named after the \code{what} values of \code{\link[=hg_get]{hg_get()}}, so
-\code{summary(x)$validation} is the same data frame as
-\code{hg_get(x, what = "validation")}. Results with overall figures add them
-as further one-row or per-group tables. Tables that a particular result
-does not hold are left out. The result itself is not changed.
+\code{summary()} on a result collects every table of the result, named after
+the \code{what} values of \code{\link[=hg_get]{hg_get()}}. \code{hg_get(summary(x), what = "validation")}
+is the same data frame as \code{hg_get(x, what = "validation")}. Results with
+overall figures add them as further one-row or per-group tables. Tables
+that a particular result does not hold are left out. The result itself is
+not changed.
 }
 \examples{
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
 fit_summary <- summary(memory(seqs, order = 2, min_count = 1))
 fit_summary
-fit_summary$contexts
+hg_get(fit_summary, what = "contexts")
 }

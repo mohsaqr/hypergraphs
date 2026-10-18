@@ -180,16 +180,23 @@ In the median abstract the main topic has a share of
 topic with a share of 0.9 or more, and `r round(100 * mean(main_share < 0.5), 1)`%
 have no topic with a share above one half. Most abstracts combine topics.
 
-The shares of a single abstract show the mixture.
+The shares of a single abstract show the mixture. The abstract below is the
+one whose second topic has the largest share.
+
+```{r example-choice, include = FALSE}
+shares <- hg_get(topic_model, what = "shares")
+second_share <- tapply(shares$share, shares$node,
+                       \(s) sort(s, decreasing = TRUE)[2])
+example_id <- names(which.max(second_share))
+```
 
 ```{r example-shares}
-shares <- hg_get(topic_model, what = "shares")
-example_shares <- subset(shares, node == "2-s2.0-85101300775" & share >= 0.05)
+example_shares <- subset(shares, node == example_id & share >= 0.05)
 example_shares
 ```
 
 ```{r example-text}
-example_abstract <- subset(abstracts, doc == "2-s2.0-85101300775")
+example_abstract <- subset(abstracts, doc == example_id)
 with(example_abstract, writeLines(strwrap(abstract, 78)))
 ```
 
@@ -198,11 +205,10 @@ ranked <- example_shares[order(-example_shares$share), ]
 words_of <- function(label) subset(topic_table, topic == label)$top_words
 ```
 
-The abstract describes near-peer teaching in a medical course moved online.
 It takes a share of `r round(ranked$share[1], 2)` of the topic led by
 `r words_of(ranked$topic[1])` and `r round(ranked$share[2], 2)` of the topic
-led by `r words_of(ranked$topic[2])`. A partition would assign it to one of
-the two and lose the other half of what it is about.
+led by `r words_of(ranked$topic[2])`. A partition assigns it to one of the
+two topics and loses its share of the other.
 
 ## Topic quality
 
@@ -265,8 +271,8 @@ frequent_triples <- group_hypergraph(topic_model, threshold = 0.2,
 plot(frequent_triples, group = "All documents")
 ```
 
-`by =` counts the combinations within a column of the documents table, such
-as the publication year.
+`group =` counts the combinations within a column of the documents table,
+such as the publication year.
 
 ```{r topic-sets-year}
 sets_by_year <- group_hypergraph(topic_model, threshold = 0.2, min_size = 2,
@@ -278,13 +284,13 @@ hg_get(sets_by_year, what = "sets")
 
 `topic_network()` reduces the combinations to pairs. With the same threshold,
 the weight of two topics is the number of abstracts in which both are present.
-The pairs above the upper quartile of the weights are drawn, with the width of
-an edge proportional to its weight.
+The pairs above the upper quartile of the weights are plotted, with the width
+of an edge proportional to its weight.
 
 ```{r topic-network}
-topic_network <- topic_network(abstracts_hg, topics = topic_model,
-                                  threshold = 0.2)
-strong_pair <- with(topic_network, quantile(weight, 0.75))
+topic_pairs <- topic_network(abstracts_hg, topics = topic_model,
+                             threshold = 0.2)
+strong_pair <- with(topic_pairs, quantile(weight, 0.75))
 network_view <- topic_network(abstracts_hg, topics = topic_model,
                                  threshold = 0.2, what = "network")
 cograph::splot(network_view, minimum = strong_pair,
@@ -299,7 +305,7 @@ package (Roberts et al. 2019).
 ## A partition of the abstracts
 
 A partition is appropriate when the abstracts are each about one topic. It is
-useful when they have to be drawn or compared as groups, and the hypergraph
+useful when they have to be plotted or compared as groups, and the hypergraph
 can then be divided directly. `hg_cluster()` places the abstracts by the
 eigenvectors of the 16 smallest eigenvalues of the hypergraph Laplacian of
 Zhou et al. (2006) and divides them by k-means.

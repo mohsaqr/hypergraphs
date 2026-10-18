@@ -60,7 +60,7 @@ events <- data.frame(
 hg <- group_hypergraph(events, node = "person", hyperedge = "meeting",
                        weight = "hours")
 L <- hg_laplacian(hg, type = "random_walk")
-range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)
+round(L, 3)
 
 }
 \references{

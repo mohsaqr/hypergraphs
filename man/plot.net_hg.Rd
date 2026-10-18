@@ -116,15 +116,15 @@ titled with its hyperedge name. \code{edge_labels} does not apply.}
 \item{detail}{How much of the hull's shape the smoothing keeps: the width,
 in harmonics, of the Gaussian low-pass applied to the outline. The
 default \code{5} gives rounded, tapering petals; \code{3} is rounder still, \code{8}
-stays close to the members, and \code{Inf} draws the unsmoothed rounded hull.}
+stays close to the members, and \code{Inf} plots the unsmoothed rounded hull.}
 
-\item{outline}{Outline colour: \code{"white"} (default) draws seams that part
+\item{outline}{Outline colour: \code{"white"} (default) gives seams that part
 overlapping hyperedges; \code{"fill"} outlines each hyperedge in its own
 colour (pair it with a lower \code{alpha}, e.g. \code{0.15}); any other colour is
 used as given.}
 
 \item{alpha}{Fill transparency (default \code{0.5}); the outline is always
-drawn at full strength.}
+plotted at full strength.}
 
 \item{linewidth}{Width of the outlines (default \code{1.1}).}
 
@@ -150,7 +150,7 @@ each label sits just above its dot. With \code{direction} they are circles in
 data units (the figure has a fixed 1:1 aspect): the largest has a radius
 of 4\% of the layout extent and none is smaller than 30\% of that radius,
 so the rarest nodes stay visible, and a caption says what area and
-triangle show. \code{NULL} (default) draws plain points.}
+triangle show. \code{NULL} (default) plots plain points.}
 
 \item{direction}{Mark on each circle where the walk goes next: a
 data.frame with columns \code{from}, \code{to} and a weight -- \code{weight}, or else
@@ -166,7 +166,7 @@ circle, its apex on the rim facing the next node) or \code{"outside"} (the
 circle drawn out into a tip beyond its rim). An outside tip that points
 upward moves that node's label below the circle.}
 
-\item{node_fill}{Colour of the circles drawn by \code{node_sizes} with
+\item{node_fill}{Colour of the circles plotted by \code{node_sizes} with
 \code{direction} (default black).}
 
 \item{arrow_fill}{Colour of the \code{direction} triangles. \code{NULL} (default) is
@@ -233,14 +233,14 @@ units (the layout spans 0 to 1; default \code{0.06}).}
 \code{group} attribute (a hypergraph of counted sets with a single group is
 drawn as that group without it), such as \code{"Cluster 1"} of a \code{\link[=group_hypergraph]{group_hypergraph()}} built
 from a clustering of sequences. Only that group's hyperedges and their
-members are drawn; for clustered sequences each node is sized by the
+members are plotted; for clustered sequences each node is sized by the
 sequences of the group containing it (unless \code{node_sizes} is given),
 each set is named by the states it adds to those every drawn set
 shares (listed in the subtitle), the figure is titled with the group
 and its number of sequences, \code{titles} defaults to \code{FALSE} and the
 legends are stacked. A
 name that is not a group, or a hypergraph without a \code{group} attribute,
-raises \code{hypergraphs_bad_input}. \code{NULL} (default) draws every hyperedge.}
+raises \code{hypergraphs_bad_input}. \code{NULL} (default) plots every hyperedge.}
 
 \item{node_groups}{Colour and shape every node by its group, such as its
 community: an \code{\link[=hg_communities]{hg_communities()}}, \code{\link[=hg_mmsbm]{hg_mmsbm()}} or \code{\link[=hg_topics]{hg_topics()}} fit, a
@@ -270,7 +270,7 @@ ascending. Ties fall back to the default order. For
 \code{NULL} keeps the stored order of the hyperedges.}
 
 \item{...}{For \code{type = "storyline"}: \code{top} (the number of nodes with the
-most hyperedges drawn as lines, default \code{8}, \code{NULL} for all), \code{spacing}
+most hyperedges plotted as lines, default \code{8}, \code{NULL} for all), \code{spacing}
 (\code{"even"} or \code{"strength"}), \code{width_by} (\code{NULL} or \code{"degree"}) and
 \code{point_size}, as in \code{\link[=plot.net_temporal_hypergraph]{plot.net_temporal_hypergraph()}}. Otherwise unused.}
 }
@@ -316,7 +316,7 @@ of an event log, is drawn as its distinct sets: each set once, coloured by
 its number of copies, with each node sized by the hyperedges that contain
 it. A call that styles or labels the hyperedges one by one (\code{titles},
 \code{color_by}, \code{linetype_by}, \code{edge_labels}, \code{notes}, \code{dismantled}), or
-groups the nodes (\code{node_groups}), draws every hyperedge.
+groups the nodes (\code{node_groups}), plots every hyperedge.
 
 A hypergraph that falls into several disconnected pieces is laid out one
 piece at a time and the pieces are then packed into a roughly square frame.
@@ -368,7 +368,7 @@ dat <- data.frame(
   member = c("a", "b", "c", "b", "c", "d", "d", "e", "f"),
   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e4")
 )
-hg <- group_hypergraph(dat, "member", "event")
+hg <- group_hypergraph(dat, node = "member", hyperedge = "event")
 plot(hg, color_by = "size", edge_labels = TRUE)
 plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 plot(hg, center = c("b", "c"))
@@ -394,7 +394,7 @@ plot(argentina, type = "incidence", color_by = "economic_sector",
 apart <- group_hypergraph(
   data.frame(member = c("a", "b", "c", "b", "c", "d", "x", "y", "z"),
              event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e3")),
-  "member", "event"
+  node = "member", hyperedge = "event"
 )
 plot(apart, color_by = "size")
 

@@ -30,8 +30,8 @@ sentence embeddings, which binds documents of similar meaning whatever their
 words. Each construction relates different units, so the central words and
 the groups of documents found in a corpus depend on it. `text_hypergraph()`
 builds all of them with `construction = "bag"`, `"window"`, `"sentence"` or
-`"knn"`. This document builds each construction first on three short
-documents, where every hyperedge can be seen, and then on a corpus of
+`"knn"`. Each construction is shown first on three short documents, where
+every hyperedge can be seen, and then on a corpus of
 `r nrow(covid_abstracts)` abstracts, where the constructions give different
 results.
 
@@ -217,12 +217,17 @@ head(hg_get(corpus_doc, what = "vocabulary"), 8)
 ```{r corpus-vocabulary-values, include = FALSE}
 raw_corpus <- text_hypergraph(covid_abstracts, column = "abstract",
                               id = "doc")
+unstopped <- text_hypergraph(covid_abstracts, column = "abstract",
+                             id = "doc", stop_words = stops)
 n_raw <- nrow(hg_get(raw_corpus, what = "vocabulary"))
+n_unstopped <- nrow(hg_get(unstopped, what = "vocabulary"))
 n_kept <- nrow(hg_get(corpus_doc, what = "vocabulary"))
 ```
 
-The filters reduce the vocabulary from `r format(n_raw, big.mark = ",")`
-words to `r format(n_kept, big.mark = ",")`. The same filters apply to every
+The corpus has `r format(n_raw, big.mark = ",")` distinct words. Removing
+the stop words leaves `r format(n_unstopped, big.mark = ",")`, and
+`min_count` and `min_chars` reduce these to
+`r format(n_kept, big.mark = ",")`. The same filters apply to every
 token construction below, so the constructions differ only in what a
 hyperedge is.
 

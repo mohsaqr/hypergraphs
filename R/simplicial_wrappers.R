@@ -129,14 +129,14 @@
 #'   (`"f_vector"`), the per-node simplicial degree (`"degree"`) or, for a
 #'   validated window complex, one row per tested set of actions
 #'   (`"validation"`), and the Betti numbers (`"betti"`, with rational
-#'   coefficients as in [hg_betti()]). `plot()` draws
+#'   coefficients as in [hg_betti()]). `plot()` plots
 #'   the maximal simplices, those no larger simplex contains, as regions
 #'   around their nodes (`cograph::plot_simplicial()`; its arguments pass
 #'   through `...`): the largest simplices first and, among simplices of
 #'   one size, the largest validation z-score first for a validated window
 #'   complex, the most frequent first for a window complex, the closest
 #'   first for a Vietoris-Rips complex, and by node names otherwise. With `type = "summary"`, `plot()`
-#'   draws the summary of the complex instead: the face counts by dimension,
+#'   plots the summary of the complex instead: the face counts by dimension,
 #'   the Betti numbers, the simplicial degree of each node and its degree by
 #'   dimension. `plot()` returns the figure. For the `plot()` method, `x` is
 #'   the complex.
@@ -251,12 +251,12 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
 
 #' @rdname simplicial
 #' @param y Unused.
-#' @param dismantled For `plot()`: `TRUE` draws each maximal simplex in its
-#'   own panel; `FALSE` (default) draws them together on one layout.
+#' @param dismantled For `plot()`: `TRUE` plots each maximal simplex in its
+#'   own panel; `FALSE` (default) plots them together on one layout.
 #' @param top For `plot()`: the number of maximal simplices to draw, in the
-#'   order described under Value. `NULL` (default) draws all of them.
-#' @param type For `plot()`: `"simplices"` (default) draws the maximal
-#'   simplices; `"summary"` draws the face counts, the Betti numbers and the
+#'   order described under Value. `NULL` (default) plots all of them.
+#' @param type For `plot()`: `"simplices"` (default) plots the maximal
+#'   simplices; `"summary"` plots the face counts, the Betti numbers and the
 #'   simplicial degree. `dismantled` and `top` apply to `"simplices"` only.
 #' @export
 plot.hypergraphs_simplicial <- function(x, y, dismantled = FALSE, top = NULL,

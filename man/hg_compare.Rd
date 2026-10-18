@@ -30,18 +30,16 @@ adjusted p-values. Default \code{0.05}.}
 \item{parallel, n_cores, seed}{As in \code{\link[=hg_bootstrap]{hg_bootstrap()}}.}
 }
 \value{
-An object of class \code{hypergraphs_comparison}: a list with \code{edges} (one
-row per pooled rule: \code{from}, \code{to}, \code{order}, \code{count}, the two groups'
-counts and probabilities (columns named after the groups), \code{diff}
-(probability difference, first minus second), \code{p_value}, \code{p_adj} (BH),
-\code{significant}, \code{n_perm_used}), \code{global} (\code{statistic}, the
-pooled-count-weighted mean absolute difference over the comparable
-rules, \code{p_value}, \code{n_comparable} and \code{n_rules}, the comparable and
-pooled rules, and \code{n_perm_used}, the permutations with a defined
-statistic),
-\code{names}, \code{n_perm}, \code{alpha}, \code{max_order}, \code{min_freq}, \code{n_trajectories}
-(per group) and \code{seed}. Has \code{print}, \code{summary} and \code{plot} methods;
-\code{\link[=hg_get]{hg_get()}} returns the rule table (\code{significant = TRUE} restricts it).
+An object of class \code{hypergraphs_comparison} with \code{print},
+\code{summary} and \code{plot} methods. \code{\link[=hg_get]{hg_get()}} returns its rule table, one
+row per pooled rule, with \code{from}, \code{to}, \code{order}, \code{count}, the two
+groups' counts and probabilities (columns named after the groups),
+\code{diff} (probability difference, first minus second), \code{p_value}, \code{p_adj}
+(Benjamini-Hochberg), \code{significant} and \code{n_perm_used};
+\code{significant = TRUE} restricts it to the significant rules.
+\code{hg_get(x, what = "global")} returns the global test, whose \code{statistic}
+is the pooled-count-weighted mean absolute difference over the rules
+estimated in both groups.
 }
 \description{
 Tests whether two groups of sequences differ in their higher-order rule

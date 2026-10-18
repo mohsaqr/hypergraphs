@@ -59,6 +59,8 @@ test_that("holdout output prints, summarises and plots", {
   expect_output(print(fit), "balanced accuracy")
   expect_s3_class(summary(fit), "data.frame")
   expect_s3_class(plot(fit), "ggplot")
+  # the HyperGAT plot types left with 0.7.7; asking for one is refused
+  expect_error(plot(fit, type = "hyperedges"), class = "hypergraphs_bad_input")
   expect_error(hg_classify(hg, labels = "theme", holdout = 1.5))
   expect_error(hg_classify(hg, labels = "theme", holdout = 0.3,
                            seed = NA))

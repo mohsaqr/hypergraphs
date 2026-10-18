@@ -285,6 +285,7 @@ summary.hg_classification <- function(object, ...) {
 #'   the test documents.
 #' @export
 plot.hg_classification <- function(x, y, ...) {
+  .ho_no_dots(..., .for = "plot.hg_classification()")
   confusion <- hg_get(x, what = "confusion")
   ggplot2::ggplot(confusion, ggplot2::aes(x = .data$predicted,
                                           y = .data$label,

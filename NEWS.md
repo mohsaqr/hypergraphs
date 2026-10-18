@@ -1,10 +1,15 @@
+# hypergraphs 0.7.8
+
+* `plot()` on a classification result raises `hypergraphs_bad_input` for an
+  argument it does not take, such as the removed `type = "hyperedges"`,
+  instead of ignoring it.
+
 # hypergraphs 0.7.7
 
 ## Breaking changes
 
 * The release keeps the methods that have an independent oracle. These
-  functions are removed from the package and kept in its development
-  sources: `hg_neural()`, `hg_hypergat()`, `text_hypergat()`,
+  functions are removed: `hg_neural()`, `hg_hypergat()`, `text_hypergat()`,
   `heterogeneous_hgat()`, `hg_hypergcn()`, `hg_hnhn()`, `hg_allset()`,
   `hg_embed()`, `hg_joint_cluster()` and `hg_dictionary()`. `torch` is no
   longer a suggested package. Version 0.7.6 with every function is installed
@@ -15,11 +20,11 @@
   longer has `type = "hyperedges"`. They read the attention of
   `hg_hypergat()`.
 
-* `hg_null_test()` no longer tests `"density"` or `"avg_edge_size"`. Every
-  null model keeps the number of vertices, the number of hyperedges and the
-  hyperedge sizes, so both statistics are constant under the swap and
-  assignment nulls and change under the configuration null only when stub
-  matching collapses a membership. A request for either raises
+* `hg_null_test()` no longer tests `"density"` or `"avg_edge_size"`. The swap
+  and assignment nulls keep the number of vertices, the number of hyperedges
+  and the hyperedge sizes, so both statistics are constant under them; the
+  configuration null changes them only when stub matching collapses a
+  membership. A request for either raises
   `hypergraphs_bad_input`; `hg_measures()` reports both.
 
 ## Bug fixes
@@ -30,8 +35,9 @@
 
 ## Tests
 
-* Independent oracles for `hg_membership()` (XGI and scikit-fuzzy),
-  `hg_representations()` (Table 2 of Coupette et al. 2024),
+* The development sources, which are not shipped with the package, compare
+  these functions with independent implementations: `hg_membership()` (XGI
+  and scikit-fuzzy), `hg_representations()` (Table 2 of Coupette et al. 2024),
   `hg_line_graph()` and `hg_edge_centrality()` (HyperNetX and NetworkX),
   `hg_null_test()` (vegan's swap chain, an independent configuration model
   and the authors' assignment code), and `hg_community_quality()` and

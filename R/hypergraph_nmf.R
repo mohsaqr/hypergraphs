@@ -58,31 +58,3 @@
   # the first start with the lowest objective, as the serial loop kept it
   fits[[which.min(vapply(fits, \(f) f$objective, numeric(1L)))]]
 }
-
-# General rectangular non-negative matrix factorization, used to verify the
-# gamma = beta = 0 reduction of Hayashi et al.'s Eq. 18.
-.hl_nmf <- function(X, k, seed = NULL, max_iter = 500L, tol = 1e-6,
-                    epsilon = 1e-12) {
-  if (!is.null(seed)) set.seed(as.integer(seed))
-  Z <- matrix(stats::runif(nrow(X) * k, 0.5, 1.5), nrow(X), k)
-  M <- matrix(stats::runif(ncol(X) * k, 0.5, 1.5), ncol(X), k)
-  objective <- function() sum((X - Z %*% t(M))^2)
-  history <- objective()
-  converged <- FALSE
-  for (iteration in seq_len(max_iter)) {
-    Z <- Z * ((X %*% M) / pmax(Z %*% crossprod(M), epsilon))
-    M <- M * ((t(X) %*% Z) / pmax(M %*% crossprod(Z), epsilon))
-    value <- objective()
-    history <- c(history, value)
-    if (abs(history[length(history) - 1L] - value) /
-        max(history[length(history) - 1L], epsilon) <= tol) {
-      converged <- TRUE
-      break
-    }
-  }
-  list(Z = Z, M = M, objective = utils::tail(history, 1L),
-       objective_history = history, iterations = iteration,
-       converged = converged)
-}
-
-

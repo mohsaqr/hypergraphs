@@ -194,16 +194,6 @@
   }, numeric(1L))
 }
 
-#' Run a replicate function serially or via parallel::mclapply
-#' @noRd
-.hi_apply <- function(n, fn, parallel, n_cores) {
-  if (isTRUE(parallel) && .Platform$OS.type != "windows") {
-    parallel::mclapply(seq_len(n), fn, mc.cores = n_cores)
-  } else {
-    lapply(seq_len(n), fn)
-  }
-}
-
 # ---------------------------------------------------------------------------
 # hg_bootstrap
 # ---------------------------------------------------------------------------
@@ -340,7 +330,8 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
       is_rule = observed$source_key %in% ls(extraction$rules)
     )
   }
-  reps <- .hi_apply(n_boot, one_rep, parallel, n_cores)
+  reps <- .ho_apply(seq_len(n_boot), one_rep, parallel = parallel,
+                    n_cores = n_cores)
 
   prob_mat <- do.call(cbind, lapply(reps, `[[`, "prob"))
   rule_mat <- do.call(cbind, lapply(reps, `[[`, "is_rule"))
@@ -481,7 +472,8 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
     list(diff = abs(pp[, 1L] - pp[, 2L]),
          global = global_of(pp[, 1L] - pp[, 2L]))
   }
-  reps <- .hi_apply(n_perm, one_perm, parallel, n_cores)
+  reps <- .ho_apply(seq_len(n_perm), one_perm, parallel = parallel,
+                    n_cores = n_cores)
 
   diff_mat <- do.call(cbind, lapply(reps, `[[`, "diff"))
   global_null <- vapply(reps, `[[`, numeric(1L), "global")

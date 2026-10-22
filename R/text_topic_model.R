@@ -771,17 +771,7 @@ hg_topic_search <- function(hg, k, nstart = 1L, n = 10L, frexw = 0.7,
                agreement = mean(fit$topics$agreement),
                converged = kept$converged)
   }
-  rows <- if (isTRUE(parallel) && .Platform$OS.type != "windows") {
-    parallel::mclapply(k, one_k, mc.cores = as.integer(n_cores))
-  } else {
-    lapply(k, one_k)
-  }
-  # mclapply() returns a worker's error as a try-error; re-raise its
-  # condition so the class survives
-  failed <- vapply(rows, inherits, logical(1L), "try-error")
-  if (any(failed)) {
-    stop(attr(rows[[which(failed)[1L]]], "condition"))
-  }
+  rows <- .ho_apply(k, one_k, parallel = parallel, n_cores = n_cores)
   out <- do.call(rbind, rows)
   dominated <- vapply(seq_len(nrow(out)), \(r) {
     any(out$coherence > out$coherence[r] &

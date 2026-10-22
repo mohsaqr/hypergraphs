@@ -1,3 +1,16 @@
+# hypergraphs (development version)
+
+## Bug fixes
+
+* `hg_topic_search()`, `hg_bootstrap()` and `hg_compare()` with
+  `parallel = TRUE` no longer lose the work of a worker the operating system
+  kills (for example for lack of memory). `hg_topic_search()` dropped that
+  number of topics from its table, and the two memory-network tests ran on
+  fewer replicates or stopped with an unrelated error. Such a worker is now
+  rerun serially with a `hypergraphs_parallel_fallback` warning, as
+  `hg_topics()` already did, and an R error in a worker raises
+  `hypergraphs_parallel_failed`.
+
 # hypergraphs 0.7.9
 
 ## Breaking changes

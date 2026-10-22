@@ -255,6 +255,29 @@ test_that("hg_topic_search() scores every k and marks the frontier", {
   expect_error(hg_topic_search(hg, k = 2), class = "hypergraphs_bad_input")
 })
 
+test_that("hg_topic_search() reruns a killed worker instead of dropping its k", {
+  skip_on_os("windows")
+  corpus <- c(
+    a = "soup salt onion soup broth", b = "salt soup broth onion",
+    c = "stars sky moon night", d = "sky stars night moon moon",
+    e = "soup stars salt sky night broth", f = "onion salt stars broth")
+  hg <- text_hypergraph(corpus)
+  search <- hg_topic_search(hg, k = 2:3, nstart = 2, n = 4)
+  # the forked worker fitting k = 3 kills itself, as an out-of-memory kill
+  # would; the serial rerun in the parent fits it normally
+  parent <- Sys.getpid()
+  real <- hg_topics
+  local_mocked_bindings(hg_topics = \(hg, k, ...) {
+    if (k == 3L && Sys.getpid() != parent) tools::pskill(Sys.getpid())
+    real(hg, k, ...)
+  })
+  expect_warning(
+    killed <- hg_topic_search(hg, k = 2:3, nstart = 2, n = 4,
+                              parallel = TRUE),
+    class = "hypergraphs_parallel_fallback")
+  expect_identical(killed, search)
+})
+
 .tm_network_corpus <- function() {
   c(a = "soup salt onion soup broth", b = "salt soup broth onion",
     c = "stars sky moon night", d = "sky stars night moon moon",

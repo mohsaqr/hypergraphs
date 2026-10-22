@@ -90,6 +90,34 @@ test_that("parallel and serial bootstrap are identical under a seed", {
   expect_identical(b_ser$edges, b_rep$edges)
 })
 
+test_that("a killed bootstrap or permutation worker is rerun, not dropped", {
+  skip_on_os("windows")
+  set.seed(10)
+  seqs <- replicate(8, sample(c("a", "b", "c"), 15, replace = TRUE),
+                    simplify = FALSE)
+  b_ser <- hg_bootstrap(seqs, n_boot = 20, max_order = 2, seed = 9)
+  model <- hon(seqs, group = rep(c("x", "y"), each = 4), max_order = 2)
+  c_ser <- hg_compare(model, n_perm = 20, seed = 9)
+  # every forked worker kills itself; the serial rerun in the parent
+  # computes the replicates normally
+  parent <- Sys.getpid()
+  real <- .hon_build_distributions
+  local_mocked_bindings(.hon_build_distributions = \(...) {
+    if (Sys.getpid() != parent) tools::pskill(Sys.getpid())
+    real(...)
+  })
+  expect_warning(
+    b_par <- hg_bootstrap(seqs, n_boot = 20, max_order = 2, seed = 9,
+                          parallel = TRUE),
+    class = "hypergraphs_parallel_fallback")
+  expect_identical(b_par$edges, b_ser$edges)
+  expect_warning(
+    c_par <- hg_compare(model, n_perm = 20, seed = 9, parallel = TRUE),
+    class = "hypergraphs_parallel_fallback")
+  expect_identical(c_par$global, c_ser$global)
+  expect_identical(c_par$edges, c_ser$edges)
+})
+
 test_that("long and list input give the same bootstrap", {
   seqs <- list(s1 = rep(c("a", "b", "c"), 4), s2 = rep(c("a", "b", "c"), 4),
                s3 = rep(c("c", "b", "a"), 4), s4 = rep(c("c", "b", "a"), 4))

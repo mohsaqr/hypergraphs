@@ -47,6 +47,7 @@
 hg_get.net_hypa <- function(x, what = c("anomalies", "scores", "over",
                                         "under", "pathways"), ...,
                             type = NULL, order_by = NULL, top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hypa`")
   what <- .ho_match_what(what)
   view <- attr(x, "hypa_view")
   type <- match.arg(type %||% view$type %||% "all",
@@ -65,10 +66,10 @@ hg_get.net_hypa <- function(x, what = c("anomalies", "scores", "over",
   if (what == "scores") {
     out <- x$scores
     key <- switch(order_by,
-                  sig = order(pmin(out$p_under, out$p_over), out$path),
-                  ratio = order(-abs(log(out$ratio)), out$path),
-                  freq = order(-out$observed, out$path),
-                  path = order(out$path))
+                  sig = .ho_order(pmin(out$p_under, out$p_over), out$path),
+                  ratio = .ho_order(-abs(log(out$ratio)), out$path),
+                  freq = .ho_order(-out$observed, out$path),
+                  path = .ho_order(out$path))
     out <- .hypa_rename(out[key, , drop = FALSE])
     rownames(out) <- NULL
     return(.ho_top(out, top))
@@ -92,10 +93,10 @@ hg_get.net_hypa <- function(x, what = c("anomalies", "scores", "over",
                       stringsAsFactors = FALSE)
   } else if (type == "all") {
     key <- switch(order_by,
-                  sig = order(out$p_adj, out$path),
-                  ratio = order(-abs(log(out$ratio)), out$path),
-                  freq = order(-out$count, out$path),
-                  path = order(out$path))
+                  sig = .ho_order(out$p_adj, out$path),
+                  ratio = .ho_order(-abs(log(out$ratio)), out$path),
+                  freq = .ho_order(-out$count, out$path),
+                  path = .ho_order(out$path))
     out <- out[key, , drop = FALSE]
   }
   if (length(unique(out$order)) <= 1L) out$order <- NULL
@@ -116,12 +117,12 @@ hg_get.net_hypa <- function(x, what = c("anomalies", "scores", "over",
 .hypa_sort <- function(d, dir, order_by) {
   if (is.null(d) || !nrow(d)) return(d)
   key <- switch(order_by,
-                sig = if (dir == "over") order(d$p_over, d$path) else
-                  order(d$p_under, d$path),
-                ratio = if (dir == "over") order(-d$ratio, d$path) else
-                  order(d$ratio, d$path),
-                freq = order(-d$observed, d$path),
-                path = order(d$path))
+                sig = if (dir == "over") .ho_order(d$p_over, d$path) else
+                  .ho_order(d$p_under, d$path),
+                ratio = if (dir == "over") .ho_order(-d$ratio, d$path) else
+                  .ho_order(d$ratio, d$path),
+                freq = .ho_order(-d$observed, d$path),
+                path = .ho_order(d$path))
   d[key, , drop = FALSE]
 }
 

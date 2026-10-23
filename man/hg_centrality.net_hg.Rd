@@ -41,8 +41,9 @@ iteration that does not reach it within \code{max_iter} steps warns with
 class \code{hypergraphs_no_converge}.}
 
 \item{normalize}{Logical. If \code{TRUE} (default), each returned
-centrality vector is L2-normalized to unit norm (compatible with
-\code{igraph::eigen_centrality()}'s scale for type \code{"clique"}). Does not
+centrality vector is L2-normalized to unit norm. With \code{FALSE} the
+vector of type \code{"clique"} is scaled to a maximum of 1, the scale of
+\code{igraph::eigen_centrality()}. Does not
 apply to \code{"pagerank"}, which always sums to 1, or
 \code{"subhypergraph"}, which is returned on its natural log scale.}
 
@@ -87,7 +88,7 @@ the result is one row per node.
 \strong{Clique-motif eigenvector centrality (CEC)}: forms the
 clique-expanded pairwise graph \eqn{W} where
 \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
-eigenvector of \eqn{W}. Equivalent to running
+eigenvector of \eqn{W}. With \code{normalize = FALSE} it equals
 \code{igraph::eigen_centrality()} on \code{\link[=pairwise_network]{pairwise_network()}} output.
 
 \strong{Z-eigenvector centrality (ZEC)}: solves the linear

@@ -95,6 +95,10 @@ A subsample can disconnect the hypergraph (a word that tied two groups of
 documents may not be drawn); \code{\link[=hg_cluster]{hg_cluster()}} cannot cut a disconnected
 hypergraph, so that run is not scored, is counted in \code{n_failed}, and a
 warning of class \code{hypergraphs_hypergraph_disconnected} reports the count.
+A run whose Laplacian spectrum ties at \code{k} (see \code{\link[=hg_cluster]{hg_cluster()}}) is scored,
+and one warning of class \code{hypergraphs_tied_spectrum} names the values of
+\code{k} and the number of runs at which the full hypergraph or a subsample
+tied.
 
 The \code{eigengap} column is the gap \eqn{\lambda_{k+1} - \lambda_k} between
 consecutive eigenvalues of the full hypergraph's Laplacian (the \code{gap}

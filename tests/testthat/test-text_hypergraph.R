@@ -422,3 +422,17 @@ test_that("text accessors validate and compose their filters (TXT-16)", {
   sorted <- hg_get(h, what = "vocabulary", sort_by = "count", top = 2)
   expect_identical(sorted$word, c("apple", "star"))
 })
+
+test_that("stop_words are compared after lowercasing when lowercase = TRUE", {
+  docs <- c(a = "The cat sat", b = "the dog sat")
+  vocab <- hg_get(text_hypergraph(docs, stop_words = "The"),
+                  what = "vocabulary")
+  expect_false("the" %in% vocab$word)
+  expect_identical(vocab, hg_get(text_hypergraph(docs, stop_words = "the"),
+                                 what = "vocabulary"))
+  # without lowercasing the comparison is exact, as documented
+  kept <- hg_get(text_hypergraph(docs, stop_words = "the", lowercase = FALSE),
+                 what = "vocabulary")
+  expect_true("The" %in% kept$word)
+  expect_false("the" %in% kept$word)
+})

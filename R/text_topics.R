@@ -384,7 +384,7 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   probability <- probability[, colSums(probability) > 0, drop = FALSE]
   top <- lapply(stats::setNames(labels, labels), \(t) {
     ranked <- table[table$topic == t & table$probability > 0, , drop = FALSE]
-    utils::head(ranked$word[order(ranked$rank)], n)
+    utils::head(ranked$word[.ho_order(ranked$rank)], n)
   })
   rows <- lapply(labels, \(topic) {
     top_words <- top[[topic]]
@@ -449,7 +449,7 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
     # drop = FALSE and renamed: one vocabulary word would lose its name
     row <- stats::setNames(as.numeric(counts[cl, , drop = FALSE]),
                            colnames(counts))
-    ord <- order(-row, seq_along(row))
+    ord <- .ho_order(-row, seq_along(row))
     eligible <- row[ord] > 0 & support[cl, ord] >= min_docs
     names(row)[utils::head(ord[eligible], n)]
   })
@@ -501,7 +501,7 @@ hg_topic_quality <- function(hg, clusters = NULL, words = NULL, n = 10L,
   }
   lapply(stats::setNames(topics, topics), \(t) {
     in_topic <- topic == t
-    utils::head(word[in_topic][order(rank[in_topic])], n)
+    utils::head(word[in_topic][.ho_order(rank[in_topic])], n)
   })
 }
 
@@ -666,7 +666,7 @@ hg_membership <- function(hg, clusters, type = c("zhou", "random_walk"),
     membership = as.numeric(membership),
     stringsAsFactors = FALSE
   )
-  out <- out[order(match(out$node, rownames(x)),
+  out <- out[.ho_order(match(out$node, rownames(x)),
                    match(out$topic, levels(group_of))), , drop = FALSE]
   rownames(out) <- NULL
   class(out) <- c("hypergraphs_membership", "data.frame")
@@ -707,7 +707,7 @@ plot.hypergraphs_membership <- function(x, ...) {
 #' (Dhillon 2001, Algorithm Multipartition).
 #'
 #' For a binary incidence with unit hyperedge weights, the node half of the
-#' embedding spans the same space as the Zhou et al. (2006) hypergraph
+#' embedding spans the same space as the Zhou et al. (2007) hypergraph
 #' Laplacian eigenvectors that [hg_cluster()] cuts (the squared singular
 #' values are one minus the Laplacian eigenvalues), so co-clustering reads
 #' the same cut on both sides of the bipartite graph; with other weights the
@@ -741,7 +741,7 @@ plot.hypergraphs_membership <- function(x, ...) {
 #' International Conference on Knowledge Discovery and Data Mining*,
 #' 269--274. \doi{10.1145/502512.502550}
 #'
-#' Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+#' Zhou, D., Huang, J., & Schölkopf, B. (2007). Learning with hypergraphs:
 #' Clustering, classification, and embedding. *Advances in Neural Information
 #' Processing Systems 19*, 1601--1608.
 #' \doi{10.7551/mitpress/7503.003.0205}

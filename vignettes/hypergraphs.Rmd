@@ -9,8 +9,7 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 9,
-                      fig.height = 7, out.width = "100%")
-has_igraph <- requireNamespace("igraph", quietly = TRUE)
+                      fig.height = 7, out.width = "100%", dpi = 60)
 join_and <- function(v) sub(", ([^,]*)$", " and \\1", toString(v))
 n_steps <- length(unique(hypergraphs::tutoring_events$step))
 ```
@@ -358,7 +357,7 @@ than with the rest of the hypergraph. The communities of the events are
 found with the map equation from 20 random starts, and the partition
 reported is the medoid, the partition that agrees most with the other 19.
 
-```{r communities, eval = has_igraph}
+```{r communities, eval = requireNamespace("igraph", quietly = TRUE)}
 event_communities <- hg_communities(trial_hg, n_runs = 20, seeds = 1:20)
 event_communities
 ```
@@ -385,7 +384,7 @@ incorrect answers, the reattempts and the moves of the tutor
 (`r members_of("Guidance")`). The adjusted Rand index measures the agreement
 between two partitions of the same nodes, corrected for chance.
 
-```{r agreement, eval = has_igraph}
+```{r agreement, eval = requireNamespace("igraph", quietly = TRUE)}
 partition_agreement <- hg_agreement(event_communities, event_clusters)
 partition_agreement
 partition_table <- hg_agreement(event_communities, event_clusters,
@@ -393,7 +392,7 @@ partition_table <- hg_agreement(event_communities, event_clusters,
 partition_table
 ```
 
-```{r agreement-text, echo = FALSE, results = "asis", eval = has_igraph}
+```{r agreement-text, echo = FALSE, results = "asis", eval = requireNamespace("igraph", quietly = TRUE)}
 cat(sprintf(paste(
   "The map equation separates the end of a stopped step from the other",
   "events. Spectral clustering divides the other events into those of a",
@@ -415,7 +414,7 @@ steps.
 stopped_events <- subset(tutoring_events, outcome == "stopped")
 stopped_hg <- hypergraph(stopped_events, action = "event", session = "trial")
 plot(stopped_hg)
-stopped_null <- hg_null_test(stopped_hg, n = 99, seed = 1,
+stopped_null <- hg_null_test(stopped_hg, n = 19, seed = 1,
                           statistic = c("pairwise_participation",
                                         "avg_jaccard", "repeated_edges"))
 stopped_null
@@ -437,7 +436,8 @@ and the mean Jaccard index between two trials is `r round(aj$null_mean, 2)`,
 against `r round(aj$observed, 2)`. The trials of stopped steps repeat a
 small number of sets, and each set keeps together events that the random
 hypergraphs spread over many trials. The p-value of `r pp$p_value` is the
-smallest attainable with 99 random hypergraphs. The observed pairwise
+smallest attainable with 19 random hypergraphs; a test reported in an
+analysis uses at least 999. The observed pairwise
 participation lies `r round(abs(pp$z))` standard deviations below the mean of
 the random hypergraphs, and the number of repeated trials
 `r round(abs(re$z))` standard deviations above it.

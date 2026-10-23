@@ -62,7 +62,7 @@ joined when they belong to a common hyperedge, and the weight of the
 edge depends on \code{type}. \code{"clique"} is the clique expansion: a hyperedge
 of size \eqn{|e|} contributes the same amount to each of its
 \eqn{|e|(|e|-1)/2} pairs, so the weight of a pair is the number of
-hyperedges that contain both nodes (Zhou et al. 2006). \code{"association"}
+hyperedges that contain both nodes (Zhou et al. 2007). \code{"association"}
 divides the contribution of each hyperedge by \eqn{|e|-1}, following
 Coupette et al. (2024):
 }
@@ -108,7 +108,7 @@ Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 \emph{Philosophical Transactions of the Royal Society A}, 382(2270), 20230141.
 \doi{10.1098/rsta.2023.0141}
 
-Zhou, D., Huang, J., & Schoelkopf, B. (2006). Learning with hypergraphs:
+Zhou, D., Huang, J., & Schoelkopf, B. (2007). Learning with hypergraphs:
 clustering, classification, and embedding. \emph{NeurIPS 19}, 1601-1608.
 \doi{10.7551/mitpress/7503.003.0205}
 }

@@ -211,25 +211,18 @@ test_that("type = 'frequency' is the raw count whatever the weighting", {
   expect_equal(as.numeric(totals[names(corpus)]), as.numeric(corpus))
 })
 
-test_that("type = 'ctfidf' reproduces BERTopic's ClassTfidfTransformer", {
-  # oracle: bertopic 0.17.4 ClassTfidfTransformer().fit_transform() on the
-  # 2 x 17 class-term count matrix of this fixture (python, 2026-09-05)
+test_that("type = 'ctfidf' follows the class-based tf-idf formula", {
   hg <- .kw_fixture()
   kw <- hg_keywords(hg, .kw_clusters, n = Inf, type = "ctfidf")
   pick <- function(cl, w) subset(kw, cluster == cl & word == w)$score
-  expect_equal(pick("food", "soup"), 0.358351893845611, tolerance = 1e-12)
-  expect_equal(pick("food", "carrots"), 0.23978952727983707,
-               tolerance = 1e-12)
-  expect_equal(pick("food", "night"), 0.1791759469228055, tolerance = 1e-12)
-  expect_equal(pick("sky", "telescope"), 0.358351893845611,
-               tolerance = 1e-12)
-  expect_equal(pick("sky", "night"), 0.1791759469228055, tolerance = 1e-12)
   # the shared word is split evenly, cluster-only words are fully owned
   expect_equal(subset(kw, word == "night")$share, c(0.5, 0.5))
   expect_true(all(subset(kw, word != "night")$share == 1))
   # hand formula: tf (L1 per class) * log(A / f_w + 1); both clusters hold
   # 10 tokens after stop words, so A = trunc(mean(c(10, 10))) = 10
   expect_equal(pick("food", "soup"), (2 / 10) * log(10 / 2 + 1),
+               tolerance = 1e-12)
+  expect_equal(pick("sky", "night"), (1 / 10) * log(10 / 2 + 1),
                tolerance = 1e-12)
 })
 

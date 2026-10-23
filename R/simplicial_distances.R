@@ -118,7 +118,7 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
     stop("`internal_p` must be one number >= 1 or Inf.", call. = FALSE)
   }
   dims <- if (is.null(dimension)) {
-    sort(unique(c(df1$dimension, df2$dimension)))
+    .ho_sort(unique(c(df1$dimension, df2$dimension)))
   } else {
     if (!is.numeric(dimension) || anyNA(dimension) ||
         any(dimension != as.integer(dimension))) {
@@ -149,8 +149,8 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
 # wide coordinate range.
 #' @noRd
 .wasserstein_one_dim <- function(p1, p2, ess1, ess2, order, internal_p) {
-  ess_b1 <- sort(p1$birth[ess1])
-  ess_b2 <- sort(p2$birth[ess2])
+  ess_b1 <- .ho_sort(p1$birth[ess1])
+  ess_b2 <- .ho_sort(p2$birth[ess2])
   if (length(ess_b1) != length(ess_b2)) return(Inf)
   ess_cost <- abs(ess_b1 - ess_b2)
 
@@ -312,6 +312,7 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
 #' @export
 hg_get.persistence_landscape <- function(x, what = "landscape", ...,
                                          k = NULL, top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `persistence_landscape`")
   .ho_match_what(what, "landscape")
   out <- x$landscape
   if (!is.null(k)) {

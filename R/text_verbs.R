@@ -156,8 +156,9 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #'   iteration that does not reach it within `max_iter` steps warns with
 #'   class `hypergraphs_no_converge`.
 #' @param normalize Logical. If `TRUE` (default), each returned
-#'   centrality vector is L2-normalized to unit norm (compatible with
-#'   `igraph::eigen_centrality()`'s scale for type `"clique"`). Does not
+#'   centrality vector is L2-normalized to unit norm. With `FALSE` the
+#'   vector of type `"clique"` is scaled to a maximum of 1, the scale of
+#'   `igraph::eigen_centrality()`. Does not
 #'   apply to `"pagerank"`, which always sums to 1, or
 #'   `"subhypergraph"`, which is returned on its natural log scale.
 #' @param damping Single numeric in (0, 1). PageRank damping factor
@@ -180,7 +181,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' **Clique-motif eigenvector centrality (CEC)**: forms the
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
-#' eigenvector of \eqn{W}. Equivalent to running
+#' eigenvector of \eqn{W}. With `normalize = FALSE` it equals
 #' `igraph::eigen_centrality()` on [pairwise_network()] output.
 #'
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
@@ -331,7 +332,7 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
   out <- out[, c("node", type), drop = FALSE]
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, choices = type)
-    out <- out[order(-out[[sort_by]], out$node), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], out$node), , drop = FALSE]
     rownames(out) <- NULL
   }
   if (is.finite(n) && n < nrow(out)) {
@@ -363,6 +364,15 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
 #' `seed` fixes the result. Report stability across seeds for consequential
 #' results.
 #'
+#' The spectral embedding is defined only when the `k`-th and `(k + 1)`-th
+#' smallest Laplacian eigenvalues differ. When they coincide (to within
+#' `sqrt(.Machine$double.eps)`), any basis of the tied eigenspace is
+#' equally valid and the partition depends on the eigensolver, so
+#' `algorithm = "spectral"` warns with `hypergraphs_tied_spectrum` (not with
+#' `what = "eigenvalues"`, which returns no partition); inspect
+#' `what = "eigenvalues"` and choose a `k` followed by a gap (von Luxburg
+#' 2007).
+#'
 #' `type = "random_walk"` (Hayashi et al. 2020) is the natural choice for
 #' tf-idf-weighted text hypergraphs. `what =` returns the cluster table,
 #' the embedding or the leading eigenvalues as a tidy data.frame.
@@ -370,7 +380,7 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
 #' @param k Number of clusters (explicit by design; there is no correct
 #'   default).
 #' @param type The Laplacian, as in [hg_laplacian()]: `"zhou"` (Zhou et al.
-#'   2006) or `"random_walk"` (Hayashi et al. 2020).
+#'   2007) or `"random_walk"` (Hayashi et al. 2020).
 #' @param n For `what = "eigenvalues"`, how many rows to keep, leading first
 #'   (default `Inf`, all of them). The spectrum carries one eigenvalue per
 #'   node, so a corpus of a few thousand documents returns a few thousand
@@ -431,6 +441,10 @@ hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
 #' Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
 #' edge-dependent vertex weights. \emph{ICML 2019}.
 #'
+#' von Luxburg, U. (2007). A tutorial on spectral clustering.
+#' \emph{Statistics and Computing}, 17(4), 395-416.
+#' \doi{10.1007/s11222-007-9033-z}
+#'
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -464,18 +478,29 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
       any(c("parallel", "n_cores") %in% names(match.call()))) {
     .thg_bad_input("`parallel` and `n_cores` apply to `algorithm = \"symnmf\"` only")
   }
-  fit <- if (.thg_is_sparse(hg) && algorithm == "symnmf") {
-    .thg_sparse_symnmf(hg, k = k, type = type, edge_weights = edge_weights,
-                       nstart = nstart, seed = seed, max_iter = max_iter,
-                       tol = tol, parallel = parallel, n_cores = n_cores)
-  } else if (.thg_is_sparse(hg)) {
-    .thg_sparse_cluster(hg, k = k, type = type, edge_weights = edge_weights,
-                        nstart = nstart, seed = seed)
+  fit_engine <- \() {
+    if (.thg_is_sparse(hg) && algorithm == "symnmf") {
+      .thg_sparse_symnmf(hg, k = k, type = type, edge_weights = edge_weights,
+                         nstart = nstart, seed = seed, max_iter = max_iter,
+                         tol = tol, parallel = parallel, n_cores = n_cores)
+    } else if (.thg_is_sparse(hg)) {
+      .thg_sparse_cluster(hg, k = k, type = type, edge_weights = edge_weights,
+                          nstart = nstart, seed = seed)
+    } else {
+      .hg_cluster_fit(hg, k = k, type = type, edge_weights = edge_weights,
+                      algorithm = algorithm, seed = seed, nstart = nstart,
+                      max_iter = max_iter, tol = tol, parallel = parallel,
+                      n_cores = n_cores)
+    }
+  }
+  fit <- if (identical(what, "eigenvalues")) {
+    # only the spectrum is returned, so a tie at k, which leaves the
+    # partition unidentified, does not concern this call
+    withCallingHandlers(fit_engine(), hypergraphs_tied_spectrum = \(w) {
+      invokeRestart("muffleWarning")
+    })
   } else {
-    .hg_cluster_fit(hg, k = k, type = type, edge_weights = edge_weights,
-                       algorithm = algorithm, seed = seed, nstart = nstart,
-                       max_iter = max_iter, tol = tol, parallel = parallel,
-                       n_cores = n_cores)
+    fit_engine()
   }
   if (identical(what, "eigenvalues")) {
     values <- as.numeric(fit$eigenvalues)
@@ -720,9 +745,9 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
       share <- ifelse(total > 0, row / total, 0)
       support <- as.numeric(block$support[cl, words, drop = FALSE])
       ord <- if (identical(sort_by, "share")) {
-        order(-share, -row, words)
+        .ho_order(-share, -row, words)
       } else {
-        order(-row, -share, words)
+        .ho_order(-row, -share, words)
       }
       eligible <- row[ord] > 0 & support[ord] >= min_docs
       keep <- utils::head(ord[eligible], n)
@@ -808,7 +833,7 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
   # one bar per (type, cluster, word); the invisible suffix keeps the same
   # word orderable independently in every panel
   key <- paste(d$word, d$type, d$cluster, sep = "\r")
-  ord <- order(d$type, d$cluster, -d$rank)
+  ord <- .ho_order(d$type, d$cluster, -d$rank)
   d$key <- factor(key, levels = unique(key[ord]))
   d$value <- d[[value]]
   d$label <- format(signif(d$value, 3), scientific = FALSE, trim = TRUE,
@@ -864,9 +889,9 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
 .thg_kw_natural <- function(labels) {
   numbers <- suppressWarnings(as.numeric(gsub("[^0-9.]", "", labels)))
   if (length(labels) > 0L && !anyNA(numbers) && anyDuplicated(numbers) == 0L) {
-    labels[order(numbers)]
+    labels[.ho_order(numbers)]
   } else {
-    sort(labels)
+    .ho_sort(labels)
   }
 }
 
@@ -882,7 +907,7 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
     weights <- layer$weights
     weights$doc <- sentences$doc[match(weights$edge, sentences$edge)]
     docs <- unique(sentences$doc)
-    words <- sort(unique(weights$word))
+    words <- .ho_sort(unique(weights$word))
     mass <- Matrix::sparseMatrix(
       i = match(weights$doc, docs), j = match(weights$word, words),
       x = as.numeric(weights$weight), dims = c(length(docs), length(words)),
@@ -1017,7 +1042,7 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  words <- sort(unique(as.character(scores$word)))
+  words <- .ho_sort(unique(as.character(scores$word)))
   cell <- function(values) {
     Matrix::sparseMatrix(
       i = match(scores$node, scope$docs), j = match(scores$word, words),
@@ -1200,7 +1225,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
   weight[!is.finite(weight) | weight < 0] <- 0
   dimnames(weight) <- list(labels, labels)
   pairs <- which(upper.tri(weight), arr.ind = TRUE)
-  pairs <- pairs[order(pairs[, 1L], pairs[, 2L]), , drop = FALSE]
+  pairs <- pairs[.ho_order(pairs[, 1L], pairs[, 2L]), , drop = FALSE]
   edges <- data.frame(
     source = labels[pairs[, 1L]],
     target = labels[pairs[, 2L]],
@@ -1280,7 +1305,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
 #' Transductive label spreading on a hypergraph
 #'
 #' Semi-supervised classification of hypergraph nodes by the regularization
-#' framework of Zhou et al. (2006): given labels for a subset of nodes, the
+#' framework of Zhou et al. (2007): given labels for a subset of nodes, the
 #' scores `F = (1 - xi) * (I - xi * S)^{-1} Y` spread the labels over the
 #' hypergraph, where `S = I - L` is the normalized similarity operator of
 #' the chosen Laplacian and `Y` is the label indicator matrix. Each node is
@@ -1308,7 +1333,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
 #'   initial labels.
 #' @param type,edge_weights Passed to [hg_laplacian()].
 #' @param normalization Decision rule for turning spread scores into
-#'   predictions: `"none"` (default, the raw Zhou 2006 argmax) or
+#'   predictions: `"none"` (default, the raw Zhou 2007 argmax) or
 #'   `"class_mass"` (class-mass normalization, Zhu et al. 2003). Use
 #'   `"class_mass"` when the labeled seeds are class-imbalanced -- the raw
 #'   rule can collapse every prediction onto the majority class.
@@ -1320,7 +1345,7 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
 #'   for the held-out documents; read its evaluation with [hg_get()]
 #'   (`what = "accuracy"`, `"classes"`, `"confusion"`).
 #' @references
-#' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+#' Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
 #' \doi{10.7551/mitpress/7503.003.0205}
 #'
@@ -1379,7 +1404,7 @@ hg_classify <- function(hg, labels, xi = 0.99,
                     cluster = rep(labels, each = length(nodes)),
                     membership = as.vector(shares),
                     stringsAsFactors = FALSE)
-  out <- out[order(match(out$node, nodes),
+  out <- out[.ho_order(match(out$node, nodes),
                    match(out$cluster, paste("Cluster", seq_len(k)))), ]
   rownames(out) <- NULL
   out

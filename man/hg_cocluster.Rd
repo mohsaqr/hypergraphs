@@ -60,7 +60,7 @@ hyperedge, and k-means on the rows of \eqn{Z} gives the \code{k} co-clusters
 }
 \details{
 For a binary incidence with unit hyperedge weights, the node half of the
-embedding spans the same space as the Zhou et al. (2006) hypergraph
+embedding spans the same space as the Zhou et al. (2007) hypergraph
 Laplacian eigenvectors that \code{\link[=hg_cluster]{hg_cluster()}} cuts (the squared singular
 values are one minus the Laplacian eigenvalues), so co-clustering reads
 the same cut on both sides of the bipartite graph; with other weights the
@@ -83,7 +83,7 @@ spectral graph partitioning. \emph{Proceedings of the Seventh ACM SIGKDD
 International Conference on Knowledge Discovery and Data Mining},
 269--274. \doi{10.1145/502512.502550}
 
-Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+Zhou, D., Huang, J., & Schölkopf, B. (2007). Learning with hypergraphs:
 Clustering, classification, and embedding. \emph{Advances in Neural Information
 Processing Systems 19}, 1601--1608.
 \doi{10.7551/mitpress/7503.003.0205}

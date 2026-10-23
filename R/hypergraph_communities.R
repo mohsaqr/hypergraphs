@@ -249,7 +249,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
   medoid <- partitions[[medoid_run]][, c("node", "community"), drop = FALSE]
   sizes <- as.data.frame(table(medoid$community), stringsAsFactors = FALSE)
   names(sizes) <- c("community", "n_nodes")
-  sizes <- sizes[order(-sizes$n_nodes, sizes$community), , drop = FALSE]
+  sizes <- sizes[.ho_order(-sizes$n_nodes, sizes$community), , drop = FALSE]
   rownames(sizes) <- NULL
 
   structure(list(
@@ -435,6 +435,7 @@ hg_get.hypergraphs_community_comparison <- function(x,
                                                            "sizes",
                                                            "quality"),
                                                   ...) {
+  .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_community_comparison`")
   what <- .ho_match_what(what)
   out <- x[[what]]
   if (is.null(out)) {
@@ -464,7 +465,7 @@ plot.hypergraphs_community_comparison <- function(x, what = c("sizes", "similari
   if (identical(what, "sizes")) {
     sizes <- hg_get(x, what = "sizes")
     curve <- do.call(rbind, lapply(split(sizes, sizes$model), function(d) {
-      s <- sort(d$n_nodes)
+      s <- .ho_sort(d$n_nodes)
       distinct <- unique(s)
       data.frame(model = d$model[[1L]], size = distinct,
                  n_at_least = vapply(distinct, function(v) sum(s >= v), numeric(1L)),
@@ -572,6 +573,7 @@ hg_get.hg_communities <- function(x, what = c("medoid", "partitions", "runs",
                                               "weights"),
                                   ..., converged = NULL, sort_by = NULL,
                                   top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `hg_communities`")
   what <- .ho_match_what(what)
   if ((!is.null(converged) || !is.null(sort_by)) && !identical(what, "runs")) {
     .thg_bad_input("`converged` and `sort_by` apply only to `what = \"runs\"`")
@@ -595,7 +597,7 @@ hg_get.hg_communities <- function(x, what = c("medoid", "partitions", "runs",
         .thg_bad_input(sprintf("`sort_by` must be one of %s",
                                paste(sprintf("\"%s\"", sortable), collapse = ", ")))
       }
-      out <- out[order(-out[[sort_by]], out$run), , drop = FALSE]
+      out <- out[.ho_order(-out[[sort_by]], out$run), , drop = FALSE]
     }
     rownames(out) <- NULL
     return(.ho_top(out, top))
@@ -612,7 +614,7 @@ hg_get.hg_communities <- function(x, what = c("medoid", "partitions", "runs",
     out <- data.frame(run_a = runs[pairs[, "row"]], run_b = runs[pairs[, "col"]],
                       stringsAsFactors = FALSE)
     out[[what]] <- m[pairs]
-    out <- out[order(pairs[, "row"], pairs[, "col"]), , drop = FALSE]
+    out <- out[.ho_order(pairs[, "row"], pairs[, "col"]), , drop = FALSE]
     rownames(out) <- NULL
     return(.ho_top(out, top))
   }

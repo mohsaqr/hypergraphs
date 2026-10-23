@@ -127,7 +127,11 @@ hg_communities.default <- function(x, ...) {
 #'
 #' @param x A `net_hg`, or sequences.
 #' @param ... Arguments of the method for `class(x)`.
-#' @return See the methods.
+#' @return For a `net_hg`, a base `data.frame` with one row per scored node
+#'   pair, its observed and expected co-occurrence and the over- and
+#'   under-representation p-values (see `hypa.net_hg()`). For sequences, a
+#'   `net_hypa` object whose tables, the anomalous paths and every scored
+#'   path, are read with [hg_get()] (see `hypa.default()`).
 #' @references
 #' LaRock, T., Nanumyan, V., Scholtes, I., Casiraghi, G., Eliassi-Rad, T.,
 #' and Schweitzer, F. (2020). HYPA: Efficient detection of path anomalies in

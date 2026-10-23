@@ -53,6 +53,7 @@ hg_get.net_markov_stability <- function(x, what = c("states",
                                                decreasing = TRUE,
                                                from = NULL, to = NULL,
                                                top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_markov_stability`")
   what <- .ho_match_what(what)
   stopifnot(
     "`decreasing` must be a single TRUE or FALSE" =
@@ -107,7 +108,7 @@ hg_get.net_markov_stability <- function(x, what = c("states",
     } else {
       list(out$state)
     }
-    out <- out[do.call(order, c(list(primary), keys)), , drop = FALSE]
+    out <- out[do.call(.ho_order, c(list(primary), keys)), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)

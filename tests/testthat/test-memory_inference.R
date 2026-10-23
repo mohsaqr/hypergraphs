@@ -417,3 +417,9 @@ test_that("inference refuses fractional, vector and missing counts", {
   expect_error(hg_compare(g, n_perm = 9.5), class = "hypergraphs_bad_input")
   expect_error(hg_compare(g, n_perm = 1L), class = "hypergraphs_bad_input")
 })
+
+test_that("sequences with no transition raise a classed error", {
+  expect_error(hg_bootstrap(list("a", "b")), class = "hypergraphs_bad_input")
+  expect_error(hon(list("a", "b")), class = "hypergraphs_bad_input")
+  expect_error(hon(list(c("a", NA, "b"))), class = "hypergraphs_bad_input")
+})

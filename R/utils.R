@@ -548,6 +548,37 @@
   stop(errorCondition(msg, class = "hypergraphs_bad_input", call = NULL))
 }
 
+# sort() and order() in the C locale's byte order on every platform. The
+# default method collates character vectors by the session locale ("A B a b"
+# under C, "a A b B" under en_US), so node and hyperedge order, ties and any
+# result that maps an unnamed vector onto that order would change with the
+# machine. Every sort and order in the package goes through these two.
+.ho_sort <- function(x, ...) sort(x, ..., method = "radix")
+.ho_order <- function(...) order(..., method = "radix")
+
+# Seed the session's random stream for the rest of the calling function and
+# hand the caller's stream back when that function returns: the caller's
+# `.Random.seed` is saved here and restored (or removed, if there was none)
+# by an exit handler registered in `frame`. With `seed = NULL` nothing is
+# seeded and only the restore is registered, for code that seeds itself
+# later (one seed per restart).
+.ho_local_seed <- function(seed, frame = parent.frame()) {
+  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  saved <- if (had_seed) get(".Random.seed", envir = globalenv(),
+                             inherits = FALSE)
+  restore <- function() {
+    if (had_seed) {
+      assign(".Random.seed", saved, envir = globalenv())
+    } else if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+      rm(".Random.seed", envir = globalenv())
+    }
+  }
+  do.call(base::on.exit, list(as.call(list(restore)), add = TRUE),
+          envir = frame)
+  if (!is.null(seed)) set.seed(as.integer(seed))
+  invisible(NULL)
+}
+
 # Apply `fn` to every element of `x`, serially or with parallel::mclapply
 # (forking, so never on Windows, where it runs serially). Work that seeds
 # itself per element returns the same result either way, so `fn` must not

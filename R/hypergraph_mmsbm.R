@@ -411,7 +411,7 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
   # Communities numbered by decreasing total membership (ties: fitted order).
   share <- .mmsbm_share(fit$u)
   mass <- colSums(share, na.rm = TRUE)
-  ord <- order(-mass, seq_len(k))
+  ord <- .ho_order(-mass, seq_len(k))
   labels <- paste("Community", seq_len(k))
   u <- fit$u[, ord, drop = FALSE]
   w <- fit$w[ord, ord, drop = FALSE]
@@ -508,6 +508,7 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
 hg_get.net_hg_mmsbm <- function(x, what = c("membership", "nodes",
                                             "affinity", "restarts"), ...,
                                 top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hg_mmsbm`")
   what <- .ho_match_what(what)
   out <- switch(what,
     membership = data.frame(
@@ -516,12 +517,12 @@ hg_get.net_hg_mmsbm <- function(x, what = c("membership", "nodes",
       membership = as.numeric(x$membership),
       membership_weight = as.numeric(x$u),
       stringsAsFactors = FALSE
-    )[order(rep(seq_len(nrow(x$u)), times = x$k),
+    )[.ho_order(rep(seq_len(nrow(x$u)), times = x$k),
             rep(seq_len(x$k), each = nrow(x$u))), , drop = FALSE],
     nodes = .mmsbm_nodes(x),
     affinity = {
       pairs <- which(upper.tri(x$w, diag = TRUE), arr.ind = TRUE)
-      pairs <- pairs[order(pairs[, "row"], pairs[, "col"]), , drop = FALSE]
+      pairs <- pairs[.ho_order(pairs[, "row"], pairs[, "col"]), , drop = FALSE]
       data.frame(from = rownames(x$w)[pairs[, "row"]],
                  to = colnames(x$w)[pairs[, "col"]],
                  affinity = x$w[pairs], stringsAsFactors = FALSE)
@@ -635,7 +636,7 @@ plot.net_hg_mmsbm <- function(x, type = c("membership", "affinity",
   memb <- hg_get(x, what = "membership")
   hard <- .mmsbm_nodes(x)
   hard <- hard[!is.na(hard$community), , drop = FALSE]
-  node_order <- hard$node[order(match(hard$community, colnames(x$u)),
+  node_order <- hard$node[.ho_order(match(hard$community, colnames(x$u)),
                                 -hard$membership, hard$node)]
   memb <- memb[memb$node %in% node_order, , drop = FALSE]
   memb$node <- factor(memb$node, levels = node_order)

@@ -24,4 +24,9 @@ descriptive figures of Coupette et al. (2024) draw on a logarithmic axis.
 A grouping column (\code{time}, \code{s}) present in the table gives one curve per
 group.
 }
+\examples{
+hg <- group_hypergraph(data.frame(node = c("a", "b", "c", "a", "c", "d"),
+                                  hyperedge = c(1, 1, 1, 2, 2, 2)))
+plot(hg_edges(hg, what = "distribution"))
+}
 \keyword{internal}

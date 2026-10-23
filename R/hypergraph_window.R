@@ -44,7 +44,7 @@
     g <- g[keep]
     # order() is stable, so with time = NULL the row order within each
     # actor is preserved.
-    o <- if (is.null(time)) order(g) else order(g, data[[time]][keep])
+    o <- if (is.null(time)) .ho_order(g) else .ho_order(g, data[[time]][keep])
     return(split(a[o], g[o]))
   }
   stopifnot(
@@ -267,13 +267,13 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   # One set key per window; windows that were all-NA drop out of split()
   key_by_win <- vapply(
     split(long$state, factor(long$win)),
-    function(s) paste(sort(unique(s)), collapse = "\x01"),
+    function(s) paste(.ho_sort(unique(s)), collapse = "\x01"),
     character(1L)
   )
   n_empty <- n_windows - length(key_by_win)
 
-  states_levels <- sort(unique(long$state))
-  keys_levels <- sort(unique(key_by_win))
+  states_levels <- .ho_sort(unique(long$state))
+  keys_levels <- .ho_sort(unique(key_by_win))
   n_states <- length(states_levels)
   n_keys <- length(keys_levels)
 
@@ -288,7 +288,7 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
                                       paste0("h", seq_len(n_keys))))
   window_counts <- as.integer(table(factor(key_by_win, levels = keys_levels)))
   hyperedges <- lapply(strsplit(keys_levels, "\x01", fixed = TRUE),
-                       function(s) sort(match(s, states_levels)))
+                       function(s) .ho_sort(match(s, states_levels)))
 
   # min_size / min_weight filters (recorded, never silent)
   he_sizes <- lengths(hyperedges)
@@ -360,7 +360,7 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   if (nrow(long) == 0L) {
     stop("No windows: all window positions are NA.", call. = FALSE)
   }
-  states_levels <- sort(unique(long$state))
+  states_levels <- .ho_sort(unique(long$state))
   kept <- edge_levels[edge_levels %in% long$edge]
   incidence <- unclass(table(factor(long$state, levels = states_levels),
                              factor(long$edge, levels = kept)))

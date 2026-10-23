@@ -27,7 +27,7 @@ hg_cluster(
 default).}
 
 \item{type}{The Laplacian, as in \code{\link[=hg_laplacian]{hg_laplacian()}}: \code{"zhou"} (Zhou et al.
-2006) or \code{"random_walk"} (Hayashi et al. 2020).}
+2007) or \code{"random_walk"} (Hayashi et al. 2020).}
 
 \item{edge_weights}{Hyperedge weights for the Laplacian: \code{NULL}
 (default, every hyperedge counts once), a positive numeric vector with
@@ -109,6 +109,15 @@ Both solvers are stochastic: \code{nstart} initializations are used and a
 \code{seed} fixes the result. Report stability across seeds for consequential
 results.
 
+The spectral embedding is defined only when the \code{k}-th and \code{(k + 1)}-th
+smallest Laplacian eigenvalues differ. When they coincide (to within
+\code{sqrt(.Machine$double.eps)}), any basis of the tied eigenspace is
+equally valid and the partition depends on the eigensolver, so
+\code{algorithm = "spectral"} warns with \code{hypergraphs_tied_spectrum} (not with
+\code{what = "eigenvalues"}, which returns no partition); inspect
+\code{what = "eigenvalues"} and choose a \code{k} followed by a gap (von Luxburg
+2007).
+
 \code{type = "random_walk"} (Hayashi et al. 2020) is the natural choice for
 tf-idf-weighted text hypergraphs. \verb{what =} returns the cluster table,
 the embedding or the leading eigenvalues as a tidy data.frame.
@@ -136,4 +145,8 @@ random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.
 
 Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
 edge-dependent vertex weights. \emph{ICML 2019}.
+
+von Luxburg, U. (2007). A tutorial on spectral clustering.
+\emph{Statistics and Computing}, 17(4), 395-416.
+\doi{10.1007/s11222-007-9033-z}
 }

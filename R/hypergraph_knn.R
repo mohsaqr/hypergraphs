@@ -86,7 +86,7 @@ knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
   # k+1 members per edge: the center plus its k most similar rows,
   # similarity descending, ties broken by ID for determinism.
   members <- lapply(seq_len(nrow(sims)), \(i) {
-    ranked <- order(-sims[i, ], ids)
+    ranked <- .ho_order(-sims[i, ], ids)
     c(i, ranked[ranked != i][seq_len(k)])
   })
   member_idx <- unlist(members, use.names = FALSE)

@@ -183,7 +183,7 @@ hg_modularity <- function(hg, partition,
   per$degree_tax <- per$degree_tax / total
   per$modularity <- per$edge_contribution - per$degree_tax
   if (identical(what, "communities")) {
-    per <- per[order(-per$modularity, per$community), , drop = FALSE]
+    per <- per[.ho_order(-per$modularity, per$community), , drop = FALSE]
     rownames(per) <- NULL
     return(per)
   }
@@ -387,7 +387,7 @@ hg_modularity <- function(hg, partition,
                        stringsAsFactors = FALSE)
   sizes <- as.data.frame(table(medoid$community), stringsAsFactors = FALSE)
   names(sizes) <- c("community", "n_nodes")
-  sizes <- sizes[order(-sizes$n_nodes, sizes$community), , drop = FALSE]
+  sizes <- sizes[.ho_order(-sizes$n_nodes, sizes$community), , drop = FALSE]
   rownames(sizes) <- NULL
   best <- fits[[medoid_run]]
 

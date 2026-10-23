@@ -78,13 +78,14 @@ test_that("weight column produces weighted incidence (sum per cell)", {
 
 # NA handling --------------------------------------------------------------
 
-test_that("rows with NA in member or group are dropped silently", {
+test_that("rows with NA in member or group are dropped with a warning", {
   d <- data.frame(
     member = c("A", "B", NA,  "C", "D"),
     grp    = c("g1", "g1", "g1", NA,  "g2"),
     stringsAsFactors = FALSE
   )
-  hg <- group_hypergraph(d, node = "member", hyperedge = "grp")
+  expect_warning(hg <- group_hypergraph(d, node = "member", hyperedge = "grp"),
+                 class = "hypergraphs_dropped_rows")
   expect_equal(hg$n_nodes, 3L)         # A, B, D (C dropped because group NA)
   expect_setequal(hg$nodes, c("A", "B", "D"))
   expect_equal(hg$n_hyperedges, 2L)    # g1, g2
@@ -95,7 +96,7 @@ test_that("rows with NA in member or group are dropped silently", {
 test_that("all-NA data raises an error", {
   d <- data.frame(member = NA, grp = NA, stringsAsFactors = FALSE)
   expect_error(group_hypergraph(d, "member", "grp"),
-               "No complete observations")
+               class = "hypergraphs_bad_input")
 })
 
 # Repeated rows are deduplicated in binary mode ----------------------------
@@ -452,4 +453,18 @@ test_that("the canonical node and hyperedge columns are detected (R20)", {
                    1L)
   td <- data.frame(node = c("a", "b"), hyperedge = c("e", "e"), time = c(1, 1))
   expect_identical(temporal_hypergraph(td)$edges, "e")
+})
+
+test_that("group_hypergraph() reports the rows it drops for missing values", {
+  d <- data.frame(node = c("a", NA, "b", "c"), hyperedge = c(1, 1, 1, NA))
+  expect_warning(hg <- group_hypergraph(d, node = "node",
+                                        hyperedge = "hyperedge"),
+                 class = "hypergraphs_dropped_rows")
+  expect_identical(hg$nodes, c("a", "b"))
+  expect_error(group_hypergraph(data.frame(node = NA_character_,
+                                           hyperedge = 1),
+                                node = "node", hyperedge = "hyperedge"),
+               class = "hypergraphs_bad_input")
+  expect_no_warning(group_hypergraph(d[1, ], node = "node",
+                                     hyperedge = "hyperedge"))
 })

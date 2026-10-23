@@ -49,6 +49,9 @@ hg_get.net_mogen <- function(x, what = c("orders", "transitions", "paths",
                              order = NULL, k = 2L, min_count = 1L,
                              top = NULL) {
   what <- .ho_match_what(what)
+  if (what != "pathways") {
+    .ho_no_dots(..., .for = sprintf("hg_get(what = \"%s\") on a `net_mogen`", what))
+  }
   if (what == "transitions") {
     return(.ho_top(Nestimate::mogen_transitions(
       x, order = order %||% x$optimal_order, min_count = min_count), top))
@@ -111,9 +114,8 @@ hg_get.net_mogen <- function(x, what = c("orders", "transitions", "paths",
                       proportion = numeric(0), stringsAsFactors = FALSE))
   }
   counts <- tapply(as.integer(tr$count), tr$path, sum)
-  counts <- counts[sort(names(counts))]
-  counts <- counts[order(as.integer(counts), decreasing = TRUE,
-                         method = "radix")]
+  counts <- counts[.ho_sort(names(counts))]
+  counts <- counts[.ho_order(as.integer(counts), decreasing = TRUE)]
   out <- data.frame(path = names(counts), count = as.integer(counts),
                     proportion = round(as.numeric(counts) / sum(counts), 4),
                     stringsAsFactors = FALSE)

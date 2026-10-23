@@ -34,7 +34,7 @@
   }
   out <- data.frame(from = from, to = to, weight = as.numeric(weight),
                     row.names = NULL)
-  out <- out[order(out$from, out$to), , drop = FALSE]
+  out <- out[.ho_order(out$from, out$to), , drop = FALSE]
   row.names(out) <- NULL
   out
 }
@@ -46,7 +46,7 @@
 #' edge depends on `type`. `"clique"` is the clique expansion: a hyperedge
 #' of size \eqn{|e|} contributes the same amount to each of its
 #' \eqn{|e|(|e|-1)/2} pairs, so the weight of a pair is the number of
-#' hyperedges that contain both nodes (Zhou et al. 2006). `"association"`
+#' hyperedges that contain both nodes (Zhou et al. 2007). `"association"`
 #' divides the contribution of each hyperedge by \eqn{|e|-1}, following
 #' Coupette et al. (2024):
 #'
@@ -110,7 +110,7 @@
 #' *Philosophical Transactions of the Royal Society A*, 382(2270), 20230141.
 #' \doi{10.1098/rsta.2023.0141}
 #'
-#' Zhou, D., Huang, J., & Schoelkopf, B. (2006). Learning with hypergraphs:
+#' Zhou, D., Huang, J., & Schoelkopf, B. (2007). Learning with hypergraphs:
 #' clustering, classification, and embedding. *NeurIPS 19*, 1601-1608.
 #' \doi{10.7551/mitpress/7503.003.0205}
 #' @seealso [hg_line_graph()] for the projection onto hyperedges.
@@ -157,6 +157,7 @@ pairwise_network <- function(hg, type = c("clique", "association", "citation"),
 #' @export
 hg_get.net_hg_pairwise <- function(x, what = c("edges", "nodes"), ...,
                                   sort_by = NULL, top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hg_pairwise`")
   what <- .ho_match_what(what)
   labels <- rownames(x$weights)
   if (identical(what, "nodes")) {
@@ -166,7 +167,7 @@ hg_get.net_hg_pairwise <- function(x, what = c("edges", "nodes"), ...,
                       stringsAsFactors = FALSE)
     if (!is.null(sort_by)) {
       sort_by <- match.arg(sort_by, c("degree", "strength"))
-      out <- out[order(-out[[sort_by]], out$node), , drop = FALSE]
+      out <- out[.ho_order(-out[[sort_by]], out$node), , drop = FALSE]
     }
     rownames(out) <- NULL
     return(.ho_top(out, top))
@@ -176,13 +177,13 @@ hg_get.net_hg_pairwise <- function(x, what = c("edges", "nodes"), ...,
     edges <- data.frame(from = labels[nz[, "row"]], to = labels[nz[, "col"]],
                         weight = as.numeric(x$weights[nz]),
                         stringsAsFactors = FALSE)
-    edges[order(edges$from, edges$to), , drop = FALSE]
+    edges[.ho_order(edges$from, edges$to), , drop = FALSE]
   } else {
     .thg_tidy_pairs(x$weights, labels)
   }
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, "weight")
-    out <- out[order(-out$weight, out$from, out$to), , drop = FALSE]
+    out <- out[.ho_order(-out$weight, out$from, out$to), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)
@@ -334,7 +335,7 @@ plot.net_hg_pairwise <- function(x, ...) {
                                      directed, what) {
   sources <- .thg_resolve_edge_source(hg, edge_source)
   nodes <- rownames(hg$incidence)
-  all_nodes <- sort(union(nodes, unique(sources)))
+  all_nodes <- .ho_sort(union(nodes, unique(sources)))
   b <- .thg_binary(hg$incidence)
   if (methods::is(b, "sparseMatrix")) {
     triplet <- methods::as(methods::as(b, "generalMatrix"), "TsparseMatrix")
@@ -363,7 +364,7 @@ plot.net_hg_pairwise <- function(x, ...) {
     triplet <- methods::as(methods::as(w, "sparseMatrix"), "TsparseMatrix")
     out <- data.frame(from = all_nodes[triplet@i + 1L], to = all_nodes[triplet@j + 1L],
                       weight = as.numeric(triplet@x), stringsAsFactors = FALSE)
-    out <- out[order(out$from, out$to), , drop = FALSE]
+    out <- out[.ho_order(out$from, out$to), , drop = FALSE]
     rownames(out) <- NULL
     return(out)
   }

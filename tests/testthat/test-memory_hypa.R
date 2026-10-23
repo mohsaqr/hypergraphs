@@ -174,7 +174,7 @@ test_that("hypa handles data.frame input", {
 test_that("hypa stops when no valid trajectories", {
   # All single-state entries: parsed trajectories have < 2 states each
   df <- data.frame(T1 = c("A", "B"), stringsAsFactors = FALSE)
-  expect_error(hypa(df, order = 1L), "No valid trajectories")
+  expect_error(hypa(df, order = 1L), class = "hypergraphs_bad_input")
 })
 
 # --- hypa: no edges at given order (paths too short) ---

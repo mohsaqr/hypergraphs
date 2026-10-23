@@ -331,7 +331,7 @@ plot.hypergraphs_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
     rep(0, length(maximal))
   }
   strength[is.na(strength)] <- -Inf
-  names_of[order(-sizes[maximal], -strength, labels)]
+  names_of[.ho_order(-sizes[maximal], -strength, labels)]
 }
 
 #' @rdname simplicial
@@ -406,11 +406,11 @@ print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
     g <- igraph::graph_from_adjacency_matrix(adj, mode = "undirected",
                                              diag = FALSE)
     cliques <- igraph::cliques(g, max = as.integer(max_dim) + 1L)
-    ours <- sort(vapply(sc$simplices, function(s) {
-      paste(sort(as.integer(s)), collapse = ",")
+    ours <- .ho_sort(vapply(sc$simplices, function(s) {
+      paste(.ho_sort(as.integer(s)), collapse = ",")
     }, character(1L)))
-    theirs <- sort(vapply(cliques, function(cl) {
-      paste(sort(as.integer(cl)), collapse = ",")
+    theirs <- .ho_sort(vapply(cliques, function(cl) {
+      paste(.ho_sort(as.integer(cl)), collapse = ",")
     }, character(1L)))
     if (!identical(ours, theirs)) {
       problems <- c(problems, sprintf(
@@ -733,7 +733,7 @@ hg_degree <- function(sc, normalized = FALSE) {
     kept <- wh$hyperedges[wh$window_counts >= min_count]
   }
   keys <- unique(unlist(lapply(kept, \(set) {
-    set <- sort(set)
+    set <- .ho_sort(set)
     sizes <- seq_len(min(length(set), max_dim + 1L))
     unlist(lapply(sizes, \(k) {
       combos <- utils::combn(length(set), k, simplify = FALSE)
@@ -743,7 +743,7 @@ hg_degree <- function(sc, normalized = FALSE) {
   keys <- as.character(keys)
   simplices <- lapply(strsplit(keys, ",", fixed = TRUE), as.integer)
   dims <- lengths(simplices)
-  simplices <- simplices[order(dims, keys)]
+  simplices <- simplices[.ho_order(dims, keys)]
   sc <- .sc_make_complex(simplices, wh$nodes, "window")
   sc$window <- as.integer(window)
   sc$min_count <- as.integer(min_count)
@@ -767,7 +767,7 @@ hg_degree <- function(sc, normalized = FALSE) {
 .sc_face_counts <- function(simplices, sets, counts, max_dim) {
   if (length(sets) == 0L) return(numeric(length(simplices)))
   face_rows <- lapply(seq_along(sets), \(i) {
-    set <- sort(sets[[i]])
+    set <- .ho_sort(sets[[i]])
     sizes <- seq_len(min(length(set), max_dim + 1L))
     keys <- unlist(lapply(sizes, \(k) {
       vapply(utils::combn(length(set), k, simplify = FALSE),
@@ -778,7 +778,7 @@ hg_degree <- function(sc, normalized = FALSE) {
   })
   faces <- do.call(rbind, face_rows)
   best <- tapply(faces$count, faces$key, max)
-  simplex_keys <- vapply(simplices, \(s) paste(sort(s), collapse = ","),
+  simplex_keys <- vapply(simplices, \(s) paste(.ho_sort(s), collapse = ","),
                          character(1L))
   out <- as.numeric(best[simplex_keys])
   out[is.na(out)] <- 0
@@ -819,11 +819,11 @@ hg_degree <- function(sc, normalized = FALSE) {
   pers$birth <- top - pers$birth
   pers$death <- ifelse(essential, 0, top - pers$death)
   pers$persistence <- pers$birth - pers$death
-  ord <- order(-pers$persistence)
+  ord <- .ho_order(-pers$persistence)
   pers <- pers[ord, , drop = FALSE]
   essential <- essential[ord]
   rownames(pers) <- NULL
-  thresholds <- sort(unique(counts), decreasing = TRUE)
+  thresholds <- .ho_sort(unique(counts), decreasing = TRUE)
   curve <- expand.grid(threshold = thresholds, dimension = 0:max_dim)
   curve$betti <- vapply(seq_len(nrow(curve)), \(i) {
     t <- curve$threshold[i]
@@ -842,7 +842,7 @@ hg_degree <- function(sc, normalized = FALSE) {
 .sc_make_complex <- function (simplices, nodes, type) 
 {
     seen <- new.env(hash = TRUE, parent = emptyenv())
-    for (s in simplices) seen[[paste(sort(s), collapse = ",")]] <- TRUE
+    for (s in simplices) seen[[paste(.ho_sort(s), collapse = ",")]] <- TRUE
     for (i in seq_along(nodes)) {
         if (is.null(seen[[as.character(i)]])) {
             simplices[[length(simplices) + 1L]] <- i

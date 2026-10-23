@@ -121,7 +121,7 @@
   stacked <- do.call(rbind, Map(function(p, k) sweep(p, 2L, offset[k, ], "+"),
                                 parts, seq_along(parts)))
   rows <- unlist(split(seq_along(component), component), use.names = FALSE)
-  stacked[order(rows), , drop = FALSE]
+  stacked[.ho_order(rows), , drop = FALSE]
 }
 
 # Shelf packing of the component boxes into a roughly square frame: boxes are
@@ -134,7 +134,7 @@
 .thg_shelf_offsets <- function(size, gap) {
   wide <- size[, 1L] + gap
   high <- size[, 2L] + gap
-  tall <- order(-high, -wide)
+  tall <- .ho_order(-high, -wide)
   target <- max(sqrt(sum(wide * high)), max(wide))
   # a running total is sequential by nature, so the shelf a box lands on is
   # carried forward by Reduce() rather than recomputed
@@ -146,7 +146,7 @@
     }
   }, wide[tall], init = c(shelf = 1, used = 0), accumulate = TRUE)[-1L]
   shelf <- vapply(running, function(s) s[["shelf"]], numeric(1L))
-  index <- match(shelf, sort(unique(shelf)))
+  index <- match(shelf, .ho_sort(unique(shelf)))
   shelf_height <- vapply(split(high[tall], index), max, numeric(1L))
   left <- stats::ave(wide[tall], index, FUN = function(w) cumsum(w) - w)
   shelf_width <- stats::ave(wide[tall], index, FUN = sum)
@@ -381,7 +381,7 @@
                 palette = NULL))
   }
   levels_fill <- if (is.factor(values)) levels(values) else
-    sort(unique(as.character(values)))
+    .ho_sort(unique(as.character(values)))
   palette <- if (length(levels_fill) <= length(.thg_okabe_ito)) {
     .thg_okabe_ito[seq_along(levels_fill)]
   } else {
@@ -838,7 +838,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     !is.null(linetype_by) || !isFALSE(edge_labels) || !is.null(notes) ||
     isTRUE(dismantled) || !is.null(node_groups)
   if (!per_hyperedge && is.null(x$group_sizes) && x$n_hyperedges > 1L &&
-      anyDuplicated(lapply(x$hyperedges, sort))) {
+      anyDuplicated(lapply(x$hyperedges, .ho_sort))) {
     x <- .thg_distinct_sets(x)
   }
   # a hypergraph of counted sets with one group is drawn as that group
@@ -988,7 +988,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   # the sizes of the drawn hyperedges only: a single member is drawn as its
   # node, so its size would be a legend key without a hull
   if (identical(color_by, "size")) {
-    fill <- factor(fill, levels = sort(unique(fill[lengths(x$hyperedges) >= 2L])))
+    fill <- factor(fill, levels = .ho_sort(unique(fill[lengths(x$hyperedges) >= 2L])))
   }
   ltype <- .thg_edge_aesthetic(x, linetype_by, "linetype_by")
   if (!is.null(ltype) && is.numeric(ltype)) ltype <- as.character(ltype)
@@ -1013,8 +1013,8 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   # then by name
   edge_names <- colnames(x$incidence) %||% paste0("h", seq_len(x$n_hyperedges))
   prominence <- title_values %||% (if (is.numeric(fill)) fill)
-  precedence <- if (is.null(prominence)) order(edge_names) else
-    order(-prominence, edge_names)
+  precedence <- if (is.null(prominence)) .ho_order(edge_names) else
+    .ho_order(-prominence, edge_names)
   # decided before a row of pieces turns the layout into a table: every
   # hyperedge of a bipartite layout has a position inside its pebble (its own
   # vertex, or its members' centroid), where its label goes
@@ -1030,7 +1030,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   edge_names <- pos$edges$hyperedge
   drawn <- which(drawable)
   # largest hyperedges first, so a small pebble is never buried under a big one
-  drawn <- drawn[order(-lengths(x$hyperedges)[drawn], drawn)]
+  drawn <- drawn[.ho_order(-lengths(x$hyperedges)[drawn], drawn)]
   drawn_names <- edge_names[drawn]
 
   fill_map <- if (is.null(fill)) NULL else .thg_fill_colours(fill)
@@ -1041,7 +1041,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     fill_map$colours
   }
   ltype_levels <- if (is.null(ltype)) NULL else
-    (if (is.factor(ltype)) levels(ltype) else sort(unique(as.character(ltype))))
+    (if (is.factor(ltype)) levels(ltype) else .ho_sort(unique(as.character(ltype))))
   ltype_map <- if (is.null(ltype)) NULL else
     stats::setNames(rep_len(.thg_linetypes, length(ltype_levels)), ltype_levels)
   if (!is.null(fill_map)) {
@@ -1251,7 +1251,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     hypergraph$edge_data$edge <- added[match(hypergraph$edge_data$edge, old)]
     # hyperedges in name order, as group_hypergraph() orders a table of the
     # group's sets, so the seeded layout is the one that table would get
-    by_name <- match(sort(added), added)
+    by_name <- match(.ho_sort(added), added)
     hypergraph <- .thg_rebuild(hypergraph,
                                hypergraph$incidence[, by_name, drop = FALSE],
                                by_name)
@@ -1487,7 +1487,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                           data = data.frame(from = from[keep], to = to[keep],
                                             weight = weight[keep]),
                           FUN = sum)
-  out <- out[order(out$from, out$to), , drop = FALSE]
+  out <- out[.ho_order(out$from, out$to), , drop = FALSE]
   rownames(out) <- NULL
   out
 }
@@ -1505,7 +1505,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   target <- rep(NA_integer_, length(nodes))
   if (!is.null(direction) && nrow(direction)) {
     moves <- direction[direction$from != direction$to, , drop = FALSE]
-    moves <- moves[order(moves$from, -moves$weight, moves$to), , drop = FALSE]
+    moves <- moves[.ho_order(moves$from, -moves$weight, moves$to), , drop = FALSE]
     best <- moves[!duplicated(moves$from), , drop = FALSE]
     target <- match(best$to[match(nodes, best$from)], nodes)
   }
@@ -1792,7 +1792,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                      x = 0.5 + (length(earliest) + seq_along(isolates) - 1L) * 1.4,
                      y = rep(0.5, length(isolates)), stringsAsFactors = FALSE)
   pieces <- do.call(rbind, lapply(seq_along(earliest), function(i) {
-    edges <- which(piece == order(earliest)[i])
+    edges <- which(piece == .ho_order(earliest)[i])
     rows <- which(rowSums(inc[, edges, drop = FALSE]) > 0)
     shift <- (i - 1L) * 1.4
     if (length(rows) == 1L) {

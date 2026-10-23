@@ -463,3 +463,22 @@ test_that("A16: the embedding plot builds for more than nine clusters", {
   built <- ggplot2::ggplot_build(plot(fit, what = "embedding"))$data[[1L]]
   expect_identical(length(unique(built$group)), 9L)
 })
+
+test_that("hg_cluster() warns when the spectrum does not identify k clusters", {
+  d <- data.frame(node = c("a", "b", "c", "c", "d", "e"),
+                  hyperedge = c(1, 1, 1, 2, 2, 2))
+  dense <- group_hypergraph(d, node = "node", hyperedge = "hyperedge")
+  sparse <- group_hypergraph(d, node = "node", hyperedge = "hyperedge",
+                             sparse = TRUE)
+  # eigenvalues 0, 1/3, 1, 1, 1: the third and fourth coincide
+  values <- hg_cluster(dense, k = 2, what = "eigenvalues")$value
+  expect_equal(values[3:4], c(1, 1), tolerance = 1e-12)
+  expect_warning(hg_cluster(dense, k = 3, seed = 1),
+                 class = "hypergraphs_tied_spectrum")
+  expect_warning(hg_cluster(sparse, k = 3, seed = 1),
+                 class = "hypergraphs_tied_spectrum")
+  # an identified k is silent, and so is SymNMF, which uses no eigenvectors
+  expect_no_warning(hg_cluster(dense, k = 2, seed = 1))
+  expect_no_warning(hg_cluster(sparse, k = 2, seed = 1))
+  expect_no_warning(hg_cluster(dense, k = 3, seed = 1, algorithm = "symnmf"))
+})

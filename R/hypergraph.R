@@ -97,7 +97,7 @@ network_hypergraph <- function(net,
     is.numeric(threshold), length(threshold) == 1L
   )
   max_size <- as.integer(max_size)
-  if (!is.null(seed)) set.seed(as.integer(seed))
+  if (!is.null(seed)) .ho_local_seed(seed)
 
   # ---- Get adjacency + node names from any supported input ------------
   parsed <- .hg_extract_adj(net)
@@ -369,6 +369,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
                                       "sets", "state_counts", "edge_data"),
                           ...,
                           sort_by = NULL, top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hg`")
   what <- .ho_match_what(what)
   if (identical(what, "edge_data")) {
     if (is.null(x[[what]])) {
@@ -390,7 +391,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
     if (identical(what, "state_counts")) {
       out <- x$state_counts
       out$share <- out$count / sequences[out$group]
-      out <- out[order(group_rank[out$group], -out$count, out$node), , drop = FALSE]
+      out <- out[.ho_order(group_rank[out$group], -out$count, out$node), , drop = FALSE]
     } else {
       edge_data <- x$edge_data
       out <- data.frame(
@@ -402,7 +403,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
         stringsAsFactors = FALSE
       )
       out$share <- out$count / sequences[out$group]
-      out <- out[order(group_rank[out$group], -out$count, out$set), , drop = FALSE]
+      out <- out[.ho_order(group_rank[out$group], -out$count, out$set), , drop = FALSE]
     }
     out$share <- unname(out$share)
     rownames(out) <- NULL
@@ -420,10 +421,10 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
       weight = as.numeric(x$incidence[cells]),
       stringsAsFactors = FALSE
     )
-    out <- out[order(cells[, 2L], cells[, 1L]), , drop = FALSE]
+    out <- out[.ho_order(cells[, 2L], cells[, 1L]), , drop = FALSE]
     if (!is.null(sort_by)) {
       sort_by <- match.arg(sort_by, "weight")
-      out <- out[order(-out$weight, out$hyperedge, out$node), , drop = FALSE]
+      out <- out[.ho_order(-out$weight, out$hyperedge, out$node), , drop = FALSE]
     }
     rownames(out) <- NULL
     return(.ho_top(out, top))
@@ -443,7 +444,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
     if (!is.null(x$blocks)) out$block <- as.integer(x$blocks)
     if (!is.null(sort_by)) {
       sort_by <- match.arg(sort_by, "degree")
-      out <- out[order(-out$degree, out$node), , drop = FALSE]
+      out <- out[.ho_order(-out$degree, out$node), , drop = FALSE]
       rownames(out) <- NULL
     }
     return(.ho_top(out, top))
@@ -467,7 +468,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
       .thg_bad_input(sprintf("`sort_by` must be one of %s for this hypergraph",
                              paste(sprintf("\"%s\"", sortable), collapse = ", ")))
     }
-    out <- out[order(-out[[sort_by]], out$hyperedge), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], out$hyperedge), , drop = FALSE]
     rownames(out) <- NULL
   }
   .ho_top(out, top)

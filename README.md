@@ -15,9 +15,9 @@ hypergraph.
 | Hypergraphs | an arbitrary set of nodes | group memberships, sliding windows over sequences, network cliques, interval or contact records, or embedding neighbours |
 | Text hypergraphs | a document and the words it contains, or a word and its documents | a corpus: bag of words, token windows, sentences or sentence embeddings |
 
-The package depends on base R, ggplot2 and Matrix, with RSpectra for the
-sparse spectral computations. Sentence embeddings need the optional `sbert`
-package.
+The package depends on base R, ggplot2, Matrix and cograph, with RSpectra
+for the sparse spectral computations. Sentence embeddings need the optional
+`sbert` package.
 
 ## Functions
 
@@ -67,7 +67,7 @@ package.
 | `hg_centrality()`, `hg_pagerank()` | Clique, Z and H eigenvector centralities; PageRank of the random walk with edge-dependent vertex weights | Benson (2019); Chitra & Raphael (2019) |
 | `hg_line_graph()`, `hg_edge_centrality()` | s-line graph and s-betweenness and s-closeness of hyperedges | Aksoy et al. (2020) |
 | `pairwise_network()` | Pairwise projection with clique, association or citation weights | Coupette, Hartung & Katz (2024) |
-| `hg_laplacian()`, `hg_cluster()`, `hg_classify()` | Hypergraph Laplacians, spectral and symmetric-NMF clustering, label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hg_laplacian()`, `hg_cluster()`, `hg_classify()` | Hypergraph Laplacians, spectral and symmetric-NMF clustering, label spreading | Zhou, Huang & Schölkopf (2007); Hayashi et al. (2020) |
 | `hg_communities()`, `hg_community_quality()`, `hg_compare_communities()` | Repeated Infomap with medoid selection, iteratively reweighted modularity maximization, and the quality and agreement of partitions | Coupette, Hartung & Katz (2024); Kumar et al. (2020) |
 | `hg_modularity()` | Linear hypergraph modularity | Kamiński et al. (2019) |
 | `hg_mmsbm()` | Mixed-membership stochastic block model | Ruggeri et al. (2023) |
@@ -80,12 +80,12 @@ package.
 |---|---|---|
 | `text_hypergraph()` | Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, sentences or embedding nearest neighbours | Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan & Schütze (2008) |
 | `clean_text()`, `stop_words_en()` | Text normalization and an English stop-word list | Manning, Raghavan & Schütze (2008) |
-| `hg_cluster()`, `hg_keywords()` | Spectral or symmetric-NMF clustering of documents and the keywords of each cluster | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hg_cluster()`, `hg_keywords()` | Spectral or symmetric-NMF clustering of documents and the keywords of each cluster | Zhou, Huang & Schölkopf (2007); Hayashi et al. (2020) |
 | `hg_topics()`, `hg_topic_search()` | Mixed-membership topic model (KL-divergence NMF) and the choice of the number of topics | Lee & Seung (2001); Roberts, Stewart & Tingley (2019) |
 | `hg_topic_quality()`, `hg_topic_sizes()` | Topic coherence (UMass, NPMI), exclusivity (FREX) and topic sizes | Mimno et al. (2011); Lau, Newman & Baldwin (2014); Roberts, Stewart & Tingley (2019) |
 | `hg_stability()`, `hg_agreement()`, `hg_membership()` | Subsampling stability of clusters, agreement between partitions (ARI, AMI, NMI) and soft memberships | Hennig (2007); Hubert & Arabie (1985); Vinh et al. (2010); Bezdek (1981) |
 | `hg_cocluster()` | Spectral co-clustering of documents and words | Dhillon (2001) |
-| `hg_classify()`, `hg_seeds()` | Transductive classification from a few labels, with class-mass normalization, and seed selection | Zhou, Huang & Schölkopf (2006); Zhu, Ghahramani & Lafferty (2003) |
+| `hg_classify()`, `hg_seeds()` | Transductive classification from a few labels, with class-mass normalization, and seed selection | Zhou, Huang & Schölkopf (2007); Zhu, Ghahramani & Lafferty (2003) |
 | `topic_network()` | Network of topics that share documents | Roberts, Stewart & Tingley (2019); Cassi et al. (2017) |
 | `hg_sequences()` | Per-actor sequences of clusters from a clustered corpus, for the memory family | Xu, Wickramarathne & Chawla (2016) |
 

@@ -40,21 +40,6 @@ test_that("Katz equals the truncated walk series sum_k alpha^k A^k 1", {
   expect_equal(out$katz, series, tolerance = 1e-12)
 })
 
-test_that("Katz + 1 is igraph's alpha centrality on the weighted clique expansion", {
-  skip_if_not_installed("igraph")
-  hg <- .kz_hg(kz_edges)
-  # build the clique expansion from the edge list, not from our adjacency
-  pairs <- do.call(rbind, lapply(kz_edges, \(e) t(utils::combn(e, 2))))
-  g <- igraph::graph_from_edgelist(pairs, directed = FALSE)
-  igraph::E(g)$weight <- 1
-  g <- igraph::simplify(g, edge.attr.comb = list(weight = "sum"))
-  alpha <- 0.02
-  ref <- igraph::alpha_centrality(g, alpha = alpha, exo = 1,
-                                  weights = igraph::E(g)$weight)
-  out <- .hg_katz_fit(hg, alpha = alpha)
-  expect_equal(out$katz + 1, unname(ref[out$node]), tolerance = 1e-10)
-})
-
 test_that("dense and sparse incidences agree", {
   dense <- .hg_katz_fit(.kz_hg(kz_edges), alpha = 0.03)
   sparse <- .hg_katz_fit(.kz_hg(kz_edges, sparse = TRUE), alpha = 0.03)

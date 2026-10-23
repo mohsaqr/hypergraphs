@@ -126,8 +126,9 @@
 #'     observed and triadic structure must be inferred from triangles.
 #' }
 #'
-#' Rows with `NA` in the node, hyperedge or weight column are dropped
-#' silently.
+#' Rows with `NA` in the node, hyperedge or weight column are dropped with a
+#' `hypergraphs_dropped_rows` warning that counts them; when every row has
+#' one, `hypergraphs_bad_input` is raised.
 #'
 #' @section Frequent sets within groups:
 #' With `group`, `top` or `min_share`, a data frame is read as transactions.
@@ -359,10 +360,19 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   cols <- c(member, hyperedge, weight)
   candidates <- setdiff(names(data), cols)
   d <- data[, c(cols, candidates), drop = FALSE]
-  d <- d[stats::complete.cases(d[, cols, drop = FALSE]), , drop = FALSE]
-  if (nrow(d) == 0L) {
-    stop("No complete observations after dropping NAs.", call. = FALSE)
+  complete <- stats::complete.cases(d[, cols, drop = FALSE])
+  if (!any(complete)) {
+    .ho_bad_input(sprintf("every row has a missing value in %s",
+                          paste0("`", cols, "`", collapse = ", ")))
   }
+  if (!all(complete)) {
+    warning(warningCondition(sprintf(
+      "dropped %d of %d rows with a missing value in %s",
+      sum(!complete), length(complete),
+      paste0("`", cols, "`", collapse = ", ")),
+      class = "hypergraphs_dropped_rows", call = NULL))
+  }
+  d <- d[complete, , drop = FALSE]
 
   d[[member]] <- as.character(d[[member]])
   d[[hyperedge]]  <- as.character(d[[hyperedge]])
@@ -382,8 +392,8 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
       stop("Every observed member must occur in `nodes`.", call. = FALSE)
     }
   }
-  member_levels <- sort(if (is.null(nodes)) unique(d[[member]]) else nodes)
-  group_levels  <- sort(unique(d[[hyperedge]]))
+  member_levels <- .ho_sort(if (is.null(nodes)) unique(d[[member]]) else nodes)
+  group_levels  <- .ho_sort(unique(d[[hyperedge]]))
   n_members <- length(member_levels)
   n_groups  <- length(group_levels)
 
@@ -573,7 +583,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
                       collapse = " + ")
     # sets of equal count are ranked by their label in table()'s (locale)
     # order, as before; two sets that share a label fall back on their key
-    ranked <- order(-count_of, match(display, sort(unique(display))),
+    ranked <- .ho_order(-count_of, match(display, .ho_sort(unique(display))),
                     unique_keys)
     kept <- utils::head(ranked, min(top, length(ranked)))
     # minimum support: the share of the group's transactions holding the set
@@ -737,7 +747,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   levels <- .thg_kw_natural(unique(labels))
   grouped <- lapply(stats::setNames(levels, levels),
                     \(g) unname(topics_of[labels == g]))
-  natural <- \(v) v[order(as.integer(sub("^Topic ", "", v)))]
+  natural <- \(v) v[.ho_order(as.integer(sub("^Topic ", "", v)))]
   # ungrouped sets are named group their topics alone
   out <- .thg_set_hypergraph(grouped, top, states, item_order = natural,
                              min_size = as.integer(min_size),

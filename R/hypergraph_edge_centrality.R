@@ -130,7 +130,7 @@ hg_edge_centrality <- function(hg, s = 1L,
         edge = colnames(line), s = ss, measure = metric,
         value = as.numeric(value[colnames(line)]), stringsAsFactors = FALSE
       )
-      tab <- tab[order(-tab$value, tab$edge), , drop = FALSE]
+      tab <- tab[.ho_order(-tab$value, tab$edge), , drop = FALSE]
       if (!is.null(top)) tab <- utils::head(tab, as.integer(top))
       rows[[cursor]] <- tab
       cursor <- cursor + 1L
@@ -155,7 +155,7 @@ hg_edge_centrality <- function(hg, s = 1L,
   # bounded by n passes; each pass either lowers a label or stops the loop
   for (pass in seq_len(n)) {
     candidate <- label[other]
-    ord <- order(ends, candidate)
+    ord <- .ho_order(ends, candidate)
     first <- !duplicated(ends[ord])
     target <- ends[ord][first]
     updated <- label

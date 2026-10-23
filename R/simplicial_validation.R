@@ -139,7 +139,7 @@
     # a set passes alone only if the smallest possible p-value clears the
     # first Benjamini-Hochberg step of its size: 1 / (n_null + 1) <=
     # alpha / n_tests
-    sizes_tested <- sort(unique(sizes[tested]))
+    sizes_tested <- .ho_sort(unique(sizes[tested]))
     # the number of shuffles that resolves every size grows with
     # choose(n_active, size) and can exceed any feasible run (or the integer
     # range), so it is computed in double precision and an automatic choice
@@ -201,7 +201,7 @@
   z[spread] <- (observed[spread] - expected[spread]) / null_sd[spread]
   table <- data.frame(
     members = vapply(sets[tested],
-                     \(s) paste(nodes[sort(s)], collapse = ", "),
+                     \(s) paste(nodes[.ho_sort(s)], collapse = ", "),
                  character(1L)),
     size = as.integer(sizes[tested]),
     count = as.integer(observed),
@@ -214,7 +214,7 @@
     significant = p_adj <= alpha,
     stringsAsFactors = FALSE
   )
-  table <- table[order(table$size, table$p_value, -table$z, table$members), ,
+  table <- table[.ho_order(table$size, table$p_value, -table$z, table$members), ,
                  drop = FALSE]
   rownames(table) <- NULL
   validated <- logical(length(sets))

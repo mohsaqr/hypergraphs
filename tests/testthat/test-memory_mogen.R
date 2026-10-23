@@ -163,7 +163,7 @@ test_that("mogen AIC decreases then increases", {
 # --- mogen: no valid trajectories ---
 test_that("mogen stops when no valid trajectories", {
   df <- data.frame(T1 = c("A", "B"), stringsAsFactors = FALSE)
-  expect_error(mogen(df, max_order = 2L), "No valid trajectories")
+  expect_error(mogen(df, max_order = 2L), class = "hypergraphs_bad_input")
 })
 
 # --- hg_get(what = "transitions"): default order (NULL) uses optimal_order ---

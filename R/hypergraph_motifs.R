@@ -3,7 +3,7 @@
 
 .thg_unique_edges <- function(hg) {
   b <- hg$incidence != 0
-  edges <- lapply(seq_len(ncol(b)), function(j) sort(which(b[, j])))
+  edges <- lapply(seq_len(ncol(b)), function(j) .ho_sort(which(b[, j])))
   signatures <- vapply(edges, paste, collapse = ",", character(1L))
   edges[!duplicated(signatures)]
 }
@@ -12,7 +12,7 @@
   if (length(edges) < 2L) return(c(Y = 0L, T = 0L, O = 0L))
   # Pairs of 3-edges sharing exactly two nodes, found from the overlap
   # matrix of the incidence rather than by comparing every pair in R.
-  node_ids <- sort(unique(unlist(edges, use.names = FALSE)))
+  node_ids <- .ho_sort(unique(unlist(edges, use.names = FALSE)))
   incidence <- Matrix::sparseMatrix(
     i = match(unlist(edges, use.names = FALSE), node_ids),
     j = rep.int(seq_along(edges), lengths(edges)),
@@ -24,7 +24,7 @@
   first <- overlap@i[keep] + 1L
   second <- overlap@j[keep] + 1L
   four_sets <- vapply(seq_along(first), function(k) {
-    union_nodes <- sort(union(edges[[first[k]]], edges[[second[k]]]))
+    union_nodes <- .ho_sort(union(edges[[first[k]]], edges[[second[k]]]))
     if (length(union_nodes) == 4L) paste(union_nodes, collapse = ",") else NA_character_
   }, character(1L))
   four_sets <- four_sets[!is.na(four_sets)]
@@ -40,7 +40,7 @@
 .thg_configuration_mcmc <- function(edges, steps = 10L * length(edges),
                                     collapse = TRUE) {
   if (length(edges) < 2L || steps < 1L) return(edges)
-  current <- lapply(edges, sort)
+  current <- lapply(edges, .ho_sort)
   sizes <- lengths(current)
   for (step in seq_len(steps)) {
     # HypergraphX draws two edge positions independently, so a self-pair is
@@ -66,8 +66,8 @@
         g2 <- c(g2, v)
       }
     }
-    g1 <- sort(g1)
-    g2 <- sort(g2)
+    g1 <- .ho_sort(g1)
+    g2 <- .ho_sort(g2)
     current[[ij[1L]]] <- g1
     current[[ij[2L]]] <- g2
   }
@@ -220,6 +220,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
 #'   data.frame.
 #' @export
 hg_get.hypergraphs_motifs <- function(x, what = c("test", "draws"), ...) {
+  .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_motifs`")
   what <- .ho_match_what(what)
   if (identical(what, "draws")) return(attr(x, "draws"))
   attr(x, "draws") <- NULL

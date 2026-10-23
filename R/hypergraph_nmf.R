@@ -14,6 +14,8 @@
   # draw nothing, so the starts can then run in parallel with the result of
   # the serial run.
   scale <- sqrt(max(mean(S), epsilon) / k)
+  # seeded starts hand the caller's stream back on exit
+  if (!is.null(seed)) .ho_local_seed(NULL)
   initial <- lapply(seq_len(nstart), \(restart) {
     if (!is.null(seed)) set.seed(as.integer(seed) + restart - 1L)
     matrix(stats::runif(n * k, 0.5, 1.5) * scale, nrow = n)

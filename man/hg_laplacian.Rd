@@ -12,7 +12,7 @@ hg_laplacian(hg, type = c("zhou", "random_walk"), edge_weights = NULL)
 connected and have at least one hyperedge. Empty hyperedges (which
 \code{\link[=random_hypergraph]{random_hypergraph()}} can produce) contribute nothing.}
 
-\item{type}{Character. \code{"zhou"} (default) for the Zhou et al. (2006)
+\item{type}{Character. \code{"zhou"} (default) for the Zhou et al. (2007)
 normalized Laplacian on the binary incidence pattern, or
 \code{"random_walk"} for the Hayashi et al. (2020) EDVW random-walk
 Laplacian on the weighted incidence.}
@@ -64,7 +64,7 @@ round(L, 3)
 
 }
 \references{
-Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 Clustering, classification, and embedding. \emph{NeurIPS 19}.
 \doi{10.7551/mitpress/7503.003.0205}
 

@@ -212,3 +212,65 @@ test_that("numeric entities that name no character decode to U+FFFD (TXT-09)", {
   expect_false(anyNA(out))
   expect_length(clean_text("safe &#55296; text"), 1L)
 })
+
+# ---- pre-CRAN review (2026-10-23) -------------------------------------------
+
+test_that("clean_text() treats accented and non-Latin letters as letters", {
+  # stop words and short words are matched at Unicode word boundaries
+  expect_identical(clean_text("Café the naïve déjà",
+                              stop_words = c("na", "d", "caf")),
+                   "Café the naïve déjà")
+  expect_identical(clean_text("über café été ok fine",
+                              min_chars = 4),
+                   "über café fine")
+  expect_identical(clean_text("the café is open", stop_words = "café"),
+                   "the is open")
+  # a number glued to an accented letter is a word, as for ASCII letters
+  expect_identical(clean_text("Pages 12é and covidé19 x"),
+                   "Pages 12é and covidé19 x")
+  # the content floor counts every letter, so Arabic text survives it
+  arabic <- "مرحبا بكم"
+  expect_identical(clean_text(c(arabic, "hello there"), min_content = 0.5),
+                   c(arabic, "hello there"))
+  expect_equal(.thg_content_ratio(c(arabic, "café été",
+                                    "12 34 ab")),
+               c(1, 1, 2 / 6), tolerance = 1e-12)
+})
+
+test_that("clean_text() leaves accented capitals before punctuation alone", {
+  # "É" + a closing quote is also the garble of U+0254; with no other
+  # sign of garbling in the text it is read as the real word
+  expect_identical(
+    clean_text(paste0("He said “CAFÉ” and «L'ÉTÉ",
+                      "» loudly; PERÚ’s team")),
+    paste0("He said \"CAFÉ\" and «L'ÉTÉ» loudly; ",
+           "PERÚ's team"))
+  # in a text that is garbled elsewhere the same kind of run is repaired:
+  # "Ã”" is the garble of O-circumflex
+  expect_identical(clean_text("cafÃ© at the HÃ”TEL"),
+                   "café at the HÔTEL")
+})
+
+test_that("clean_text() normalises typographic marks in any locale", {
+  expect_identical(clean_text("a\u201cb\u2014c\u00a0d\u2019e"), "a\"b-c d'e")
+  # the C-locale failure shows only in a session that called clean_text()
+  # in a UTF-8 locale first, outside testthat's own context: replay that in
+  # a fresh R process on the source tree
+  skip_on_os("windows")
+  skip_if_not_installed("pkgload")
+  root <- normalizePath(test_path("..", ".."), mustWork = FALSE)
+  skip_if_not(file.exists(file.path(root, "DESCRIPTION")), "no source tree")
+  code <- paste0(
+    "suppressMessages(pkgload::load_all('", root, "', quiet = TRUE));",
+    "x <- 'a\\u201cb\\u2014c\\u00a0d\\u2019e';",
+    "invisible(clean_text(x));",
+    "invisible(Sys.setlocale('LC_CTYPE', 'C'));",
+    "cat(utf8ToInt(clean_text(x)))")
+  out <- suppressWarnings(system2(file.path(R.home("bin"), "Rscript"),
+                                  c("-e", shQuote(code)), stdout = TRUE,
+                                  stderr = FALSE,
+                                  env = "LC_ALL=en_US.UTF-8"))
+  skip_if(length(out) == 0L, "the subprocess produced no output")
+  expect_identical(utils::tail(out, 1L),
+                   paste(utf8ToInt("a\"b-c d'e"), collapse = " "))
+})

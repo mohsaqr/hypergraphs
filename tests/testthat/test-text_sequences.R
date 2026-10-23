@@ -306,3 +306,17 @@ test_that("forum_posts topics carry the planted second-order rule", {
   expect_true(all(third))
   expect_true(all(abs(rules$probability - (0.8 + 0.2 / 3)) < 0.1))
 })
+
+test_that("hg_sequences(topics =) refuses a model fitted on another corpus", {
+  hg <- seq_hg()
+  fitted <- hg_topics(hg, k = 2, nstart = 2)
+  expect_s3_class(hg_sequences(hg, actor = "student", order_by = "turn",
+                               topics = fitted), "data.frame")
+  # same document ids, different texts
+  other_posts <- seq_posts
+  other_posts$text <- rev(other_posts$text)
+  other <- text_hypergraph(other_posts, column = "text", stop_words = seq_stop)
+  expect_error(hg_sequences(other, actor = "student", order_by = "turn",
+                            topics = fitted),
+               class = "hypergraphs_bad_input")
+})

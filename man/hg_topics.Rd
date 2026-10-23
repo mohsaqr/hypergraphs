@@ -137,10 +137,12 @@ coefficient of their ranked top \code{depth} words, and the matched
 coefficients are averaged. A topic that the other starts find again has a
 high \code{agreement}.
 
-A text hypergraph from \code{\link[=text_hypergraph]{text_hypergraph()}} is factorized on its word
-counts, whatever its node orientation and incidence weighting; any other
-hypergraph on its incidence, with its nodes as documents and its
-hyperedges as words.
+A text hypergraph from \code{\link[=text_hypergraph]{text_hypergraph()}} is factorized on its
+document-word counts, whatever its node orientation and incidence
+weighting; a sentence hypergraph's sentence counts are summed to its
+documents. Window and kNN text hypergraphs keep no document-word counts
+and raise \code{hypergraphs_bad_input}. Any other hypergraph is factorized on
+its incidence, with its nodes as documents and its hyperedges as words.
 }
 \section{Conditions}{
 

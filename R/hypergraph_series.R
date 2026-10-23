@@ -69,7 +69,7 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
   edge_index <- match(mem$edge, ed$edge)
   # Signature of each hyperedge's member set, for the distinct-edge count.
   members_by_edge <- split(mem$node, factor(edge_index, levels = seq_len(nrow(ed))))
-  signature <- vapply(members_by_edge, function(v) paste(sort(unique(v)), collapse = "\r"),
+  signature <- vapply(members_by_edge, function(v) paste(.ho_sort(unique(v)), collapse = "\r"),
                       character(1L))
   size <- lengths(members_by_edge)
   # Node entry: the node table's own start when given, else first membership.
@@ -93,7 +93,7 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
     }
     present <- .thg_memberships_in_window(x, t, grid$window, mode_here, grid$closed)
     present_signature <- tapply(mem$node[present], edge_index[present], function(v) {
-      paste(sort(unique(v)), collapse = "\r")
+      paste(.ho_sort(unique(v)), collapse = "\r")
     })
     c(n_nodes = length(unique(mem$node[present])),
       n_edges = length(unique(edge_index[present])),
@@ -189,7 +189,7 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
                          integer(1L))
   edge_component <- membership[first_member]
   sizes <- tabulate(membership)
-  ord <- order(-sizes, seq_along(sizes))
+  ord <- .ho_order(-sizes, seq_along(sizes))
   rows <- lapply(ord, function(k) {
     inside <- which(membership == k)
     diameter <- if (length(inside) <= 1L) 0L else
@@ -315,6 +315,10 @@ plot.hypergraphs_series <- function(x, columns = NULL, facets = TRUE, ...) {
 #' @param log Draw the CCDF on a logarithmic y axis (default `TRUE`).
 #' @param ... Unused; for S3 consistency.
 #' @return A ggplot object.
+#' @examples
+#' hg <- group_hypergraph(data.frame(node = c("a", "b", "c", "a", "c", "d"),
+#'                                   hyperedge = c(1, 1, 1, 2, 2, 2)))
+#' plot(hg_edges(hg, what = "distribution"))
 #' @keywords internal
 #' @export
 plot.hypergraphs_distribution <- function(x, log = TRUE, ...) {

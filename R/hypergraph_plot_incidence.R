@@ -33,7 +33,7 @@
 
   # rows: nodes by decreasing hyperdegree, then name
   degree <- tabulate(match(members$node, x$nodes), nbins = x$n_nodes)
-  node_levels <- x$nodes[order(-degree, x$nodes)]
+  node_levels <- x$nodes[.ho_order(-degree, x$nodes)]
   members$row <- match(members$node, node_levels)
   row_degree <- degree[match(node_levels, x$nodes)]
 
@@ -45,13 +45,13 @@
   first_row <- vapply(by_edge, \(r) if (length(r)) min(r) else Inf, numeric(1))
   key <- .thg_edge_aesthetic(x, sort_by, "sort_by")
   col_order <- if (is.null(key)) {
-    order(first_row, edge_names)
+    .ho_order(first_row, edge_names)
   } else if (is.numeric(key) && !(is.character(sort_by) &&
                                    length(sort_by) == 1L &&
                                    .thg_norm_name(sort_by) %in% .thg_clock_names())) {
-    order(-key, first_row, edge_names)
+    .ho_order(-key, first_row, edge_names)
   } else {
-    order(key, first_row, edge_names)
+    .ho_order(key, first_row, edge_names)
   }
   edge_levels <- edge_names[col_order]
   members$col <- match(members$edge, edge_levels)

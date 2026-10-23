@@ -32,7 +32,7 @@ initial labels.}
 \item{type, edge_weights}{Passed to \code{\link[=hg_laplacian]{hg_laplacian()}}.}
 
 \item{normalization}{Decision rule for turning spread scores into
-predictions: \code{"none"} (default, the raw Zhou 2006 argmax) or
+predictions: \code{"none"} (default, the raw Zhou 2007 argmax) or
 \code{"class_mass"} (class-mass normalization, Zhu et al. 2003). Use
 \code{"class_mass"} when the labeled seeds are class-imbalanced -- the raw
 rule can collapse every prediction onto the majority class.}
@@ -56,7 +56,7 @@ for the held-out documents; read its evaluation with \code{\link[=hg_get]{hg_get
 }
 \description{
 Semi-supervised classification of hypergraph nodes by the regularization
-framework of Zhou et al. (2006): given labels for a subset of nodes, the
+framework of Zhou et al. (2007): given labels for a subset of nodes, the
 scores \verb{F = (1 - xi) * (I - xi * S)^\{-1\} Y} spread the labels over the
 hypergraph, where \code{S = I - L} is the normalized similarity operator of
 the chosen Laplacian and \code{Y} is the label indicator matrix. Each node is
@@ -77,7 +77,7 @@ hg <- text_hypergraph(c(
 hg_classify(hg, labels = c(cooking_1 = "cooking", space_1 = "space"))
 }
 \references{
-Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 Clustering, classification, and embedding. \emph{NeurIPS 19}.
 \doi{10.7551/mitpress/7503.003.0205}
 

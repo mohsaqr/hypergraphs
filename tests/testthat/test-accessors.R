@@ -500,3 +500,25 @@ test_that("top = refuses fractions, NA and values beyond the integer range", {
   expect_error(hg_get(net, top = 1e12), class = "hypergraphs_bad_input")
   expect_identical(nrow(hg_get(net, top = 2)), 2L)
 })
+
+test_that("hg_get() refuses an argument its method does not take", {
+  hg <- window_hypergraph(list(s1 = c("a", "b", "a", "c", "d", "a")),
+                          window = 2L)
+  thg <- text_hypergraph(c(a = "salt soup night", b = "soup stars night",
+                           c = "stars sky night"))
+  seqs <- replicate(6, c("a", "b", "c", "a", "b"), simplify = FALSE)
+  honet <- hon(seqs, max_order = 2)
+  sc <- simplicial(list(c("a", "b", "c"), c("b", "c", "d")), type = "window",
+                   window = 3)
+  # a misspelling is refused, the spelled-out argument works
+  expect_error(hg_get(hg, tp = 1), class = "hypergraphs_bad_input")
+  expect_error(hg_get(hg, sort = "weight"), class = "hypergraphs_bad_input")
+  expect_no_error(hg_get(hg, top = 1))
+  expect_error(hg_get(thg, what = "vocabulary", sortby = "count"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(honet, ordermin = 2), class = "hypergraphs_bad_input")
+  expect_no_error(hg_get(honet, order_min = 2))
+  expect_error(hg_get(sc, dimm = 1), class = "hypergraphs_bad_input")
+  # pathways still pass their arguments on
+  expect_no_error(hg_get(honet, what = "pathways"))
+})

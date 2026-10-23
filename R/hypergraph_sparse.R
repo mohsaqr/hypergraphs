@@ -27,8 +27,8 @@
 # (including the `hyperedges` member lists every reader relies on).
 .thg_sparse_bipartite <- function(long, node, hyperedge, weight) {
   member <- node
-  vertices <- sort(unique(long[[member]]))
-  edges <- sort(unique(long[[hyperedge]]))
+  vertices <- .ho_sort(unique(long[[member]]))
+  edges <- .ho_sort(unique(long[[hyperedge]]))
   incidence <- Matrix::sparseMatrix(
     i = match(long[[member]], vertices),
     j = match(long[[hyperedge]], edges),
@@ -225,12 +225,13 @@
     ))
   }
   lap_values <- 1 - eig$values                 # increasing: smallest of L
+  .hl_check_eigengap(lap_values, k)
   U <- eig$vectors[, seq_len(k), drop = FALSE]
   row_norm <- sqrt(rowSums(U^2))
   nz <- row_norm > 0
   U[nz, ] <- U[nz, , drop = FALSE] / row_norm[nz]
 
-  if (!is.null(seed)) set.seed(as.integer(seed))
+  if (!is.null(seed)) .ho_local_seed(seed)
   km <- .ho_kmeans(U, k, nstart = as.integer(nstart), iter.max = 100L)
   relabel <- match(km$cluster, unique(km$cluster))
   cluster_lab <- paste("Cluster", relabel)
@@ -240,7 +241,7 @@
   sizes <- as.data.frame(table(cluster = cluster_lab),
                          stringsAsFactors = FALSE)
   names(sizes) <- c("cluster", "size")
-  sizes <- sizes[order(sizes$cluster), , drop = FALSE]
+  sizes <- sizes[.ho_order(sizes$cluster), , drop = FALSE]
   rownames(sizes) <- NULL
 
   structure(
@@ -321,7 +322,7 @@
   sizes <- as.data.frame(table(cluster = cluster_lab),
                          stringsAsFactors = FALSE)
   names(sizes) <- c("cluster", "size")
-  sizes <- sizes[order(sizes$cluster), , drop = FALSE]
+  sizes <- sizes[.ho_order(sizes$cluster), , drop = FALSE]
   rownames(sizes) <- NULL
 
   structure(
@@ -369,7 +370,7 @@
     }
     as.character(labels)
   }
-  classes <- sort(unique(lab[!is.na(lab)]))
+  classes <- .ho_sort(unique(lab[!is.na(lab)]))
   if (length(classes) < 2L) {
     stop("`labels` must contain at least two distinct classes.",
          call. = FALSE)

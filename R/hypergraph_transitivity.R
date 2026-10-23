@@ -268,7 +268,7 @@ hg_transitivity <- function(hg,
                     stringsAsFactors = FALSE)
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, choices = type)
-    out <- out[order(-out[[sort_by]], out$node, na.last = TRUE), ,
+    out <- out[.ho_order(-out[[sort_by]], out$node, na.last = TRUE), ,
                drop = FALSE]
     rownames(out) <- NULL
   }

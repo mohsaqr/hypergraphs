@@ -209,7 +209,7 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
       }
       edge <- c(setdiff(edge, remove), .hgr_draw(candidates, replace_n))
     }
-    sort(edge)
+    .ho_sort(edge)
   })
   incidence <- .hgr_edges_to_incidence(edges, n)
   out <- .hgr_from_incidence(

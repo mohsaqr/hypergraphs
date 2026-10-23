@@ -53,7 +53,8 @@
 #' @param topics A mixed-membership topic model of `hg` fitted by
 #'   [hg_topics()]. Each document's state is then its main topic, the topic
 #'   with its largest share (`hg_get(topics, what = "documents")`). Give
-#'   `topics` instead of `clusters` and `state`.
+#'   `topics` instead of `clusters` and `state`. A model fitted on another
+#'   corpus raises `hypergraphs_bad_input`.
 #' @param state Name of the column holding each document's state. With
 #'   `clusters` supplied it names a column of `clusters` and defaults to
 #'   `"cluster"`; with `clusters = NULL` it names a column of the documents
@@ -83,7 +84,7 @@
 #' higher-order dependencies in networks. \emph{Science Advances}, 2(5),
 #' e1600028.
 #'
-#' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+#' Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 #' clustering, classification, and embedding. \emph{Advances in Neural
 #' Information Processing Systems}, 19, 1601-1608.
 #' \doi{10.7551/mitpress/7503.003.0205}
@@ -132,6 +133,7 @@ hg_sequences <- function(hg, clusters = NULL, actor, order_by, state = NULL,
     if (!is.null(clusters) || !is.null(state)) {
       .thg_bad_input("give `topics` alone, without `clusters` or `state`")
     }
+    .tm_check_fitted_on(topics, hg)
     clusters <- hg_get(topics, what = "documents")
     state <- "topic"
   }
@@ -178,7 +180,7 @@ hg_sequences <- function(hg, clusters = NULL, actor, order_by, state = NULL,
   # The document identifier is the deterministic tie-break, so two documents
   # by the same actor at the same time never depend on input order.
   tie <- as.character(docs[["doc"]] %||% seq_len(nrow(docs)))
-  ord <- order(actor_values, time_values, tie)
+  ord <- .ho_order(actor_values, time_values, tie)
   out <- data.frame(
     actor = actor_values[ord],
     time = time_values[ord],

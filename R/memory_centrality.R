@@ -97,7 +97,7 @@
   paths <- vector("list", n)
   paths[[s]] <- list(s)
   # targets in increasing distance: every predecessor is already expanded
-  ord <- reach[order(dist[reach])]
+  ord <- reach[.ho_order(dist[reach])]
   n_paths <- 0L
   for (v in ord) {
     # sequential by construction: paths to v are built from paths to its
@@ -533,10 +533,10 @@ hg_centrality.net_hon <- function(x,
 
   key <- if (project) out$state else out$node
   out <- if (is.null(sort_by)) {
-    out[order(key), , drop = FALSE]
+    out[.ho_order(key), , drop = FALSE]
   } else {
     sort_by <- match.arg(sort_by, type)
-    out[order(-out[[sort_by]], key), , drop = FALSE]
+    out[.ho_order(-out[[sort_by]], key), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)

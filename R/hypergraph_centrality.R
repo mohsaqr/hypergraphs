@@ -29,8 +29,9 @@
 #' @param tol Convergence tolerance on the L1 change between successive
 #'   iterates, a positive number. Default `1e-8`.
 #' @param normalize Logical. If `TRUE` (default), each returned
-#'   centrality vector is L2-normalized to unit norm (compatible with
-#'   `igraph::eigen_centrality()`'s scale for type `"clique"`). Does not
+#'   centrality vector is L2-normalized to unit norm. With `FALSE` the
+#'   vector of type `"clique"` is scaled to a maximum of 1, the scale of
+#'   `igraph::eigen_centrality()`. Does not
 #'   apply to `"pagerank"`, which always sums to 1, or
 #'   `"subhypergraph"`, which is returned on its natural log scale.
 #' @param damping Single numeric in (0, 1). PageRank damping factor
@@ -59,7 +60,7 @@
 #' **Clique-motif eigenvector centrality (CEC)**: forms the
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
-#' eigenvector of \eqn{W}. Equivalent to running
+#' eigenvector of \eqn{W}. With `normalize = FALSE` it equals
 #' `igraph::eigen_centrality()` on [pairwise_network()] output. The vector
 #' is solved directly from a symmetric eigendecomposition of each connected
 #' component (Perron-Frobenius makes the leading eigenvalue of a connected
@@ -307,7 +308,7 @@
   res[type] <- lapply(out[type], unname)
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, type)
-    res <- res[order(-res[[sort_by]], res$node), , drop = FALSE]
+    res <- res[.ho_order(-res[[sort_by]], res$node), , drop = FALSE]
     rownames(res) <- NULL
   }
   .ho_top(res, top)

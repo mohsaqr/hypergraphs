@@ -210,7 +210,7 @@ hypa.net_hg <- function(x, min_count = 5L, alpha = 0.05, p_adjust = "none",
   # pairs sitting just above `min_count` (a pair seen 5 times against an
   # expectation of 0.005 has a ratio near 1000 and says little), so ranking
   # by it buries the heavily co-occurring pairs that depart from the null.
-  out <- out[order(out$p_adjusted_over, -out$ratio, out$from, out$to), ,
+  out <- out[.ho_order(out$p_adjusted_over, -out$ratio, out$from, out$to), ,
              drop = FALSE]
   rownames(out) <- NULL
   if (!is.null(top)) out <- utils::head(out, top)
@@ -328,7 +328,7 @@ hypa.net_hg <- function(x, min_count = 5L, alpha = 0.05, p_adjust = "none",
   pair_key <- function(i, j) (i - 1) * n + j
 
   over_set <- pairs$co >= min_count
-  ord <- order(-x, seq_len(n))
+  ord <- .ho_order(-x, seq_len(n))
   xs <- x[ord]
   threshold <- min_count * (1 - 1e-9) / xs
   n_at_least <- n - findInterval(threshold, rev(xs), left.open = TRUE)
@@ -339,7 +339,7 @@ hypa.net_hg <- function(x, min_count = 5L, alpha = 0.05, p_adjust = "none",
   under_j <- pmax(ord[p_idx], ord[q_idx])
   under_set <- x[under_i] * x[under_j] >= min_count
 
-  key <- sort(unique(c(pair_key(obs_i[over_set], obs_j[over_set]),
+  key <- .ho_sort(unique(c(pair_key(obs_i[over_set], obs_j[over_set]),
                        pair_key(under_i[under_set], under_j[under_set]))))
   i <- as.integer((key - 1) %/% n) + 1L
   j <- as.integer(key - (i - 1) * n)

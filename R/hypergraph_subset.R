@@ -80,7 +80,7 @@
     j <- nz[, 2L]
   }
   members <- split(i, factor(j, levels = seq_len(m)))
-  lapply(unname(members), function(v) sort(unique(v)))
+  lapply(unname(members), function(v) .ho_sort(unique(v)))
 }
 
 #' Sub-hypergraph by hyperedges, nodes or hyperedge attributes
@@ -307,7 +307,7 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
 # the attribute (approximate matching, as for a misspelt name), else the
 # first few in sorted order.
 .thg_where_absent <- function(attribute, absent, values) {
-  pool <- sort(unique(as.character(values[!is.na(values)])))
+  pool <- .ho_sort(unique(as.character(values[!is.na(values)])))
   close <- unique(unlist(lapply(as.character(absent), \(a) {
     agrep(a, pool, value = TRUE, ignore.case = TRUE, max.distance = 0.2)
   })))

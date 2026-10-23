@@ -27,7 +27,7 @@
 # the fewest crossings is kept (the earliest on ties), so the result is
 # deterministic.
 .thg_storyline_layout <- function(node, col, n_col, sweeps = 4L) {
-  nodes <- sort(unique(node))
+  nodes <- .ho_sort(unique(node))
   members <- split(node, factor(col, levels = seq_len(n_col)))
   first <- tapply(col, node, min)
   last <- tapply(col, node, max)
@@ -49,7 +49,7 @@
       data.frame(node = alive[[j]], col = j,
                  y = as.numeric(rank(orders[[j]][alive[[j]]])))
     }))
-    rows[order(rows$node, rows$col), , drop = FALSE]
+    rows[.ho_order(rows$node, rows$col), , drop = FALSE]
   }
   crossings <- function(rows) {
     pairs <- lapply(seq_len(n_col - 1L), \(j) {
@@ -92,13 +92,13 @@
 # 1 / (1 + shared) cut at a floor merges all strong ties into one. The order
 # of the lines, and so the crossings, are those of the layout.
 .thg_storyline_spacing <- function(rows, node, edge, floor = 0.35) {
-  nodes <- sort(unique(node))
+  nodes <- .ho_sort(unique(node))
   member <- unclass(table(factor(node, levels = nodes), edge)) > 0
   shared <- tcrossprod(member * 1)
   diag(shared) <- 0
   strongest <- max(shared)
   respaced <- lapply(split(rows, rows$col), \(r) {
-    r <- r[order(r$y), , drop = FALSE]
+    r <- r[.ho_order(r$y), , drop = FALSE]
     if (nrow(r) > 1L) {
       pairs <- cbind(utils::head(r$node, -1L), utils::tail(r$node, -1L))
       gaps <- if (strongest > 0) 1 - (1 - floor) * shared[pairs] / strongest else
@@ -108,7 +108,7 @@
     r
   })
   out <- do.call(rbind, respaced)
-  out <- out[order(out$node, out$col), , drop = FALSE]
+  out <- out[.ho_order(out$node, out$col), , drop = FALSE]
   rownames(out) <- NULL
   attr(out, "crossings") <- attr(rows, "crossings")
   out
@@ -139,7 +139,7 @@
 # with the counts that rank them.
 .thg_storyline_nodes <- function(m, top) {
   counts <- table(m$node)
-  ranked <- names(counts)[order(-as.integer(counts), names(counts))]
+  ranked <- names(counts)[.ho_order(-as.integer(counts), names(counts))]
   list(counts = counts,
        chosen = if (is.null(top)) ranked else utils::head(ranked, top))
 }
@@ -211,7 +211,7 @@
                                 edge_title) {
   m <- m[m$node %in% chosen, , drop = FALSE]
   edges <- unique(m$edge)
-  edge_levels <- edges[order(edge_key[edges], edges)]
+  edge_levels <- edges[.ho_order(edge_key[edges], edges)]
   m$col <- match(m$edge, edge_levels)
   n_col <- length(edge_levels)
   rows <- .thg_storyline_layout(m$node, m$col, n_col)
@@ -220,7 +220,7 @@
   }
 
   path <- rbind(transform(rows, x = col - 0.3), transform(rows, x = col + 0.3))
-  path <- path[order(path$node, path$x), , drop = FALSE]
+  path <- path[.ho_order(path$node, path$x), , drop = FALSE]
   hits <- merge(m[c("node", "col")], rows, by = c("node", "col"))
   span <- function(f) as.numeric(tapply(hits$y, factor(hits$col, levels = seq_len(n_col)), f))
   bars <- data.frame(col = seq_len(n_col), lo = span(min), hi = span(max))

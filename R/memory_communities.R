@@ -103,7 +103,7 @@
 #' @return list(codelength, index, module) in bits.
 #' @noRd
 .hcm_codelength <- function(fl, phys, module) {
-  mods <- sort(unique(module))
+  mods <- .ho_sort(unique(module))
   m <- match(module, mods)
   k <- length(mods)
   cross <- m[fl$from] != m[fl$to]
@@ -282,7 +282,7 @@
     }
     l_old <- l_new
     # rebuild the network with modules as nodes
-    ids <- sort(unique(module))
+    ids <- .ho_sort(unique(module))
     new <- match(module, ids)
     map <- new[map]
     agg <- stats::aggregate(
@@ -304,7 +304,7 @@
   tunes <- 0L
   repeat {
     tunes <- tunes + 1L
-    init <- match(mod, sort(unique(mod)))
+    init <- match(mod, .ho_sort(unique(mod)))
     cand <- .hcm_aggregate(fl, phys, n_phys, init, eps = eps)
     l_new <- .hcm_codelength(fl, phys, cand)$codelength
     if (l_new < l_old) mod <- cand
@@ -321,7 +321,7 @@
   # the same way on every platform instead of the last bits of a sum
   mf <- signif(tapply(node_flow, module, sum), 12)
   first <- tapply(seq_along(module), module, min)
-  ids <- names(mf)[order(-mf, first)]
+  ids <- names(mf)[.ho_order(-mf, first)]
   match(as.character(module), ids)
 }
 
@@ -338,7 +338,7 @@
   # the partition with fewer modules, then the earlier trial
   n_mod <- vapply(parts, function(p) length(unique(p)), integer(1L))
   tied <- which(cls - min(cls) < 1e-10)
-  best <- tied[order(n_mod[tied], tied)][1L]
+  best <- tied[.ho_order(n_mod[tied], tied)][1L]
   list(module = parts[[best]], codelength = cls[best], codelengths = cls,
        partitions = parts, best = best)
 }
@@ -542,7 +542,7 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
   states <- rownames(W)
   phys_label <- vapply(strsplit(states, " -> ", fixed = TRUE),
                        function(p) p[length(p)], character(1L))
-  phys_names <- sort(unique(phys_label))
+  phys_names <- .ho_sort(unique(phys_label))
   phys <- match(phys_label, phys_names)
   n_phys <- length(phys_names)
 
@@ -617,7 +617,7 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
   pim$share[!is.finite(pim$share)] <- 0
   nmod <- table(pim$state)
   pim$n_communities <- as.integer(nmod[pim$state])
-  pim <- pim[order(pim$state, pim$community), , drop = FALSE]
+  pim <- pim[.ho_order(pim$state, pim$community), , drop = FALSE]
   rownames(pim) <- NULL
 
   cross <- module[fl$from] != module[fl$to]
@@ -707,6 +707,7 @@ hg_get.hypergraphs_memory_communities <- function(
     x, what = c("states", "physical", "modules", "trials", "first_order",
                 "codelength"), ...,
     community = NULL, overlapping = FALSE) {
+  .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_memory_communities`")
   what <- .ho_match_what(what)
   stopifnot(
     "`overlapping` must be TRUE or FALSE" =
@@ -801,8 +802,8 @@ summary.hypergraphs_memory_communities <- function(object, ...) .ho_summary(obje
   st <- x$states
   hidden <- if (show_zero_flow) 0L else sum(st$flow <= 0)
   if (!show_zero_flow) st <- st[st$flow > 0, , drop = FALSE]
-  st <- st[order(st$community, st$node), , drop = FALSE]
-  mods <- sort(unique(st$community))
+  st <- st[.ho_order(st$community, st$node), , drop = FALSE]
+  mods <- .ho_sort(unique(st$community))
   community_names <- sprintf("Community %d", mods)
   members <- data.frame(node = st$node,
                         community = sprintf("Community %d", st$community),
@@ -860,7 +861,7 @@ summary.hypergraphs_memory_communities <- function(object, ...) .ho_summary(obje
 #' @noRd
 .hcm_physical_plot_data <- function(x) {
   ph <- x$physical
-  mods <- sort(unique(ph$community))
+  mods <- .ho_sort(unique(ph$community))
   community_names <- sprintf("Community %d", mods)
   members <- data.frame(state = ph$state,
                         community = sprintf("Community %d", ph$community),
@@ -940,7 +941,7 @@ summary.hypergraphs_memory_communities <- function(object, ...) .ho_summary(obje
     spec <- .hcm_state_plot_data(x, show_zero_flow)
     st <- x$states
     if (!show_zero_flow) st <- st[st$flow > 0, , drop = FALSE]
-    st <- st[order(st$community, st$node), , drop = FALSE]
+    st <- st[.ho_order(st$community, st$node), , drop = FALSE]
     nodes <- st$node
     W <- x$weights[nodes, nodes, drop = FALSE]
     flow <- st$flow

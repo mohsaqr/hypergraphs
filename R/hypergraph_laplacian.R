@@ -1,6 +1,6 @@
 # ---- Hypergraph Laplacians, Spectral Clustering, Transduction ----------
 #
-# Zhou, Huang & Scholkopf (2006): normalized hypergraph Laplacian
+# Zhou, Huang & Scholkopf (2007): normalized hypergraph Laplacian
 #   L = I - D_v^{-1/2} H W D_e^{-1} H^T D_v^{-1/2}
 # on the BINARY incidence pattern H with hyperedge weights w(e).
 #
@@ -35,7 +35,7 @@
 #'   [group_hypergraph()], dense or sparse (`sparse = TRUE`). Must be
 #'   connected and have at least one hyperedge. Empty hyperedges (which
 #'   [random_hypergraph()] can produce) contribute nothing.
-#' @param type Character. `"zhou"` (default) for the Zhou et al. (2006)
+#' @param type Character. `"zhou"` (default) for the Zhou et al. (2007)
 #'   normalized Laplacian on the binary incidence pattern, or
 #'   `"random_walk"` for the Hayashi et al. (2020) EDVW random-walk
 #'   Laplacian on the weighted incidence.
@@ -60,7 +60,7 @@
 #'   `hypergraphs_hypergraph_disconnected`.
 #'
 #' @references
-#' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+#' Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
 #' \doi{10.7551/mitpress/7503.003.0205}
 #'
@@ -167,7 +167,7 @@ hg_laplacian <- function(hg,
   nstart <- .ho_check_count(nstart, "nstart")
   max_iter <- .ho_check_count(max_iter, "max_iter")
   tol <- .hg_check_tol(tol)
-  if (!is.null(seed)) set.seed(as.integer(seed))
+  if (!is.null(seed)) .ho_local_seed(seed)
 
   parts <- .hl_build(hg, type = type, edge_weights = edge_weights)
   eig <- eigen((parts$L + t(parts$L)) / 2, symmetric = TRUE)
@@ -175,6 +175,7 @@ hg_laplacian <- function(hg,
   ord <- rev(seq_len(n))
   values <- eig$values[ord]
   if (algorithm == "spectral") {
+    .hl_check_eigengap(values, k)
     U <- eig$vectors[, ord[seq_len(k)], drop = FALSE]
     # Row-normalize the spectral embedding to unit length (zero rows kept)
     row_norm <- sqrt(rowSums(U^2))
@@ -209,7 +210,7 @@ hg_laplacian <- function(hg,
   sizes <- as.data.frame(table(cluster = cluster_lab),
                          stringsAsFactors = FALSE)
   names(sizes) <- c("cluster", "size")
-  sizes <- sizes[order(sizes$cluster), , drop = FALSE]
+  sizes <- sizes[.ho_order(sizes$cluster), , drop = FALSE]
   rownames(sizes) <- NULL
 
   structure(
@@ -236,7 +237,7 @@ hg_laplacian <- function(hg,
 #' Transductive label spreading on a hypergraph
 #'
 #' Semi-supervised classification of hypergraph nodes by the regularization
-#' framework of Zhou et al. (2006): given labels for a subset of nodes, the
+#' framework of Zhou et al. (2007): given labels for a subset of nodes, the
 #' scores `F = (1 - xi) * (I - xi * S)^{-1} Y` spread the labels over the
 #' hypergraph, where `S = I - L` is the normalized similarity operator of
 #' the chosen Laplacian and `Y` is the label indicator matrix. Each node is
@@ -255,7 +256,7 @@ hg_laplacian <- function(hg,
 #'   initial labels.
 #' @param type,edge_weights Passed to [hg_laplacian()].
 #' @param normalization Decision rule applied to the score matrix before
-#'   the argmax. `"none"` (default) is the raw Zhou (2006) rule.
+#'   the argmax. `"none"` (default) is the raw Zhou (2007) rule.
 #'   `"class_mass"` divides each class column by its total spread mass
 #'   (class-mass normalization, Zhu et al. 2003) before the argmax; use it
 #'   when the labeled seeds are class-imbalanced, where the raw rule can
@@ -270,7 +271,7 @@ hg_laplacian <- function(hg,
 #'   `hg_get(x, what = "scores")` returns the tidy long score table.
 #'
 #' @references
-#' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+#' Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
 #' \doi{10.7551/mitpress/7503.003.0205}
 #'
@@ -307,7 +308,7 @@ hg_laplacian <- function(hg,
     }
     as.character(labels)
   }
-  classes <- sort(unique(lab[!is.na(lab)]))
+  classes <- .ho_sort(unique(lab[!is.na(lab)]))
   if (length(classes) < 2L) {
     stop("`labels` must contain at least two distinct classes.",
          call. = FALSE)
@@ -340,7 +341,7 @@ hg_laplacian <- function(hg,
 
 # ---- Internal machinery -------------------------------------------------
 
-# Decision rule on a node x class score matrix. "none" is the Zhou (2006)
+# Decision rule on a node x class score matrix. "none" is the Zhou (2007)
 # argmax on the raw spread scores; "class_mass" first divides each class
 # column by its total spread mass (class-mass normalization, Zhu et al.
 # 2003), which prevents an imbalanced seed set from collapsing every
@@ -585,6 +586,28 @@ hg_laplacian <- function(hg,
   invisible(TRUE)
 }
 
+# Spectral clustering embeds the nodes in the eigenvectors of the k
+# smallest Laplacian eigenvalues. When the k-th and (k + 1)-th coincide the
+# k-dimensional eigenspace is not unique, any basis of the tied space is
+# equally valid, and the partition depends on the one the solver returned
+# (the dense and sparse solvers return different ones): the spectrum does
+# not identify k clusters (von Luxburg 2007, section 8.3). `values` are the
+# Laplacian eigenvalues in increasing order; nothing is checked when the
+# (k + 1)-th was not computed.
+.hl_check_eigengap <- function(values, k) {
+  if (length(values) <= k) return(invisible(NULL))
+  gap <- values[[k + 1L]] - values[[k]]
+  if (gap < sqrt(.Machine$double.eps) * max(1, abs(values[[k]]))) {
+    warning(warningCondition(sprintf(paste0(
+      "eigenvalues %d and %d of the Laplacian coincide (%.6g), so the ",
+      "spectrum does not identify %d clusters and the partition depends on ",
+      "the eigensolver; choose a k with a gap after it (what = ",
+      "\"eigenvalues\")"), k, k + 1L, values[[k]], k),
+      class = "hypergraphs_tied_spectrum", call = NULL))
+  }
+  invisible(NULL)
+}
+
 #' Validate a cluster count: one whole number from 2 to n_nodes - 1
 #' @noRd
 .hl_check_k <- function(k, n) {
@@ -674,6 +697,7 @@ summary.net_hg_cluster <- function(object, ...) {
 #' @noRd
 #' @export
 hg_get.net_hg_cluster <- function(x, what = "assignments", ..., top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hg_cluster`")
   .ho_match_what(what, "assignments")
   out <- x$clusters
   out$pi <- as.numeric(x$pi)
@@ -751,7 +775,7 @@ plot.net_hg_cluster <- function(x,
   # different period (14), so no two of the first 126 clusters share both
   # colour and shape and colour is never the only cue.
   cluster_ids <- unique(df_e$cluster)
-  cluster_ids <- cluster_ids[order(as.integer(sub("^Cluster ", "",
+  cluster_ids <- cluster_ids[.ho_order(as.integer(sub("^Cluster ", "",
                                                   cluster_ids)))]
   df_e$cluster <- factor(df_e$cluster, levels = cluster_ids)
   n_clusters <- length(cluster_ids)
@@ -862,6 +886,7 @@ summary.net_hg_transduction <- function(object, ...) {
 #' @export
 hg_get.net_hg_transduction <- function(
     x, what = c("predictions", "scores"), ..., top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hg_transduction`")
   what <- .ho_match_what(what)
   if (what == "predictions") return(.ho_top(x$predictions, top))
   .ho_top(data.frame(
@@ -894,7 +919,7 @@ plot.net_hg_transduction <- function(x, ...) {
     p$label[match(sc$node, p$node)] == sc$class
   sc$winner <- p$predicted[match(sc$node, p$node)] == sc$class
   # order rows by predicted class, then margin (most confident on top)
-  ord <- p$node[order(p$predicted, -p$margin)]
+  ord <- p$node[.ho_order(p$predicted, -p$margin)]
   sc$node <- factor(sc$node, levels = rev(ord))
 
   ggplot2::ggplot(sc, ggplot2::aes(x = .data$class, y = .data$node)) +

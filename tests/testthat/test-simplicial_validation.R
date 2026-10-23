@@ -161,6 +161,7 @@ test_that("the swap validation is reproducible and leaves the RNG alone", {
 })
 
 test_that("the hypergeometric null gives the exact tail of Musciotto et al.", {
+  skip_on_cran()  # 5-15 s: an exact-tail check on a large window count
   seqs <- .planted_sequences()
   # 30 actions: the triples are dense (warned), the pairs sparse
   expect_warning(
@@ -193,6 +194,7 @@ test_that("the hypergeometric null gives the exact tail of Musciotto et al.", {
 })
 
 test_that("the hypergeometric null warns on dense co-occurrence only", {
+  skip_on_cran()  # 5-15 s: an exact-tail check on a large window count
   expect_warning(
     simplicial(human_long, type = "window", window = 3L, validate = TRUE,
                null = "hypergeometric", actor = "session_id",

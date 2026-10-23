@@ -20,7 +20,7 @@
     idx <- which(membership > 0, arr.ind = TRUE)
     pairs <- data.frame(node = idx[, 1L], edge = idx[, 2L])
   }
-  pairs[order(pairs$edge, pairs$node), , drop = FALSE]
+  pairs[.ho_order(pairs$edge, pairs$node), , drop = FALSE]
 }
 
 # Correlation of a pair distribution given its moments; NA when a marginal
@@ -70,7 +70,7 @@
   }
   if (identical(type, "top_2")) {
     # The two largest scores of each edge, as an unordered pair.
-    top <- vapply(members, \(v) sort(x[v], decreasing = TRUE)[seq_len(2L)],
+    top <- vapply(members, \(v) .ho_sort(x[v], decreasing = TRUE)[seq_len(2L)],
                   numeric(2))
     a <- top[1L, ]
     b <- top[2L, ]
@@ -253,7 +253,7 @@ hg_degree_correlation <- function(hg) {
   .thg_check_hg(hg)
   membership <- .hg_membership(hg)
   sizes <- as.numeric(Matrix::colSums(membership))
-  present <- sort(unique(sizes[sizes >= 2]))
+  present <- .ho_sort(unique(sizes[sizes >= 2]))
   if (length(present) < 2L) {
     stop(errorCondition(
       paste("cross-order degree correlation needs at least two distinct",

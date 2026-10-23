@@ -584,3 +584,18 @@ test_that("all-pairs topic similarity equals the pairwise average Jaccard", {
   expect_identical(diag(.tm_similarity(same, same)), c(1, 1))
   expect_identical(.tm_similarity(same, rev(same))[1, 1], 0)
 })
+
+test_that("hg_topics() factorises document-word counts for every construction", {
+  docs <- c(d1 = "The dog barks. The dog sleeps at night.",
+            d2 = "A dog runs. The night is dark and the night is long.",
+            d3 = "Cats sleep. Dogs bark at night.")
+  bag <- text_hypergraph(docs)
+  sentence <- text_hypergraph(docs, construction = "sentence")
+  # the sentence construction holds the same per-document counts
+  expect_identical(as.matrix(.tm_counts(sentence)), as.matrix(.tm_counts(bag)))
+  fit <- hg_topics(sentence, k = 2, nstart = 2)
+  expect_setequal(unique(hg_get(fit, what = "documents")$node), names(docs))
+  # window and knn hyperedges keep no per-document counts
+  window <- text_hypergraph(docs, construction = "window", window = 3)
+  expect_error(hg_topics(window, k = 2), class = "hypergraphs_bad_input")
+})

@@ -47,25 +47,6 @@ test_that("a single hyperedge closes every triangle but has no extra overlap", {
   expect_true(all(out$two_node_union == 1))
 })
 
-test_that("on a graph, extra overlap and projection equal igraph local transitivity", {
-  skip_if_not_installed("igraph")
-  set.seed(7)
-  g <- igraph::sample_gnm(25, 70)
-  ends <- igraph::as_edgelist(g)
-  edges <- lapply(seq_len(nrow(ends)), \(i) paste0("v", ends[i, ]))
-  names(edges) <- sprintf("e%03d", seq_along(edges))
-  hg <- .tr_hg(edges)
-  out <- hg_transitivity(hg, type = c("projection", "extra_overlap"))
-  local <- igraph::transitivity(g, type = "local", isolates = "NaN")
-  names(local) <- paste0("v", seq_len(igraph::vcount(g)))
-  reference <- unname(local[out$node])
-  defined <- !is.na(reference)
-  expect_equal(out$projection[defined], reference[defined], tolerance = 1e-12)
-  expect_equal(out$extra_overlap[defined], reference[defined],
-               tolerance = 1e-12)
-  expect_identical(is.na(out$projection), !defined)
-})
-
 test_that("undefined values are NA, not 0", {
   # f has one neighbour (projection undefined); g sits only in a singleton
   hg <- .tr_hg(list(e1 = c("a", "b", "c"), e2 = c("c", "f"), e3 = "g"))

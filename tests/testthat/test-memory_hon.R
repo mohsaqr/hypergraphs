@@ -26,7 +26,7 @@ test_that("hon rejects non-data.frame non-list input", {
 })
 
 test_that("hon rejects empty data.frame", {
-  expect_error(hon(data.frame()), "at least one")
+  expect_error(hon(data.frame()), class = "hypergraphs_bad_input")
 })
 
 test_that("hon rejects max_order < 1", {
@@ -372,7 +372,7 @@ test_that("hon stops when all trajectories are too short after parsing", {
   # All rows are single-state (no transitions possible)
   df <- data.frame(T1 = c("A", "B"), stringsAsFactors = FALSE)
   expect_error(hon(df, max_order = 2L, min_freq = 1L),
-               "No valid trajectories")
+               class = "hypergraphs_bad_input")
 })
 
 

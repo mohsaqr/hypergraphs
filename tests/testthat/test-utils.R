@@ -76,3 +76,23 @@ test_that(".ho_kmeans finishes a start that stops early", {
                             max_continue = 0L, lloyd_iter = 1L),
                  class = "hypergraphs_no_converge")
 })
+
+test_that("node order and the results built on it do not depend on the locale", {
+  d <- data.frame(node = c("b", "B", "a", "A"), hyperedge = c(1, 1, 2, 2))
+  e <- rbind(Q = c(1, 0), a = c(0, 1), B = c(0, 1), c = c(1, 1))
+  results <- function() {
+    g <- group_hypergraph(d, node = "node", hyperedge = "hyperedge")
+    list(nodes = g$nodes,
+         modularity = hg_modularity(g, partition = c(1, 1, 2, 2)),
+         knn = hg_get(knn_hypergraph(e, k = 1, weight = "binary"),
+                      what = "memberships"),
+         sorted = .ho_sort(c("b", "B", "a", "A")))
+  }
+  in_c <- results()
+  expect_identical(in_c$nodes, c("A", "B", "a", "b"))
+  old <- Sys.getlocale("LC_COLLATE")
+  on.exit(Sys.setlocale("LC_COLLATE", old), add = TRUE)
+  skip_if(identical(Sys.setlocale("LC_COLLATE", "en_US.UTF-8"), ""),
+          "no en_US.UTF-8 locale")
+  expect_identical(results(), in_c)
+})

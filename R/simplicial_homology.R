@@ -31,6 +31,7 @@
 hg_get.persistent_homology <- function(
     x, what = c("persistence", "betti"), ..., dimension = NULL,
     sort_by = NULL, top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `persistent_homology`")
   what <- .ho_match_what(what)
   out <- if (what == "betti") x$betti_curve else x$persistence
   if (!is.null(dimension)) {
@@ -44,7 +45,7 @@ hg_get.persistent_homology <- function(
         "`sort_by` applies only to what = \"persistence\"",
         class = "hypergraphs_bad_input", call = NULL))
     }
-    out <- out[order(-out$persistence, out$dimension, out$birth), ,
+    out <- out[.ho_order(-out$persistence, out$dimension, out$birth), ,
                drop = FALSE]
   }
   rownames(out) <- NULL

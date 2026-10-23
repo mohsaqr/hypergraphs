@@ -32,6 +32,7 @@
 #' @export
 hg_get.net_markov_order_group <- function(x, what = c("orders", "null"),
                                           ..., top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_markov_order_group`")
   what <- .ho_match_what(what)
   groups <- names(x) %||% as.character(seq_along(x))
   parts <- Map(function(fit, label) {
@@ -82,6 +83,7 @@ hg_get.net_markov_order_group <- function(x, what = c("orders", "null"),
 #' @export
 hg_get.net_markov_order <- function(x, what = c("orders", "null"), ...,
                                     top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_markov_order`")
   what <- .ho_match_what(what)
   if (what == "orders") {
     out <- .ho_rename(x$test_table,

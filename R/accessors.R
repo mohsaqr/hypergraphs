@@ -291,7 +291,7 @@ hg_get.default <- function(x, what = NULL, ...) {
       "Persistent homology: %d features in dimension%s %s",
       nrow(x$persistence),
       if (length(unique(x$persistence$dimension)) == 1L) "" else "s",
-      paste(sort(unique(x$persistence$dimension)), collapse = ", ")),
+      paste(.ho_sort(unique(x$persistence$dimension)), collapse = ", ")),
     persistence_landscape = sprintf(
       "Persistence landscape of dimension %d: %d landscape%s on %d points",
       x$dimension, x$k_max, if (x$k_max == 1L) "" else "s",
@@ -384,6 +384,7 @@ print.hypergraphs_result <- function(x, n = 10L, ...) {
 #'   Default: the first.
 #' @export
 hg_get.hypergraphs_summary <- function(x, what = names(x)[1L], ...) {
+  .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_summary`")
   what <- .ho_match_what(what, names(x))
   x[[what]]
 }
@@ -514,7 +515,7 @@ plot.hypergraphs_result <- function(x, y, what = c("states", "passage_time"),
                value = table[[m]], stringsAsFactors = FALSE)
   }))
   long$state <- factor(long$state,
-                       levels = table$state[order(table$stationary)])
+                       levels = table$state[.ho_order(table$stationary)])
   long$measure <- factor(long$measure, levels = unname(measures))
   ggplot2::ggplot(long, ggplot2::aes(x = .data$value, y = .data$state)) +
     ggplot2::geom_col(fill = "#0072B2", width = 0.7) +

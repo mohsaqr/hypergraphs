@@ -282,6 +282,7 @@ print.net_hg_measures <- function(x, ...) {
 hg_get.net_hg_measures <- function(
     x, what = c("nodes", "edges", "global"), ..., sort_by = NULL,
     top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hg_measures`")
   what <- .ho_match_what(what)
   out <- switch(
     what,
@@ -310,7 +311,7 @@ hg_get.net_hg_measures <- function(
   if (!is.null(sort_by) && what != "global") {
     sort_by <- match.arg(sort_by, setdiff(names(out), c("node", "hyperedge")))
     key <- if (what == "nodes") out$node else out$hyperedge
-    out <- out[order(-out[[sort_by]], key), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], key), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)

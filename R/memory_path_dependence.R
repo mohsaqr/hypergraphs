@@ -37,6 +37,7 @@
 hg_get.net_path_dependence <- function(x, what = "contexts", ...,
                                        min_count = NULL, flips = NULL,
                                        sort_by = "kl", top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_path_dependence`")
   .ho_match_what(what, "contexts")
   out <- .ho_rename(x$contexts,
                     c(n = "count", H_order1 = "entropy_first_order",
@@ -54,7 +55,7 @@ hg_get.net_path_dependence <- function(x, what = "contexts", ...,
   }
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, "kl")
-    out <- out[order(-out[[sort_by]], out$context), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], out$context), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)

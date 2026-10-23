@@ -84,7 +84,7 @@
   } else {
     lapply(seq_len(n - window + 1L), \(i) toks[seq.int(i, length.out = window)])
   }
-  lapply(wins, \(win) sort(unique(win)))
+  lapply(wins, \(win) .ho_sort(unique(win)))
 }
 # Which words survive the vocabulary filters. Ranking is by decreasing corpus
 # count with ties broken alphabetically, so the kept set is deterministic and
@@ -98,7 +98,7 @@
       length(total) > 0L && !is.null(names(total))
   )
   counts <- as.numeric(total)
-  ranked <- order(-counts, names(total))
+  ranked <- .ho_order(-counts, names(total))
   counts <- counts[ranked]
   words <- names(total)[ranked]
 
@@ -113,7 +113,7 @@
   if (length(reached) > 0L) {
     keep <- keep & seq_along(counts) <= reached[[1L]]
   }
-  sort(words[keep])
+  .ho_sort(words[keep])
 }
 
 
@@ -344,6 +344,10 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     "`window` must be a single count >= 2" =
       length(window) == 1L && is.finite(window) && window >= 2
   )
+  # the tokens are lowercased, so the stop words must be too
+  if (isTRUE(lowercase) && !is.null(stop_words)) {
+    stop_words <- tolower(stop_words)
+  }
   if (!is.null(separator)) {
     if (!is.character(separator) || length(separator) != 1L ||
         is.na(separator) || !nzchar(separator)) {
@@ -517,7 +521,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     count = as.integer(tapply(counts$n, counts$word, sum)),
     doc_freq = as.integer(doc_freq)
   )
-  vocabulary <- vocabulary[order(vocabulary$word), , drop = FALSE]
+  vocabulary <- vocabulary[.ho_order(vocabulary$word), , drop = FALSE]
   rownames(vocabulary) <- NULL
 
   # storage: sparse when the incidence would exceed a million cells, dense
@@ -556,7 +560,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     hg <- builder(sent_counts, node = "word", hyperedge = "edge", weight = "w")
     weights <- data.frame(edge = sent_counts$edge, word = sent_counts$word,
                           weight = sent_counts$w)
-    weights <- weights[order(weights$edge, weights$word), , drop = FALSE]
+    weights <- weights[.ho_order(weights$edge, weights$word), , drop = FALSE]
     rownames(weights) <- NULL
     sentences <- data.frame(edge = edge_id, doc = edge_doc,
                             sentence = edge_index,
@@ -588,7 +592,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
                                       hyperedge = "edge", weight = "w")
     weights <- data.frame(edge = win_counts$edge, word = win_counts$word,
                           weight = win_counts$w)
-    weights <- weights[order(weights$edge, weights$word), , drop = FALSE]
+    weights <- weights[.ho_order(weights$edge, weights$word), , drop = FALSE]
     rownames(weights) <- NULL
     nodes <- "word"
   } else {
@@ -609,7 +613,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     }
     weights <- data.frame(doc = counts$doc, word = counts$word,
                           count = counts$n, weight = counts$w)
-    weights <- weights[order(weights$doc, weights$word), , drop = FALSE]
+    weights <- weights[.ho_order(weights$doc, weights$word), , drop = FALSE]
     rownames(weights) <- NULL
   }
 
@@ -716,7 +720,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     edge = colnames(hg$incidence)[nz[, "col"]],
     weight = as.numeric(hg$incidence[nz])
   )
-  weights <- weights[order(weights$edge, weights$doc), , drop = FALSE]
+  weights <- weights[.ho_order(weights$edge, weights$doc), , drop = FALSE]
   rownames(weights) <- NULL
 
   hg$text <- list(
@@ -822,6 +826,7 @@ hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
                                                "vocabulary", "sentences"),
                                    node = NULL, sort_by = NULL, top = NULL,
                                    ...) {
+  .ho_no_dots(..., .for = "hg_get() on a `text_hypergraph`")
   what <- .ho_match_what(what)
   # every filter is checked against `what` before any is applied, and they
   # compose: node, then sort_by, then top
@@ -845,7 +850,7 @@ hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
   }
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, c("count", "doc_freq"))
-    out <- out[order(-out[[sort_by]], out$word), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], out$word), , drop = FALSE]
     rownames(out) <- NULL
   }
   .ho_top(out, top)

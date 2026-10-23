@@ -122,7 +122,10 @@ planted_hg <- function() {
 
 test_that("subsampling stability recovers planted topics and the eigengap", {
   hg <- planted_hg()
-  out <- quiet_kmeans(hg_stability(hg, k = 2:5, n_boot = 20))
+  # three planted topics of the same size: their symmetry ties the
+  # spectrum at k = 2, 4, 5, which the stability check reports once
+  expect_warning(out <- quiet_kmeans(hg_stability(hg, k = 2:5, n_boot = 20)),
+                 class = "hypergraphs_tied_spectrum")
   expect_named(out, c("k", "n_runs", "n_failed", "mean_jaccard",
                       "min_jaccard", "n_stable", "n_dissolved", "eigengap"))
   expect_identical(out$k, 2:5)
@@ -156,7 +159,8 @@ test_that("planted stability holds across seeds; unstructured text is less stabl
   # words drawn from one shared pool: no topic structure to recover
   old <- if (exists(".Random.seed", envir = globalenv())) .Random.seed
   set.seed(3)
-  pool <- paste0("w", seq_len(40))
+  # alphabetic words: the tokeniser keeps letters only, so "w12" would be "w"
+  pool <- do.call(paste0, expand.grid(letters[1:8], letters[1:5]))
   noise <- vapply(seq_len(36), \(i) paste(sample(pool, 7), collapse = " "), "")
   if (!is.null(old)) assign(".Random.seed", old, envir = globalenv())
   names(noise) <- paste0("d", seq_len(36))
@@ -173,9 +177,13 @@ test_that("hg_stability is reproducible under a seed and restores the caller's R
   set.seed(123)
   before <- stats::runif(1)
   set.seed(123)
-  a <- quiet_kmeans(hg_stability(hg, k = 2:4, n_boot = 10, seed = 5))
+  expect_warning(a <- quiet_kmeans(hg_stability(hg, k = 2:4, n_boot = 10,
+                                                seed = 5)),
+                 class = "hypergraphs_tied_spectrum")
   expect_identical(stats::runif(1), before)
-  b <- quiet_kmeans(hg_stability(hg, k = 2:4, n_boot = 10, seed = 5))
+  expect_warning(b <- quiet_kmeans(hg_stability(hg, k = 2:4, n_boot = 10,
+                                                seed = 5)),
+                 class = "hypergraphs_tied_spectrum")
   expect_identical(a, b)
 })
 

@@ -182,7 +182,7 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
                     row.names = NULL)
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, choices = "pagerank")
-    out <- out[order(-out$pagerank, out$node), , drop = FALSE]
+    out <- out[.ho_order(-out$pagerank, out$node), , drop = FALSE]
     rownames(out) <- NULL
   }
   if (is.finite(n) && n < nrow(out)) {

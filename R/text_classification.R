@@ -153,6 +153,7 @@ hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
                                      split = NULL, correct = NULL,
                                      node = NULL, sort_by = NULL, top = NULL,
                                      ...) {
+  .ho_no_dots(..., .for = "hg_get() on a `hg_classification`")
   what <- .ho_match_what(what)
   plain <- .ho_plain(x)
   attributes(plain) <- attributes(plain)[c("names", "row.names", "class")]
@@ -172,7 +173,7 @@ hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
   }
   test <- plain[plain$split %in% "test", , drop = FALSE]
   classes <- attr(x, "classes") %||%
-    sort(unique(stats::na.omit(plain$label)))
+    .ho_sort(unique(stats::na.omit(plain$label)))
   if (identical(what, "confusion")) {
     # the column of documents without a prediction; renamed "(unscored).1"
     # if a real class already carries the name
@@ -251,7 +252,7 @@ hg_get.hg_classification <- function(x, what = c("predictions", "accuracy",
   }
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, c("margin", "score"))
-    out <- out[order(-out[[sort_by]], out$node), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], out$node), , drop = FALSE]
   }
   rownames(out) <- NULL
   .thg_top_by(out, out$label, top)

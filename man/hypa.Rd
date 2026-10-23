@@ -12,7 +12,11 @@ hypa(x, ...)
 \item{...}{Arguments of the method for \code{class(x)}.}
 }
 \value{
-See the methods.
+For a \code{net_hg}, a base \code{data.frame} with one row per scored node
+pair, its observed and expected co-occurrence and the over- and
+under-representation p-values (see \code{hypa.net_hg()}). For sequences, a
+\code{net_hypa} object whose tables, the anomalous paths and every scored
+path, are read with \code{\link[=hg_get]{hg_get()}} (see \code{hypa.default()}).
 }
 \description{
 One verb, two estimators, chosen by the class of \code{x}:

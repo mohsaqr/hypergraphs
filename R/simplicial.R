@@ -51,6 +51,7 @@ hg_get.simplicial_complex <- function(x, what = c("simplices", "f_vector",
                                       ..., dimension = NULL,
                                       normalized = FALSE,
                                       top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `simplicial_complex`")
   what <- .ho_match_what(what)
   if (what == "betti") {
     betti <- as.integer(hg_betti(x))
@@ -121,6 +122,7 @@ hg_get.simplicial_complex <- function(x, what = c("simplices", "f_vector",
 #' @export
 hg_get.q_analysis <- function(x, what = c("q_levels", "nodes"), ...,
                               top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `q_analysis`")
   what <- .ho_match_what(what)
   if (what == "nodes") {
     sv <- x$structure_vector

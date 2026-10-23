@@ -34,7 +34,8 @@ table and has no default.}
 \item{topics}{A mixed-membership topic model of \code{hg} fitted by
 \code{\link[=hg_topics]{hg_topics()}}. Each document's state is then its main topic, the topic
 with its largest share (\code{hg_get(topics, what = "documents")}). Give
-\code{topics} instead of \code{clusters} and \code{state}.}
+\code{topics} instead of \code{clusters} and \code{state}. A model fitted on another
+corpus raises \code{hypergraphs_bad_input}.}
 }
 \value{
 A base \code{data.frame} with one row per document of \code{hg}, ordered by
@@ -119,7 +120,7 @@ Xu, J., Wickramarathne, T. L., & Chawla, N. V. (2016). Representing
 higher-order dependencies in networks. \emph{Science Advances}, 2(5),
 e1600028.
 
-Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 clustering, classification, and embedding. \emph{Advances in Neural
 Information Processing Systems}, 19, 1601-1608.
 \doi{10.7551/mitpress/7503.003.0205}

@@ -56,7 +56,7 @@
 .thg_assignment_draw <- function(m, max_attempts = 100L) {
   degree <- rowSums(m)
   capacity_all <- colSums(m)
-  order_nodes <- order(-degree, seq_along(degree))
+  order_nodes <- .ho_order(-degree, seq_along(degree))
   for (attempt in seq_len(max_attempts)) {
     out <- matrix(0L, nrow(m), ncol(m), dimnames = dimnames(m))
     capacity <- capacity_all

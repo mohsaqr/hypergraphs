@@ -57,8 +57,8 @@
   })
   trajectories <- trajectories[lengths(trajectories) > 0L]
   if (length(trajectories) == 0L) {
-    stop("No valid trajectories (each must have at least 2 states).",
-         call. = FALSE)
+    .ho_bad_input(paste0("no sequence has two consecutive states, so ",
+                         "there is no transition to model"))
   }
   trajectories
 }
@@ -159,7 +159,7 @@
                       count = integer(0L), probability = numeric(0L),
                       stringsAsFactors = FALSE)
   }
-  out <- out[order(out$order, out$from, out$to), , drop = FALSE]
+  out <- out[.ho_order(out$order, out$from, out$to), , drop = FALSE]
   rownames(out) <- NULL
   out
 }
@@ -314,7 +314,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   .hi_require_rules(observed, min_freq)
 
   # All randomness up front (serial), so parallel == serial under a seed
-  if (!is.null(seed)) set.seed(as.integer(seed))
+  if (!is.null(seed)) .ho_local_seed(seed)
   draws <- matrix(sample.int(n_seq, n_seq * n_boot, replace = TRUE),
                   nrow = n_seq, ncol = n_boot)
 
@@ -464,7 +464,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   }
 
   # All permutations drawn up front (serial), so parallel == serial
-  if (!is.null(seed)) set.seed(as.integer(seed))
+  if (!is.null(seed)) .ho_local_seed(seed)
   perms <- replicate(n_perm, sample(is_x_obs))
 
   one_perm <- function(p) {
@@ -563,6 +563,7 @@ hg_get.hypergraphs_bootstrap <- function(x, what = "edges", ...,
                                 min_support = NULL,
                                 order_min = NULL,
                                 sort_by = NULL, top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_bootstrap`")
   .ho_match_what(what, "edges")
   out <- x$edges
   if (!is.null(min_support)) {
@@ -579,7 +580,7 @@ hg_get.hypergraphs_bootstrap <- function(x, what = "edges", ...,
   }
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, c("count", "probability", "support"))
-    out <- out[order(-out[[sort_by]], out$from, out$to), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], out$from, out$to), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)
@@ -653,7 +654,7 @@ summary.hypergraphs_bootstrap <- function(object, ...) {
 #' @export
 plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
   e <- x$edges
-  e <- e[order(-e$count, e$from, e$to), , drop = FALSE]
+  e <- e[.ho_order(-e$count, e$from, e$to), , drop = FALSE]
   e <- e[seq_len(min(top, nrow(e))), , drop = FALSE]
   e$label <- paste(e$from, "->", e$to)
   e$label <- factor(e$label, levels = rev(e$label))
@@ -720,6 +721,7 @@ plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
 hg_get.hypergraphs_comparison <- function(x, what = c("edges", "global"), ...,
                                    significant = FALSE,
                                    sort_by = NULL, top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_comparison`")
   what <- .ho_match_what(what, c("edges", "global"))
   if (identical(what, "global")) {
     return(data.frame(statistic = x$global$statistic,
@@ -738,7 +740,7 @@ hg_get.hypergraphs_comparison <- function(x, what = c("edges", "global"), ...,
                   abs_diff = -abs(out$diff),
                   count    = -out$count,
                   p_adj    = out$p_adj)
-    out <- out[order(key, out$from, out$to), , drop = FALSE]
+    out <- out[.ho_order(key, out$from, out$to), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)
@@ -820,7 +822,7 @@ summary.hypergraphs_comparison <- function(object, ...) {
 plot.hypergraphs_comparison <- function(x, top = 20L, ...) {
   e <- x$edges
   e <- e[!is.na(e$diff), , drop = FALSE]
-  e <- e[order(-abs(e$diff), e$from, e$to), , drop = FALSE]
+  e <- e[.ho_order(-abs(e$diff), e$from, e$to), , drop = FALSE]
   e <- e[seq_len(min(top, nrow(e))), , drop = FALSE]
   e$label <- paste(e$from, "->", e$to)
   e$label <- factor(e$label, levels = rev(e$label))

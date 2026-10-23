@@ -507,7 +507,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 
   # One clock for every time the object holds: hyperedge starts and ends and
   # the node entry times share the origin and the unit.
-  observed_nodes <- sort(unique(memberships$node))
+  observed_nodes <- .ho_sort(unique(memberships$node))
   node_data <- .thg_node_universe(nodes, observed_nodes)
   clock_columns <- list(start = memberships$start)
   if (!is.null(end)) clock_columns$end <- memberships$end
@@ -554,7 +554,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
     constant_within_edge(metadata[[column]], allow_na = TRUE)
   }, candidates)
 
-  edge_names <- sort(unique(memberships$edge))
+  edge_names <- .ho_sort(unique(memberships$edge))
   first <- match(edge_names, memberships$edge)
   edge_data <- .thg_edge_attributes(metadata[attributes], memberships$edge,
                                     edge_names,
@@ -579,7 +579,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   memberships <- memberships[, c("node", "edge", "start", "end", "weight"),
                              drop = FALSE]
 
-  times <- sort(unique(c(edge_data$start, edge_data$end[!is.na(edge_data$end)],
+  times <- .ho_sort(unique(c(edge_data$start, edge_data$end[!is.na(edge_data$end)],
                          memberships$start, memberships$end[!is.na(memberships$end)])))
   span <- range(c(times, node_data$start[!is.na(node_data$start)]))
 
@@ -760,7 +760,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
     .thg_bad_input(sprintf("%d observed node(s) are not in `nodes`",
                            length(missing_members)))
   }
-  ord <- order(node)
+  ord <- .ho_order(node)
   data.frame(node = node[ord], start = start[ord], stringsAsFactors = FALSE)
 }
 
@@ -859,7 +859,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
       .thg_bad_input("`at` lies outside the observation window",
                      class = "hypergraphs_outside_observation")
     }
-    times <- sort(unique(times))
+    times <- .ho_sort(unique(times))
     window <- if (whole) end - start else as.numeric(window %||% 0)
   } else if (whole) {
     times <- start
@@ -927,7 +927,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   if (all(is.na(node_data$start))) return(node_data$node)
   entered <- !is.na(node_data$start) &
     .thg_begun(node_data$start, t, window, closed)
-  sort(union(node_data$node[entered], unique(active_members)))
+  .ho_sort(union(node_data$node[entered], unique(active_members)))
 }
 
 .thg_snapshot_at <- function(x, t, window, mode, multiedges, closed = FALSE) {
@@ -1135,6 +1135,7 @@ summary.net_temporal_hypergraph <- function(object, ...) {
 hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
                                                        "edges", "nodes"),
                                            ...) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_temporal_hypergraph`")
   what <- .ho_match_what(what)
   switch(what, memberships = x$memberships, edges = x$edge_data, nodes = x$node_data)
 }

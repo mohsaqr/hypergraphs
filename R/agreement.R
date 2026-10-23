@@ -289,7 +289,7 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
     counts <- stats::aggregate(node ~ label_x + label_y, data = joined,
                                length)
     names(counts) <- c("label_x", "label_y", "n")
-    ord <- counts[order(counts$label_x, counts$label_y), , drop = FALSE]
+    ord <- counts[.ho_order(counts$label_x, counts$label_y), , drop = FALSE]
     rownames(ord) <- NULL
     return(ord)
   }
@@ -304,7 +304,7 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
       stringsAsFactors = FALSE
     )
     out$share <- out$overlap / out$n
-    out <- out[order(match(out$label_x, .thg_kw_natural(out$label_x))), ,
+    out <- out[.ho_order(match(out$label_x, .thg_kw_natural(out$label_x))), ,
                drop = FALSE]
     rownames(out) <- NULL
     return(out)
@@ -349,6 +349,10 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
 #' documents may not be drawn); [hg_cluster()] cannot cut a disconnected
 #' hypergraph, so that run is not scored, is counted in `n_failed`, and a
 #' warning of class `hypergraphs_hypergraph_disconnected` reports the count.
+#' A run whose Laplacian spectrum ties at `k` (see [hg_cluster()]) is scored,
+#' and one warning of class `hypergraphs_tied_spectrum` names the values of
+#' `k` and the number of runs at which the full hypergraph or a subsample
+#' tied.
 #'
 #' The `eigengap` column is the gap \eqn{\lambda_{k+1} - \lambda_k} between
 #' consecutive eigenvalues of the full hypergraph's Laplacian (the `gap`
@@ -472,22 +476,41 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
   set.seed(seed)
   draws <- lapply(seq_len(n_boot), \(b) sample(n, m))
 
-  full <- lapply(k, \(kk) {
-    fit <- hg_cluster(hg, k = kk, type = type, seed = seed, nstart = nstart)
+  # a tie at k on the full hypergraph is reported in the one summary
+  # warning below, with the subsamples' ties
+  tied_full <- logical(length(k))
+  full <- lapply(seq_along(k), \(i) {
+    fit <- withCallingHandlers(
+      hg_cluster(hg, k = k[[i]], type = type, seed = seed, nstart = nstart),
+      hypergraphs_tied_spectrum = function(w) {
+        tied_full[[i]] <<- TRUE
+        invokeRestart("muffleWarning")
+      })
     stats::setNames(fit$cluster, fit$node)[hg$nodes]
   })
   spectrum <- hg_cluster(hg, k = max(k), type = type, seed = seed,
                          nstart = nstart, what = "eigenvalues")
 
   # one list per subsample: for every k, the Jaccard of each full cluster
-  # with its best-matching subsample cluster, or NULL when disconnected
+  # with its best-matching subsample cluster, or NULL when disconnected. A
+  # subsample whose spectrum ties at k is still scored (an unidentified
+  # partition is part of the instability measured here); its warning is
+  # counted and reported once below rather than once per subsample.
+  tied <- new.env(parent = emptyenv())
+  tied$n <- integer(length(k))
   runs <- lapply(draws, \(draw) {
     sub <- .thg_restrict_nodes(hg, draw)
     lapply(seq_along(k), \(i) {
-      fit <- tryCatch(
-        hg_cluster(sub, k = k[[i]], type = type, seed = seed,
-                   nstart = nstart),
-        hypergraphs_hypergraph_disconnected = function(e) NULL
+      fit <- withCallingHandlers(
+        tryCatch(
+          hg_cluster(sub, k = k[[i]], type = type, seed = seed,
+                     nstart = nstart),
+          hypergraphs_hypergraph_disconnected = function(e) NULL
+        ),
+        hypergraphs_tied_spectrum = function(w) {
+          tied$n[[i]] <- tied$n[[i]] + 1L
+          invokeRestart("muffleWarning")
+        }
       )
       if (is.null(fit)) return(NULL)
       .thg_best_jaccard(full[[i]][sub$nodes],
@@ -522,6 +545,21 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
               paste(unique(n_failed), collapse = "/"), as.integer(n_boot),
               paste(k[n_failed > 0], collapse = ", ")),
       class = "hypergraphs_hypergraph_disconnected", call = NULL
+    ))
+  }
+  if (any(tied_full) || any(tied$n > 0L)) {
+    parts <- c(
+      if (any(tied_full)) sprintf("on the full hypergraph at k = %s",
+                                  paste(k[tied_full], collapse = ", ")),
+      if (any(tied$n > 0L)) sprintf(
+        "in %s of %d subsamples at k = %s",
+        paste(unique(tied$n[tied$n > 0L]), collapse = "/"),
+        as.integer(n_boot), paste(k[tied$n > 0L], collapse = ", ")))
+    warning(warningCondition(
+      sprintf(paste0("the Laplacian spectrum tied %s, so those partitions ",
+                     "depend on the eigensolver"),
+              paste(parts, collapse = " and ")),
+      class = "hypergraphs_tied_spectrum", call = NULL
     ))
   }
   if (identical(what, "clusters")) {
@@ -595,7 +633,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
 #' Seed labels from a clustering, for spreading or training
 #'
 #' The seeds of a cluster are its `n` nodes with the highest stationary
-#' probability `pi` under the hypergraph random walk (Zhou et al. 2006;
+#' probability `pi` under the hypergraph random walk (Zhou et al. 2007;
 #' Hayashi et al. 2020), the members the walk visits most often. Ties are
 #' broken alphabetically by node name. The seeds serve as the labeled
 #' examples that [hg_classify()] takes.
@@ -609,7 +647,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
 #'   by the seed node, in the form the `labels` argument of [hg_classify()]
 #'   takes.
 #' @references
-#' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+#' Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 #' Clustering, classification, and embedding. \emph{NeurIPS 19}.
 #' \doi{10.7551/mitpress/7503.003.0205}
 #'
@@ -634,6 +672,6 @@ hg_seeds <- function(embedding, n = 5L) {
   )
   n <- .ho_check_count(n, "n")
   chosen <- do.call(rbind, lapply(split(embedding, embedding$cluster), \(g)
-    utils::head(g[order(-g$pi, g$node), , drop = FALSE], n)))
+    utils::head(g[.ho_order(-g$pi, g$node), , drop = FALSE], n)))
   stats::setNames(as.character(chosen$cluster), chosen$node)
 }

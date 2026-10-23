@@ -234,8 +234,13 @@
   sequences <- .hon_sequence_values(data)
   if (is.null(sequences)) return(data)
   if (check_labels) .hon_check_states(unlist(sequences, use.names = FALSE))
+  runs <- unlist(lapply(sequences, .hon_gap_runs), recursive = FALSE)
+  if (!any(lengths(runs) >= 2L)) {
+    .ho_bad_input(paste0("no sequence has two consecutive states, so there ",
+                         "is no transition to model"))
+  }
   if (!any(vapply(sequences, anyNA, logical(1L)))) return(data)
-  unlist(lapply(sequences, .hon_gap_runs), recursive = FALSE)
+  runs
 }
 
 # ---------------------------------------------------------------------------
@@ -588,6 +593,9 @@ hg_get.net_hon <- function(x, what = c("rules", "nodes", "pathways"), ...,
                            order_min = NULL, sort_by = NULL,
                            top = NULL) {
   what <- .ho_match_what(what)
+  if (what != "pathways") {
+    .ho_no_dots(..., .for = sprintf("hg_get(what = \"%s\") on a `net_hon`", what))
+  }
   if (what == "pathways") {
     return(.ho_top(.ho_pathway_table(Nestimate::pathways(x, ...)), top))
   }
@@ -606,7 +614,7 @@ hg_get.net_hon <- function(x, what = c("rules", "nodes", "pathways"), ...,
   }
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, c("count", "probability"))
-    out <- out[order(-out[[sort_by]], out$from, out$to), , drop = FALSE]
+    out <- out[.ho_order(-out[[sort_by]], out$from, out$to), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)

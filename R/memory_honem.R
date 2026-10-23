@@ -28,6 +28,7 @@
 #' @export
 hg_get.net_honem <- function(x, what = c("embeddings", "variance"), ...,
                              top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_honem`")
   what <- .ho_match_what(what)
   if (what == "variance") {
     energy <- x$singular_values^2

@@ -35,7 +35,7 @@ stop_words_en <- function(type = c("minimal", "snowball")) {
   })
   if (identical(type, "snowball")) {
     # the English stop list of snowballstem.org/algorithms/english/stop.txt
-    return(sort(c(
+    return(.ho_sort(c(
     "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
     "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself",
     "she", "her", "hers", "herself", "it", "its", "itself", "they", "them",
@@ -59,7 +59,7 @@ stop_words_en <- function(type = c("minimal", "snowball")) {
     "not", "only", "own", "same", "so", "than", "too", "very"
     )))
   }
-  sort(c(
+  .ho_sort(c(
     "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with",
     "by", "from", "as", "at", "this", "that", "these", "those", "is",
     "are", "was", "were", "be", "been", "being", "it", "its", "we", "our",

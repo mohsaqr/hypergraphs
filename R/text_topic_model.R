@@ -24,15 +24,27 @@
 
 # Document-word counts of a hypergraph as a sparse documents x words matrix.
 # A text hypergraph carries its counts in the text layer, whatever its
-# orientation or weighting; any other hypergraph uses its incidence, nodes
-# as documents and hyperedges as words.
+# orientation or weighting: per document for the bag construction, per
+# sentence (summed to the document here) for the sentence construction.
+# Window and kNN hyperedges keep no per-document counts and are refused.
+# Any other hypergraph uses its incidence, nodes as documents and
+# hyperedges as words.
 .tm_counts <- function(hg) {
   layer <- hg$text
-  if (!is.null(layer) && is.data.frame(layer$weights) &&
-      all(c("doc", "word", "count") %in% names(layer$weights))) {
+  if (!is.null(layer)) {
     w <- layer$weights
-    docs <- sort(unique(as.character(w$doc)))
-    words <- sort(unique(as.character(w$word)))
+    if (identical(layer$construction, "sentence")) {
+      w <- data.frame(doc = layer$sentences$doc[match(w$edge,
+                                                      layer$sentences$edge)],
+                      word = w$word, count = w$weight)
+    } else if (!all(c("doc", "word", "count") %in% names(w))) {
+      .thg_bad_input(sprintf(paste0(
+        "a text hypergraph built with construction = \"%s\" keeps no ",
+        "document-word counts; build it with construction = \"bag\" or ",
+        "\"sentence\" to fit topics"), layer$construction))
+    }
+    docs <- .ho_sort(unique(as.character(w$doc)))
+    words <- .ho_sort(unique(as.character(w$word)))
     return(Matrix::sparseMatrix(
       i = match(w$doc, docs), j = match(w$word, words),
       x = as.numeric(w$count), dims = c(length(docs), length(words)),
@@ -184,7 +196,7 @@
 
 # Ranked top words of every topic of a fit (columns of Ht).
 .tm_top_words <- function(Ht, words, depth) {
-  lapply(seq_len(ncol(Ht)), \(t) words[order(-Ht[, t], words)][seq_len(depth)])
+  lapply(seq_len(ncol(Ht)), \(t) words[.ho_order(-Ht[, t], words)][seq_len(depth)])
 }
 
 # Agreement of a fit with the reference: topics matched one to one by the
@@ -249,10 +261,12 @@
 #' coefficients are averaged. A topic that the other starts find again has a
 #' high `agreement`.
 #'
-#' A text hypergraph from [text_hypergraph()] is factorized on its word
-#' counts, whatever its node orientation and incidence weighting; any other
-#' hypergraph on its incidence, with its nodes as documents and its
-#' hyperedges as words.
+#' A text hypergraph from [text_hypergraph()] is factorized on its
+#' document-word counts, whatever its node orientation and incidence
+#' weighting; a sentence hypergraph's sentence counts are summed to its
+#' documents. Window and kNN text hypergraphs keep no document-word counts
+#' and raise `hypergraphs_bad_input`. Any other hypergraph is factorized on
+#' its incidence, with its nodes as documents and its hyperedges as words.
 #'
 #' @param hg A `net_hg` or `text_hypergraph`.
 #' @param k Number of topics, a whole number of at least 2 and smaller than
@@ -423,7 +437,7 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
   # P(w | z)
   probabilities <- Ht / matrix(ifelse(word_totals > 0, word_totals, 1),
                                nrow(Ht), k, byrow = TRUE)
-  order_topics <- order(-colMeans(shares), seq_len(k))
+  order_topics <- .ho_order(-colMeans(shares), seq_len(k))
   shares <- shares[, order_topics, drop = FALSE]
   probabilities <- probabilities[, order_topics, drop = FALSE]
   topic_agreement <- topic_agreement[order_topics]
@@ -434,11 +448,11 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
     node = rep(docs, times = k),
     topic = rep(labels, each = length(docs)),
     share = as.vector(shares), stringsAsFactors = FALSE)
-  share_table <- share_table[order(match(share_table$node, docs),
+  share_table <- share_table[.ho_order(match(share_table$node, docs),
                                    match(share_table$topic, labels)), ]
   rownames(share_table) <- NULL
   word_table <- do.call(rbind, lapply(seq_len(k), \(t) {
-    ranked <- order(-probabilities[, t], words)
+    ranked <- .ho_order(-probabilities[, t], words)
     data.frame(topic = labels[t], rank = seq_along(ranked),
                word = words[ranked], probability = probabilities[ranked, t],
                stringsAsFactors = FALSE)
@@ -531,6 +545,7 @@ hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
                                              "prevalence"), ...,
                                  n = 10L, topic = NULL, group = NULL,
                                  top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_hg_topics`")
   what <- .ho_match_what(what)
   if (identical(what, "prevalence")) {
     return(.ho_top(.tm_prevalence(x, group, topic), top))
@@ -600,7 +615,7 @@ hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
                     n = as.integer(sizes[means$group]))
   out <- merge(out, x$topics[c("topic", "top_words")], by = "topic",
                sort = FALSE)
-  out <- out[order(match(out$topic, x$topics$topic), out$group), ,
+  out <- out[.ho_order(match(out$topic, x$topics$topic), out$group), ,
              drop = FALSE]
   rownames(out) <- NULL
   out
@@ -666,11 +681,11 @@ plot.net_hg_topics <- function(x, y, n = 8L, type = c("words", "prevalence"),
                   \(w) paste(utils::head(w, 3L), collapse = ", "),
                   character(1L))
   prevalence$name <- sprintf("%s: %s", prevalence$topic, words)
-  order_names <- unique(prevalence$name[order(
+  order_names <- unique(prevalence$name[.ho_order(
     stats::ave(prevalence$prevalence, prevalence$name, FUN = mean)
   )])
   prevalence$name <- factor(prevalence$name, levels = order_names)
-  groups <- sort(unique(prevalence$group))
+  groups <- .ho_sort(unique(prevalence$group))
   palette <- c("#E69F00", "#0072B2", "#009E73", "#D55E00", "#CC79A7",
                "#56B4E9", "#F0E442", "#999999", "#000000")
   colours <- stats::setNames(rep_len(palette, length(groups)), groups)
@@ -759,7 +774,7 @@ hg_topic_search <- function(hg, k, nstart = 1L, n = 10L, frexw = 0.7,
       anyDuplicated(k) > 0L) {
     .thg_bad_input("`k` must hold at least two distinct whole numbers")
   }
-  k <- sort(as.integer(k))
+  k <- .ho_sort(as.integer(k))
   one_k <- \(topics) {
     fit <- hg_topics(hg, k = topics, nstart = nstart, max_iter = max_iter,
                      tol = tol, depth = n, seed = seed)
@@ -791,7 +806,7 @@ plot.hypergraphs_topic_search <- function(x, ...) {
   d <- .ho_plain(x)
   d$model <- ifelse(d$frontier, "on the frontier", "dominated")
   frontier <- d[d$frontier, , drop = FALSE]
-  frontier <- frontier[order(frontier$coherence), , drop = FALSE]
+  frontier <- frontier[.ho_order(frontier$coherence), , drop = FALSE]
   ggplot2::ggplot(d, ggplot2::aes(x = .data$coherence,
                                   y = .data$exclusivity)) +
     ggplot2::geom_line(data = frontier, colour = "#0072B2") +

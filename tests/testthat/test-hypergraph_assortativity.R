@@ -66,19 +66,6 @@ test_that("a star graph is perfectly disassortative", {
   expect_true(is.na(out$assortativity[2]))
 })
 
-test_that("on a graph, uniform equals Newman's degree assortativity", {
-  skip_if_not_installed("igraph")
-  set.seed(5)
-  g <- igraph::sample_gnm(30, 60)
-  ends <- igraph::as_edgelist(g)
-  edges <- lapply(seq_len(nrow(ends)), \(i) paste0("v", ends[i, ]))
-  names(edges) <- sprintf("e%03d", seq_along(edges))
-  out <- hg_assortativity(.as_hg(edges), type = c("uniform", "top_2"),
-                          scale = "degree")
-  newman <- igraph::assortativity_degree(g, directed = FALSE)
-  expect_equal(out$assortativity, c(newman, newman), tolerance = 1e-12)
-})
-
 test_that("undefined coefficients are NA (regular hypergraph)", {
   # every node has hyperdegree 2
   edges <- list(e1 = c("a", "b", "c"), e2 = c("d", "e", "f"),

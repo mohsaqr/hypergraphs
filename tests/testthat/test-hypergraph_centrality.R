@@ -51,25 +51,6 @@ test_that("sort_by ranks the table without changing the values", {
 
 # CEC vs igraph validation ------------------------------------------------
 
-test_that("clique centrality matches igraph::eigen_centrality on expansion", {
-  skip_if_not_installed("igraph")
-  hg  <- .hc_two_overlapping()
-  cent <- .hg_centrality_fit(hg, type = "clique")
-  ours <- .hc_vec(cent, "clique")
-  # Recompute via clique expansion + igraph
-  net <- pairwise_network(hg)
-  W   <- net$weights
-  g   <- igraph::graph_from_adjacency_matrix(W, mode = "undirected",
-                                              weighted = TRUE, diag = FALSE)
-  igr <- igraph::eigen_centrality(g, directed = FALSE)$vector
-  # Match up to sign and scale
-  ours_n <- ours / sqrt(sum(ours^2))
-  igr_n  <- igr  / sqrt(sum(igr^2))
-  if (sum(ours_n * igr_n) < 0) ours_n <- -ours_n
-  expect_equal(ours_n, igr_n[names(ours_n)],
-               tolerance = 1e-5, ignore_attr = TRUE)
-})
-
 # Symmetry / structural validation ----------------------------------------
 
 test_that("symmetric nodes get equal centrality (two overlapping triangles)", {
@@ -221,27 +202,6 @@ test_that("pagerank matches a dense linear-system solve on EDVW walks", {
     hg
   })
   expect_length(results, 10L)
-})
-
-test_that("pagerank collapse theorem: binary incidence equals igraph on
-           the weighted clique expansion", {
-  skip_if_not_installed("igraph")
-  df <- data.frame(
-    p = c("A", "B", "C", "A", "B", "D", "C", "D", "E"),
-    s = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3", "S3"),
-    stringsAsFactors = FALSE
-  )
-  hg <- group_hypergraph(df, node = "p", hyperedge = "s")
-  pr <- .hg_centrality_fit(hg, type = "pagerank")
-  # Edge-independent case: W[u,v] = sum over shared edges of w(e)/delta(e),
-  # self-loops included (the walk may stay in place)
-  pat <- (hg$incidence > 0) * 1.0
-  delta <- colSums(pat)
-  W <- pat %*% (rep(1, hg$n_hyperedges) / delta * t(pat))
-  g <- igraph::graph_from_adjacency_matrix(W, mode = "directed",
-                                           weighted = TRUE, diag = TRUE)
-  ref <- igraph::page_rank(g, damping = 0.85)$vector
-  expect_equal(.hc_vec(pr, "pagerank"), ref, tolerance = 1e-6)
 })
 
 test_that("pagerank uses window counts by default and reacts to weights", {

@@ -96,7 +96,7 @@ test_that("hg_sequences output is one sequence bare and per actor with arguments
     stringsAsFactors = FALSE
   )
   hg <- text_hypergraph(corpus, column = "text", nodes = "doc", min_count = 1L)
-  topics <- hg_cluster(hg, k = 2L)
+  topics <- hg_cluster(hg, k = 3L)  # three document types, so k = 3
   seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
   expect_identical(names(seqs), c("actor", "time", "action"))
   # its columns are named action and time, so they are found by name; with

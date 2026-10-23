@@ -21,7 +21,7 @@ takes.
 }
 \description{
 The seeds of a cluster are its \code{n} nodes with the highest stationary
-probability \code{pi} under the hypergraph random walk (Zhou et al. 2006;
+probability \code{pi} under the hypergraph random walk (Zhou et al. 2007;
 Hayashi et al. 2020), the members the walk visits most often. Ties are
 broken alphabetically by node name. The seeds serve as the labeled
 examples that \code{\link[=hg_classify]{hg_classify()}} takes.
@@ -37,7 +37,7 @@ pool <- hg_cluster(hg, k = 2, seed = 1, what = "embedding")
 hg_seeds(pool, n = 1)
 }
 \references{
-Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+Zhou, D., Huang, J., & Scholkopf, B. (2007). Learning with hypergraphs:
 Clustering, classification, and embedding. \emph{NeurIPS 19}.
 \doi{10.7551/mitpress/7503.003.0205}
 

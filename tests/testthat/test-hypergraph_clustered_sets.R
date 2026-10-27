@@ -55,9 +55,10 @@ test_that("a netobject_group keeps its (renamed) group names", {
   expect_setequal(unique(hg_get(hg, what = "sets")$group), c("Short", "Long"))
 })
 
-test_that("integer-coded states are decoded to labels", {
+test_that("explicitly integer-coded states are decoded to labels", {
   coded <- .cs_mmm()
   coded$data[] <- lapply(coded$data, function(col) match(col, c("a", "b", "c")))
+  attr(coded$data, "labels") <- c("a", "b", "c")
   coded$models <- list(list(weights = matrix(0, 3, 3,
     dimnames = list(c("a", "b", "c"), c("a", "b", "c")))))
   expect_identical(.coerce_grouped_sequences(coded), .coerce_grouped_sequences(.cs_mmm()))

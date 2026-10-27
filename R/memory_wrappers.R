@@ -34,7 +34,10 @@
 #'     trailing `NA`s end a sequence.}
 #'   \item{List}{one character vector per sequence.}
 #'   \item{Model object}{a `netobject`, `netobject_group`, `tna` or
-#'     `cograph_network` that carries its sequence data.}
+#'     `cograph_network` that carries its sequence data. Nestimate model
+#'     objects retain literal state values, including numeric states.
+#'     Positional integer codes are decoded for `tna` models and converted
+#'     `cograph_network` data explicitly carrying a tna encoding alphabet.}
 #' }
 #' These are the conventions of the tna family of packages, and the same
 #' call builds the same sequences there.

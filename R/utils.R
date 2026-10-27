@@ -12,7 +12,8 @@
 #' Coerce tna or netobject to labeled sequence data.frame
 #'
 #' When \code{data} is a \code{tna} or \code{netobject}, extracts the
-#' sequence data and converts numeric state IDs to label names. This
+#' sequence data and decodes positional IDs only for tna input. A netobject
+#' stores literal states, including numeric states. This
 #' allows \code{hg_bootstrap()}, \code{hg_compare()} and
 #' \code{temporal_hypergraph()} to accept model objects directly.
 #'
@@ -28,13 +29,17 @@
     } # nocov end
     df <- as.data.frame(data$data, stringsAsFactors = FALSE) # nocov start
     lbl <- attr(data$data, "labels") %||% data$labels
-    if (!is.null(lbl) && length(lbl) > 0L &&
-        (is.integer(df[[1]]) || is.numeric(df[[1]]))) {
+    if (!is.null(lbl) && length(lbl) > 0L) {
       df[] <- lapply(df, function(col) {
+        if (!is.numeric(col)) return(col)
         idx <- as.integer(col)
-        ifelse(is.na(idx) | idx < 1L | idx > length(lbl),
-               NA_character_, lbl[idx])
+        valid <- !is.na(idx) & idx >= 1L & idx <= length(lbl)
+        out <- rep(NA_character_, length(idx))
+        out[valid] <- lbl[idx[valid]]
+        out
       })
+      attr(df, "labels") <- NULL
+      attr(df, "alphabet") <- NULL
     }
     return(df) # nocov end
   }
@@ -47,17 +52,7 @@
            "Build the network from sequence data.",
            call. = FALSE) # nocov end
     }
-    df <- as.data.frame(data$data, stringsAsFactors = FALSE)
-    lbl <- rownames(data$weights)
-    if (!is.null(lbl) && length(lbl) > 0L &&
-        (is.integer(df[[1]]) || is.numeric(df[[1]]))) {
-      df[] <- lapply(df, function(col) { # nocov start
-        idx <- as.integer(col)
-        ifelse(is.na(idx) | idx < 1L | idx > length(lbl),
-               NA_character_, lbl[idx])
-      }) # nocov end
-    }
-    return(df)
+    return(as.data.frame(data$data, stringsAsFactors = FALSE))
   }
   ## Bare sequence matrix (character / logical) -> wide data.frame.
   if (is.matrix(data) && !is.numeric(data)) {
@@ -107,17 +102,26 @@
     "relative", "frequency", "co_occurrence", "attention"
   )
 
-  # Decode integer-encoded tna data -> character labels
-  # Only for sequence methods; association methods keep numeric data as-is
+  # Numeric cells alone do not identify encoded states: generic networks
+  # may store literal numeric labels. A converted tna model retains its
+  # data class/alphabet or its explicit source metadata.
   if (!is.null(raw_data)) {
+    encoded_labels <- attr(raw_data, "labels") %||% attr(raw_data, "alphabet")
+    encoded <- inherits(raw_data, "tna_seq_data") ||
+      !is.null(encoded_labels) || identical(x$meta$source, "tna")
     raw_data <- as.data.frame(raw_data, stringsAsFactors = FALSE)
-    if (is_sequence_method &&
-        (is.integer(raw_data[[1]]) || is.numeric(raw_data[[1]]))) {
+    if (is_sequence_method && encoded) {
+      labels <- encoded_labels %||% states
       raw_data[] <- lapply(raw_data, function(col) {
+        if (!is.numeric(col)) return(col)
         idx <- as.integer(col)
-        ifelse(is.na(idx) | idx < 1L | idx > length(states),
-               NA_character_, states[idx])
+        valid <- !is.na(idx) & idx >= 1L & idx <= length(labels)
+        out <- rep(NA_character_, length(idx))
+        out[valid] <- labels[idx[valid]]
+        out
       })
+      attr(raw_data, "labels") <- NULL
+      attr(raw_data, "alphabet") <- NULL
     }
   }
 
@@ -327,11 +331,10 @@
       "`assignments` must be one whole number in 1..%d per sequence of $data (%d sequences)",
       k, nrow(data)))
   }
-  # a mixture fit keeps its component networks, whose weight dimnames decode
-  # integer-coded state cells as .coerce_sequence_input() does for a netobject
-  labels <- if (inherits(x, "net_mmm") && length(x$models)) {
-    rownames(x$models[[1L]]$weights)
-  }
+  # Nestimate mixture/clustering objects keep literal state values, even
+  # when those values are numeric. Decode only data explicitly marked as
+  # positional codes; component weight labels alone do not declare encoding.
+  labels <- attr(x$data, "labels") %||% attr(x$data, "alphabet")
   if (length(labels) && ncol(data) &&
       all(vapply(data, is.numeric, logical(1L)))) {
     data[] <- lapply(data, \(col) {

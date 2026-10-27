@@ -31,7 +31,10 @@ message \code{hypergraphs_single_sequence}.}
 trailing \code{NA}s end a sequence.}
 \item{List}{one character vector per sequence.}
 \item{Model object}{a \code{netobject}, \code{netobject_group}, \code{tna} or
-\code{cograph_network} that carries its sequence data.}
+\code{cograph_network} that carries its sequence data. Nestimate model
+objects retain literal state values, including numeric states.
+Positional integer codes are decoded for \code{tna} models and converted
+\code{cograph_network} data explicitly carrying a tna encoding alphabet.}
 }
 These are the conventions of the tna family of packages, and the same
 call builds the same sequences there.

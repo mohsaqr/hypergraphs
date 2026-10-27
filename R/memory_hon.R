@@ -148,7 +148,9 @@
 # (a real state spelled "NA" is a string and stays a state). The Nestimate
 # estimators the wrappers call read NA as a value or stop on it, so a
 # sequence with a gap reaches them as its runs. Trailing NAs of a wide row
-# are padding, not gaps. Input without a gap is passed on unchanged.
+# are padding, not gaps. Raw input without a gap is passed on unchanged;
+# model input is decoded locally before delegation, including when the
+# installed Nestimate still uses numeric type as an encoding heuristic.
 #
 # Memory nodes are written "a -> b" and tuple keys are joined with control
 # characters, so a state whose label contains " -> " or one of those
@@ -222,15 +224,20 @@
 #' Sequence input for a Nestimate memory estimator
 #'
 #' Checks the state labels and splits every sequence with a gap into its
-#' runs. Input without a gap is returned unchanged, so the estimator sees
-#' exactly what it saw before.
+#' runs. Model data are extracted with explicit encoding provenance before
+#' delegation; raw input without a gap is returned unchanged.
 #'
 #' @param data Output of .ho_sequence_input().
 #' @param check_labels Logical. Refuse labels with " -> " (for estimators
 #'   whose results name paths).
-#' @return `data`, or a list of character runs when a sequence had a gap.
+#' @return Raw `data`, a model's sequence frame, or a list of character runs
+#'   when a sequence had a gap.
 #' @noRd
 .hon_estimator_input <- function(data, check_labels = TRUE) {
+  if (inherits(data, c("netobject", "tna", "cograph_network")) &&
+      !is.null(data$data)) {
+    data <- .coerce_sequence_input(data)
+  }
   sequences <- .hon_sequence_values(data)
   if (is.null(sequences)) return(data)
   if (check_labels) .hon_check_states(unlist(sequences, use.names = FALSE))

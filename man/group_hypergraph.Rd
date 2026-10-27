@@ -189,8 +189,10 @@ occur exactly. Sets of equal count are ranked by their name (states
 sorted and joined by \code{" + "}). Groups are named \code{"Cluster 1"},
 \code{"Cluster 2"}, ... for a \code{net_mmm} or \code{net_clustering}, and by the list
 names of a \code{netobject_group}, so renamed groups carry through.
-Integer-coded states are decoded to their labels. The objects are read
-by their structure; the package that fitted them is not needed.
+Numeric model states are literal values. Integer-coded data are decoded
+only when their \code{labels} or \code{alphabet} attribute declares the encoding.
+The objects are read by their structure; the package that fitted them
+is not needed.
 
 The hyperedges are named \code{"<group>: <set>"} and carry \code{group}, \code{set} and
 \code{count} (sequences with exactly that set) as hyperedge attributes, so

@@ -171,8 +171,10 @@
 #' sorted and joined by `" + "`). Groups are named `"Cluster 1"`,
 #' `"Cluster 2"`, ... for a `net_mmm` or `net_clustering`, and by the list
 #' names of a `netobject_group`, so renamed groups carry through.
-#' Integer-coded states are decoded to their labels. The objects are read
-#' by their structure; the package that fitted them is not needed.
+#' Numeric model states are literal values. Integer-coded data are decoded
+#' only when their `labels` or `alphabet` attribute declares the encoding.
+#' The objects are read by their structure; the package that fitted them
+#' is not needed.
 #'
 #' The hyperedges are named `"<group>: <set>"` and carry `group`, `set` and
 #' `count` (sequences with exactly that set) as hyperedge attributes, so

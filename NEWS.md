@@ -1,3 +1,17 @@
+# hypergraphs (development version)
+
+## Bug fixes
+
+* Memory constructors preserve literal numeric states from Nestimate models.
+  Only tna models and explicitly encoded converted data decode positional
+  state codes. Equivalent raw and model inputs now give the same HON,
+  MOGen and HYPA results.
+* Model input is normalized locally before calling Nestimate, so this fix
+  also works with the minimum supported Nestimate 0.9.26.
+* Grouped mixture/clustering input preserves numeric state values.
+  Component matrix labels alone no longer imply encoded data; explicit
+  `labels` or `alphabet` attributes identify positional codes.
+
 # hypergraphs 0.7.10
 
 First release on CRAN.

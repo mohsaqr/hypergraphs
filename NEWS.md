@@ -1,5 +1,27 @@
 # hypergraphs (development version)
 
+## Breaking changes
+
+* `hg_centrality()` now defaults to `type = "clique"`. The `"Z"` and `"H"`
+  centralities are defined by Benson (2019) for uniform hypergraphs only:
+  with mixed hyperedge sizes the equation mixes polynomial degrees, so its
+  solution depends on the normalisation chosen inside the iteration.
+  Requesting them on a non-uniform hypergraph raises
+  `hypergraphs_nonuniform_hypergraph`; `hg_keywords(centrality = "Z" | "H")`
+  does the same for non-uniform word hypergraphs. The main vignette now
+  reports the clique centrality and PageRank for the trial hypergraph,
+  whose trials hold two to six events.
+* The `"Z"` and `"H"` iterations normalise the tensor update before the
+  stabilising shift and require a small eigen-equation residual to count as
+  converged. On large uniform hyperedges the shift swamped the update and
+  returned the uniform vector without a warning (a 20-member, 3-petal
+  sunflower gave a hub/petal ratio of 1 instead of sqrt(3)).
+* The memory and topology verbs follow the Nestimate corrections of
+  2026-10-27 once that version is installed: path-based degrees of freedom
+  in `mogen()` and `markov_order()`, the Scholtes order rule for
+  `mogen(criterion = "lrt")`, Atkin's Q-vector in `hg_qanalysis()`, and
+  persistent homology built one dimension above `max_dim`.
+
 ## Bug fixes
 
 * Memory constructors preserve literal numeric states from Nestimate models.

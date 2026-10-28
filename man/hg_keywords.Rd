@@ -52,7 +52,9 @@ occur once.}
 \item{centrality}{For \code{type = "centrality"}, the \code{\link[=hg_centrality]{hg_centrality()}}
 measure: \code{"pagerank"} (default; it reads the incidence weights and does
 not tie on words present in every document, as the clique measure
-does), \code{"clique"}, \code{"Z"} or \code{"H"}.}
+does), \code{"clique"}, \code{"Z"} or \code{"H"}. \code{"Z"} and \code{"H"} need every
+document-level word hypergraph to be uniform and otherwise raise
+\code{hypergraphs_nonuniform_hypergraph}.}
 
 \item{scores}{An external score table (columns \code{node}, \code{word} and one
 numeric column of finite values), summed per cluster and added as its

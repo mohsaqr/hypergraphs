@@ -6,7 +6,7 @@
 \usage{
 \method{hg_centrality}{net_hg}(
   x,
-  type = c("clique", "Z", "H"),
+  type = "clique",
   sort_by = NULL,
   n = Inf,
   max_iter = 1000L,
@@ -21,8 +21,9 @@
 \arguments{
 \item{x}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypergraphs \code{net_hg}).}
 
-\item{type}{Centralities to compute; any of \code{"clique"}, \code{"Z"}, \code{"H"}
-(default: all three), \code{"pagerank"}, \code{"subhypergraph"}, \code{"katz"}.}
+\item{type}{Centralities to compute; any of \code{"clique"} (default), \code{"Z"},
+\code{"H"} (uniform hypergraphs only), \code{"pagerank"}, \code{"subhypergraph"},
+\code{"katz"}.}
 
 \item{sort_by}{Optional centrality name to sort by, descending (ties broken
 by node name); default keeps node order.}
@@ -94,16 +95,15 @@ eigenvector of \eqn{W}. With \code{normalize = FALSE} it equals
 \strong{Z-eigenvector centrality (ZEC)}: solves the linear
 eigen-equation on the hyperedge tensor,
 \deqn{\lambda\, x_i \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j,}
-via power iteration. Works for hypergraphs with mixed edge sizes.
+via shifted power iteration.
 
 \strong{H-eigenvector centrality (HEC)}: solves the power-k-1
 eigen-equation,
 \deqn{\lambda\, x_i^{k-1} \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j.}
-For uniform hypergraphs (all hyperedges of size \eqn{k}), this is
-equivalent to normalizing the ZEC update by the geometric-mean
-exponent \eqn{1/(k-1)}. For mixed sizes, the effective exponent is
-taken from the largest hyperedge; expect slightly different rankings
-from ZEC in the mixed case.
+
+Z and H are defined for uniform hypergraphs only (Benson 2019): on mixed
+hyperedge sizes they raise \code{hypergraphs_nonuniform_hypergraph}. Use
+\code{"clique"} or \code{"pagerank"} there.
 
 \strong{Hypergraph PageRank} (\code{"pagerank"}): the stationary distribution of
 the damped EDVW random walk of Chitra & Raphael (2019): from node

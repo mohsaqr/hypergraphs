@@ -361,10 +361,18 @@ test_that("persistent_homology accepts a simplicial VR complex", {
   # Path A: matrix → PH directly.
   ph_a <- hg_homology(d, n_steps = 5L, max_dim = 2L,
                               type = "vr", max_scale = 2)
-  # Path B: matrix → simplicial(type = "vr") → PH.
-  sc <- simplicial(d, type = "vr", max_scale = 2, max_dim = 2L)
+  # Path B: matrix → simplicial(type = "vr") → PH. Since Nestimate 0.9.28
+  # PH builds simplices to max_dim + 1 so top classes can die; the complex
+  # must hold them too, so it is built with max_dim = 3.
+  skip_if(utils::packageVersion("Nestimate") < "0.9.28",
+          "PH to max_dim + 1 needs Nestimate >= 0.9.28")
+  sc <- simplicial(d, type = "vr", max_scale = 2, max_dim = 3L)
   ph_b <- hg_homology(sc, n_steps = 5L, max_dim = 2L,
                               type = "vr")
+  # a complex cut at max_dim = 2 (K4 here) cannot fill its 2-sphere
+  sc2 <- simplicial(d, type = "vr", max_scale = 2, max_dim = 2L)
+  expect_warning(hg_homology(sc2, n_steps = 5L, max_dim = 2L, type = "vr"),
+                 class = "nestimate_truncated_complex")
 
   # Persistence tables must match by row count and by (dimension, birth, death)
   # up to ordering — both should compute the same diagram.
@@ -465,6 +473,8 @@ test_that("a window complex keeps its essential classes essential", {
 })
 
 test_that("every Betti row of a window complex is Z/2 on the truncated complex", {
+  skip_if(utils::packageVersion("Nestimate") < "0.9.28",
+          "PH to max_dim + 1 needs Nestimate >= 0.9.28")
   window_ph <- function(max_dim) {
     hg_homology(simplicial(list(c("a", "b", "c")), type = "window"),
                 max_dim = max_dim)
@@ -473,8 +483,11 @@ test_that("every Betti row of a window complex is Z/2 on the truncated complex",
     curve <- hg_get(ph, what = "betti")
     curve$betti[curve$threshold == min(curve$threshold)]
   }
-  # max_dim = 1 keeps the boundary of the triangle: a loop
-  expect_identical(last_betti(window_ph(1L)), c(1L, 1L))
+  # max_dim is the highest homology dimension reported, computed on the
+  # complex the data define (Ripser convention, Nestimate >= 0.9.28): the
+  # window holds the filled triangle, so there is no loop. Before 0.9.28
+  # the cut removed the triangle and reported a loop the data do not have.
+  expect_identical(last_betti(window_ph(1L)), c(1L, 0L))
   # max_dim = 2 fills it
   expect_identical(last_betti(window_ph(2L)), c(1L, 0L, 0L))
   # the projective plane from its ten triangles, one window each: Z/2

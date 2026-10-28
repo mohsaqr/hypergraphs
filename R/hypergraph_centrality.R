@@ -79,19 +79,21 @@
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
 #' eigen-equation on the hyperedge tensor,
 #' \deqn{\lambda\, x_i \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j,}
-#' via shifted power iteration (SS-HOPM). Works for hypergraphs with mixed
-#' edge sizes. An iteration (here, for `"H"`, and for `"pagerank"`) that
-#' exhausts `max_iter` warns with class `hypergraphs_no_converge` and
-#' returns its last iterate.
+#' via shifted power iteration (SS-HOPM). An iteration (here, for `"H"`,
+#' and for `"pagerank"`) that exhausts `max_iter` warns with class
+#' `hypergraphs_no_converge` and returns its last iterate.
 #'
 #' **H-eigenvector centrality (HEC)**: solves the power-k-1
 #' eigen-equation,
 #' \deqn{\lambda\, x_i^{k-1} \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j.}
-#' For uniform hypergraphs (all hyperedges of size \eqn{k}), this is
-#' equivalent to normalizing the ZEC update by the geometric-mean
-#' exponent \eqn{1/(k-1)}. For mixed sizes, the effective exponent is
-#' taken from the largest hyperedge; expect slightly different rankings
-#' from ZEC in the mixed case.
+#'
+#' **Z and H need a uniform hypergraph.** Benson (2019) defines both for
+#' \eqn{k}-uniform hypergraphs. With mixed hyperedge sizes the right-hand
+#' side mixes polynomial degrees, so the equation has no scale-free
+#' solution: the vector satisfies it only at the normalisation chosen inside
+#' the iteration. Requesting `"Z"` or `"H"` when the hyperedges with two or
+#' more members have more than one size raises
+#' `hypergraphs_nonuniform_hypergraph`; singletons are ignored by the check.
 #'
 #' **Hypergraph PageRank** (`"pagerank"`): the stationary distribution of
 #' the damped EDVW random walk of Chitra & Raphael (2019): from node
@@ -152,7 +154,7 @@
 #'
 #' @noRd
 .hg_centrality_fit <- function(hg,
-                                   type     = c("clique", "Z", "H"),
+                                   type     = "clique",
                                    max_iter = 1000L,
                                    tol      = 1e-8,
                                    normalize = TRUE,
@@ -198,6 +200,19 @@
   # Hyperedges as integer vector lists; pre-compute for Z/H
   hyperedges <- hg$hyperedges
   edge_sizes <- vapply(hyperedges, length, integer(1L))
+
+  # Z and H are defined for uniform hypergraphs; singletons contribute nothing
+  tensor_sizes <- unique(edge_sizes[edge_sizes >= 2L])
+  if (any(c("Z", "H") %in% type) && length(tensor_sizes) > 1L) {
+    stop(errorCondition(
+      sprintf(paste0(
+        "`type = \"Z\"` and `\"H\"` need a uniform hypergraph; ",
+        "hyperedge sizes here are %s. Use `type = \"clique\"` or ",
+        "`\"pagerank\"`, or build the hypergraph with one hyperedge size."),
+        paste(sort(tensor_sizes), collapse = ", ")),
+      class = "hypergraphs_nonuniform_hypergraph", call = NULL
+    ))
+  }
   k_max      <- max(edge_sizes)
 
   # No hyperedge with two or more members: the clique adjacency and the
@@ -383,75 +398,90 @@
   x / sqrt(sum(x^2))
 }
 
-# Shared tensor-power-iteration kernel.
-# Uses Kolda-Mayo SSHOPM shift: x_{k+1} ~ f(x_k) + shift * x_k
-# which guarantees monotone convergence for non-negative tensors
-# (Chang, Pearson & Zhang 2009 / Kolda & Mayo 2011).
+# The tensor map f(x)_i = sum_{e contains i} prod_{j in e, j != i} x_j, with
+# the (exponent)-th root taken for H. Accumulation over hyperedges with
+# in-place adds into y: the per-edge leave-one-out products have no
+# vectorised form across ragged edges.
+#' @noRd
+.hg_tensor_apply <- function(hyperedges, edge_sizes, x, n, exponent) {
+  y <- numeric(n)
+  for (e_idx in seq_along(hyperedges)) {
+    e  <- hyperedges[[e_idx]]
+    ke <- edge_sizes[e_idx]
+    if (ke < 2L) next
+    x_e <- x[e]
+    if (any(x_e == 0)) {
+      nz_idx <- which(x_e != 0)
+      if (length(nz_idx) == ke - 1L) {
+        zero_pos <- setdiff(seq_len(ke), nz_idx)
+        y[e[zero_pos]] <- y[e[zero_pos]] + prod(x_e[nz_idx])
+      }
+      # With >=2 zeros in x_e, every leave-one-out product is zero.
+    } else {
+      y[e] <- y[e] + prod(x_e) / x_e
+    }
+  }
+  if (exponent > 1L) {
+    # k-1-root, preserving sign (for non-negative hypergraphs all >= 0)
+    y <- sign(y) * abs(y)^(1 / exponent)
+  }
+  y
+}
+
+# Shared tensor-power-iteration kernel (Kolda & Mayo 2011 SS-HOPM shift):
+# x_{t+1} ~ f(x_t) / ||f(x_t)|| + shift * x_t, whose fixed points are exactly
+# the eigenvectors f(x) = c x. The update is normalised before the shift is
+# added: for large hyperedges f(x) of a unit vector is a product of many
+# small numbers and an unnormalised shift swamped it, so the iterate passed
+# the step test without solving the equation (a 3-petal sunflower of
+# 20-member hyperedges gave a hub/petal ratio of 1 instead of sqrt(3)).
+# Convergence also requires the eigen-equation residual to be small;
+# otherwise it warns with class `hypergraphs_no_converge` (naming `label`)
+# and returns the last iterate. Same kernel as Nestimate (>= 0.9.28).
 #
 # exponent = 1    => Z-eigenvector (no post-root)
 # exponent = k-1  => H-eigenvector (k-1-root)
-#
-# An iteration that exhausts `max_iter` warns with class
-# `hypergraphs_no_converge` (naming `label`) and returns its last iterate.
 #' @noRd
 .hg_tensor_power_iter <- function(hyperedges, edge_sizes, n, exponent,
                                    max_iter, tol, x0, normalize,
                                    shift = 1, label = "tensor") {
   x <- x0
-  converged <- FALSE
+  step_converged <- FALSE
   # power iteration: an inherently sequential fixed-point loop
   for (iter in seq_len(max_iter)) {
-    y <- numeric(n)
-    # accumulation over hyperedges with in-place adds into y; the per-edge
-    # leave-one-out products have no vectorised form across ragged edges
-    for (e_idx in seq_along(hyperedges)) {
-      e  <- hyperedges[[e_idx]]
-      ke <- edge_sizes[e_idx]
-      if (ke < 2L) next
-      x_e <- x[e]
-      # Product over all members excluding each i, done in O(k) per edge
-      # via total-product / x_j (handling zeros explicitly)
-      total <- prod(x_e)
-      if (any(x_e == 0)) {
-        nz_idx <- which(x_e != 0)
-        if (length(nz_idx) == ke - 1L) {
-          zero_pos <- setdiff(seq_len(ke), nz_idx)
-          y[e[zero_pos]] <- y[e[zero_pos]] + prod(x_e[nz_idx])
-        }
-        # With >=2 zeros in x_e, every leave-one-out product is zero.
-      } else {
-        y[e] <- y[e] + total / x_e
-      }
-    }
-
-    if (exponent > 1L) {
-      # k-1-root, preserving sign (for non-negative hypergraphs all >= 0)
-      y <- sign(y) * abs(y)^(1 / exponent)
-    }
-
-    # SSHOPM shift: bias towards x to stabilize oscillating tensor iterates
-    y <- y + shift * x
-
-    nrm <- sqrt(sum(y^2))
-    if (!(nrm > 0)) {
-      x <- y
-      converged <- TRUE
+    fx <- .hg_tensor_apply(hyperedges, edge_sizes, x, n, exponent)
+    nf <- sqrt(sum(fx^2))
+    if (!(nf > 0)) {
+      x <- fx
+      step_converged <- TRUE
       break
     }
-    y <- y / nrm
-
+    y <- fx / nf + shift * x
+    y <- y / sqrt(sum(y^2))
     if (sum(abs(y - x)) < tol) {
       x <- y
-      converged <- TRUE
+      step_converged <- TRUE
       break
     }
     x <- y
   }
-  if (!converged) {
+
+  # Eigen-equation residual ||f(x) - (x'f(x)) x|| / ||f(x)|| at the result
+  residual_ok <- TRUE
+  if (any(x != 0)) {
+    fx <- .hg_tensor_apply(hyperedges, edge_sizes, x, n, exponent)
+    nf <- sqrt(sum(fx^2))
+    if (nf > 0) {
+      residual <- sqrt(sum((fx - sum(x * fx) * x)^2)) / nf
+      residual_ok <- residual <= max(sqrt(tol), 1e-6)
+    }
+  }
+  if (!step_converged || !residual_ok) {
     warning(warningCondition(
       sprintf(paste0("%s-eigenvector centrality did not converge in %d ",
-                     "iterations (L1 change > %g); returning the last ",
-                     "iterate."), label, as.integer(max_iter), tol),
+                     "iterations (tol = %g): the eigen-equation is not ",
+                     "solved; returning the last iterate."),
+              label, as.integer(max_iter), tol),
       class = "hypergraphs_no_converge"
     ))
   }

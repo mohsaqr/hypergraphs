@@ -143,10 +143,13 @@ hon <- function(data, max_order = 5L, min_freq = 1L,
 
 #' Embedding of a higher-order network (HONEM)
 #'
-#' Low-dimensional node embedding of a higher-order network that preserves
-#' its higher-order dependencies: exponentially decaying powers of the
-#' network's transition matrix, followed by a truncated singular value
-#' decomposition.
+#' Low-dimensional node embedding of a higher-order network, after the HONEM
+#' approach of Saebi et al. (2020): exponentially decaying matrix powers of
+#' the transition matrix over all of the network's nodes (memory nodes such
+#' as `"a -> b"` included), followed by a truncated singular value
+#' decomposition, one row per node. The paper instead combines order-indexed
+#' neighbourhood matrices over the first-order states, which it does not
+#' define precisely enough to reproduce; see `Nestimate::build_honem()`.
 #'
 #' @param hon A `net_hon` from [hon()], or a square weighted adjacency
 #'   matrix.
@@ -177,7 +180,9 @@ honem <- function(hon, dim = 32L, max_power = 10L) {
 #'
 #' Fits Markov chains of every order from 0 to `max_order` as layers of one
 #' multi-order model (higher-order De Bruijn graphs) and selects the order
-#' that best balances fit and parsimony.
+#' that best balances fit and parsimony. This is the multi-order model of
+#' Scholtes (2017), pathpy's `MultiOrderModel`; the generative model of
+#' Gote et al. (2023) also adds start and end states, which this does not.
 #'
 #' @inheritParams hon
 #' @param max_order Integer. Highest Markov order tested. Default `5`;

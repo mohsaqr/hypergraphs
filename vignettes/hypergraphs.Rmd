@@ -319,22 +319,24 @@ the same trial.
 
 An eigenvector centrality gives a node a score that depends on the scores of
 the nodes it shares hyperedges with. The clique centrality is the
-eigenvector centrality of the projection. The H centrality scores a node by
-the product of the scores of the other members of each of its hyperedges,
-with the score of the node itself raised to the power k - 1, where k is the
-size of the largest hyperedge.
+eigenvector centrality of the projection, in which two events are linked by
+the number of trials that contain both.
 
 ```{r centrality}
-event_centrality <- hg_centrality(trial_hg, type = c("clique", "H"),
-                                  sort_by = "H")
+event_centrality <- hg_centrality(trial_hg, sort_by = "clique")
 event_centrality
 ```
 
 The clique centrality is highest for the events of a correct first trial,
 `Task`, `Attempt`, `Correct` and `Completed`, which occur together in most
-steps. The H centrality ranks `Incorrect` third. An incorrect first trial
-contains `Incorrect` with `Task` and `Attempt`, the two highest-scoring
-events, and the product of their scores raises the score of `Incorrect`.
+steps.
+
+The Z and H centralities (Benson 2019) score a node through the product of
+the scores of the other members of each of its hyperedges. They are defined
+for hypergraphs whose hyperedges all have the same size. The trials here
+contain two to six events, so `hg_centrality()` refuses them with an error
+of class `hypergraphs_nonuniform_hypergraph`. The clique centrality and
+PageRank are defined for hyperedges of any size.
 
 PageRank on a hypergraph is the stationary distribution of a random walk that
 moves from a node to a hyperedge that contains it and from the hyperedge to

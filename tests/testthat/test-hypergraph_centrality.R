@@ -22,8 +22,23 @@
 
 # Structure ----------------------------------------------------------------
 
-test_that("default returns a tidy table with all three types", {
-  cent <- .hg_centrality_fit(.hc_two_overlapping())
+test_that("default returns the clique centrality only", {
+  expect_named(.hg_centrality_fit(.hc_two_overlapping()), c("node", "clique"))
+})
+
+test_that("Z and H on mixed hyperedge sizes raise a classed error", {
+  d <- data.frame(node = c("a", "b", "b", "c", "d"),
+                  edge = c("e1", "e1", "e2", "e2", "e2"))
+  mixed <- group_hypergraph(d, node = "node", hyperedge = "edge")
+  expect_error(.hg_centrality_fit(mixed, type = "Z"),
+               class = "hypergraphs_nonuniform_hypergraph")
+  expect_error(hg_centrality(mixed, type = "H"),
+               class = "hypergraphs_nonuniform_hypergraph")
+  expect_no_error(hg_centrality(mixed, type = c("clique", "pagerank")))
+})
+
+test_that("all three types return a tidy table on a uniform hypergraph", {
+  cent <- .hg_centrality_fit(.hc_two_overlapping(), type = c("clique", "Z", "H"))
   expect_s3_class(cent, "data.frame")
   expect_named(cent, c("node", "clique", "Z", "H"))
   expect_identical(cent$node, c("A", "B", "C", "D"))
@@ -56,7 +71,7 @@ test_that("sort_by ranks the table without changing the values", {
 test_that("symmetric nodes get equal centrality (two overlapping triangles)", {
   # A & B are structurally identical (both in S1 and S2).
   # C & D are structurally identical (each in exactly one session).
-  cent <- .hg_centrality_fit(.hc_two_overlapping())
+  cent <- .hg_centrality_fit(.hc_two_overlapping(), type = c("clique", "Z", "H"))
   for (nm in .hc_types(cent)) {
     v <- .hc_vec(cent, nm)
     expect_equal(v[["A"]], v[["B"]], tolerance = 1e-6)
@@ -96,7 +111,7 @@ test_that("ZEC distinguishes hub-like vs peripheral in a 4-node, 2-edge case", {
 test_that("HEC reproduces ZEC-like ranking on uniform hypergraph", {
   # For a uniform hypergraph the eigenvector direction is the same;
   # only the scale differs (H takes the k-1 root of the ZEC update).
-  cent <- .hg_centrality_fit(.hc_two_overlapping())
+  cent <- .hg_centrality_fit(.hc_two_overlapping(), type = c("clique", "Z", "H"))
   # Both should rank A=B above C=D
   expect_equal(rank(cent$Z), rank(cent$H), ignore_attr = TRUE)
 })
@@ -104,7 +119,7 @@ test_that("HEC reproduces ZEC-like ranking on uniform hypergraph", {
 # Non-negativity, normalization --------------------------------------------
 
 test_that("centralities are non-negative for non-negative hypergraphs", {
-  cent <- .hg_centrality_fit(.hc_two_overlapping())
+  cent <- .hg_centrality_fit(.hc_two_overlapping(), type = c("clique", "Z", "H"))
   for (nm in .hc_types(cent)) {
     expect_true(all(cent[[nm]] >= -1e-10))
   }
@@ -400,4 +415,17 @@ test_that("singleton-only hyperedges give the zero-adjacency result", {
   expect_identical(got$subhypergraph, c(0, 0))
   # same convention as a hypergraph with no hyperedges at all
   expect_no_warning(hg_centrality(hg, type = c("Z", "H"), max_iter = 1L))
+})
+
+test_that("Z and H solve the eigen-equation on large uniform hyperedges", {
+  # 3 petals of 20 members: Benson's ratios are sqrt(3) for Z, 3^(1/20) for H.
+  # An unnormalised shift used to swamp the tensor update (ratio 1, no warning).
+  d <- data.frame(node = c(rbind("hub", matrix(paste0("p", rep(0:2, each = 19), "_", 1:19), 19))),
+                  edge = rep(c("S0", "S1", "S2"), each = 20))
+  hg <- group_hypergraph(d, node = "node", hyperedge = "edge")
+  expect_no_warning(cent <- .hg_centrality_fit(hg, type = c("Z", "H")))
+  z <- stats::setNames(cent$Z, cent$node)
+  h <- stats::setNames(cent$H, cent$node)
+  expect_equal(z[["hub"]] / z[["p0_1"]], sqrt(3), tolerance = 1e-6)
+  expect_equal(h[["hub"]] / h[["p0_1"]], 3^(1 / 20), tolerance = 1e-6)
 })

@@ -346,7 +346,7 @@ summary.hypergraphs_simplicial <- function(object, ...) .ho_summary(object)
 #' @param n Number of rows of the default table to print. Default `10`.
 #' @export
 print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
-  betti <- hg_betti(x)
+  betti <- .sc_betti_as_built(x)
   kind <- switch(x$type %||% "",
     window = if (is.null(x$validation)) {
       sprintf("Window co-occurrence complex (window = %d, min_count = %d)",
@@ -373,8 +373,27 @@ print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
               x$n_nodes, x$n_simplices, x$dimension,
               paste(x$f_vector, collapse = ", "),
               paste(betti, collapse = ", ")))
+  if (isTRUE(x$truncated)) {
+    cat(sprintf(paste0(
+      "  max_dim = %d cut a larger clique: the last Betti number counts ",
+      "cycles that larger simplices would fill\n"), x$dimension))
+  }
   .ho_print_table(x, n)
   invisible(x)
+}
+
+# Betti numbers of a complex exactly as it was built. Nestimate warns
+# (`nestimate_truncated_complex`) when `max_dim` cut a larger clique, because
+# the top number then over-counts the homology of the full clique complex.
+# The internal checks and the print method read the complex as built, which
+# that number describes exactly, so only that one diagnosed class is muffled
+# here; hg_betti() passes it on to the user.
+#' @noRd
+.sc_betti_as_built <- function(sc) {
+  withCallingHandlers(
+    Nestimate::betti_numbers(sc),
+    nestimate_truncated_complex = function(w) invokeRestart("muffleWarning")
+  )
 }
 
 #' Check a clique complex against igraph and Euler-Poincare
@@ -388,7 +407,7 @@ print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
 .sc_verify <- function(sc, x, threshold, max_dim) {
   problems <- character(0)
   f <- as.integer(sc$f_vector)
-  betti <- as.integer(Nestimate::betti_numbers(sc))
+  betti <- as.integer(.sc_betti_as_built(sc))
   euler_faces <- sum((-1L)^(seq_along(f) - 1L) * f)
   euler_betti <- sum((-1L)^(seq_along(betti) - 1L) * betti)
   if (euler_faces != euler_betti) {

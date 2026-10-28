@@ -41,7 +41,8 @@ test_that("hg_centrality matches the engine value for value", {
   hg <- text_hypergraph(verb_corpus, stop_words = verb_stop)
   direct <- .hg_centrality_fit(hg, type = c("clique", "Z", "H"))
 
-  tab <- hg_centrality(hg)
+  expect_identical(names(hg_centrality(hg)), c("node", "clique"))
+  tab <- hg_centrality(hg, type = c("clique", "Z", "H"))
   expect_identical(names(tab), c("node", "clique", "Z", "H"))
   expect_identical(tab$node, direct$node)
   expect_identical(tab$clique, direct$clique)

@@ -44,7 +44,9 @@ the fitted transitions of a layer (\code{"transitions"}), the path counts
 \description{
 Fits Markov chains of every order from 0 to \code{max_order} as layers of one
 multi-order model (higher-order De Bruijn graphs) and selects the order
-that best balances fit and parsimony.
+that best balances fit and parsimony. This is the multi-order model of
+Scholtes (2017), pathpy's \code{MultiOrderModel}; the generative model of
+Gote et al. (2023) also adds start and end states, which this does not.
 }
 \examples{
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),

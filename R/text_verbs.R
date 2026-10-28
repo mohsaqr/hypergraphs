@@ -141,8 +141,9 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' `"subhypergraph"` and `"katz"` (Katz centrality, which needs `alpha`);
 #' the result is one row per node.
 #' @param x A [text_hypergraph()] (or any hypergraphs `net_hg`).
-#' @param type Centralities to compute; any of `"clique"`, `"Z"`, `"H"`
-#'   (default: all three), `"pagerank"`, `"subhypergraph"`, `"katz"`.
+#' @param type Centralities to compute; any of `"clique"` (default), `"Z"`,
+#'   `"H"` (uniform hypergraphs only), `"pagerank"`, `"subhypergraph"`,
+#'   `"katz"`.
 #' @param sort_by Optional centrality name to sort by, descending (ties broken
 #'   by node name); default keeps node order.
 #' @param n Return only the first `n` rows after sorting (default all) --
@@ -187,16 +188,15 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
 #' eigen-equation on the hyperedge tensor,
 #' \deqn{\lambda\, x_i \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j,}
-#' via power iteration. Works for hypergraphs with mixed edge sizes.
+#' via shifted power iteration.
 #'
 #' **H-eigenvector centrality (HEC)**: solves the power-k-1
 #' eigen-equation,
 #' \deqn{\lambda\, x_i^{k-1} \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j.}
-#' For uniform hypergraphs (all hyperedges of size \eqn{k}), this is
-#' equivalent to normalizing the ZEC update by the geometric-mean
-#' exponent \eqn{1/(k-1)}. For mixed sizes, the effective exponent is
-#' taken from the largest hyperedge; expect slightly different rankings
-#' from ZEC in the mixed case.
+#'
+#' Z and H are defined for uniform hypergraphs only (Benson 2019): on mixed
+#' hyperedge sizes they raise `hypergraphs_nonuniform_hypergraph`. Use
+#' `"clique"` or `"pagerank"` there.
 #'
 #' **Hypergraph PageRank** (`"pagerank"`): the stationary distribution of
 #' the damped EDVW random walk of Chitra & Raphael (2019): from node
@@ -290,7 +290,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' @param ... Must be empty: an argument that only the memory-network
 #'   method takes raises `hypergraphs_bad_input`.
 #' @export
-hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
+hg_centrality.net_hg <- function(x, type = "clique",
                                  sort_by = NULL, n = Inf,
                                  max_iter = 1000L, tol = 1e-8,
                                  normalize = TRUE, damping = 0.85,
@@ -616,7 +616,9 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #' @param centrality For `type = "centrality"`, the [hg_centrality()]
 #'   measure: `"pagerank"` (default; it reads the incidence weights and does
 #'   not tie on words present in every document, as the clique measure
-#'   does), `"clique"`, `"Z"` or `"H"`.
+#'   does), `"clique"`, `"Z"` or `"H"`. `"Z"` and `"H"` need every
+#'   document-level word hypergraph to be uniform and otherwise raise
+#'   `hypergraphs_nonuniform_hypergraph`.
 #' @param scores An external score table (columns `node`, `word` and one
 #'   numeric column of finite values), summed per cluster and added as its
 #'   own block. Several rows for one document and word add their scores but

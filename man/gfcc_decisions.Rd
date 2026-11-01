@@ -10,8 +10,10 @@ A data frame with 3,618 rows and 5 columns:
 \item{decision}{Decision key, \code{volume-page}.}
 \item{date}{Date of the decision.}
 \item{citation}{Official citation, e.g. \code{"BVerfGE 1, 1-3"}.}
-\item{type}{Decision type (\code{"Urteil"} or \code{"Beschluss"}).}
-\item{title}{Title of the decision, in German.}
+\item{type}{Decision type, \code{"Urteil"} or \code{"Beschluss"}; the empty
+string \code{""} for the 37 decisions the release leaves untyped.}
+\item{title}{Title of the decision, in German; \code{""} for the 6
+decisions released without one.}
 }
 }
 \source{

@@ -183,7 +183,8 @@ the token-based constructions also \code{n_tokens} and \code{n_types}) is kept a
 metadata under \verb{input_<name>}, with a \code{hypergraphs_renamed_column}
 warning. Raises \code{hypergraphs_bad_input} for a broken argument contract,
 including bag-only arguments passed to other constructions and a
-clashing column whose \verb{input_<name>} is also taken;
+clashing column whose \verb{input_<name>} is also taken, and a text that
+is not valid UTF-8 (re-encode it with \code{\link[=iconv]{iconv()}} first);
 \code{hypergraphs_empty_corpus} when no document survives tokenization and
 filtering; \code{hypergraphs_missing_embeddings} for \code{construction = "knn"}
 with neither \code{embeddings} nor the sbert package. Warns with

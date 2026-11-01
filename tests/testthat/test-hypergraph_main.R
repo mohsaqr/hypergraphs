@@ -129,3 +129,36 @@ test_that("actor/session tuples are told apart by value, not by pasted label (R0
   expect_error(hypergraph(missing, action = "action", actor = "actor"),
                class = "hypergraphs_bad_input")
 })
+
+test_that("a tna model goes to network_hypergraph(), or with window to window_hypergraph()", {
+  seqs <- data.frame(V1 = c("a", "b", "a"), V2 = c("b", "c", "c"),
+                     V3 = c("c", "a", "b"))
+  # A tna model as the tna package stores it (integer-coded sequences with
+  # their labels and a transition matrix), built here so the test needs no
+  # extra package.
+  labels <- c("a", "b", "c")
+  codes <- vapply(seqs, \(col) match(col, labels), integer(nrow(seqs)))
+  codes <- matrix(codes, nrow(seqs), dimnames = list(NULL, names(seqs)))
+  attr(codes, "labels") <- labels
+  weights <- matrix(0, 3, 3, dimnames = list(labels, labels))
+  weights[cbind(c(codes[, -3L]), c(codes[, -1L]))] <- 1
+  weights <- weights / pmax(rowSums(weights), 1)
+  model <- structure(list(weights = weights, data = codes, labels = labels),
+                     class = "tna")
+  expect_identical(hypergraph(model), network_hypergraph(model))
+  expect_identical(hypergraph(model, window = 2),
+                   window_hypergraph(model, window = 2))
+  # the network route reads the model's weights as an adjacency
+  expect_identical(network_hypergraph(model)$incidence,
+                   network_hypergraph(model$weights)$incidence)
+})
+
+test_that("a sparse network gives the dense network's hypergraph", {
+  w <- matrix(c(0, 1, 1, 1, 0, 1, 1, 1, 0), 3, 3,
+              dimnames = list(c("x", "y", "z"), c("x", "y", "z")))
+  sparse <- Matrix::Matrix(w, sparse = TRUE)
+  expect_identical(hypergraph(sparse), network_hypergraph(w))
+  expect_identical(network_hypergraph(sparse), network_hypergraph(w))
+  expect_error(hypergraph(matrix(c("a", "b", "c", "d"), 2)),
+               class = "hypergraphs_bad_input")
+})

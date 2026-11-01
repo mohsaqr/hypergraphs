@@ -241,3 +241,63 @@ test_that("count and tolerance controls are validated with a classed error", {
   expect_identical(nrow(hg_pagerank(hg, n = 2)), 2L)
   expect_identical(nrow(hg_pagerank(hg, n = Inf)), 3L)
 })
+
+# ---- Audit regressions (2026-11-01) ---------------------------------------
+
+.pr_toy <- function(sparse = FALSE, nodes = NULL) {
+  d <- data.frame(node = c("a", "b", "c", "b", "c", "d", "d", "e", "a", "c", "e"),
+                  edge = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3",
+                           "e4", "e4", "e4"),
+                  w = c(1, 2, 1, 3, 1, 1, 2, 2, 1, 1, 4))
+  group_hypergraph(d, node = "node", hyperedge = "edge", weight = "w",
+                   nodes = nodes, sparse = sparse)
+}
+
+test_that("a vertex in no hyperedge teleports instead of raising", {
+  # hg_pagerank() used to refuse a hypergraph with an isolated vertex while
+  # hg_centrality(type = "pagerank") ranked it by teleportation
+  dense <- .pr_toy(nodes = letters[1:6])
+  sparse <- .pr_toy(sparse = TRUE, nodes = letters[1:6])
+  out <- hg_pagerank(dense)
+  expect_equal(sum(out$pagerank), 1, tolerance = 1e-12)
+  expect_equal(hg_pagerank(sparse), out, tolerance = 1e-10)
+  expect_equal(out$pagerank,
+               hg_centrality(dense, type = "pagerank")$pagerank,
+               tolerance = 1e-8)
+  # by hand: the isolated vertex keeps only (1 - d) / n of teleport mass
+  # plus d / n of its own redistributed mass, x_f = (1 - d) / (n (1 - d / n))
+  expect_equal(out$pagerank[out$node == "f"], 0.15 / (6 * (1 - 0.85 / 6)),
+               tolerance = 1e-10)
+  # restart on one vertex: the isolated vertex is never reached
+  pers <- hg_pagerank(dense, personalized = "a")
+  expect_identical(pers$pagerank[pers$node == "f"], 0)
+  expect_equal(sum(pers$pagerank), 1, tolerance = 1e-12)
+  # undamped, the stationary distribution is still refused
+  expect_error(hg_pagerank(dense, damping = 1),
+               class = "hypergraphs_hypergraph_disconnected")
+})
+
+test_that("a hypergraph without hyperedges ranks every vertex equally", {
+  empty <- matrix(0, 3, 0, dimnames = list(c("a", "b", "c"), NULL))
+  dense <- .thg_from_incidence(empty, params = list())
+  sparse <- .thg_from_incidence(Matrix::Matrix(empty, sparse = TRUE),
+                                params = list())
+  expect_equal(hg_pagerank(dense)$pagerank, rep(1 / 3, 3))
+  expect_equal(hg_pagerank(sparse)$pagerank, rep(1 / 3, 3))
+})
+
+test_that("edge_weights: one number recycles; bad weights are classed on both storages", {
+  dense <- .pr_toy()
+  sparse <- .pr_toy(sparse = TRUE)
+  expect_equal(hg_pagerank(dense, edge_weights = 2),
+               hg_pagerank(dense, edge_weights = rep(2, 4)))
+  expect_equal(hg_pagerank(sparse, edge_weights = 2),
+               hg_pagerank(dense, edge_weights = 2), tolerance = 1e-10)
+  # the sparse path used an unclassed stopifnot()
+  for (hg in list(dense, sparse)) {
+    expect_error(hg_pagerank(hg, edge_weights = c(1, 2, 3, -1)),
+                 class = "hypergraphs_bad_input")
+    expect_error(hg_pagerank(hg, edge_weights = c(1, 2)),
+                 class = "hypergraphs_bad_input")
+  }
+})

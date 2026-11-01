@@ -123,7 +123,11 @@
 #'   Details). Default `TRUE`; set `FALSE` to skip the check on very large
 #'   complexes.
 #' @param ... For `type = "pathway"` on a network object: arguments passed
-#'   to the memory-network builder.
+#'   to the memory-network builder. An argument the chosen `type` does not
+#'   read (for example `validate` for a clique complex, `threshold` for a
+#'   window complex, or `alpha` without `validate = TRUE`) raises
+#'   `hypergraphs_bad_input` rather than being ignored. A weight or
+#'   distance matrix with missing values is refused the same way.
 #' @return A `simplicial_complex` object. Read it with [hg_get()]: one row
 #'   per simplex (`what = "simplices"`, the default), the face counts
 #'   (`"f_vector"`), the per-node simplicial degree (`"degree"`) or, for a
@@ -204,11 +208,33 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
                        n_null = NULL, seed = NULL, action = NULL,
                        actor = NULL, time = NULL, session = NULL,
                        time_threshold = 900, timezone = "UTC", ...) {
-  stopifnot(
-    "`verify` must be TRUE or FALSE" =
-      is.logical(verify) && length(verify) == 1L && !is.na(verify)
-  )
-  direction <- match.arg(direction)
+  type <- .sc_choice(type, c("clique", "window", "pathway", "vr", "rips"),
+                     "type")
+  # an argument the chosen type does not read is refused, never ignored
+  .sc_refuse_args(names(match.call(expand.dots = FALSE))[-1L], type,
+                  validate = validate, null = null)
+  .sc_flag(verify, "verify")
+  direction <- .sc_choice(direction, c("either", "both"), "direction")
+  if (identical(type, "clique")) {
+    .ho_check_number(threshold, "threshold", min = 0)
+  }
+  if (!identical(type, "window")) {
+    .ho_check_count(max_dim, "max_dim", min = 0)
+  }
+  if (identical(type, "pathway")) {
+    anomaly <- .sc_choice(anomaly, c("all", "over", "under"), "anomaly")
+    if (!is.null(max_pathways)) {
+      .ho_check_count(max_pathways, "max_pathways", min = 0)
+    }
+    if (!inherits(x, c("net_hon", "net_hypa", "net_mogen", "tna",
+                       "netobject"))) {
+      .thg_bad_input(paste0("For type = \"pathway\", `x` must be a net_hon, ",
+                            "net_hypa, net_mogen, tna, or netobject."))
+    }
+  }
+  if (type %in% c("vr", "rips") && !is.null(max_scale)) {
+    .ho_check_number(max_scale, "max_scale", min = 0)
+  }
   if (identical(type, "clique") && .sc_is_sequence_input(x, action)) {
     # sequences: the relative transition network, as the tna family
     # estimates it from the same sequences
@@ -228,7 +254,8 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
   if (identical(type, "window")) {
     sc <- .sc_from_windows(x, window = window, min_count = min_count,
                            validate = validate, alpha = alpha,
-                           null = match.arg(null), n_null = n_null,
+                           null = .sc_choice(null, c("swap", "hypergeometric"), "null"),
+                           n_null = n_null,
                            seed = seed,
                            max_dim = max_dim, action = action, actor = actor,
                            time = time, session = session,
@@ -237,6 +264,7 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
     return(structure(sc, class = c("hypergraphs_simplicial", class(sc))))
   }
   if (type %in% c("vr", "rips")) x <- .sc_distances(x)
+  if (type %in% c("clique", "vr", "rips")) .sc_check_complete(x)
   sc <- Nestimate::build_simplicial(x, type = type, threshold = threshold,
                                     max_dim = max_dim,
                                     max_pathways = max_pathways,
@@ -262,7 +290,7 @@ simplicial <- function(x, type = "clique", threshold = 0, max_dim = 10L,
 plot.hypergraphs_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
                                       type = c("simplices", "summary"),
                                       ...) {
-  type <- match.arg(type)
+  type <- .sc_choice(type, c("simplices", "summary"), "type")
   if (identical(type, "summary")) {
     if (!isFALSE(dismantled) || !is.null(top)) {
       .thg_bad_input(
@@ -272,13 +300,8 @@ plot.hypergraphs_simplicial <- function(x, y, dismantled = FALSE, top = NULL,
     plain <- structure(x, class = setdiff(class(x), "hypergraphs_simplicial"))
     return(plot(plain, ...))
   }
-  stopifnot(
-    "`dismantled` must be TRUE or FALSE" =
-      is.logical(dismantled) && length(dismantled) == 1L && !is.na(dismantled),
-    "`top` must be NULL or a single whole number >= 1" =
-      is.null(top) || (is.numeric(top) && length(top) == 1L &&
-                         is.finite(top) && top >= 1 && top == round(top))
-  )
+  .sc_flag(dismantled, "dismantled")
+  if (!is.null(top)) top <- .ho_check_count(top, "top")
   facets <- .sc_facets(x)
   if (length(facets) == 0L) {
     .thg_bad_input("the complex has no simplex of two or more nodes to plot")
@@ -472,7 +495,7 @@ print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
 #' @param n_steps Grid points of the reported Betti curve. Default `20`; the
 #'   persistence diagram itself is exact.
 #' @param max_dim Highest simplex dimension tracked. Default `3`.
-#' @param type `"clique"` (default) or `"vr"`.
+#' @param type `"clique"` (default) or `"vr"` (alias `"rips"`).
 #' @param max_scale For `type = "vr"`: the longest edge admitted. `NULL`
 #'   uses the largest distance.
 #' @return A `persistent_homology` object. Read it with [hg_get()]: the
@@ -497,8 +520,20 @@ print.hypergraphs_simplicial <- function(x, n = 10L, ...) {
 #' @export
 hg_homology <- function(x, n_steps = 20L, max_dim = 3L, type = "clique",
                         max_scale = NULL) {
+  # "rips" is the alias simplicial() accepts; the estimator knows "vr"
+  type <- .sc_choice(type, c("clique", "vr", "rips"), "type")
+  if (identical(type, "rips")) type <- "vr"
+  .ho_check_count(n_steps, "n_steps")
+  .ho_check_count(max_dim, "max_dim", min = 0)
+  if (!is.null(max_scale)) .ho_check_number(max_scale, "max_scale", min = 0)
   if (inherits(x, "simplicial_complex") && identical(x$type, "window")) {
     return(.ho_result(.ph_window(x, max_dim = max_dim)))
+  }
+  if (inherits(x, "simplicial_complex") && !identical(x$type, "vr")) {
+    .thg_bad_input(sprintf(paste0(
+      "hg_homology() takes a complex built with simplicial(type = \"vr\") ",
+      "or simplicial(type = \"window\"), not a %s complex; pass the ",
+      "network or distances it was built from"), x$type %||% "plain"))
   }
   if (type %in% c("vr", "rips")) x <- .sc_distances(x)
   .ho_result(Nestimate::persistent_homology(x, n_steps = n_steps,
@@ -535,6 +570,13 @@ hg_homology <- function(x, n_steps = 20L, max_dim = 3L, type = "clique",
 #' hg_get(pl, k = 1, top = 5)
 #' @export
 hg_landscape <- function(ph, k_max = 5L, dimension = 1L, t_grid = NULL) {
+  .ph_check_input(ph, "ph")
+  .ho_check_count(k_max, "k_max")
+  .ho_check_count(dimension, "dimension", min = 0)
+  if (!is.null(t_grid) &&
+      !(is.numeric(t_grid) && length(t_grid) >= 1L && all(is.finite(t_grid)))) {
+    .thg_bad_input("`t_grid` must be NULL or a vector of finite numbers")
+  }
   .ho_result(Nestimate::persistence_landscape(.ho_unresult(ph),
                                               k_max = k_max,
                                               dimension = dimension,
@@ -548,8 +590,15 @@ hg_landscape <- function(ph, k_max = 5L, dimension = 1L, t_grid = NULL) {
 #' are matched only to essential classes; a dimension whose essential
 #' counts differ is `Inf` apart.
 #'
+#' An essential class is a row with `death = Inf` or `death = 0`, in an
+#' [hg_homology()] result and in a data.frame alike. [hg_wasserstein()]
+#' reads a data.frame differently: there only `death = Inf` marks an
+#' essential class and `death = 0` is a finite death, so the two distances
+#' can disagree on a data.frame with rows that die at 0.
+#'
 #' @param d1,d2 [hg_homology()] results, or data.frames with columns
-#'   `dimension`, `birth`, `death`.
+#'   `dimension`, `birth`, `death`. Anything else raises
+#'   `hypergraphs_bad_input`.
 #' @param dimension Integer vector of dimensions to compare. `NULL` compares
 #'   every dimension present in either diagram.
 #' @param tol Tolerance of the binary search. Default
@@ -571,6 +620,12 @@ hg_landscape <- function(ph, k_max = 5L, dimension = 1L, t_grid = NULL) {
 #' @export
 hg_bottleneck <- function(d1, d2, dimension = NULL,
                           tol = .Machine$double.eps^0.5) {
+  .ph_check_input(d1, "d1")
+  .ph_check_input(d2, "d2")
+  .ph_check_dimension(dimension)
+  if (!(is.numeric(tol) && length(tol) == 1L && is.finite(tol) && tol > 0)) {
+    .thg_bad_input("`tol` must be one finite number > 0")
+  }
   Nestimate::bottleneck_distance(d1, d2, dimension = dimension, tol = tol)
 }
 
@@ -601,6 +656,7 @@ hg_bottleneck <- function(d1, d2, dimension = NULL,
 #' hg_betti(simplicial(adj))
 #' @export
 hg_betti <- function(sc) {
+  .sc_check_complex(sc)
   Nestimate::betti_numbers(sc)
 }
 
@@ -624,6 +680,7 @@ hg_betti <- function(sc) {
 #' hg_euler(simplicial(adj))
 #' @export
 hg_euler <- function(sc) {
+  .sc_check_complex(sc)
   Nestimate::euler_characteristic(sc)
 }
 
@@ -649,6 +706,7 @@ hg_euler <- function(sc) {
 #' hg_get(hg_qanalysis(simplicial(adj)))
 #' @export
 hg_qanalysis <- function(sc) {
+  .sc_check_complex(sc)
   .ho_result(Nestimate::q_analysis(sc))
 }
 
@@ -687,9 +745,8 @@ hg_degree <- function(sc, normalized = FALSE) {
 #' @return data.frame with default row names.
 #' @noRd
 .sc_degree_table <- function(sc, normalized = FALSE) {
-  if (!inherits(sc, "simplicial_complex")) {
-    .ho_bad_input("`sc` must be a simplicial_complex from simplicial()")
-  }
+  .sc_check_complex(sc)
+  .sc_flag(normalized, "normalized")
   out <- Nestimate::simplicial_degree(sc, normalized = normalized)
   rownames(out) <- NULL
   out
@@ -704,16 +761,12 @@ hg_degree <- function(sc, normalized = FALSE) {
                              null = "swap", n_null = NULL, seed = NULL,
                              max_dim, action, actor, time, session,
                              time_threshold = 900, timezone = "UTC") {
-  stopifnot(
-    "`window` must be a single integer >= 2" =
-      is.numeric(window) && length(window) == 1L && is.finite(window) &&
-      window >= 2 && window == round(window),
-    "`validate` must be TRUE or FALSE" =
-      is.logical(validate) && length(validate) == 1L && !is.na(validate),
-    "`alpha` must be a single number in (0, 1)" =
-      is.numeric(alpha) && length(alpha) == 1L && is.finite(alpha) &&
-      alpha > 0 && alpha < 1
-  )
+  window <- .ho_check_count(window, "window", min = 2)
+  .sc_flag(validate, "validate")
+  if (!(is.numeric(alpha) && length(alpha) == 1L && is.finite(alpha) &&
+        alpha > 0 && alpha < 1)) {
+    .thg_bad_input("`alpha` must be a single number in (0, 1)")
+  }
   min_count <- .ho_check_count(min_count, "min_count")
   # max_dim = 0 keeps the actions as vertices only; a negative dimension
   # has no simplices at all and is refused rather than read as 0
@@ -945,4 +998,98 @@ hg_degree <- function(sc, normalized = FALSE) {
                           "matrix or a network object carrying one"))
   }
   w
+}
+
+# `sc` must be a simplicial complex; anything else is refused with
+# hypergraphs_bad_input before the estimator sees it.
+.sc_check_complex <- function(sc) {
+  if (!inherits(sc, "simplicial_complex")) {
+    .ho_bad_input("`sc` must be a simplicial_complex from simplicial()")
+  }
+  invisible(NULL)
+}
+
+# One value out of `choices`, as match.arg() reads it (the untouched choice
+# vector or NULL gives the first; partial matching), but an unknown value
+# raises hypergraphs_bad_input naming the choices.
+.sc_choice <- function(value, choices, arg) {
+  if (is.null(value) || identical(value, choices)) return(choices[[1L]])
+  hit <- if (is.character(value) && length(value) == 1L && !is.na(value)) {
+    pmatch(value, choices)
+  } else {
+    NA_integer_
+  }
+  if (is.na(hit)) {
+    .thg_bad_input(sprintf("`%s` must be one of %s; got %s", arg,
+                           paste(sprintf("\"%s\"", choices), collapse = ", "),
+                           deparse1(value)))
+  }
+  choices[[hit]]
+}
+
+# A single TRUE or FALSE.
+.sc_flag <- function(value, arg) {
+  if (!(is.logical(value) && length(value) == 1L && !is.na(value))) {
+    .thg_bad_input(sprintf("`%s` must be TRUE or FALSE", arg))
+  }
+  invisible(value)
+}
+
+# The arguments of simplicial() each type reads, besides `x` and `type`.
+# Long-format arguments describe sequences, which a clique complex also
+# takes (it is then built on their transition network).
+.sc_long_args <- c("action", "actor", "time", "session", "time_threshold",
+                   "timezone")
+.sc_type_args <- list(
+  clique = c("threshold", "direction", "max_dim", "verify", .sc_long_args),
+  window = c("window", "min_count", "validate", "alpha", "null", "n_null",
+             "seed", "max_dim", .sc_long_args),
+  pathway = c("max_dim", "max_pathways", "anomaly", "..."),
+  vr = c("max_dim", "max_scale"),
+  rips = c("max_dim", "max_scale")
+)
+
+# Refuse every argument given to simplicial() that the chosen type does not
+# read: the validation controls only with `validate = TRUE`, and the shuffle
+# controls only under the swap null. `given` are the names of the matched
+# call, `...` standing for any extra argument.
+.sc_refuse_args <- function(given, type, validate, null) {
+  given <- setdiff(given, c("x", "type", ""))
+  allowed <- .sc_type_args[[type]]
+  if (identical(type, "window")) {
+    if (!isTRUE(validate)) {
+      allowed <- setdiff(allowed, c("alpha", "null", "n_null", "seed"))
+    } else if (identical(.sc_choice(null, c("swap", "hypergeometric"), "null"),
+                         "hypergeometric")) {
+      allowed <- setdiff(allowed, c("n_null", "seed"))
+    }
+  }
+  extra <- setdiff(given, allowed)
+  if (length(extra) == 0L) return(invisible(NULL))
+  extra[extra == "..."] <- "an extra argument"
+  hint <- if (identical(type, "window") && !isTRUE(validate) &&
+              any(extra %in% c("alpha", "null", "n_null", "seed"))) {
+    " (the validation controls need `validate = TRUE`)"
+  } else {
+    ""
+  }
+  .thg_bad_input(sprintf("%s: not read by simplicial(type = \"%s\")%s",
+                         paste(ifelse(extra == "an extra argument", extra,
+                                      sprintf("`%s`", extra)),
+                               collapse = ", "),
+                         type, hint))
+}
+
+# A weight or distance matrix with a missing value describes no complex:
+# refused before construction rather than left to fail inside the clique
+# enumeration or to enter a filtration.
+.sc_check_complete <- function(x) {
+  w <- if (is.matrix(x)) x else if (is.list(x) && !is.data.frame(x)) x$weights
+  if (is.matrix(w) && is.numeric(w) && anyNA(w)) {
+    n_missing <- sum(is.na(w))
+    .thg_bad_input(sprintf(paste0(
+      "the weight or distance matrix has %d missing value%s; a complex ",
+      "needs every entry"), n_missing, if (n_missing == 1L) "" else "s"))
+  }
+  invisible(NULL)
 }

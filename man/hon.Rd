@@ -41,8 +41,9 @@ wide, list or model input.}
 
 \item{group}{\code{NULL} (default) for one network, or the grouping of the
 sequences for a group model: the name of a column of \code{data} (long or
-wide format), or a vector with one label per sequence (per row of a
-wide data frame, per element of a list). A group model holds one
+wide format), or a vector with one label per row of a data frame (per
+sequence of a wide frame, per event of a long table) or per element of
+a list. A \code{netobject_group} is refused: it is grouped already. A group model holds one
 network per group and the data of each group; it is the input of
 \code{\link[=hg_compare]{hg_compare()}} and can be passed to \code{\link[=hg_bootstrap]{hg_bootstrap()}} and \code{\link[=hg_get]{hg_get()}}.}
 }

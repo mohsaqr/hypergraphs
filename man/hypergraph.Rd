@@ -42,10 +42,10 @@ comparison variable within whose values the sets are counted.
 }
 
 A list of sequences is read as event data with \code{window}. A network, as a
-weight matrix, a sparse matrix, a \code{netobject} or a \code{cograph_network}, has
-its cliques promoted to hyperedges (\code{\link[=network_hypergraph]{network_hypergraph()}}); with
-\code{window}, a model object built from sequences is read as sequences
-instead. A topic model fitted by \code{\link[=hg_topics]{hg_topics()}}, or a clustering of
+weight matrix, a sparse matrix, a \code{netobject}, a \code{cograph_network} or a
+\code{tna} model, has its cliques promoted to hyperedges
+(\code{\link[=network_hypergraph]{network_hypergraph()}}); with \code{window}, a model object built from
+sequences is read as sequences instead. A topic model fitted by \code{\link[=hg_topics]{hg_topics()}}, or a clustering of
 sequences, becomes the hypergraph of its frequent sets
 (\code{\link[=group_hypergraph]{group_hypergraph()}}).
 

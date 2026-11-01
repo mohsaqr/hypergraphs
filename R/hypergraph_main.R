@@ -26,10 +26,10 @@
 #'   comparison variable within whose values the sets are counted.
 #'
 #' A list of sequences is read as event data with `window`. A network, as a
-#' weight matrix, a sparse matrix, a `netobject` or a `cograph_network`, has
-#' its cliques promoted to hyperedges ([network_hypergraph()]); with
-#' `window`, a model object built from sequences is read as sequences
-#' instead. A topic model fitted by [hg_topics()], or a clustering of
+#' weight matrix, a sparse matrix, a `netobject`, a `cograph_network` or a
+#' `tna` model, has its cliques promoted to hyperedges
+#' ([network_hypergraph()]); with `window`, a model object built from
+#' sequences is read as sequences instead. A topic model fitted by [hg_topics()], or a clustering of
 #' sequences, becomes the hypergraph of its frequent sets
 #' ([group_hypergraph()]).
 #'
@@ -107,12 +107,13 @@ hypergraph.data.frame <- function(data, ...) {
       "apply; give `window` for windows of consecutive actions"),
       paste0("`", ordered, "`", collapse = ", ")))
   }
-  for (column in c(action, actor, session)) {
-    if (!is.character(column) || length(column) != 1L ||
-        !column %in% names(data)) {
-      .thg_bad_input(paste0("`action`, `actor` and `session` must each name ",
-                            "one column of `data`"))
-    }
+  given <- Filter(Negate(is.null), list(action, actor, session))
+  names_column <- vapply(given, function(column) {
+    is.character(column) && length(column) == 1L && column %in% names(data)
+  }, logical(1L))
+  if (!all(names_column)) {
+    .thg_bad_input(paste0("`action`, `actor` and `session` must each name ",
+                          "one column of `data`"))
   }
   if (is.null(actor) && is.null(session)) {
     .thg_bad_input(paste0("event data need a `session` or an `actor` whose ",
@@ -172,6 +173,9 @@ hypergraph.netobject <- function(data, ...) .hgm_network(data, ...)
 
 #' @export
 hypergraph.cograph_network <- function(data, ...) .hgm_network(data, ...)
+
+#' @export
+hypergraph.tna <- function(data, ...) .hgm_network(data, ...)
 
 #' @export
 hypergraph.net_hg_topics <- function(data, ...) group_hypergraph(data, ...)

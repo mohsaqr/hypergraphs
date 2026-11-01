@@ -17,11 +17,13 @@
   ok <- ok && is.finite(x) && abs(x - round(x)) < sqrt(.Machine$double.eps) &&
     x >= min && x <= max
   if (!ok) {
-    upper <- if (allow_inf) "or Inf" else
-      if (max < .Machine$integer.max) sprintf("<= %s", format(max)) else ""
-    .ho_input_error(trimws(sprintf(
-      "`%s` must be one whole number >= %s %s", arg, format(min), upper
-    )))
+    range <- if (max < .Machine$integer.max) {
+      sprintf("in [%s, %s]", format(min), format(max))
+    } else {
+      sprintf(">= %s", format(min))
+    }
+    .ho_input_error(sprintf("`%s` must be one whole number %s%s", arg, range,
+                            if (allow_inf) " or Inf" else ""))
   }
   as.integer(round(x))
 }

@@ -7,7 +7,8 @@
 #'
 #' @param x A `simplicial_complex` object from
 #'   [simplicial()].
-#' @param ... Additional arguments (ignored).
+#' @param ... Not used; an unknown argument is refused with
+#'   `hypergraphs_bad_input`.
 #' @param what `"simplices"` (default) for one row per simplex,
 #'   `"f_vector"` for the face counts by dimension, `"betti"` for the Betti
 #'   numbers by dimension, `"degree"` for the
@@ -17,8 +18,10 @@
 #' @param dimension Integer or `NULL`. For `what = "simplices"`: keep only
 #'   simplices of this dimension (`0` vertices, `1` edges, `2` triangles).
 #'   For `what = "validation"`: keep only the sets of `dimension + 1` actions.
+#'   Given with another table it is refused with `hypergraphs_bad_input`.
 #' @param normalized Logical. Only for `what = "degree"`: divide each count
-#'   by its largest possible value. Default `FALSE`.
+#'   by its largest possible value. Default `FALSE`. Set to `TRUE` with
+#'   another table it is refused with `hypergraphs_bad_input`.
 #' @return A data.frame. For `what = "simplices"`, one row per simplex:
 #'   `simplex` (its number), `dimension`, `size`, `members` (the node names,
 #'   comma separated). For `what = "f_vector"`, one row per dimension:
@@ -33,9 +36,8 @@
 #'   model), `z` (the count minus `expected`, in null standard deviations),
 #'   `p_value`, `p_adj` (Benjamini-Hochberg over `n_tests` possible sets),
 #'   `n_tests`, `significant`.
-#' @param top Integer or `NULL`. Return only the first `top` rows,
-#'   applied after any filter and after `sort_by`, so `sort_by` and
-#'   `top` compose. Default `NULL` returns every row.
+#' @param top Integer or `NULL`. Return only the first `top` rows, applied
+#'   after the `dimension` filter. Default `NULL` returns every row.
 #' @examples
 #' adj <- matrix(c(0, 1, 1, 0,
 #'                 1, 0, 1, 1,
@@ -53,6 +55,16 @@ hg_get.simplicial_complex <- function(x, what = c("simplices", "f_vector",
                                       top = NULL) {
   .ho_no_dots(..., .for = "hg_get() on a `simplicial_complex`")
   what <- .ho_match_what(what)
+  # a filter the chosen table does not read is refused, never ignored
+  if (!is.null(dimension) && !what %in% c("simplices", "validation")) {
+    .thg_bad_input(sprintf(
+      "`dimension` filters what = \"simplices\" or \"validation\", not \"%s\"",
+      what))
+  }
+  if (!identical(what, "degree") && !isFALSE(normalized)) {
+    .thg_bad_input(sprintf(
+      "`normalized` applies to what = \"degree\" only, not \"%s\"", what))
+  }
   if (what == "betti") {
     betti <- as.integer(hg_betti(x))
     return(.ho_top(data.frame(dimension = seq_along(betti) - 1L,
@@ -102,15 +114,15 @@ hg_get.simplicial_complex <- function(x, what = c("simplices", "f_vector",
 #' Tables of a q-analysis
 #'
 #' @param x A `q_analysis` object from [hg_qanalysis()].
-#' @param ... Additional arguments (ignored).
+#' @param ... Not used; an unknown argument is refused with
+#'   `hypergraphs_bad_input`.
 #' @param what `"q_levels"` (default) for the number of q-connected
 #'   components at each level, or `"nodes"` for each node's highest
 #'   q-level.
 #' @return A data.frame. For `what = "q_levels"`, one row per level: `q`,
 #'   `components`. For `what = "nodes"`, one row per node: `node`, `max_q`.
-#' @param top Integer or `NULL`. Return only the first `top` rows,
-#'   applied after any filter and after `sort_by`, so `sort_by` and
-#'   `top` compose. Default `NULL` returns every row.
+#' @param top Integer or `NULL`. Return only the first `top` rows. Default
+#'   `NULL` returns every row.
 #' @examples
 #' adj <- matrix(c(0, 1, 1, 0,
 #'                 1, 0, 1, 1,

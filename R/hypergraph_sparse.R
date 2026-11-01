@@ -79,23 +79,26 @@
 
 # EDVW walk operators over a (sparse or dense) incidence: left action
 # v |-> vP, right actions P v and t(P) v, all as mat-vec chains.
-.thg_walk_operators <- function(hg, edge_weights = NULL) {
+# With `dangling = TRUE` a vertex in no hyperedge is allowed: its row of the
+# walk is zero (the left action sends its mass nowhere; hg_pagerank() hands
+# that mass to the teleport distribution) and `dangling` flags it.
+.thg_walk_operators <- function(hg, edge_weights = NULL, dangling = FALSE) {
   incidence <- hg$incidence
   membership <- (incidence > 0) * 1
-  w <- edge_weights %||% hg$window_counts %||% .thg_sparse_edge_weights(incidence)
-  stopifnot(
-    "`edge_weights` must be positive and one per hyperedge" =
-      is.numeric(w) && length(w) == ncol(incidence) &&
-      all(is.finite(w)) && all(w > 0)
-  )
+  w <- .hl_check_edge_weights(edge_weights, ncol(incidence)) %||%
+    hg$window_counts %||% .thg_sparse_edge_weights(incidence)
   delta <- as.numeric(Matrix::colSums(incidence))
   d_v <- as.numeric(membership %*% w)
-  if (any(d_v <= 0)) {
+  is_dangling <- !(d_v > 0)
+  if (any(is_dangling) && !dangling) {
     stop(errorCondition(
       "every vertex must belong to at least one hyperedge",
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
+  # a dangling vertex has an all-zero membership row, so any finite divisor
+  # gives it a zero row of the walk
+  d_v[is_dangling] <- 1
   scale_e <- .thg_edge_scale(w, delta)
   list(
     left = function(v) {
@@ -106,7 +109,7 @@
       as.numeric(membership %*% (scale_e *
         as.numeric(Matrix::crossprod(incidence, v)))) / d_v
     },
-    d_v = d_v, delta = delta, w = w,
+    d_v = d_v, delta = delta, w = w, dangling = is_dangling,
     membership = membership, incidence = incidence
   )
 }
@@ -149,7 +152,8 @@
     ))
   }
   if (identical(type, "zhou")) {
-    w <- edge_weights %||% hg$window_counts %||% rep(1, ncol(incidence))
+    w <- .hl_check_edge_weights(edge_weights, ncol(incidence)) %||%
+      hg$window_counts %||% rep(1, ncol(incidence))
     delta <- as.numeric(Matrix::colSums(membership))
     d_v <- as.numeric(membership %*% w)
     root_d <- sqrt(d_v)
@@ -358,27 +362,9 @@
                                      normalization = "none") {
   n <- hg$n_nodes
   nodes <- hg$nodes
-  lab <- if (!is.null(names(labels))) {
-    labels <- .thg_known_assignment(labels, nodes, hg, arg = "labels")
-    full <- rep(NA_character_, n)
-    full[match(names(labels), nodes)] <- as.character(labels)
-    full
-  } else {
-    if (length(labels) != n) {
-      stop(sprintf("Unnamed `labels` must have length n_nodes (= %d).", n),
-           call. = FALSE)
-    }
-    as.character(labels)
-  }
+  .hl_check_xi(xi)
+  lab <- .hl_full_labels(labels, nodes, hg)
   classes <- .ho_sort(unique(lab[!is.na(lab)]))
-  if (length(classes) < 2L) {
-    stop("`labels` must contain at least two distinct classes.",
-         call. = FALSE)
-  }
-  stopifnot(
-    "`xi` must be a single number in (0, 1)" =
-      is.numeric(xi) && length(xi) == 1L && xi > 0 && xi < 1
-  )
   sim <- .thg_similarity_operator(hg, type, edge_weights)
   F_scores <- vapply(classes, \(cl) {
     y <- as.numeric(!is.na(lab) & lab == cl)

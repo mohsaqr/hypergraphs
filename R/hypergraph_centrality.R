@@ -162,13 +162,15 @@
                                    edge_weights = NULL,
                                    sort_by = NULL,
                                    top = NULL) {
-  stopifnot(
-    inherits(hg, "net_hg"),
-    is.logical(normalize), length(normalize) == 1L,
-    "`damping` must be a single number strictly between 0 and 1" =
-      is.numeric(damping) && length(damping) == 1L && is.finite(damping) &&
-      damping > 0 && damping < 1
-  )
+  .thg_check_hg(hg)
+  if (!(is.logical(normalize) && length(normalize) == 1L &&
+        !is.na(normalize))) {
+    .ho_input_error("`normalize` must be TRUE or FALSE")
+  }
+  damping <- .ho_check_number(damping, "damping", min = 0, max = 1)
+  if (!(damping > 0 && damping < 1)) {
+    .ho_input_error("`damping` must be strictly between 0 and 1")
+  }
   max_iter <- .ho_check_count(max_iter, "max_iter")
   tol <- .hg_check_tol(tol)
   type <- match.arg(type, choices = c("clique", "Z", "H", "pagerank",
@@ -221,6 +223,16 @@
   # Guarded here, before any iteration could pick an arbitrary vector.
   pairwise <- k_max >= 2L
 
+  # A node in no hyperedge of two or more members has f(x)_i = 0 in the
+  # tensor map, so the eigen-equation lambda x_i = 0 forces x_i = 0. Its
+  # start value is set to 0, where the shifted iteration keeps it exactly;
+  # a positive start would only decay geometrically and stop at the
+  # tolerance (about 1e-9) instead of 0.
+  in_tensor <- tabulate(as.integer(unlist(hyperedges[edge_sizes >= 2L],
+                                          use.names = FALSE)),
+                        nbins = n) > 0
+  x0_tensor <- ifelse(in_tensor, x0, 0)
+
   out <- list()
 
   # Clique adjacency (shared hyperedges per node pair, zero diagonal) and
@@ -245,7 +257,8 @@
       if (pairwise) {
         .hg_tensor_power_iter(hyperedges, edge_sizes, n,
                               exponent = 1L, max_iter = max_iter, tol = tol,
-                              x0 = x0, normalize = normalize, label = "Z")
+                              x0 = x0_tensor, normalize = normalize,
+                              label = "Z")
       } else {
         rep(0, n)
       },
@@ -260,7 +273,8 @@
         .hg_tensor_power_iter(hyperedges, edge_sizes, n,
                               exponent = k_max - 1L,
                               max_iter = max_iter, tol = tol,
-                              x0 = x0, normalize = normalize, label = "H")
+                              x0 = x0_tensor, normalize = normalize,
+                              label = "H")
       } else {
         rep(0, n)
       },

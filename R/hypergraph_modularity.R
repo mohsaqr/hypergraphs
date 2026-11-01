@@ -140,8 +140,9 @@
 #'   `n_nodes`, `volume` (summed weighted degree), `edge_contribution`,
 #'   `degree_tax` and `modularity`, sorted by decreasing `modularity`.
 #'   Raises `hypergraphs_bad_input` for a non-`net_hg` input, a partition that
-#'   misses a node, has `NA` labels or conflicting repeated nodes, or a hypergraph with no non-empty
-#'   hyperedge; invalid `edge_weights` fail the shared weight check.
+#'   misses a node, has `NA` labels or conflicting repeated nodes, a
+#'   hypergraph with no non-empty hyperedge, or `edge_weights` that are not
+#'   positive finite numbers of length one or one per hyperedge.
 #' @references Kaminski, B., Poulin, V., Pralat, P., Szufel, P., &
 #'   Theberge, F. (2019). Clustering via hypergraph modularity. *PLoS ONE*,
 #'   14(11), e0224307. \doi{10.1371/journal.pone.0224307}
@@ -339,15 +340,7 @@ hg_modularity <- function(hg, partition,
   }
 
   # Seed each run locally and restore the caller's RNG stream afterwards.
-  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
-  old_seed <- if (had_seed) get(".Random.seed", envir = globalenv()) else NULL
-  on.exit({
-    if (had_seed) {
-      assign(".Random.seed", old_seed, envir = globalenv())
-    } else if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
-      rm(".Random.seed", envir = globalenv())
-    }
-  }, add = TRUE)
+  .ho_local_seed(NULL)
   fits <- .ho_apply(seeds, function(seed) {
     set.seed(seed)
     .hg_irmm_fit(parts, delta = delta, max_iter = max_iter)

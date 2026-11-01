@@ -286,7 +286,7 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   is raised.
 #' @return A `hypergraphs_community_comparison` object. `hg_get()` returns
 #'   its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
-#'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest_size`,
+#'   `n_runs`, `n_communities`, `n_singletons`, `n_nontrivial`, `largest_size`,
 #'   `second_size` and `balance` = second / largest), `"similarity"` (one
 #'   row per pair of
 #'   fits with `model_a`, `model_b`, `n_nodes`, `ami`, `ari`, `nmi`, on
@@ -297,7 +297,8 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
 #'   (one row per fit with the columns of [hg_community_quality()]).
 #'   `plot()` plots the cluster-size distributions (`what = "sizes"`, the
 #'   number of communities at least as large as each size, on logarithmic
-#'   axes) or the similarity matrix (`what = "similarity"`, AMI below and
+#'   axes, one point per distinct size so a fit whose communities all have
+#'   the same size is still drawn) or the similarity matrix (`what = "similarity"`, AMI below and
 #'   ARI above the diagonal, values printed in the cells, on a diverging
 #'   scale from -1 through 0 (white) to 1, since chance-corrected agreement
 #'   can be negative; undefined cells are grey).
@@ -473,11 +474,19 @@ plot.hypergraphs_community_comparison <- function(x, what = c("sizes", "similari
     }))
     curve$model <- factor(curve$model, levels = x$models)
     n_models <- length(x$models)
+    # a fit whose communities share one size is a single point: geom_step
+    # draws nothing for it, so every distinct size is also marked
+    stepped <- curve[curve$model %in% names(which(table(curve$model) > 1L)), ,
+                     drop = FALSE]
     return(
       ggplot2::ggplot(curve, ggplot2::aes(x = .data$size, y = .data$n_at_least,
                                           colour = .data$model,
-                                          linetype = .data$model)) +
-        ggplot2::geom_step(direction = "vh", linewidth = 0.7) +
+                                          linetype = .data$model,
+                                          shape = .data$model)) +
+        ggplot2::geom_step(data = stepped, direction = "vh", linewidth = 0.7) +
+        ggplot2::geom_point(size = 2) +
+        ggplot2::scale_shape_manual(
+          values = rep_len(c(16, 17, 15, 3, 4, 8), n_models), name = NULL) +
         ggplot2::scale_x_log10() + ggplot2::scale_y_log10() +
         ggplot2::scale_colour_manual(values = rep_len(.thg_okabe_ito, n_models),
                                      name = NULL) +

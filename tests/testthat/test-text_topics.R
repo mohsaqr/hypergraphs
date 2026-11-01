@@ -307,3 +307,20 @@ test_that("the presence matrix stays sparse and densifies only the words asked",
   expect_identical(.thg_present_words(.thg_presence(as.matrix(inc)), "b"),
                    .thg_present_words(present, "b"))
 })
+
+test_that("hg_cocluster() seeds locally and restores the caller's stream", {
+  hg <- text_hypergraph(c(
+    cooking_1 = "simmer the soup with onions and carrots",
+    cooking_2 = "this soup recipe needs salt on a cold night",
+    space_1 = "the telescope revealed a distant galaxy and stars",
+    space_2 = "astronomers aimed the telescope at the stars all night"
+  ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
+  set.seed(5)
+  expected <- runif(2)
+  set.seed(5)
+  first <- hg_cocluster(hg, k = 2, seed = 9)
+  expect_identical(runif(2), expected)
+  expect_identical(hg_cocluster(hg, k = 2, seed = 9), first)
+  expect_error(hg_cocluster(hg, k = 2, seed = "x"),
+               class = "hypergraphs_bad_input")
+})

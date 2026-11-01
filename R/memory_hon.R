@@ -221,6 +221,113 @@
   invisible(NULL)
 }
 
+#' Refuse a sequence source no memory estimator can read
+#'
+#' A `netobject_group` is a list of models, so an estimator that reads one
+#' list of sequences would read the fields of each model as states; a model
+#' object without its sequence data has nothing to estimate from. Both are
+#' refused here instead of reaching the estimator.
+#'
+#' @param data Output of .ho_sequence_input().
+#' @param groups Logical. Accept a `netobject_group` (the estimator fits one
+#'   model per group).
+#' @return `NULL`, invisibly; raises `hypergraphs_bad_input`.
+#' @noRd
+.hon_check_sequence_source <- function(data, groups = FALSE) {
+  if (inherits(data, "netobject_group")) {
+    if (groups) return(invisible(NULL))
+    .ho_bad_input(paste0(
+      "`data` is a `netobject_group` (one model per group), but this verb ",
+      "fits one model: pass one group's model or the sequences; hon() fits ",
+      "one network per group with `group =`"))
+  }
+  if (inherits(data, c("netobject", "tna", "cograph_network"))) {
+    if (is.null(data$data)) {
+      .ho_bad_input(paste0(
+        "`data` is a model object without its sequence data; build the ",
+        "model from the sequences, or pass the sequences"))
+    }
+    return(invisible(NULL))
+  }
+  if (!is.data.frame(data) && !is.matrix(data) && !is.list(data)) {
+    .ho_bad_input(paste0(
+      "`data` must be a data.frame or list of sequences, or a model object ",
+      "carrying them"))
+  }
+  invisible(NULL)
+}
+
+#' A single TRUE or FALSE
+#' @noRd
+.hon_check_flag <- function(x, arg) {
+  if (!(is.logical(x) && length(x) == 1L && !is.na(x))) {
+    .ho_bad_input(sprintf("`%s` must be TRUE or FALSE", arg))
+  }
+  x
+}
+
+#' One of a set of choices (partial matching, as match.arg())
+#' @return The matched choice.
+#' @noRd
+.hon_check_choice <- function(x, choices, arg) {
+  hit <- if (is.character(x) && length(x) == 1L && !is.na(x)) {
+    pmatch(x, choices)
+  } else {
+    NA_integer_
+  }
+  if (is.na(hit)) {
+    .ho_bad_input(sprintf("`%s` must be one of %s; got %s", arg,
+                          paste(sprintf("\"%s\"", choices), collapse = ", "),
+                          deparse1(x)))
+  }
+  choices[[hit]]
+}
+
+#' A significance level strictly between 0 and 1
+#' @noRd
+.hon_check_level <- function(x, arg) {
+  if (!(is.numeric(x) && length(x) == 1L && is.finite(x) && x > 0 &&
+        x < 1)) {
+    .ho_bad_input(sprintf("`%s` must be one number strictly between 0 and 1",
+                          arg))
+  }
+  x
+}
+
+#' Refuse accessor arguments given for a table they do not apply to
+#'
+#' @param given Named logical: which arguments the caller supplied.
+#' @param what The table asked for.
+#' @param cls The class read, for the message.
+#' @noRd
+.hon_refuse_args <- function(given, what, cls) {
+  given <- names(given)[given]
+  if (length(given)) {
+    .ho_bad_input(sprintf(
+      "%s: not an argument for hg_get(what = \"%s\") on a `%s`",
+      paste0("`", given, "`", collapse = ", "), what, cls))
+  }
+  invisible(NULL)
+}
+
+#' Refuse `...` arguments outside an allowed set
+#'
+#' @param dots `list(...)` of the method.
+#' @param allowed Names the method passes on.
+#' @param .for Description of the call, for the message.
+#' @noRd
+.hon_allowed_dots <- function(dots, allowed, .for) {
+  if (!length(dots)) return(invisible(NULL))
+  nm <- names(dots) %||% rep("", length(dots))
+  bad <- !nzchar(nm) | !nm %in% allowed
+  if (any(bad)) {
+    nm[!nzchar(nm)] <- "<unnamed>"
+    .ho_bad_input(sprintf("%s: not an argument for %s",
+                          paste0("`", nm[bad], "`", collapse = ", "), .for))
+  }
+  invisible(NULL)
+}
+
 #' Sequence input for a Nestimate memory estimator
 #'
 #' Checks the state labels and splits every sequence with a gap into its
@@ -230,12 +337,15 @@
 #' @param data Output of .ho_sequence_input().
 #' @param check_labels Logical. Refuse labels with " -> " (for estimators
 #'   whose results name paths).
+#' @param groups Logical. Pass a `netobject_group` through to an estimator
+#'   that fits one model per group (`TRUE`) or refuse it (`FALSE`).
 #' @return Raw `data`, a model's sequence frame, or a list of character runs
 #'   when a sequence had a gap.
 #' @noRd
-.hon_estimator_input <- function(data, check_labels = TRUE) {
-  if (inherits(data, c("netobject", "tna", "cograph_network")) &&
-      !is.null(data$data)) {
+.hon_estimator_input <- function(data, check_labels = TRUE, groups = FALSE) {
+  .hon_check_sequence_source(data, groups = groups)
+  if (inherits(data, "netobject_group")) return(data)
+  if (inherits(data, c("netobject", "tna", "cograph_network"))) {
     data <- .coerce_sequence_input(data)
   }
   sequences <- .hon_sequence_values(data)
@@ -573,13 +683,16 @@
 #'   first -- the form [simplicial()] turns into simplices.
 #' @param ... For `what = "pathways"`: `min_count`, `min_prob` (drop rules
 #'   below this count or probability) and `order` (keep one context order).
-#'   Otherwise unused.
+#'   Any other argument, and any argument with another `what`, raises
+#'   `hypergraphs_bad_input`.
 #' @param order_min Integer or `NULL`. Keep only rules whose source context
 #'   is at least this order (e.g. `2` for the genuinely higher-order rules).
-#'   Only for `what = "rules"`.
+#'   Only for `what = "rules"`; with another `what` it raises
+#'   `hypergraphs_bad_input`.
 #' @param sort_by `NULL` (construction order, default), `"count"` or
 #'   `"probability"` - sort largest first, ties broken by `from`/`to` so the
-#'   order is deterministic. Only for `what = "rules"`.
+#'   order is deterministic. Only for `what = "rules"`; with another
+#'   `what` it raises `hypergraphs_bad_input`.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
@@ -600,12 +713,16 @@ hg_get.net_hon <- function(x, what = c("rules", "nodes", "pathways"), ...,
                            order_min = NULL, sort_by = NULL,
                            top = NULL) {
   what <- .ho_match_what(what)
-  if (what != "pathways") {
-    .ho_no_dots(..., .for = sprintf("hg_get(what = \"%s\") on a `net_hon`", what))
+  if (what != "rules") {
+    .hon_refuse_args(c(order_min = !is.null(order_min),
+                       sort_by = !is.null(sort_by)), what, "net_hon")
   }
   if (what == "pathways") {
+    .hon_allowed_dots(list(...), c("min_count", "min_prob", "order"),
+                      "hg_get(what = \"pathways\") on a `net_hon`")
     return(.ho_top(.ho_pathway_table(Nestimate::pathways(x, ...)), top))
   }
+  .ho_no_dots(..., .for = sprintf("hg_get(what = \"%s\") on a `net_hon`", what))
   if (what == "nodes") {
     # the network's node table carries the label twice (label and name)
     out <- data.frame(id = x$nodes$id, node = x$nodes$label,
@@ -614,13 +731,12 @@ hg_get.net_hon <- function(x, what = c("rules", "nodes", "pathways"), ...,
   }
   out <- x$ho_edges
   if (!is.null(order_min)) {
-    stopifnot("`order_min` must be a single integer >= 1" =
-                is.numeric(order_min) && length(order_min) == 1L &&
-                order_min >= 1)
+    order_min <- .ho_check_count(order_min, "order_min")
     out <- out[out$from_order >= order_min, , drop = FALSE]
   }
   if (!is.null(sort_by)) {
-    sort_by <- match.arg(sort_by, c("count", "probability"))
+    sort_by <- .hon_check_choice(sort_by, c("count", "probability"),
+                                 "sort_by")
     out <- out[.ho_order(-out[[sort_by]], out$from, out$to), , drop = FALSE]
   }
   rownames(out) <- NULL

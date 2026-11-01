@@ -60,3 +60,20 @@ test_that("the motif null sample count is validated by class, overflow included"
                  class = "hypergraphs_bad_input")
   }
 })
+
+test_that("a motif test prints and summarises, and a malformed seed is refused", {
+  h <- group_hypergraph(
+    data.frame(member = c(1, 2, 3, 1, 2, 4, 1, 3, 4),
+               event = rep(c("e1", "e2", "e3"), each = 3)),
+    "member", "event"
+  )
+  fit <- hg_motifs(h, n = 5, seed = 1)
+  # summary() captures print()'s first line as its header: it failed with
+  # "invalid 'na.print'" when print() fell through to print.data.frame(n =)
+  s <- summary(fit)
+  expect_s3_class(s, "hypergraphs_summary")
+  expect_match(attr(s, "header"), "configuration-model draws")
+  expect_identical(hg_get(s, what = "draws"), hg_get(fit, what = "draws"))
+  expect_error(hg_motifs(h, n = 5, seed = "a"), class = "hypergraphs_bad_input")
+  expect_error(hg_motifs(h, n = 5, seed = 2.5), class = "hypergraphs_bad_input")
+})

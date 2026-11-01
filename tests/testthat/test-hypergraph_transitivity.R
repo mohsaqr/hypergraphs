@@ -122,3 +122,9 @@ test_that("`n` must be a whole count or Inf (fractions and -Inf refused)", {
   expect_identical(nrow(hg_transitivity(hg, n = 2)), 2L)
   expect_identical(nrow(hg_transitivity(hg, n = Inf)), hg$n_nodes)
 })
+
+test_that("a type named twice gives one column (audit 2026-11-01)", {
+  hg <- .tr_hg(list(e1 = c("a", "b", "c"), e2 = c("c", "d")))
+  expect_named(hg_transitivity(hg, type = c("projection", "projection")),
+               c("node", "projection"))
+})

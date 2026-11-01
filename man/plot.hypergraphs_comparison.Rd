@@ -15,7 +15,9 @@ difference). Default \code{20}.}
 \item{...}{Additional arguments (ignored).}
 }
 \value{
-A ggplot object, invisibly.
+A ggplot object, invisibly. When no rule is estimated in both
+groups there is no difference to draw, and \code{hypergraphs_empty_result}
+is raised.
 }
 \description{
 Difference plot of the per-edge probability differences, the largest

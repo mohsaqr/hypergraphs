@@ -429,3 +429,35 @@ test_that("Z and H solve the eigen-equation on large uniform hyperedges", {
   expect_equal(z[["hub"]] / z[["p0_1"]], sqrt(3), tolerance = 1e-6)
   expect_equal(h[["hub"]] / h[["p0_1"]], 3^(1 / 20), tolerance = 1e-6)
 })
+
+# ---- Audit regressions (2026-11-01) ---------------------------------------
+
+test_that("broken normalize and damping raise hypergraphs_bad_input", {
+  hg <- .hc_two_overlapping()
+  # normalize = NA used to pass the check and crash in `if (!normalize)`
+  expect_error(hg_centrality(hg, normalize = NA), class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(hg, normalize = "yes"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(hg, type = "pagerank", damping = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(hg, type = "pagerank", damping = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_centrality(hg, type = "pagerank", edge_weights = -1),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("Z and H score exactly 0 on a node in no pairwise hyperedge", {
+  # the eigen-equation gives lambda x_z = 0 for a node in singletons only;
+  # the iteration used to leave it at the stopping tolerance (~6e-9)
+  d <- data.frame(node = c("h", "a1", "a2", "h", "b1", "b2", "z"),
+                  edge = c("p1", "p1", "p1", "p2", "p2", "p2", "s"))
+  hg <- group_hypergraph(d, node = "node", hyperedge = "edge")
+  cent <- hg_centrality(hg, type = c("Z", "H"))
+  z <- stats::setNames(cent$Z, cent$node)
+  h <- stats::setNames(cent$H, cent$node)
+  expect_identical(z[["z"]], 0)
+  expect_identical(h[["z"]], 0)
+  # the rest is the 2-petal sunflower: hub / petal = sqrt(2) for Z
+  expect_equal(z[["h"]] / z[["a1"]], sqrt(2), tolerance = 1e-6)
+  expect_equal(sum(z^2), 1, tolerance = 1e-12)
+})

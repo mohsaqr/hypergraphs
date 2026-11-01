@@ -33,7 +33,9 @@ divergence, largest first; \code{NULL} keeps the construction order.}
 
 \item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
 applied after any filter and after \code{sort_by}, so \code{sort_by} and
-\code{top} compose. Default \code{NULL} returns every row.}
+\code{top} compose. Default \code{NULL} returns every row. An invalid
+\code{min_count}, \code{flips}, \code{sort_by} or \code{top} raises
+\code{hypergraphs_bad_input}.}
 }
 \value{
 A data.frame, one row per context: \code{context}, \code{count} (times

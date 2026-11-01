@@ -4,17 +4,21 @@
 \alias{hg_get.net_temporal_hypergraph}
 \title{Tidy tables of a temporal hypergraph}
 \usage{
-\method{hg_get}{net_temporal_hypergraph}(x, what = c("memberships", "edges", "nodes"), ...)
+\method{hg_get}{net_temporal_hypergraph}(x, what = c("memberships", "edges", "nodes"), ..., top = NULL)
 }
 \arguments{
 \item{x}{A \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
 \item{what}{\code{"memberships"} (default) for one row per node-in-hyperedge
-spell (\code{member}, \code{edge}, \code{start}, \code{end}, \code{weight}), \code{"edges"} for one
-row per hyperedge with its clock and attributes, \code{"nodes"} for the node
-universe with entry times. Times are on the hypergraph's clock.}
+spell (\code{node}, \code{edge}, \code{start}, \code{end}, \code{weight}), \code{"edges"} for one
+row per hyperedge with its clock and attributes (\code{edge}, \code{start}, \code{end},
+...), \code{"nodes"} for the node universe with entry times (\code{node},
+\code{start}). Times are on the hypergraph's clock.}
 
-\item{...}{Ignored.}
+\item{...}{Ignored; any argument raises \code{hypergraphs_bad_input}.}
+
+\item{top}{Integer or \code{NULL}. Return only the first \code{top} rows. Default
+\code{NULL} returns every row.}
 }
 \value{
 A base \code{data.frame}.

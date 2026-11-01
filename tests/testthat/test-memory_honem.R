@@ -117,13 +117,13 @@ test_that("honem rejects non-square matrix", {
 test_that("honem rejects dim < 1", {
   mat <- matrix(c(0, 1, 1, 0), 2, 2,
                 dimnames = list(c("A", "B"), c("A", "B")))
-  expect_error(honem(mat, dim = 0L), "'dim' must be >= 1")
+  expect_error(honem(mat, dim = 0L), class = "hypergraphs_bad_input")
 })
 
 test_that("honem rejects max_power < 1", {
   mat <- matrix(c(0, 1, 1, 0), 2, 2,
                 dimnames = list(c("A", "B"), c("A", "B")))
-  expect_error(honem(mat, max_power = 0L), "'max_power' must be >= 1")
+  expect_error(honem(mat, max_power = 0L), class = "hypergraphs_bad_input")
 })
 
 test_that("honem handles all-zero matrix (degenerate embeddings)", {
@@ -314,4 +314,11 @@ test_that("the variance table of a zero spectrum has no NaN", {
   seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
   emb <- honem(hon(seqs, max_order = 2L), dim = 2L)
   expect_equal(sum(hg_get(emb, what = "variance")$proportion), 1)
+})
+
+test_that("honem() refuses bad input by class", {
+  expect_error(honem(list(c("a", "b"))), class = "hypergraphs_bad_input")
+  mat <- matrix(c(0, 1, 1, 0), 2, 2, dimnames = list(c("A", "B"), c("A", "B")))
+  expect_error(honem(mat, dim = 0L), class = "hypergraphs_bad_input")
+  expect_error(honem(mat, max_power = 1.5), class = "hypergraphs_bad_input")
 })

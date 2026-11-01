@@ -185,14 +185,7 @@
                            pinned = rep(FALSE, nrow(adjacency)),
                            cutoff = .thg_repulsion_cutoff) {
   n <- nrow(adjacency)
-  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
-  if (had_seed) old_seed <- get(".Random.seed", envir = globalenv())
-  on.exit(if (had_seed) {
-    assign(".Random.seed", old_seed, envir = globalenv())
-  } else {
-    rm(".Random.seed", envir = globalenv())
-  }, add = TRUE)
-  set.seed(seed)
+  .ho_local_seed(seed)
   side <- sqrt(n)
   start <- list(x = stats::runif(n, -side / 2, side / 2),
                 y = stats::runif(n, -side / 2, side / 2))
@@ -372,13 +365,20 @@
 # discrete variable, or a ramp over the range of a numeric one.
 .thg_fill_colours <- function(values) {
   if (is.numeric(values)) {
-    rng <- range(values)
+    # a hyperedge without a value (NA) is drawn grey, as the scale's
+    # na.value draws it; the ramp spans the values that are present
+    present <- !is.na(values)
+    if (!any(present)) {
+      return(list(colours = rep("#999999", length(values)), palette = NULL))
+    }
+    rng <- range(values[present])
     unit <- if (diff(rng) > 0) (values - rng[1L]) / diff(rng) else rep(0.5, length(values))
     ramp <- grDevices::colorRamp(.thg_okabe_ito_ramp())
-    rgb <- ramp(unit)
-    return(list(colours = grDevices::rgb(rgb[, 1L], rgb[, 2L], rgb[, 3L],
-                                         maxColorValue = 255),
-                palette = NULL))
+    rgb <- ramp(unit[present])
+    colours <- rep("#999999", length(values))
+    colours[present] <- grDevices::rgb(rgb[, 1L], rgb[, 2L], rgb[, 3L],
+                                       maxColorValue = 255)
+    return(list(colours = colours, palette = NULL))
   }
   levels_fill <- if (is.factor(values)) levels(values) else
     .ho_sort(unique(as.character(values)))
@@ -503,7 +503,8 @@
 #'   windows behind each hyperedge), the name of a column in the
 #'   edge metadata (`x$edge_data`), a vector named by hyperedge, or a vector
 #'   with one value per hyperedge. Character or factor values get the
-#'   Okabe-Ito palette; numeric values a sequential scale built from it.
+#'   Okabe-Ito palette; numeric values a sequential scale built from it. A
+#'   hyperedge whose value is missing is drawn grey.
 #' @param linetype_by Outline line type of the hulls, resolved like
 #'   `color_by`; discrete only.
 #' @param dismantled Draw one panel per hyperedge instead of one figure with
@@ -667,14 +668,19 @@
 #' @param ... For `type = "storyline"`: `top` (the number of nodes with the
 #'   most hyperedges plotted as lines, default `8`, `NULL` for all), `spacing`
 #'   (`"even"` or `"strength"`), `width_by` (`NULL` or `"degree"`) and
-#'   `point_size`, as in [plot.net_temporal_hypergraph()]. Otherwise unused.
+#'   `point_size`, as in [plot.net_temporal_hypergraph()]. For the other
+#'   types it must be empty: any argument there raises
+#'   `hypergraphs_bad_input`, so a misspelt argument is never ignored.
 #' @return A ggplot object (with `dismantled = TRUE`, one facet per
 #'   hyperedge). With `node_sizes` and `direction` the nodes are polygon
 #'   layers in data units and the caption names what circle area and
 #'   triangle show; with `node_sizes` alone they are points with a size
 #'   legend. Title boxes are the last layer.
 #' @section Conditions:
-#' `hypergraphs_bad_input` for an invalid selector or layout, a `node_sizes`
+#' `hypergraphs_bad_input` for an invalid selector or layout, an `alpha`,
+#' `padding`, `linewidth`, `node_size`, `detail`, `outline`, `dismantled`,
+#' `ncol` or `seed` that is not a valid value, an argument the plot does not
+#' take, a `node_sizes`
 #' that misses a node or holds a negative value, a `direction` or
 #' `transitions` table without `from`, `to` and one non-negative numeric
 #' weight, a `direction` without `node_sizes`, `titles` that are not
@@ -818,6 +824,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
       .thg_bad_input(sprintf("%s applies only to `type = \"hulls\"`",
                              paste0("`", given, "`", collapse = ", ")))
     }
+    .ho_no_dots(..., .for = "plot() of a hypergraph with `type = \"incidence\"`")
     return(.thg_plot_incidence(
       x, color_by = color_by, sort_by = sort_by, labels = labels,
       edge_labels = edge_labels,
@@ -829,6 +836,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   if (!is.null(sort_by)) {
     .thg_bad_input("`sort_by` applies only to `type = \"incidence\"`")
   }
+  .ho_no_dots(..., .for = "plot() of a hypergraph with `type = \"hulls\"`")
   # repeated member sets are drawn once each, as the distinct sets of all the
   # hyperedges coloured by their number of copies, unless the call styles or
   # labels the hyperedges one by one
@@ -859,18 +867,24 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   arrow_style <- match.arg(arrow_style)
   explicit_pieces <- !is.null(pieces)
   pieces <- match.arg(pieces %||% "packed", c("packed", "row"))
-  stopifnot(
-    "`alpha` must be a number in (0, 1]" =
-      is.numeric(alpha) && length(alpha) == 1L && alpha > 0 && alpha <= 1,
-    "`padding` must be a positive number" =
-      is.numeric(padding) && length(padding) == 1L && padding > 0,
-    "`linewidth` must be a non-negative number" =
-      is.numeric(linewidth) && length(linewidth) == 1L && linewidth >= 0,
-    "`detail` must be a positive number (Inf for no smoothing)" =
-      is.numeric(detail) && length(detail) == 1L && !is.na(detail) && detail > 0,
-    "`outline` must be a single colour or \"fill\"" =
-      is.character(outline) && length(outline) == 1L && !is.na(outline)
-  )
+  .ho_check_number(alpha, "alpha", min = 0, max = 1)
+  if (alpha <= 0) .thg_bad_input("`alpha` must be a number in (0, 1]")
+  .ho_check_number(padding, "padding", min = 0)
+  if (padding <= 0) .thg_bad_input("`padding` must be a positive finite number")
+  .ho_check_number(linewidth, "linewidth", min = 0)
+  .ho_check_number(node_size, "node_size", min = 0)
+  if (!is.numeric(detail) || length(detail) != 1L || is.na(detail) ||
+      detail <= 0) {
+    .thg_bad_input("`detail` must be a positive number (Inf for no smoothing)")
+  }
+  if (!identical(outline, "fill")) {
+    .thg_check_string(outline, "outline", colour = TRUE)
+  }
+  if (!is.logical(dismantled) || length(dismantled) != 1L || is.na(dismantled)) {
+    .thg_bad_input("`dismantled` must be TRUE or FALSE")
+  }
+  if (!is.null(ncol)) ncol <- .ho_check_count(ncol, "ncol")
+  .ho_check_seed(seed)
   if (x$n_nodes == 0L) .thg_bad_input("the hypergraph has no nodes to draw")
   drawable <- lengths(x$hyperedges) >= 2L
   if (!any(drawable)) {
@@ -1294,14 +1308,15 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     p <- p + if (is.null(fill_map$palette)) {
       ggplot2::scale_fill_gradientn(colours = .thg_okabe_ito_ramp(),
                                     name = title, aesthetics = scaled,
-                                    breaks = .thg_count_breaks(hulls$value))
+                                    breaks = .thg_count_breaks(hulls$value),
+                                    na.value = "#999999")
     } else {
       # the wide keys of the theme are for the colour bar: a discrete legend
       # keeps the default key width and at most four keys to a row, so a
       # legend of many levels stays narrow
       ggplot2::scale_fill_manual(
         values = fill_map$palette, name = title, drop = FALSE,
-        aesthetics = scaled,
+        aesthetics = scaled, na.value = "#999999",
         guide = ggplot2::guide_legend(
           nrow = ceiling(length(fill_map$palette) / 4), byrow = TRUE,
           theme = ggplot2::theme(legend.key.width = grid::unit(1.2, "lines"))
@@ -1325,6 +1340,8 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
 # a whole number (hyperedge sizes, counts), so a legend never offers "2.25
 # members"; ggplot2's own breaks otherwise.
 .thg_count_breaks <- function(values) {
+  # hyperedges without a value (NA, drawn grey) do not decide the breaks
+  values <- values[!is.na(values)]
   whole <- all(abs(values - round(values)) < sqrt(.Machine$double.eps))
   if (!whole) return(ggplot2::waiver())
   function(limits) {
@@ -1816,7 +1833,7 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   members <- lapply(x$hyperedges, \(idx) x$nodes[idx])
   grouped <- stats::setNames(list(members), sprintf("All %ss", unit))
   out <- .thg_set_hypergraph(grouped, top = Inf, states = NULL,
-                             item_order = sort, prefix = FALSE)
+                             item_order = .ho_sort, prefix = FALSE)
   out$params <- c(out$params, list(source = "frame_sets",
                                    unit = paste0(unit, "s"),
                                    item = x$params$node %||% "node"))

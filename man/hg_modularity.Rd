@@ -41,8 +41,9 @@ For \code{what = "communities"}: one row per community with \code{community},
 \code{n_nodes}, \code{volume} (summed weighted degree), \code{edge_contribution},
 \code{degree_tax} and \code{modularity}, sorted by decreasing \code{modularity}.
 Raises \code{hypergraphs_bad_input} for a non-\code{net_hg} input, a partition that
-misses a node, has \code{NA} labels or conflicting repeated nodes, or a hypergraph with no non-empty
-hyperedge; invalid \code{edge_weights} fail the shared weight check.
+misses a node, has \code{NA} labels or conflicting repeated nodes, a
+hypergraph with no non-empty hyperedge, or \code{edge_weights} that are not
+positive finite numbers of length one or one per hyperedge.
 }
 \description{
 Scores a partition of the nodes of a hypergraph with the hypergraph

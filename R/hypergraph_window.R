@@ -55,10 +55,9 @@
     data <- as.data.frame(data, stringsAsFactors = FALSE)
   }
   if (is.data.frame(data)) {
-    stopifnot(
-      "`data` must have at least one row"    = nrow(data) >= 1L,
-      "`data` must have at least one column" = ncol(data) >= 1L
-    )
+    if (nrow(data) == 0L || ncol(data) == 0L) {
+      .thg_bad_input("`data` must have at least one row and one column")
+    }
     trajectories <- lapply(seq_len(nrow(data)), function(i) {
       row_vals <- as.character(unlist(data[i, ], use.names = FALSE))
       non_na <- which(!is.na(row_vals))
@@ -79,8 +78,9 @@
     }
     return(trajectories)
   }
-  stop("`data` must be a data.frame, character matrix, or list of vectors.",
-       call. = FALSE)
+  .thg_bad_input(sprintf(paste0(
+    "`data` must be a data.frame, character matrix, or list of vectors, ",
+    "not an object of class %s"), paste(class(data), collapse = "/")))
 }
 
 #' Enumerate the full windows of one trajectory
@@ -161,6 +161,12 @@
 #'   `weight` column of [hg_get()] sums to the number of non-empty full
 #'   windows.
 #'
+#' @section Conditions:
+#' `hypergraphs_bad_input` for an argument out of range, an input that is
+#' not sequences, or a state label holding the control character U+0001;
+#' `hypergraphs_empty_result` (also a `hypergraphs_bad_input`) when no window
+#' or no hyperedge remains.
+#'
 #' @return A `net_hg`, as from [network_hypergraph()] and
 #'   [group_hypergraph()], whose incidence holds the number of occurrences
 #'   of each state within the windows of a hyperedge. [hg_get()] returns one
@@ -182,8 +188,7 @@
 #'                         actor = "session_id", time = "timestamp",
 #'                         window = 3L)
 #' hg
-#' edges <- hg_get(hg)
-#' head(edges)
+#' hg_get(hg, sort_by = "weight", top = 6)
 #'
 #' # Tumbling windows over wide-format sequences
 #' wide <- data.frame(
@@ -201,30 +206,16 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
                               session = NULL, time_threshold = 900,
                               timezone = "UTC", min_size = 1L,
                               min_weight = 1L, collapse = TRUE) {
-  stopifnot(
-    "`window` must be a single integer >= 2" =
-      is.numeric(window) && length(window) == 1L && is.finite(window) &&
-      window >= 2 && window == as.integer(window),
-    "`step` must be a single integer >= 1" =
-      is.numeric(step) && length(step) == 1L && is.finite(step) &&
-      step >= 1 && step == as.integer(step),
-    "`min_size` must be a single integer >= 1" =
-      is.numeric(min_size) && length(min_size) == 1L && is.finite(min_size) &&
-      min_size >= 1 && min_size == as.integer(min_size),
-    "`min_weight` must be a single integer >= 1" =
-      is.numeric(min_weight) && length(min_weight) == 1L &&
-      is.finite(min_weight) && min_weight >= 1 &&
-      min_weight == as.integer(min_weight),
-    "`collapse` must be TRUE or FALSE" =
-      is.logical(collapse) && length(collapse) == 1L && !is.na(collapse)
-  )
+  window <- .ho_check_count(window, "window", min = 2)
+  step <- .ho_check_count(step, "step")
+  min_size <- .ho_check_count(min_size, "min_size")
+  min_weight <- .ho_check_count(min_weight, "min_weight")
+  if (!is.logical(collapse) || length(collapse) != 1L || is.na(collapse)) {
+    .thg_bad_input("`collapse` must be TRUE or FALSE")
+  }
   if (!collapse && min_weight > 1L) {
     .thg_bad_input("`min_weight` does not apply with `collapse = FALSE`: every window is its own hyperedge")
   }
-  window <- as.integer(window)
-  step <- as.integer(step)
-  min_size <- as.integer(min_size)
-  min_weight <- as.integer(min_weight)
 
   # the long route is the package-wide one (Nestimate's prepare()); what
   # comes back is a wide frame, a list or a matrix, parsed here
@@ -235,14 +226,22 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   trajectories <- .wh_parse_input(data, action = NULL, actor = NULL,
                                   time = NULL)
   n_sequences <- length(trajectories)
+  # a window's state set is keyed by its states joined with "\x01" and split
+  # back on it, so a state holding that character would be split into states
+  # that do not exist
+  if (any(grepl("\x01", unlist(trajectories, use.names = FALSE),
+                fixed = TRUE))) {
+    .thg_bad_input("state labels must not contain the control character \\x01")
+  }
 
   per <- lapply(trajectories, .wh_windows_one, window = window, step = step)
   short <- vapply(per, is.null, logical(1L))
   n_short <- sum(short)
   per <- per[!short]
   if (length(per) == 0L) {
-    stop("No windows: every sequence is shorter than `window` (",
-         window, ").", call. = FALSE)
+    .thg_bad_input(sprintf(
+      "No windows: every sequence is shorter than `window` (%d).", window),
+      class = "hypergraphs_empty_result")
   }
 
   if (!collapse) {
@@ -261,7 +260,8 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
 
   long <- long[!is.na(long$state), , drop = FALSE]
   if (nrow(long) == 0L) {
-    stop("No windows: all window positions are NA.", call. = FALSE)
+    .thg_bad_input("No windows: all window positions are NA.",
+                   class = "hypergraphs_empty_result")
   }
 
   # One set key per window; windows that were all-NA drop out of split()
@@ -295,9 +295,10 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   keep <- he_sizes >= min_size & window_counts >= min_weight
   n_dropped <- sum(!keep)
   if (!any(keep)) {
-    stop("No hyperedges left: all ", n_keys, " hyperedges fall below ",
-         "`min_size` (", min_size, ") or `min_weight` (", min_weight, ").",
-         call. = FALSE)
+    .thg_bad_input(sprintf(paste0(
+      "No hyperedges left: all %d hyperedges fall below `min_size` (%d) or ",
+      "`min_weight` (%d)."), n_keys, min_size, min_weight),
+      class = "hypergraphs_empty_result")
   }
   incidence <- incidence[, keep, drop = FALSE]
   colnames(incidence) <- paste0("h", seq_len(ncol(incidence)))
@@ -358,7 +359,8 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   n_windows <- length(edge_levels)
   long <- long[!is.na(long$state), , drop = FALSE]
   if (nrow(long) == 0L) {
-    stop("No windows: all window positions are NA.", call. = FALSE)
+    .thg_bad_input("No windows: all window positions are NA.",
+                   class = "hypergraphs_empty_result")
   }
   states_levels <- .ho_sort(unique(long$state))
   kept <- edge_levels[edge_levels %in% long$edge]
@@ -369,8 +371,9 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   sizes <- colSums(incidence > 0)
   keep <- sizes >= min_size
   if (!any(keep)) {
-    stop("No hyperedges left: every window has fewer than `min_size` (",
-         min_size, ") distinct states.", call. = FALSE)
+    .thg_bad_input(sprintf(paste0(
+      "No hyperedges left: every window has fewer than `min_size` (%d) ",
+      "distinct states."), min_size), class = "hypergraphs_empty_result")
   }
   incidence <- incidence[, keep, drop = FALSE]
   hyperedges <- lapply(seq_len(ncol(incidence)),

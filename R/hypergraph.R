@@ -10,9 +10,10 @@
 #' with probability `p`. Optionally retains the underlying pairwise edges as
 #' 2-hyperedges. Foundation for higher-order analyses.
 #'
-#' @param net A `netobject`, `cograph_network`, `simplicial_complex`, or
-#'   numeric adjacency / weight matrix. Directed inputs are symmetrised by
-#'   the underlying clique enumerator.
+#' @param net A `netobject`, `cograph_network`, `tna` model,
+#'   `simplicial_complex`, or numeric adjacency / weight matrix (dense, or a
+#'   sparse `Matrix`). Directed inputs are symmetrised by the underlying
+#'   clique enumerator.
 #' @param p Probability in `[0, 1]` that each k-clique with k >= 3 becomes a
 #'   k-hyperedge. Default `1` (deterministic - every found clique is
 #'   included).
@@ -24,8 +25,9 @@
 #' @param include_pairwise Logical. Include 2-edges from the input network as
 #'   2-hyperedges. Default `TRUE`. Set `FALSE` for a "fully higher-order"
 #'   hypergraph containing only k-hyperedges with k >= 3.
-#' @param max_size Integer >= 2. Maximum hyperedge size to extract. Default
-#'   `3L` (triangles only). `4L` also includes 4-cliques as 4-hyperedges, etc.
+#' @param max_size One whole number >= 2. Maximum hyperedge size to extract.
+#'   Default `3L` (triangles only). `4L` also includes 4-cliques as
+#'   4-hyperedges, etc. A fraction is refused, not truncated.
 #' @param threshold Numeric. Edge weight cutoff used to binarise the
 #'   adjacency for clique enumeration. Default `0` (any non-zero weight is
 #'   an edge).
@@ -33,6 +35,8 @@
 #'   `0 < p < 1`.
 #'
 #' @return A `net_hg` with `print`, `summary` and `plot` methods.
+#'   An argument out of range, or an input of a class the constructor does
+#'   not read, raises `hypergraphs_bad_input`.
 #'   [hg_get()] returns one row per hyperedge (named `h1`, `h2`, ...), and
 #'   `what = "nodes"` and `what = "memberships"` return the nodes and the
 #'   node-hyperedge pairs; [hg_measures()] gives the distribution of
@@ -60,11 +64,11 @@
 #'
 #' @examples
 #' set.seed(1)
-#' n <- 8
-#' adj <- matrix(stats::rbinom(n * n, 1, 0.5), n, n)
+#' people <- c("A", "B", "C", "D", "E", "F", "G", "H")
+#' adj <- matrix(stats::rbinom(64, 1, 0.5), 8, 8,
+#'               dimnames = list(people, people))
 #' diag(adj) <- 0
 #' adj <- (adj + t(adj)) > 0
-#' rownames(adj) <- colnames(adj) <- LETTERS[seq_len(n)]
 #' hg <- network_hypergraph(adj, p = 1, max_size = 3L)
 #' print(hg)
 #' summary(hg)
@@ -90,13 +94,13 @@ network_hypergraph <- function(net,
       "network (type = \"clique\"). A Vietoris-Rips complex is built from ",
       "points or distances by simplicial(type = \"vr\")."))
   }
-  stopifnot(
-    is.numeric(p), length(p) == 1L, p >= 0, p <= 1,
-    is.logical(include_pairwise), length(include_pairwise) == 1L,
-    is.numeric(max_size), length(max_size) == 1L, max_size >= 2L,
-    is.numeric(threshold), length(threshold) == 1L
-  )
-  max_size <- as.integer(max_size)
+  p <- .ho_check_number(p, "p", min = 0, max = 1)
+  if (!is.logical(include_pairwise) || length(include_pairwise) != 1L ||
+      is.na(include_pairwise)) {
+    .thg_bad_input("`include_pairwise` must be TRUE or FALSE")
+  }
+  max_size <- .ho_check_count(max_size, "max_size", min = 2)
+  threshold <- .ho_check_number(threshold, "threshold")
   if (!is.null(seed)) .ho_local_seed(seed)
 
   # ---- Get adjacency + node names from any supported input ------------
@@ -183,14 +187,14 @@ network_hypergraph <- function(net,
     n     <- length(nodes)
     adj   <- matrix(0, n, n, dimnames = list(nodes, nodes))
     edge_simp <- Filter(function(s) length(s) == 2L, net$simplices)
-    for (e in edge_simp) {
-      adj[e[1L], e[2L]] <- 1
-      adj[e[2L], e[1L]] <- 1
+    if (length(edge_simp)) {
+      ends <- do.call(rbind, edge_simp)
+      adj[rbind(ends, ends[, 2:1, drop = FALSE])] <- 1
     }
     return(list(adj = adj, nodes = nodes))
   }
 
-  if (inherits(net, "netobject") || inherits(net, "cograph_network")) {
+  if (inherits(net, c("netobject", "cograph_network", "tna"))) {
     w <- .hg_aligned_matrix(net$weights)
     nm <- if (!is.null(net$nodes$name)) {
       net$nodes$name
@@ -214,6 +218,7 @@ network_hypergraph <- function(net,
     return(list(adj = w, nodes = nm))
   }
 
+  if (methods::is(net, "Matrix")) net <- as.matrix(net)
   if (is.matrix(net) && (is.numeric(net) || is.logical(net))) {
     net <- .hg_aligned_matrix(net)
     nm <- rownames(net) %||% sprintf("V%d", seq_len(nrow(net)))
@@ -222,8 +227,10 @@ network_hypergraph <- function(net,
     return(list(adj = net, nodes = nm))
   }
 
-  stop("`net` must be a netobject, cograph_network, simplicial_complex, ",
-       "or numeric matrix.", call. = FALSE)
+  .thg_bad_input(sprintf(paste0(
+    "`net` must be a netobject, cograph_network, tna model, ",
+    "simplicial_complex, or numeric matrix, not an object of class %s"),
+    paste(class(net), collapse = "/")))
 }
 
 # A square adjacency whose row and column labels name the same nodes in the
@@ -271,10 +278,13 @@ network_hypergraph <- function(net,
 #' @export
 print.net_hg <- function(x, n = 10L, ...) {
   sizes <- sub("^size_", "", names(x$size_distribution))
-  cat(sprintf("Hypergraph: %d nodes, %d hyperedges (sizes %s)\n",
+  cat(sprintf("Hypergraph: %d nodes, %d hyperedges%s\n",
               x$n_nodes, x$n_hyperedges,
-              paste(sprintf("%s: %d", sizes, x$size_distribution),
-                    collapse = ", ")))
+              if (length(sizes)) {
+                sprintf(" (sizes %s)",
+                        paste(sprintf("%s: %d", sizes, x$size_distribution),
+                              collapse = ", "))
+              } else ""))
   if (identical(x$params$source, "window_hypergraph")) {
     cat(sprintf(
       "Source: windowed sequences, window = %d, step = %d (%d windows from %d sequences)\n",
@@ -305,7 +315,9 @@ print.net_hg <- function(x, n = 10L, ...) {
                   sprintf(", within each %s", x$params$group)))
   } else if (identical(x$params$source, "random_hypergraph")) {
     cat(sprintf("Source: random %s model\n", x$params$model))
-  } else {
+  } else if (identical(x$params$source, "dual_hypergraph")) {
+    cat("Source: dual of a hypergraph (nodes and hyperedges swapped)\n")
+  } else if (identical(x$params$source, "network_hypergraph")) {
     cat(sprintf(
       "Source: network %ss (p = %.2f, include_pairwise = %s, max_size = %d)\n",
       x$params$type, x$params$p,
@@ -423,7 +435,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
     )
     out <- out[.ho_order(cells[, 2L], cells[, 1L]), , drop = FALSE]
     if (!is.null(sort_by)) {
-      sort_by <- match.arg(sort_by, "weight")
+      .hg_check_sort_by(sort_by, "weight")
       out <- out[.ho_order(-out$weight, out$hyperedge, out$node), , drop = FALSE]
     }
     rownames(out) <- NULL
@@ -443,7 +455,7 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
                       stringsAsFactors = FALSE)
     if (!is.null(x$blocks)) out$block <- as.integer(x$blocks)
     if (!is.null(sort_by)) {
-      sort_by <- match.arg(sort_by, "degree")
+      .hg_check_sort_by(sort_by, "degree")
       out <- out[.ho_order(-out$degree, out$node), , drop = FALSE]
       rownames(out) <- NULL
     }
@@ -462,16 +474,21 @@ hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
   # of observed groups has none, and a column of NA would say nothing
   if (!is.null(x$window_counts)) out$weight <- as.numeric(x$window_counts)
   if (!is.null(sort_by)) {
-    sortable <- intersect(c("weight", "size"), names(out))
-    if (!is.character(sort_by) || length(sort_by) != 1L ||
-        !sort_by %in% sortable) {
-      .thg_bad_input(sprintf("`sort_by` must be one of %s for this hypergraph",
-                             paste(sprintf("\"%s\"", sortable), collapse = ", ")))
-    }
+    .hg_check_sort_by(sort_by, intersect(c("weight", "size"), names(out)))
     out <- out[.ho_order(-out[[sort_by]], out$hyperedge), , drop = FALSE]
     rownames(out) <- NULL
   }
   .ho_top(out, top)
+}
+
+# `sort_by` must name one of the sortable columns of the table asked for.
+.hg_check_sort_by <- function(sort_by, sortable) {
+  if (!is.character(sort_by) || length(sort_by) != 1L ||
+      !sort_by %in% sortable) {
+    .thg_bad_input(sprintf("`sort_by` must be one of %s for this table",
+                           paste(sprintf("\"%s\"", sortable), collapse = ", ")))
+  }
+  invisible(sort_by)
 }
 
 #' @return A data.frame, one row per node: `node`, `degree` (the number of

@@ -22,7 +22,7 @@ testthat::skip_on_cran()
 # Section 1: Input validation
 # ===========================================================================
 test_that("hon rejects non-data.frame non-list input", {
-  expect_error(hon(42), "data.frame or list")
+  expect_error(hon(42), class = "hypergraphs_bad_input")
 })
 
 test_that("hon rejects empty data.frame", {
@@ -249,7 +249,7 @@ test_that("hon default method is hon+", {
 
 test_that("hon rejects invalid method", {
   trajs <- list(c("A", "B", "C"))
-  expect_error(hon(trajs, method = "invalid"), "arg")
+  expect_error(hon(trajs, method = "invalid"), class = "hypergraphs_bad_input")
 })
 
 # ===========================================================================
@@ -519,4 +519,53 @@ test_that("hon() refuses state labels holding the arrow or a separator", {
   # an arrow without the surrounding spaces is an ordinary label
   net <- hon(rep(list(c("a->b", "c", "a->b", "c")), 2L), max_order = 1L)
   expect_setequal(net$first_order_states, c("a->b", "c"))
+})
+
+# ===========================================================================
+# Audit 2026-11-01: argument contracts of hon() and hg_get.net_hon()
+# ===========================================================================
+
+test_that("hon() refuses bad arguments with hypergraphs_bad_input", {
+  trajs <- .make_hon_data()
+  expect_error(hon(trajs, max_order = 1.5), class = "hypergraphs_bad_input")
+  expect_error(hon(trajs, min_freq = "a"), class = "hypergraphs_bad_input")
+  expect_error(hon(trajs, collapse_repeats = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(hon(trajs, method = "zz"), class = "hypergraphs_bad_input")
+  expect_error(hon(42), class = "hypergraphs_bad_input")
+})
+
+test_that("hon() refuses a netobject_group instead of reading its fields", {
+  # a netobject_group was read as a list of sequences: its states became
+  # the deparsed fields of each network ("list(id = 1:4, ...)")
+  wide <- data.frame(V1 = c("a", "b", "a", "c"), V2 = c("b", "c", "c", "a"),
+                     V3 = c("c", "a", "b", "b"), g = c("x", "x", "y", "y"))
+  grp <- Nestimate::build_network(wide, method = "relative", group = "g")
+  expect_error(hon(grp), class = "hypergraphs_bad_input")
+  expect_error(mogen(grp), class = "hypergraphs_bad_input")
+  expect_error(memory(grp), class = "hypergraphs_bad_input")
+  expect_error(hypa(grp), class = "hypergraphs_bad_input")
+  net <- Nestimate::build_network(wide[1:3], method = "relative")
+  net$data <- NULL
+  expect_error(hon(net), class = "hypergraphs_bad_input")
+  expect_error(memory(net), class = "hypergraphs_bad_input")
+})
+
+test_that("hg_get.net_hon refuses arguments its table does not take", {
+  net <- hon(.make_hon_data(), max_order = 2L)
+  expect_error(hg_get(net, what = "nodes", order_min = 2),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(net, what = "pathways", sort_by = "count"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(net, what = "pathways", foo = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(net, sort_by = "zz"), class = "hypergraphs_bad_input")
+  expect_error(hg_get(net, order_min = "x"), class = "hypergraphs_bad_input")
+  # the documented pathway filters still pass through
+  expect_identical(hg_get(net, what = "pathways", min_count = 1, order = 2),
+                   data.frame(pathway = Nestimate::pathways(
+                     net, min_count = 1, order = 2)))
+  # partial matching of sort_by is kept
+  expect_identical(hg_get(net, sort_by = "prob"),
+                   hg_get(net, sort_by = "probability"))
 })

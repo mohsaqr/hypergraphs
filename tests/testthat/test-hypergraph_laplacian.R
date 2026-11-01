@@ -482,3 +482,59 @@ test_that("hg_cluster() warns when the spectrum does not identify k clusters", {
   expect_no_warning(hg_cluster(sparse, k = 2, seed = 1))
   expect_no_warning(hg_cluster(dense, k = 3, seed = 1, algorithm = "symnmf"))
 })
+
+# ---- Audit regressions (2026-11-01) ---------------------------------------
+
+.lap_two_blocks <- function(sparse = FALSE) {
+  d <- data.frame(
+    node = c("a", "b", "c", "a", "b", "b", "c", "d", "d", "e", "f",
+             "e", "f", "g", "f", "g", "h", "e", "g", "h"),
+    edge = c(rep("x1", 3), rep("x2", 2), rep("x3", 3), rep("y1", 3),
+             rep("y2", 3), rep("y3", 3), rep("y4", 3)))
+  group_hypergraph(d, node = "node", hyperedge = "edge", sparse = sparse)
+}
+
+test_that("the Laplacian matches Zhou et al. (2007) written out by hand", {
+  hg <- .lap_two_blocks()
+  h <- (hg$incidence > 0) * 1
+  w <- seq_len(ncol(h)) / 2
+  d_v <- as.numeric(h %*% w)
+  by_hand <- diag(nrow(h)) - diag(1 / sqrt(d_v)) %*% h %*% diag(w) %*%
+    diag(1 / colSums(h)) %*% t(h) %*% diag(1 / sqrt(d_v))
+  lap <- hg_laplacian(hg, edge_weights = w)
+  expect_equal(unname(unclass(lap)[, ]), by_hand, tolerance = 1e-12,
+               ignore_attr = TRUE)
+  values <- eigen(by_hand, symmetric = TRUE)$values
+  expect_true(all(values > -1e-12 & values < 2 + 1e-12))
+})
+
+test_that("spectral contracts raise hypergraphs_bad_input, not simpleError", {
+  hg <- .lap_two_blocks()
+  one <- group_hypergraph(data.frame(node = "a", edge = "x"), node = "node",
+                          hyperedge = "edge")
+  empty <- .thg_from_incidence(
+    matrix(0, 2, 0, dimnames = list(c("a", "b"), NULL)), params = list())
+  expect_error(hg_laplacian(list()), class = "hypergraphs_bad_input")
+  expect_error(hg_laplacian(one), class = "hypergraphs_bad_input")
+  expect_error(hg_laplacian(empty), class = "hypergraphs_bad_input")
+  expect_error(hg_laplacian(hg, edge_weights = -1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_laplacian(hg, edge_weights = c(1, 2)),
+               class = "hypergraphs_bad_input")
+  for (h in list(hg, .lap_two_blocks(sparse = TRUE))) {
+    expect_error(hg_classify(h, c(a = "A", b = "A")),
+                 class = "hypergraphs_bad_input")
+    expect_error(hg_classify(h, c(a = "A", h = "B"), xi = 1),
+                 class = "hypergraphs_bad_input")
+    expect_error(hg_classify(h, c("A", "B")), class = "hypergraphs_bad_input")
+  }
+})
+
+test_that("the spectrum panel of a sparse fit shows only computed eigenvalues", {
+  fit <- .thg_sparse_cluster(.lap_two_blocks(sparse = TRUE), k = 2,
+                             type = "zhou", edge_weights = NULL, nstart = 5L,
+                             seed = 1)
+  panel <- plot(fit, what = "spectrum")
+  expect_identical(nrow(panel$data), length(fit$eigenvalues))
+  expect_false(anyNA(panel$data$value))
+})

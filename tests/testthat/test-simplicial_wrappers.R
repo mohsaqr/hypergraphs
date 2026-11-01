@@ -258,3 +258,101 @@ test_that("plot(type = \"summary\") draws the plot of the simplicial_complex", {
                class = "hypergraphs_bad_input")
   expect_error(plot(sc, type = "faces"))
 })
+
+# ---- Audit 2026-11-01: arguments are validated and never ignored ----------
+
+test_that("simplicial() refuses an unknown type with a classed error", {
+  m <- .sw_mat()
+  expect_error(simplicial(m, type = "foo"), class = "hypergraphs_bad_input")
+  expect_error(simplicial(m, type = c("clique", "window")),
+               class = "hypergraphs_bad_input")
+  expect_error(simplicial(m, direction = "sideways"),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("simplicial() refuses an argument its type does not read", {
+  m <- .sw_mat()
+  seqs <- list(c("a", "b", "c", "a", "b"), c("b", "c", "a", "c"))
+  h <- hon(seqs, max_order = 2)
+  refused <- list(
+    list(x = m, validate = TRUE), list(x = m, window = 5L),
+    list(x = m, foo = 1), list(x = m, type = "vr", threshold = 0.2),
+    list(x = m, type = "vr", verify = FALSE),
+    list(x = seqs, type = "window", threshold = 0.2),
+    list(x = seqs, type = "window", alpha = 0.01),
+    list(x = seqs, type = "window", validate = TRUE,
+         null = "hypergeometric", seed = 1L),
+    list(x = h, type = "pathway", threshold = 0.2),
+    list(x = h, type = "pathway", max_scale = 1))
+  invisible(lapply(refused, \(args) {
+    expect_error(do.call(simplicial, args), class = "hypergraphs_bad_input")
+  }))
+  # the arguments each type does read still work
+  expect_identical(.unclass_sc(simplicial(m, type = "vr", max_scale = 0.6)),
+                   Nestimate::build_simplicial(m, type = "vr",
+                                               max_scale = 0.6))
+  expect_s3_class(simplicial(h, type = "pathway", max_pathways = 2),
+                  "simplicial_complex")
+})
+
+test_that("simplicial() refuses missing weights and bad controls, classed", {
+  m <- .sw_mat()
+  m[1, 2] <- NA
+  expect_error(simplicial(m), class = "hypergraphs_bad_input")
+  expect_error(simplicial(m, type = "vr"), class = "hypergraphs_bad_input")
+  m <- .sw_mat()
+  expect_error(simplicial(m, threshold = -1), class = "hypergraphs_bad_input")
+  expect_error(simplicial(m, max_dim = -1), class = "hypergraphs_bad_input")
+  expect_error(simplicial(m, verify = NA), class = "hypergraphs_bad_input")
+  seqs <- list(c("a", "b", "c", "a", "b"), c("b", "c", "a", "c"))
+  h <- hon(seqs, max_order = 2)
+  expect_error(simplicial(h, type = "pathway", max_pathways = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(simplicial(h, type = "pathway", anomaly = "bogus"),
+               class = "hypergraphs_bad_input")
+  expect_error(simplicial(seqs, type = "pathway"),
+               class = "hypergraphs_bad_input")
+  expect_error(simplicial(seqs, type = "window", window = 1L),
+               class = "hypergraphs_bad_input")
+  expect_error(simplicial(seqs, type = "window", validate = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(simplicial(seqs, type = "window", validate = TRUE,
+                          null = "binomial"),
+               class = "hypergraphs_bad_input")
+  sc <- simplicial(seqs, type = "window")
+  expect_error(plot(sc, top = 0), class = "hypergraphs_bad_input")
+  expect_error(plot(sc, dismantled = NA), class = "hypergraphs_bad_input")
+})
+
+test_that("the measures refuse a non-complex with a classed error", {
+  invisible(lapply(list(hg_betti, hg_euler, hg_qanalysis, hg_degree), \(f) {
+    expect_error(f(list(a = 1)), class = "hypergraphs_bad_input")
+  }))
+  expect_error(hg_degree(simplicial(.sw_mat()), normalized = NA),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("hg_homology() accepts the rips alias and refuses bad input", {
+  m <- .sw_mat()
+  expect_identical(hg_homology(m, type = "rips", max_dim = 2L),
+                   hg_homology(m, type = "vr", max_dim = 2L))
+  expect_error(hg_homology(m, type = "foo"), class = "hypergraphs_bad_input")
+  expect_error(hg_homology(m, n_steps = 0), class = "hypergraphs_bad_input")
+  expect_error(hg_homology(m, max_dim = -1), class = "hypergraphs_bad_input")
+  # a clique complex carries no filtration
+  expect_error(hg_homology(simplicial(m, threshold = 0.5)),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("hg_landscape() and hg_bottleneck() refuse bad input, classed", {
+  d <- data.frame(dimension = 0L, birth = 0, death = 2)
+  expect_error(hg_landscape(1), class = "hypergraphs_bad_input")
+  expect_error(hg_landscape(d, k_max = 0), class = "hypergraphs_bad_input")
+  expect_error(hg_landscape(d, t_grid = "a"), class = "hypergraphs_bad_input")
+  expect_error(hg_bottleneck(1, d), class = "hypergraphs_bad_input")
+  expect_error(hg_bottleneck(d, data.frame(a = 1)),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_bottleneck(d, d, dimension = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_bottleneck(d, d, tol = -1), class = "hypergraphs_bad_input")
+})

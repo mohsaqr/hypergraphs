@@ -187,7 +187,7 @@ test_that("`time` is a contact clock and the cumulative view is a mode", {
   printed <- capture.output(print(contact))
   expect_true(any(grepl("contact", printed)))
   expect_true(any(grepl("cumulative", printed)))
-  expect_error(hg_snapshot(contact, mode = "all"), "should be one of")
+  expect_error(hg_snapshot(contact, mode = "all"), class = "hypergraphs_bad_input")
 })
 
 test_that("observation bounds clip the grid without rewriting memberships", {
@@ -417,4 +417,57 @@ test_that("temporal membership weights are numbers, finite and non-negative (R04
                                      time = "time", weight = "w"),
                  class = "hypergraphs_bad_input")
   })
+})
+
+test_that("rows with a missing node, hyperedge or time are dropped with a warning", {
+  seats <- data.frame(case = rep(c("A", "B"), each = 2),
+                      arb = c("p1", NA, "p2", "a1"),
+                      s = c(1, 1, 2, 2), e = c(3, 3, 4, 4))
+  expect_warning(thg <- temporal_hypergraph(seats, node = "arb",
+                                            hyperedge = "case",
+                                            start = "s", end = "e"),
+                 class = "hypergraphs_dropped_rows")
+  expect_identical(nrow(hg_get(thg)), 3L)
+  # an open end is not a missing value
+  open_end <- transform(seats, arb = c("p1", "a2", "p2", "a1"), e = c(3, 3, NA, NA))
+  expect_no_warning(temporal_hypergraph(open_end, node = "arb",
+                                        hyperedge = "case",
+                                        start = "s", end = "e"))
+})
+
+test_that("an edge-list row with a missing end is dropped whole", {
+  contacts <- data.frame(from = c("a", NA, "c"), to = c("b", "c", ""), t = 1:3)
+  expect_warning(thg <- temporal_hypergraph(contacts, from = "from", to = "to",
+                                            time = "t"),
+                 class = "hypergraphs_dropped_rows")
+  expect_identical(hg_get(thg, what = "edges")$edge, "e1")
+  expect_identical(hg_get(thg)$node, c("a", "b"))
+})
+
+test_that("an unknown mode is a classed error; a partial one matches", {
+  thg <- temporal_hypergraph(
+    data.frame(from = c("a", "b"), to = c("b", "c"), t = 1:2),
+    from = "from", to = "to", time = "t")
+  expect_error(hg_snapshot(thg, mode = "foo"), class = "hypergraphs_bad_input")
+  expect_error(hg_growth(thg, mode = 1), class = "hypergraphs_bad_input")
+  expect_identical(hg_snapshot(thg, mode = "cum")$params$temporal_mode,
+                   "cumulative")
+})
+
+test_that("hg_get() on a temporal hypergraph takes top, and memberships name `node`", {
+  thg <- temporal_hypergraph(
+    data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"), t = 1:3),
+    from = "from", to = "to", time = "t")
+  expect_identical(names(hg_get(thg)), c("node", "edge", "start", "end", "weight"))
+  expect_identical(nrow(hg_get(thg, top = 2)), 2L)
+  expect_identical(hg_get(thg, what = "edges", top = 1)$edge, "e1")
+  expect_error(hg_get(thg, top = 0), class = "hypergraphs_bad_input")
+})
+
+test_that("unreadable time strings raise hypergraphs_unparsed_time", {
+  contacts <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                         when = c("2024-01-01", "not a date"))
+  expect_error(temporal_hypergraph(contacts, from = "from", to = "to",
+                                   time = "when"),
+               class = "hypergraphs_unparsed_time")
 })

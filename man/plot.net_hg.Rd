@@ -77,7 +77,8 @@ attribute described above, the window counts of a
 windows behind each hyperedge), the name of a column in the
 edge metadata (\code{x$edge_data}), a vector named by hyperedge, or a vector
 with one value per hyperedge. Character or factor values get the
-Okabe-Ito palette; numeric values a sequential scale built from it.}
+Okabe-Ito palette; numeric values a sequential scale built from it. A
+hyperedge whose value is missing is drawn grey.}
 
 \item{linetype_by}{Outline line type of the hulls, resolved like
 \code{color_by}; discrete only.}
@@ -272,7 +273,9 @@ ascending. Ties fall back to the default order. For
 \item{...}{For \code{type = "storyline"}: \code{top} (the number of nodes with the
 most hyperedges plotted as lines, default \code{8}, \code{NULL} for all), \code{spacing}
 (\code{"even"} or \code{"strength"}), \code{width_by} (\code{NULL} or \code{"degree"}) and
-\code{point_size}, as in \code{\link[=plot.net_temporal_hypergraph]{plot.net_temporal_hypergraph()}}. Otherwise unused.}
+\code{point_size}, as in \code{\link[=plot.net_temporal_hypergraph]{plot.net_temporal_hypergraph()}}. For the other
+types it must be empty: any argument there raises
+\code{hypergraphs_bad_input}, so a misspelt argument is never ignored.}
 }
 \value{
 A ggplot object (with \code{dismantled = TRUE}, one facet per
@@ -351,7 +354,10 @@ text in mm; defaults 8 and 7 pt).
 }
 \section{Conditions}{
 
-\code{hypergraphs_bad_input} for an invalid selector or layout, a \code{node_sizes}
+\code{hypergraphs_bad_input} for an invalid selector or layout, an \code{alpha},
+\code{padding}, \code{linewidth}, \code{node_size}, \code{detail}, \code{outline}, \code{dismantled},
+\code{ncol} or \code{seed} that is not a valid value, an argument the plot does not
+take, a \code{node_sizes}
 that misses a node or holds a negative value, a \code{direction} or
 \code{transitions} table without \code{from}, \code{to} and one non-negative numeric
 weight, a \code{direction} without \code{node_sizes}, \code{titles} that are not

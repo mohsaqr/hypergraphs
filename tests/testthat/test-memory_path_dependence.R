@@ -47,3 +47,14 @@ test_that("hg_get() refuses a fractional min_count", {
   pd <- memory(seqs, order = 2L, min_count = 1L)
   expect_error(hg_get(pd, min_count = 1.5), class = "hypergraphs_bad_input")
 })
+
+test_that("memory() and its accessor refuse bad arguments by class", {
+  seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
+  expect_error(memory(seqs, order = 1), class = "hypergraphs_bad_input")
+  expect_error(memory(seqs, min_count = 0), class = "hypergraphs_bad_input")
+  expect_error(memory(seqs, base = 1), class = "hypergraphs_bad_input")
+  expect_error(memory(seqs, base = -2), class = "hypergraphs_bad_input")
+  pd <- memory(seqs, min_count = 1)
+  expect_error(hg_get(pd, flips = NA), class = "hypergraphs_bad_input")
+  expect_error(hg_get(pd, sort_by = "count"), class = "hypergraphs_bad_input")
+})

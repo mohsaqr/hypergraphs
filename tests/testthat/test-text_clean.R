@@ -274,3 +274,50 @@ test_that("clean_text() normalises typographic marks in any locale", {
   expect_identical(utils::tail(out, 1L),
                    paste(utf8ToInt("a\"b-c d'e"), collapse = " "))
 })
+
+test_that("clean_text() cuts only a real copyright notice, the last one", {
+  # "(c)" as a list item and "copyright" as a word in a sentence are text:
+  # both used to erase everything from them to the end
+  listed <- "We compare (a) lectures, (b) seminars and (c) online modules."
+  expect_true(grepl("online modules", clean_text(listed), fixed = TRUE))
+  topic <- "This paper studies copyright law and fair use in schools."
+  expect_identical(clean_text(topic), topic)
+  # with two marks the notice is the last, not the first within reach
+  expect_identical(
+    clean_text("We study copyright reform in schools. Copyright 2021 ACM."),
+    "We study copyright reform in schools.")
+  sign <- "©"
+  expect_identical(
+    clean_text(paste0("Teachers adapted. Copyright: ", sign, " 2020 Smith.")),
+    "Teachers adapted.")
+  expect_identical(
+    clean_text("Teachers adapted. (c) The Authors 2021."),
+    "Teachers adapted.")
+  expect_identical(clean_text("Teachers adapted. Copyright the authors."),
+                   "Teachers adapted.")
+  # a tail longer than copyright_max is not a notice and stays
+  long <- paste0("Short. ", sign, " 2020 ", strrep("word ", 80))
+  expect_true(grepl("word word", clean_text(long), fixed = TRUE))
+  # names survive the cut
+  expect_named(clean_text(c(a = "Text. (c) 2020 X.", b = "More text.")),
+               c("a", "b"))
+})
+
+test_that("min_chars and stop_words never cut a word joined to digits", {
+  # "p53" is a word (numbers = TRUE keeps it whole); min_chars = 3 and the
+  # stop word "p" used to leave the number "53" behind
+  x <- "p53 and covid19 a1 x"
+  expect_identical(clean_text(x, min_chars = 3), "p53 and covid19")
+  expect_identical(clean_text(x, stop_words = c("p", "a", "x")),
+                   "p53 and covid19 a1")
+  # digits alone are a number, not a short word: left to `numbers`
+  expect_identical(clean_text("p53 and 12", min_chars = 3, numbers = FALSE),
+                   "p53 and 12")
+})
+
+test_that("clean_text() refuses text that is not valid UTF-8", {
+  broken <- rawToChar(as.raw(c(0x73, 0xfc, 0x70)))
+  Encoding(broken) <- "UTF-8"
+  expect_error(clean_text(c(a = "ok", b = broken)),
+               class = "hypergraphs_bad_input")
+})

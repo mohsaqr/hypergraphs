@@ -313,3 +313,55 @@ test_that("pinned vertices never move in the force-directed layout", {
   ring <- hypergraphs:::.thg_ring(pinned, radius = sqrt(6) / 4)
   expect_equal(xy[pinned, , drop = FALSE], ring[pinned, , drop = FALSE])
 })
+
+test_that("plot.net_hg refuses arguments it does not take and bad scalars", {
+  hg <- .plot_fixture()
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  # a misspelt argument used to be ignored without a word
+  expect_error(plot(hg, colour_by = "size"), class = "hypergraphs_bad_input")
+  expect_error(plot(hg, type = "incidence", colour_by = "size"),
+               class = "hypergraphs_bad_input")
+  bad <- list(list(seed = "a"), list(seed = 1.5), list(alpha = NA),
+              list(padding = Inf), list(linewidth = -1), list(node_size = "a"),
+              list(node_size = -1), list(detail = 0), list(outline = "notacolour"),
+              list(dismantled = "yes"), list(dismantled = TRUE, ncol = 0))
+  lapply(bad, \(args) {
+    expect_error(do.call(plot, c(list(hg), args)),
+                 class = "hypergraphs_bad_input")
+  })
+  expect_s3_class(plot(hg, outline = "fill"), "ggplot")
+  expect_s3_class(plot(hg, outline = "#0072B2"), "ggplot")
+})
+
+test_that("a numeric colour with a missing value draws that hyperedge grey", {
+  hg <- .plot_fixture()
+  filled <- hypergraphs:::.thg_fill_colours(c(1, NA, 3))
+  expect_identical(filled$colours[2L], "#999999")
+  expect_identical(filled$colours[c(1L, 3L)],
+                   hypergraphs:::.thg_fill_colours(c(1, 3))$colours)
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  p <- plot(hg, color_by = c(1, NA, 3, 4))
+  expect_s3_class(p, "ggplot")
+  expect_no_error(print(p))
+})
+
+test_that("the set names of repeated hyperedges do not depend on the locale", {
+  hg <- group_hypergraph(
+    data.frame(n = c("b", "A", "b", "A", "a", "B"),
+               e = c("x", "x", "y", "y", "z", "z")),
+    node = "n", hyperedge = "e")
+  old <- Sys.getlocale("LC_COLLATE")
+  on.exit(Sys.setlocale("LC_COLLATE", old), add = TRUE)
+  names_in <- function(locale) {
+    if (!nzchar(suppressWarnings(Sys.setlocale("LC_COLLATE", locale)))) {
+      return(NULL)
+    }
+    colnames(hypergraphs:::.thg_distinct_sets(hg)$incidence)
+  }
+  in_c <- names_in("C")
+  in_us <- names_in("en_US.UTF-8")
+  skip_if(is.null(in_us), "en_US.UTF-8 locale not available")
+  expect_identical(in_us, in_c)
+})

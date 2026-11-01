@@ -21,9 +21,10 @@ network_hypergraph(
 \method{summary}{net_hg}(object, ...)
 }
 \arguments{
-\item{net}{A \code{netobject}, \code{cograph_network}, \code{simplicial_complex}, or
-numeric adjacency / weight matrix. Directed inputs are symmetrised by
-the underlying clique enumerator.}
+\item{net}{A \code{netobject}, \code{cograph_network}, \code{tna} model,
+\code{simplicial_complex}, or numeric adjacency / weight matrix (dense, or a
+sparse \code{Matrix}). Directed inputs are symmetrised by the underlying
+clique enumerator.}
 
 \item{p}{Probability in \verb{[0, 1]} that each k-clique with k >= 3 becomes a
 k-hyperedge. Default \code{1} (deterministic - every found clique is
@@ -39,8 +40,9 @@ silently aliasing \code{"clique"}.}
 2-hyperedges. Default \code{TRUE}. Set \code{FALSE} for a "fully higher-order"
 hypergraph containing only k-hyperedges with k >= 3.}
 
-\item{max_size}{Integer >= 2. Maximum hyperedge size to extract. Default
-\code{3L} (triangles only). \code{4L} also includes 4-cliques as 4-hyperedges, etc.}
+\item{max_size}{One whole number >= 2. Maximum hyperedge size to extract.
+Default \code{3L} (triangles only). \code{4L} also includes 4-cliques as
+4-hyperedges, etc. A fraction is refused, not truncated.}
 
 \item{threshold}{Numeric. Edge weight cutoff used to binarise the
 adjacency for clique enumeration. Default \code{0} (any non-zero weight is
@@ -59,6 +61,8 @@ an edge).}
 }
 \value{
 A \code{net_hg} with \code{print}, \code{summary} and \code{plot} methods.
+An argument out of range, or an input of a class the constructor does
+not read, raises \code{hypergraphs_bad_input}.
 \code{\link[=hg_get]{hg_get()}} returns one row per hyperedge (named \code{h1}, \code{h2}, ...), and
 \code{what = "nodes"} and \code{what = "memberships"} return the nodes and the
 node-hyperedge pairs; \code{\link[=hg_measures]{hg_measures()}} gives the distribution of
@@ -96,11 +100,11 @@ found in the network's clique complex.
 }
 \examples{
 set.seed(1)
-n <- 8
-adj <- matrix(stats::rbinom(n * n, 1, 0.5), n, n)
+people <- c("A", "B", "C", "D", "E", "F", "G", "H")
+adj <- matrix(stats::rbinom(64, 1, 0.5), 8, 8,
+              dimnames = list(people, people))
 diag(adj) <- 0
 adj <- (adj + t(adj)) > 0
-rownames(adj) <- colnames(adj) <- LETTERS[seq_len(n)]
 hg <- network_hypergraph(adj, p = 1, max_size = 3L)
 print(hg)
 summary(hg)

@@ -238,6 +238,7 @@ hg_transitivity <- function(hg,
   type <- match.arg(type, choices = c("projection", "extra_overlap",
                                       "two_node_union", "two_node_min",
                                       "two_node_max"), several.ok = TRUE)
+  type <- unique(type)
   what <- .ho_match_what(what)
   n <- .ho_check_count(n, "n", allow_inf = TRUE)
   membership <- .hg_membership(hg)

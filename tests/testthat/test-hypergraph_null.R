@@ -317,3 +317,26 @@ test_that("a removed statistic is refused with the same class on sparse input", 
   expect_error(hg_null_test(sparse, statistic = "avg_jaccard"),
                class = "hypergraphs_sparse_unsupported")
 })
+
+test_that("a malformed seed is refused by class and a repeated statistic is tested once", {
+  dat <- data.frame(member = c("a", "b", "c", "a", "b", "d", "c", "d", "e"),
+                    edge = rep(c("e1", "e2", "e3"), each = 3))
+  h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
+  expect_error(hg_null_test(h, n = 19, seed = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_null_test(h, n = 19, seed = 1.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_null_test(h, n = 19, seed = c(1, 2)),
+               class = "hypergraphs_bad_input")
+  out <- hg_null_test(h, statistic = c("repeated_pairs", "repeated_pairs"),
+                      n = 19, seed = 1)
+  expect_identical(out$statistic, "repeated_pairs")
+  # a seeded call leaves no stream behind when the caller had none
+  had <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  saved <- if (had) get(".Random.seed", envir = globalenv())
+  on.exit(if (had) assign(".Random.seed", saved, envir = globalenv()),
+          add = TRUE)
+  if (had) rm(".Random.seed", envir = globalenv())
+  hg_null_test(h, statistic = "repeated_pairs", n = 19, seed = 3)
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+})

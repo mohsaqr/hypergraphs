@@ -333,3 +333,43 @@ test_that("matrix labels are identities: reordered, never overwritten (R19)", {
   expect_error(network_hypergraph(matrix(c(0, Inf, Inf, 0), 2)),
                class = "hypergraphs_bad_input")
 })
+
+test_that("network_hypergraph() refuses out-of-range arguments with a class", {
+  m <- .hg_triangle_adj()
+  expect_error(network_hypergraph(m, p = 2), class = "hypergraphs_bad_input")
+  expect_error(network_hypergraph(m, p = NA), class = "hypergraphs_bad_input")
+  # a fraction is refused, never truncated to 2
+  expect_error(network_hypergraph(m, max_size = 2.5),
+               class = "hypergraphs_bad_input")
+  expect_error(network_hypergraph(m, include_pairwise = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(network_hypergraph(m, threshold = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(network_hypergraph(list(1)), class = "hypergraphs_bad_input")
+})
+
+test_that("a simplicial complex input gives the network's hyperedges", {
+  m <- .hg_triangle_adj()
+  expect_identical(network_hypergraph(simplicial(m))$hyperedges,
+                   network_hypergraph(m)$hyperedges)
+})
+
+test_that("print() of an empty or dual hypergraph names its source cleanly", {
+  empty <- network_hypergraph(matrix(0, 2, 2, dimnames = list(c("a", "b"), c("a", "b"))))
+  out <- capture.output(print(empty))
+  expect_identical(out[[1L]], "Hypergraph: 2 nodes, 0 hyperedges")
+  hg <- group_hypergraph(data.frame(n = c("a", "b", "b"), e = c("x", "x", "y")),
+                         node = "n", hyperedge = "e")
+  expect_true(any(grepl("^Source: dual", capture.output(print(dual_hypergraph(hg))))))
+})
+
+test_that("hg_get() on a net_hg refuses an unknown sort_by on every table", {
+  hg <- group_hypergraph(data.frame(n = c("a", "b", "b"), e = c("x", "x", "y")),
+                         node = "n", hyperedge = "e")
+  expect_error(hg_get(hg, what = "nodes", sort_by = "size"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(hg, what = "memberships", sort_by = "degree"),
+               class = "hypergraphs_bad_input")
+  expect_identical(hg_get(hg, what = "nodes", sort_by = "degree")$node,
+                   c("b", "a"))
+})

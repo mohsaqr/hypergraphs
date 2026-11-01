@@ -64,6 +64,26 @@
   })
 }
 
+# Text that claims to be UTF-8 -- marked so, or unmarked in a UTF-8 locale --
+# but holds bytes that are not UTF-8 (a Latin-1 file read as UTF-8) makes
+# tolower(), gsub() and strsplit() stop with an unclassed error naming no
+# document. It is refused up front, naming the documents, with the repair.
+# A string marked "latin1" is valid text and passes; R converts it.
+.thg_check_utf8 <- function(text, ids, arg = "x") {
+  encoding <- Encoding(text)
+  claims_utf8 <- encoding == "UTF-8" |
+    (encoding == "unknown" & isTRUE(l10n_info()[["UTF-8"]]))
+  invalid <- claims_utf8 & !validUTF8(text)
+  if (any(invalid)) {
+    .thg_bad_input(sprintf(paste0(
+      "%d text(s) of `%s` are not valid UTF-8: %s; re-encode them first, ",
+      "e.g. iconv(text, from = \"latin1\", to = \"UTF-8\")"),
+      sum(invalid), arg,
+      paste(utils::head(ids[invalid], 5L), collapse = ", ")))
+  }
+  invisible(text)
+}
+
 # Drop tokens shorter than `min_chars`. `min_chars = 1` is a no-op, so the
 # default costs nothing.
 .thg_drop_short <- function(tokens, min_chars) {
@@ -251,7 +271,8 @@
 #'   metadata under `input_<name>`, with a `hypergraphs_renamed_column`
 #'   warning. Raises `hypergraphs_bad_input` for a broken argument contract,
 #'   including bag-only arguments passed to other constructions and a
-#'   clashing column whose `input_<name>` is also taken;
+#'   clashing column whose `input_<name>` is also taken, and a text that
+#'   is not valid UTF-8 (re-encode it with [iconv()] first);
 #'   `hypergraphs_empty_corpus` when no document survives tokenization and
 #'   filtering; `hypergraphs_missing_embeddings` for `construction = "knn"`
 #'   with neither `embeddings` nor the sbert package. Warns with
@@ -341,8 +362,9 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       length(min_chars) == 1L && is.finite(min_chars) && min_chars >= 1,
     "`lowercase` must be TRUE or FALSE" =
       isTRUE(lowercase) || isFALSE(lowercase),
-    "`window` must be a single count >= 2" =
-      length(window) == 1L && is.finite(window) && window >= 2
+    "`window` must be a single whole number >= 2" =
+      length(window) == 1L && is.numeric(window) && is.finite(window) &&
+        window >= 2 && window == round(window)
   )
   # the tokens are lowercased, so the stop words must be too
   if (isTRUE(lowercase) && !is.null(stop_words)) {
@@ -422,6 +444,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     meta <- NULL
   }
   text[is.na(text)] <- ""
+  .thg_check_utf8(text, doc_id)
 
   if (identical(construction, "knn")) {
     return(.thg_knn_text(text, doc_id, meta, k = k, embeddings = embeddings,

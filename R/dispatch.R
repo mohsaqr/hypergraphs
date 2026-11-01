@@ -221,12 +221,35 @@ hypa.default <- function(x, order = 2L, alpha = 0.05, min_count = 5L,
   .ho_no_dots(..., .for = "sequences")
   type <- match.arg(type)
   order_by <- match.arg(order_by)
-  stopifnot("`n` must be a single count >= 1" =
-              is.numeric(n) && length(n) == 1L && is.finite(n) && n >= 1)
+  # checked here so a bad value raises the package's classed condition;
+  # the values themselves go to the estimator unchanged
+  n <- .ho_check_count(n, "n")
+  .ho_check_count(min_count, "min_count")
+  .ho_check_number(alpha, "alpha", min = 0, max = 0.5)
+  if (alpha <= 0 || alpha >= 0.5) {
+    .ho_bad_input("`alpha` must be one number in (0, 0.5)")
+  }
+  if (!is.numeric(order) || is.factor(order) || !length(order) ||
+      anyNA(order) || any(!is.finite(order)) || any(order < 1) ||
+      any(abs(order - round(order)) > sqrt(.Machine$double.eps))) {
+    .ho_bad_input("`order` must be one or more whole numbers >= 1")
+  }
+  if (!is.character(p_adjust) || length(p_adjust) != 1L || is.na(p_adjust) ||
+      !p_adjust %in% stats::p.adjust.methods) {
+    .ho_bad_input(sprintf("`p_adjust` must be one of %s",
+                          paste(sprintf("\"%s\"", stats::p.adjust.methods),
+                                collapse = ", ")))
+  }
   data <- .ho_sequence_input(x, action = action, actor = actor, time = time,
                              session = session,
                              time_threshold = time_threshold,
                              timezone = timezone)
+  if (inherits(data, c("netobject", "tna", "cograph_network")) &&
+      is.null(data$data)) {
+    .ho_bad_input(sprintf(paste0(
+      "hypa() on sequences needs the sequences themselves: this %s carries ",
+      "no sequence data ($data)"), class(data)[1L]))
+  }
   data <- .hon_estimator_input(data)
   fit <- Nestimate::build_hypa(data, order = order, alpha = alpha,
                                min_count = min_count, p_adjust = p_adjust)

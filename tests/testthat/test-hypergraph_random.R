@@ -143,3 +143,23 @@ test_that("random generator counts refuse overflow and fractions by class", {
   expect_error(random_hypergraph("sbm", P = diag(2), block_sizes = c(2, 2),
                                  d = 3), class = "hypergraphs_bad_input")
 })
+
+test_that("a required argument left out is a classed error", {
+  expect_error(random_hypergraph("uniform", n = 5, m = 2),
+               class = "hypergraphs_bad_input")
+  expect_error(random_hypergraph("gnp", n = 5),
+               class = "hypergraphs_bad_input")
+  expect_error(random_hypergraph("sbm", P = diag(2), block_sizes = c(2, 2)),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("uniform and regular hypergraphs keep their size and degree, unnamed members", {
+  u <- random_hypergraph("uniform", n = 9, m = 12, k = 4, seed = 3)
+  expect_true(all(colSums(u$incidence) == 4L))
+  expect_null(names(u$hyperedges[[1L]]))
+  r <- random_hypergraph("regular", n = 9, m = 6, k = 2, seed = 3)
+  expect_true(all(rowSums(r$incidence) == 2L))
+  # k = 0 gives an empty incidence, not an error
+  expect_identical(sum(random_hypergraph("uniform", n = 3, m = 2, k = 0)$incidence), 0L)
+  expect_identical(sum(random_hypergraph("regular", n = 3, m = 2, k = 0)$incidence), 0L)
+})

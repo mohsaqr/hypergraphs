@@ -24,11 +24,14 @@
 (\code{"a b -> c"}), the form \code{\link[=simplicial]{simplicial()}} turns into simplices.}
 
 \item{...}{For \code{what = "pathways"}, \code{min_prob} (drop transitions below
-this probability). Otherwise unused.}
+this probability). Any other argument raises \code{hypergraphs_bad_input}.}
 
 \item{order}{Integer or \code{NULL}. For \code{what = "transitions"} and
-\code{"pathways"}: which layer to read. Default \code{NULL} uses the selected
-order.}
+\code{"pathways"}: which layer to read, a whole number from \code{0} to the
+model's highest order. Default \code{NULL} uses the selected order. The
+order-0 layer has no memory and no transitions, so at order 0 both
+tables have no rows. \code{order}, \code{k} and \code{min_count} given with a table
+they do not apply to raise \code{hypergraphs_bad_input}.}
 
 \item{k}{Integer vector, for \code{what = "paths"}: the path length or
 lengths in states, each between \code{2} and the model's highest order plus
@@ -38,8 +41,7 @@ one, e.g. \code{k = 3} or \code{k = 2:4}. Default \code{2} (single transitions).
 drop transitions observed fewer times. Default \code{1}.}
 
 \item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
-applied after any filter and after \code{sort_by}, so \code{sort_by} and
-\code{top} compose. Default \code{NULL} returns every row.}
+applied after any filter. Default \code{NULL} returns every row.}
 }
 \value{
 A data.frame. For \code{what = "orders"}, one row per candidate order:

@@ -39,8 +39,7 @@
 #' bs <- hg_bootstrap(human_long, action = "code", actor = "session_id",
 #'                     time = "timestamp", n_boot = 20, max_order = 2,
 #'                     seed = 1)
-#' rules <- hg_get(bs, order_min = 2)
-#' head(rules)
+#' hg_get(bs, order_min = 2, top = 6)
 #'
 #' @name long-data
 #' @aliases ai_long
@@ -104,8 +103,10 @@ NULL
 #'   \item{decision}{Decision key, `volume-page`.}
 #'   \item{date}{Date of the decision.}
 #'   \item{citation}{Official citation, e.g. `"BVerfGE 1, 1-3"`.}
-#'   \item{type}{Decision type (`"Urteil"` or `"Beschluss"`).}
-#'   \item{title}{Title of the decision, in German.}
+#'   \item{type}{Decision type, `"Urteil"` or `"Beschluss"`; the empty
+#'     string `""` for the 37 decisions the release leaves untyped.}
+#'   \item{title}{Title of the decision, in German; `""` for the 6
+#'     decisions released without one.}
 #' }
 #' @source Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs
 #'   (GFCC dataset). Zenodo. \doi{10.5281/zenodo.8081511}, via the

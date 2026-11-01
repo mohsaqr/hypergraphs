@@ -50,7 +50,10 @@ columns \code{n} (nodes compared), \code{agreement} (share of equal labels),
 \code{aligned} (nodes that stay with the majority of their \code{x} label in
 \code{y} -- the sum of \code{overlap} over \code{what = "mapping"}, so a
 label-name-free count of how many nodes a re-fit keeps together)
-and the requested measure columns. For \code{what = "table"}: one row per
+and the requested measure columns (\code{NA}, with a
+\code{hypergraphs_undefined_statistic} warning, when the labelings share a
+single node, since the measures compare pairs of nodes). For
+\code{what = "table"}: one row per
 label pair with columns \code{label_x}, \code{label_y} and \code{n}. For
 \code{what = "mapping"}: one row per label of \code{x} with columns \code{label_x},
 \code{n} (its nodes), \code{label_y} (the label of \code{y} holding most of them),

@@ -56,8 +56,9 @@
 #'   `hg_get(x, what = "nodes")` has a `block` column with the planted block
 #'   of each node.
 #' @section Conditions:
-#' `hypergraphs_bad_input` for an argument the chosen type does not take, an
-#' argument given without a name, or a count (`n`, `m`, `k`, `impurity`,
+#' `hypergraphs_bad_input` for an argument the chosen type does not take, a
+#' required argument of the type left out, an argument given without a
+#' name, or a count (`n`, `m`, `k`, `impurity`,
 #' `seed`) that is not one whole number in range -- fractions, `NA`, `Inf`
 #' and values beyond the integer range are refused, never truncated.
 #' @references
@@ -86,10 +87,20 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   if (any(!nzchar(given))) {
     .thg_bad_input("the arguments of random_hypergraph() are given by name")
   }
-  unused <- setdiff(given, setdiff(names(formals(sampler)), "seed"))
+  formal_args <- formals(sampler)
+  unused <- setdiff(given, setdiff(names(formal_args), "seed"))
   if (length(unused)) {
     .thg_bad_input(sprintf("`type = \"%s\"` does not take %s", type,
                            paste0("`", unused, "`", collapse = ", ")))
+  }
+  # an argument without a default is required by the model
+  required <- names(formal_args)[vapply(formal_args, \(a) {
+    is.symbol(a) && !nzchar(as.character(a))
+  }, logical(1L))]
+  absent <- setdiff(required, given)
+  if (length(absent)) {
+    .thg_bad_input(sprintf("`type = \"%s\"` needs %s", type,
+                           paste0("`", absent, "`", collapse = ", ")))
   }
   do.call(sampler, c(args, list(seed = seed)))
 }
@@ -235,7 +246,11 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
                       dimnames = list(paste0("V", seq_len(n)),
                                       if (m) paste0("h", seq_len(m)) else
                                         character()))
-  for (j in seq_len(m)) incidence[sample.int(n, k, prob = prob), j] <- 1L
+  # one draw per hyperedge, in hyperedge order (HyperG's draw order)
+  rows <- lapply(seq_len(m), \(j) sample.int(n, k, prob = prob))
+  if (m && k) {
+    incidence[cbind(unlist(rows), rep(seq_len(m), each = k))] <- 1L
+  }
   .hgr_from_incidence(
     incidence, "random_hypergraph",
     list(model = "uniform", n = n, m = m, k = k, prob = prob, seed = seed)
@@ -254,7 +269,11 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   incidence <- matrix(0L, n, m,
                       dimnames = list(paste0("V", seq_len(n)),
                                       paste0("h", seq_len(m))))
-  for (i in seq_len(n)) incidence[i, sample.int(m, k, prob = prob)] <- 1L
+  # one draw per node, in node order (HyperG's draw order)
+  columns <- lapply(seq_len(n), \(i) sample.int(m, k, prob = prob))
+  if (k) {
+    incidence[cbind(rep(seq_len(n), each = k), unlist(columns))] <- 1L
+  }
   .hgr_from_incidence(
     incidence, "random_hypergraph",
     list(model = "regular", n = n, m = m, k = k, prob = prob, seed = seed)
@@ -342,7 +361,7 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   rownames(incidence) <- rownames(incidence) %||% paste0("V", seq_len(n))
   colnames(incidence) <- colnames(incidence) %||%
     if (m) paste0("h", seq_len(m)) else character()
-  edges <- lapply(seq_len(m), function(j) which(incidence[, j] > 0L))
+  edges <- lapply(seq_len(m), function(j) unname(which(incidence[, j] > 0L)))
   sizes <- lengths(edges)
   size_dist <- if (length(sizes)) {
     tab <- table(sizes)

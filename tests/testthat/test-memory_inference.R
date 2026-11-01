@@ -423,3 +423,99 @@ test_that("sequences with no transition raise a classed error", {
   expect_error(hon(list("a", "b")), class = "hypergraphs_bad_input")
   expect_error(hon(list(c("a", NA, "b"))), class = "hypergraphs_bad_input")
 })
+
+test_that("too few sequences raise a classed error", {
+  seqs <- .hi_det_seqs(4L)
+  expect_error(hg_bootstrap(list(c("a", "b"))),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_compare(.pair(seqs, list(c("a", "b")), 2)),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("a model without its sequence data is refused, classed", {
+  fit <- hon(ring_sequences)
+  fit$data <- NULL
+  expect_error(hg_bootstrap(fit, n_boot = 5), class = "hypergraphs_bad_input")
+  expect_error(hg_compare(fit, hon(ring_sequences), n_perm = 5),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("inference validates `seed` and restores the caller's stream", {
+  seqs <- .hi_planted(4L)
+  expect_error(hg_bootstrap(seqs, n_boot = 5, seed = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_bootstrap(seqs, n_boot = 5, seed = 1.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_bootstrap(seqs, n_boot = 5, seed = c(1, 2)),
+               class = "hypergraphs_bad_input")
+  grouped <- .pair(.hi_planted(3L), .hi_planted(3L), 2)
+  expect_error(hg_compare(grouped, n_perm = 5, seed = NA),
+               class = "hypergraphs_bad_input")
+  set.seed(42)
+  before <- .Random.seed
+  a <- hg_bootstrap(seqs, n_boot = 20, max_order = 2, seed = 3)
+  expect_identical(.Random.seed, before)
+  b <- hg_bootstrap(seqs, n_boot = 20, max_order = 2, seed = 3)
+  expect_identical(a, b)
+  hg_compare(grouped, n_perm = 9, seed = 3)
+  expect_identical(.Random.seed, before)
+})
+
+test_that("a group bootstrap refuses estimation arguments it would ignore", {
+  grouped <- .pair(.hi_planted(3L), .hi_planted(3L), 2)
+  expect_error(hg_bootstrap(grouped, n_boot = 5, max_order = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_bootstrap(grouped, n_boot = 5, min_freq = 2),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_bootstrap(grouped, n_boot = 5, action = "a"),
+               class = "hypergraphs_bad_input")
+  # resampling settings are still the caller's, and each group equals the
+  # ungrouped bootstrap of its own data
+  bg <- hg_bootstrap(grouped, n_boot = 10, seed = 2)
+  expect_s3_class(bg, "hypergraphs_bootstrap_group")
+  expect_identical(
+    bg$x, hg_bootstrap(.hi_planted(3L), n_boot = 10, max_order = 2, seed = 2))
+})
+
+test_that("first-order support is below 1 only when replicates miss the context", {
+  seqs <- c(replicate(5, c("a", "b", "c", "a", "b", "c"), simplify = FALSE),
+            replicate(5, c("x", "b", "d", "x", "b", "d"), simplify = FALSE))
+  df <- hg_get(hg_bootstrap(seqs, n_boot = 200, max_order = 2, seed = 1))
+  first <- subset(df, order == 1L)
+  # the support of a first-order context is the share of replicates that
+  # observe it, which is also its n_boot_used share
+  expect_equal(first$support, first$n_boot_used / 200)
+  # the certain rules keep a degenerate interval at 1
+  certain <- subset(df, order == 2L)
+  expect_equal(certain$ci_lower, c(1, 1))
+  expect_equal(certain$ci_upper, c(1, 1))
+})
+
+test_that("hg_get() and plot() validate their arguments with classed errors", {
+  bs <- hg_bootstrap(.hi_planted(4L), n_boot = 10, max_order = 2, seed = 1)
+  expect_error(hg_get(bs, min_support = NA), class = "hypergraphs_bad_input")
+  expect_error(hg_get(bs, min_support = 2), class = "hypergraphs_bad_input")
+  expect_error(hg_get(bs, order_min = 1.5), class = "hypergraphs_bad_input")
+  x <- replicate(6, rep(c("a", "b", "c"), 4), simplify = FALSE)
+  y <- replicate(6, rep(c("a", "b", "d"), 4), simplify = FALSE)
+  cmp <- hg_compare(.pair(x, y, 2), n_perm = 19, seed = 6)
+  expect_error(hg_get(cmp, significant = NA), class = "hypergraphs_bad_input")
+  expect_error(hg_get(cmp, significant = "yes"),
+               class = "hypergraphs_bad_input")
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  expect_error(plot(bs, top = 0), class = "hypergraphs_bad_input")
+  expect_error(plot(cmp, top = 0), class = "hypergraphs_bad_input")
+  # groups that share no context leave nothing to plot
+  disjoint <- .pair(replicate(3, c("a", "b", "a", "b"), simplify = FALSE),
+                    replicate(3, c("c", "d", "c", "d"), simplify = FALSE), 2)
+  expect_warning(hg_compare(disjoint, n_perm = 9, seed = 1),
+                 class = "hypergraphs_undefined_statistic")
+  # the warning is asserted above; here only the result is needed
+  none <- withCallingHandlers(
+    hg_compare(disjoint, n_perm = 9, seed = 1),
+    hypergraphs_undefined_statistic = function(w) {
+      invokeRestart("muffleWarning")
+    })
+  expect_error(plot(none), class = "hypergraphs_empty_result")
+})

@@ -17,7 +17,10 @@ hg_pagerank(
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypergraphs
-\code{net_hg} (connected when \code{damping = 1}).}
+\code{net_hg} (connected when \code{damping = 1}). A vertex in no hyperedge (left
+by \verb{nodes =} or by filtering) sends its mass to the teleport
+distribution at every step, so it receives teleport mass only, as in
+\code{hg_centrality(type = "pagerank")}.}
 
 \item{damping}{Probability of following the hypergraph walk (default
 \code{0.85}); \code{1 - damping} is the teleport probability. Must be in
@@ -32,7 +35,8 @@ teleport weights over (a subset of) the vertex names, each name at
 most once; unnamed vertices get teleport probability 0. \code{NULL}
 (default) teleports uniformly.}
 
-\item{edge_weights}{Positive hyperedge weights (one per hyperedge), or
+\item{edge_weights}{Positive hyperedge weights (one per hyperedge, or a
+single number recycled to every hyperedge), or
 \code{NULL} (default): a window hypergraph's window counts when present,
 otherwise the Hayashi et al. heuristic used by the Laplacian engines
 (the population standard deviation of each edge's non-zero vertex

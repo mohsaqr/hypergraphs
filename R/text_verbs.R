@@ -301,10 +301,16 @@ hg_centrality.net_hg <- function(x, type = "clique",
   type <- match.arg(type, choices = c("clique", "Z", "H", "pagerank",
                                       "subhypergraph", "katz"),
                     several.ok = TRUE)
+  if (anyDuplicated(type) > 0L) {
+    .thg_bad_input("`type` must name each centrality once")
+  }
   engine_types <- setdiff(type, "katz")
   if (.thg_is_sparse(hg) && length(engine_types) > 0L) {
     stop(errorCondition(
-      "tensor centralities need the dense representation; use hg_pagerank() at scale",
+      sprintf(paste0(
+        "type = %s needs the dense representation: only \"katz\" runs on ",
+        "a sparse incidence; for PageRank at scale use hg_pagerank()"),
+        paste(dQuote(engine_types, FALSE), collapse = ", ")),
       class = "hypergraphs_sparse_unsupported", call = NULL
     ))
   }
@@ -465,6 +471,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
                        n_cores = 2L) {
   .thg_check_hg(hg)
   n <- .ho_check_count(n, "n", allow_inf = TRUE)
+  .ho_check_seed(seed)
   type <- match.arg(type)
   algorithm <- match.arg(algorithm)
   what <- .ho_match_what(what)
@@ -650,8 +657,10 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   view, truncated to the console width; the returned table itself is
 #'   the long form. Raises `hypergraphs_bad_input` for unknown node names, a `type` that
 #'   needs the token layer on a hypergraph without one, a malformed
-#'   `scores` table, or a bag-of-words `text_hypergraph(nodes = "word")`,
-#'   whose hyperedges are documents rather than words.
+#'   `scores` table, a bag-of-words `text_hypergraph(nodes = "word")`,
+#'   whose hyperedges are documents rather than words, or a
+#'   `text_hypergraph(construction = "knn")`, whose hyperedges are document
+#'   neighbourhoods.
 #'
 #'   `plot()` returns a ggplot: one panel per cluster (rows) and score type
 #'   (columns), each with its own word axis, horizontal bars of `value` per
@@ -869,11 +878,22 @@ plot.hypergraphs_keywords <- function(x, value = c("score", "share"),
 
 # hg_keywords() reads a partition of NODES and ranks the hyperedges of each
 # part, reporting them as `word`. On a bag-of-words text_hypergraph(nodes =
-# "word") the hyperedges are documents, so it would rank document ids and
-# label them words; refuse that instead of mislabelling. (Window and sentence
-# hypergraphs keep word-bearing hyperedges or a document scope and pass.)
+# "word") the hyperedges are documents, and on a knn text hypergraph they are
+# document neighbourhoods named by their document, so it would rank document
+# ids and label them words; refuse that instead of mislabelling. (Window and
+# sentence hypergraphs keep word-bearing hyperedges or a document scope and
+# pass.)
 .thg_require_doc_nodes <- function(hg, fn) {
   layer <- hg$text
+  if (identical(layer$construction, "knn")) {
+    stop(errorCondition(
+      sprintf(paste0("%s() ranks the words of document clusters, but `hg` is ",
+                     "a knn text_hypergraph whose hyperedges are document ",
+                     "neighbourhoods, not words; build it with ",
+                     "construction = \"bag\""), fn),
+      class = "hypergraphs_bad_input", call = NULL
+    ))
+  }
   if (identical(layer$construction, "bag") && identical(layer$nodes, "word")) {
     stop(errorCondition(
       sprintf(paste0("%s() ranks the words of document clusters, but `hg` is ",
@@ -1339,7 +1359,6 @@ topic_network <- function(hg, clusters = NULL, topics = NULL, threshold = NULL,
 #'   `"class_mass"` (class-mass normalization, Zhu et al. 2003). Use
 #'   `"class_mass"` when the labeled seeds are class-imbalanced -- the raw
 #'   rule can collapse every prediction onto the majority class.
-#' @param type,edge_weights Passed to [hg_laplacian()].
 #' @return A base `data.frame`, one row per node, with columns `node`,
 #'   `label` (the given label or `NA`), `predicted`, `score`, and `margin`.
 #'   With `holdout`, an `hg_classification`: the same table with `label`

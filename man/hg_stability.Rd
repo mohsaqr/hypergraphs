@@ -65,7 +65,8 @@ cluster of the full partition, with \code{k}, \code{cluster}, \code{size} (its n
 labels included) and \code{ari} (their adjusted Rand index).
 
 Raises \code{hypergraphs_bad_input} for a \code{fraction} outside (0, 1), a
-subsample too small to hold \code{k} clusters, a non-positive \code{n_boot}, or
+subsample too small to hold \code{k} clusters, a non-positive \code{n_boot},
+\code{seeds} that are not two distinct finite numbers, or
 \code{what = "clusters"} with \code{resample = "seeds"}.
 }
 \description{

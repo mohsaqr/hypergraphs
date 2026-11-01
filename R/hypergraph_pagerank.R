@@ -9,21 +9,18 @@
 # EDVW transition matrix: from vertex v, pick an incident hyperedge e with
 # probability proportional to omega(e), then land on w in e with
 # probability proportional to the incidence weight gamma_e(w). Row-
-# stochastic by construction.
+# stochastic by construction, except for a vertex in no hyperedge, whose
+# row is zero and which `dangling` flags (hg_pagerank() sends its mass to
+# the teleport distribution).
 .thg_transition <- function(hg, edge_weights = NULL) {
   incidence <- hg$incidence
-  # Package-wide default (.hl_build, .hl_rw_transition): explicit weights,
-  # else a window hypergraph's window counts, else the Hayashi et al.
-  # (2020) heuristic, the HyperNetX default: population SD of the edge's
-  # non-zero vertex weights, plus one (unit weights on a binary incidence).
-  edge_weights <- edge_weights %||% hg$window_counts
-  if (is.null(edge_weights)) {
-    edge_weights <- .hl_default_edge_weights(incidence)
-  } else if (!(is.numeric(edge_weights) &&
-               length(edge_weights) == ncol(incidence) &&
-               all(is.finite(edge_weights)) && all(edge_weights > 0))) {
-    .ho_input_error("`edge_weights` must be positive and one per hyperedge")
-  }
+  # Package-wide default (.hl_build, .hl_rw_transition): explicit weights
+  # (one positive number recycles), else a window hypergraph's window
+  # counts, else the Hayashi et al. (2020) heuristic, the HyperNetX default:
+  # population SD of the edge's non-zero vertex weights, plus one (unit
+  # weights on a binary incidence).
+  edge_weights <- .hl_check_edge_weights(edge_weights, ncol(incidence)) %||%
+    hg$window_counts %||% .hl_default_edge_weights(incidence)
   # Empty hyperedges (allowed by the random generators) can never be picked
   # by the walk: leave them out rather than divide by their zero size.
   keep <- .hl_nonempty(incidence)
@@ -32,15 +29,15 @@
   w_keep <- edge_weights[keep]
   delta <- colSums(incidence)
   vertex_degree <- as.numeric(membership %*% w_keep)
-  if (any(vertex_degree <= 0)) {
-    stop(errorCondition(
-      "every vertex must belong to at least one hyperedge",
-      class = "hypergraphs_bad_input", call = NULL
-    ))
-  }
+  dangling <- !(vertex_degree > 0)
+  # a dangling vertex has an all-zero membership row; dividing it by 1
+  # keeps its transition row zero
+  vertex_degree[dangling] <- 1
   transition <- (membership %*% (t(incidence) * (w_keep / delta))) /
     vertex_degree
-  list(transition = transition, edge_weights = edge_weights)
+  dimnames(transition) <- list(rownames(hg$incidence), rownames(hg$incidence))
+  list(transition = transition, edge_weights = edge_weights,
+       dangling = dangling)
 }
 
 #' Hypergraph PageRank with edge-dependent vertex weights
@@ -67,7 +64,10 @@
 #' `hg_centrality(type = "pagerank")` (tested).
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypergraphs
-#'   `net_hg` (connected when `damping = 1`).
+#'   `net_hg` (connected when `damping = 1`). A vertex in no hyperedge (left
+#'   by `nodes =` or by filtering) sends its mass to the teleport
+#'   distribution at every step, so it receives teleport mass only, as in
+#'   `hg_centrality(type = "pagerank")`.
 #' @param damping Probability of following the hypergraph walk (default
 #'   `0.85`); `1 - damping` is the teleport probability. Must be in
 #'   `(0, 1]`; `damping = 1` gives the pure stationary distribution, which
@@ -79,7 +79,8 @@
 #'   teleport weights over (a subset of) the vertex names, each name at
 #'   most once; unnamed vertices get teleport probability 0. `NULL`
 #'   (default) teleports uniformly.
-#' @param edge_weights Positive hyperedge weights (one per hyperedge), or
+#' @param edge_weights Positive hyperedge weights (one per hyperedge, or a
+#'   single number recycled to every hyperedge), or
 #'   `NULL` (default): a window hypergraph's window counts when present,
 #'   otherwise the Hayashi et al. heuristic used by the Laplacian engines
 #'   (the population standard deviation of each edge's non-zero vertex
@@ -145,15 +146,21 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
   }
 
   if (.thg_is_sparse(hg)) {
-    ops <- .thg_walk_operators(hg, edge_weights = edge_weights)
-    step <- ops$left
-    ids <- rownames(hg$incidence)
+    ops <- .thg_walk_operators(hg, edge_weights = edge_weights,
+                               dangling = TRUE)
+    walk_step <- ops$left
+    dangling <- ops$dangling
   } else {
     walk <- .thg_transition(hg, edge_weights = edge_weights)
-    step <- function(v) as.numeric(v %*% walk$transition)
-    ids <- rownames(walk$transition)
+    walk_step <- function(v) as.numeric(v %*% walk$transition)
+    dangling <- walk$dangling
   }
+  ids <- rownames(hg$incidence)
   teleport <- .thg_teleport(personalized, ids)
+  # A vertex in no hyperedge has nowhere to walk: its mass follows the
+  # teleport distribution at every step (the standard dangling-node
+  # correction), so the iterate stays a probability vector.
+  step <- function(v) walk_step(v) + sum(v[dangling]) * teleport
 
   rank <- teleport
   converged <- FALSE

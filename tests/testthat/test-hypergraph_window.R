@@ -306,3 +306,28 @@ test_that("sequence names identify sequences and never merge them (R06)", {
   expect_error(temporal_hypergraph(list(s = c("a", "b"), s = c("c", "d"))),
                class = "hypergraphs_bad_input")
 })
+
+test_that("a state label holding the key separator is refused, not split", {
+  # before the guard, the window {"a\x01b", "c"} became the hyperedge {c}
+  expect_error(window_hypergraph(list(c("a\x01b", "c")), window = 2),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("empty results and bad arguments raise classed conditions", {
+  expect_error(window_hypergraph(list("a"), window = 2L),
+               class = "hypergraphs_empty_result")
+  expect_error(window_hypergraph(list(c("a", "a", "a")), window = 2L,
+                                 min_size = 2L),
+               class = "hypergraphs_empty_result")
+  expect_error(window_hypergraph(list(c(NA_character_, NA_character_)), window = 2L),
+               class = "hypergraphs_empty_result")
+  expect_error(window_hypergraph(list(c("a", "a")), window = 2L,
+                                 collapse = FALSE, min_size = 2L),
+               class = "hypergraphs_empty_result")
+  expect_error(window_hypergraph(list(c("a", "b")), window = 2.5),
+               class = "hypergraphs_bad_input")
+  expect_error(window_hypergraph(list(c("a", "b")), step = 0),
+               class = "hypergraphs_bad_input")
+  expect_error(window_hypergraph(matrix(1:6, 2), window = 2),
+               class = "hypergraphs_bad_input")
+})

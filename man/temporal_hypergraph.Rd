@@ -2,6 +2,8 @@
 % Please edit documentation in R/hypergraph_temporal.R
 \name{temporal_hypergraph}
 \alias{temporal_hypergraph}
+\alias{print.net_temporal_hypergraph}
+\alias{summary.net_temporal_hypergraph}
 \title{Temporal hypergraph from an edge list or co-occurrence data}
 \usage{
 temporal_hypergraph(
@@ -21,6 +23,10 @@ temporal_hypergraph(
   sparse = FALSE,
   separator = NULL
 )
+
+\method{print}{net_temporal_hypergraph}(x, n = 10L, ...)
+
+\method{summary}{net_temporal_hypergraph}(object, ...)
 }
 \arguments{
 \item{data}{A data frame with one row per relation, or a sequence table
@@ -71,6 +77,14 @@ Scopus and Web of Science reference and keyword fields -- so
 \code{separator = ";"} replaces the caller's own split, trim and
 drop-empties. Members empty after trimming are dropped, and a row left
 with no member contributes no hyperedge.}
+
+\item{x}{A \code{net_temporal_hypergraph} (for \code{print}).}
+
+\item{n}{Number of membership rows to print. Default \code{10}.}
+
+\item{...}{Ignored.}
+
+\item{object}{A \code{net_temporal_hypergraph} (for \code{summary}).}
 }
 \value{
 A \code{net_temporal_hypergraph} holding the membership table (\code{node},
@@ -79,6 +93,12 @@ A \code{net_temporal_hypergraph} holding the membership table (\code{node},
 times, the sorted event times, \code{format} (\code{"interval"} or \code{"contact"}),
 \code{time_unit}, \code{origin} and the \code{observation} bounds. \code{hg_get(x, what = "memberships" | "edges" | "nodes")} returns the three tables;
 \code{summary()} the one-row description.
+
+\code{print()} returns \code{x} invisibly. \code{summary()} returns a one-row
+data.frame: \code{n_nodes}, \code{n_hyperedges}, \code{n_event_times}, \code{first_time},
+\code{last_time}, \code{n_memberships}, \code{mean_edge_size}, \code{median_edge_size}
+(distinct members per hyperedge), \code{mean_duration} (\code{NA} for a contact
+log), \code{format} and \code{time_unit}.
 }
 \description{
 Builds a temporal hypergraph the way a temporal network is defined from
@@ -142,6 +162,12 @@ snapshot times and the measurement grid, and an open-ended hyperedge is
 active through \code{observation_end}, but the stored memberships are never
 rewritten and \code{hg_get()} returns the original spells. Without them
 the window is the span of the data.
+
+A membership with a missing or empty node, hyperedge or time, or a
+missing weight, is dropped with a \code{hypergraphs_dropped_rows} warning that
+counts the rows of \code{data} it came from; a missing \code{end} is an open end,
+not a missing value. Time strings that cannot be read raise
+\code{hypergraphs_unparsed_time}.
 
 Every other column that is constant within a hyperedge is kept as a
 hyperedge attribute in the edge metadata, where \code{plot()} can colour by it

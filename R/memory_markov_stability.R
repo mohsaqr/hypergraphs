@@ -10,7 +10,8 @@
 #' Tables of a Markov stability analysis
 #'
 #' @param x A `net_markov_stability` object from
-#'   [hg_markov_stability()].
+#'   [hg_markov_stability()], or the `net_markov_stability_group` it returns
+#'   for a `netobject_group`.
 #' @param ... Ignored.
 #' @param what Which table: `"states"` (default, one row per state),
 #'   `"passage_time"` (one row per ordered pair of states) or
@@ -35,7 +36,10 @@
 #'   `what = "passage_time"`, one row per ordered pair with `from`, `to` and
 #'   `steps`. For `what = "stationary"`, one row per state with `state`,
 #'   `stationary` and `return_time`; the passage and stationary tables
-#'   are unrounded.
+#'   are unrounded. For a `net_markov_stability_group`, the same table for
+#'   every group (`from`, `to` and `sort_by` applied within each group),
+#'   stacked with a `group` column first; `top` applies to the stacked
+#'   table.
 #' @examples
 #' P <- matrix(c(0.5, 0.3, 0.2,
 #'               0.2, 0.5, 0.3,
@@ -55,10 +59,7 @@ hg_get.net_markov_stability <- function(x, what = c("states",
                                                top = NULL) {
   .ho_no_dots(..., .for = "hg_get() on a `net_markov_stability`")
   what <- .ho_match_what(what)
-  stopifnot(
-    "`decreasing` must be a single TRUE or FALSE" =
-      is.logical(decreasing) && length(decreasing) == 1L && !is.na(decreasing)
-  )
+  .hon_check_flag(decreasing, "decreasing")
   if (!identical(what, "passage_time") && (!is.null(from) || !is.null(to))) {
     stop(errorCondition(
       sprintf(paste0("`from` and `to` filter the passage table; ",
@@ -93,11 +94,11 @@ hg_get.net_markov_stability <- function(x, what = c("states",
   if (!is.null(to))   out <- out[out$to %in% to, , drop = FALSE]
 
   if (!is.null(sort_by)) {
-    stopifnot(
-      "`sort_by` must be a single column name of the returned table" =
-        is.character(sort_by) && length(sort_by) == 1L &&
-        sort_by %in% names(out)
-    )
+    if (!(is.character(sort_by) && length(sort_by) == 1L &&
+          sort_by %in% names(out))) {
+      .ho_bad_input(sprintf("`sort_by` must be one column of the table: %s",
+                            paste(names(out), collapse = ", ")))
+    }
     # Primary key signed so one ascending order() serves both directions;
     # xtfrm() makes a character column sortable the same way. The row key
     # breaks ties deterministically and stays ascending either way.
@@ -136,4 +137,29 @@ hg_get.net_markov_stability <- function(x, what = c("states",
       class = "hypergraphs_bad_input", call = NULL))
   }
   invisible(NULL)
+}
+
+# A netobject_group gives one analysis per group; its tables are the
+# per-group tables stacked under a `group` column.
+#' @rdname hg_get.net_markov_stability
+#' @export
+hg_get.net_markov_stability_group <- function(x, what = c("states",
+                                                          "passage_time",
+                                                          "stationary"),
+                                              ..., sort_by = NULL,
+                                              decreasing = TRUE,
+                                              from = NULL, to = NULL,
+                                              top = NULL) {
+  .ho_no_dots(..., .for = "hg_get() on a `net_markov_stability_group`")
+  what <- .ho_match_what(what)
+  groups <- names(x) %||% as.character(seq_along(x))
+  parts <- Map(\(fit, label) {
+    tab <- hg_get.net_markov_stability(fit, what = what, sort_by = sort_by,
+                                       decreasing = decreasing, from = from,
+                                       to = to)
+    cbind(group = rep.int(label, nrow(tab)), tab, stringsAsFactors = FALSE)
+  }, x, groups)
+  out <- do.call(rbind, unname(parts))
+  rownames(out) <- NULL
+  .ho_top(out, top)
 }

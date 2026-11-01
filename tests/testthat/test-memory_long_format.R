@@ -99,10 +99,11 @@ test_that("hg_sequences output is one sequence bare and per actor with arguments
   topics <- hg_cluster(hg, k = 3L)  # three document types, so k = 3
   seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
   expect_identical(names(seqs), c("actor", "time", "action"))
-  # its columns are named action and time, so they are found by name; with
-  # no actor the events form one sequence, which bootstrap cannot resample
-  expect_message(expect_error(hg_bootstrap(seqs, n_boot = 2L)),
-                 class = "hypergraphs_single_sequence")
+  # its columns are named action and time, so they are found by name; its
+  # actor column is not, so the bare call is refused rather than joining
+  # every student's events into one sequence
+  expect_error(hg_bootstrap(seqs, n_boot = 2L),
+               class = "hypergraphs_long_format")
   fit <- hg_bootstrap(seqs, action = "action", actor = "actor", time = "time",
                        n_boot = 2L, seed = 1L)
   expect_identical(fit$n_trajectories, 2L)

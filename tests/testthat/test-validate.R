@@ -37,3 +37,11 @@ test_that(".ho_check_weights refuses negative, non-finite and factor weights", {
          \(x) expect_error(.ho_check_weights(x, "weight"),
                            class = "hypergraphs_bad_input"))
 })
+
+test_that(".ho_check_count names a bounded range as an interval", {
+  expect_error(.ho_check_count(6, "k", max = 5), "in \\[1, 5\\]",
+               class = "hypergraphs_bad_input")
+  expect_error(.ho_check_count(-1, "k", min = 0, max = 3, allow_inf = TRUE),
+               class = "hypergraphs_bad_input")
+  expect_identical(.ho_check_count(Inf, "k", max = 3, allow_inf = TRUE), Inf)
+})

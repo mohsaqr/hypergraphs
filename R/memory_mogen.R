@@ -14,18 +14,20 @@
 #'   `"pathways"` for the layer's transitions written as pathways
 #'   (`"a b -> c"`), the form [simplicial()] turns into simplices.
 #' @param ... For `what = "pathways"`, `min_prob` (drop transitions below
-#'   this probability). Otherwise unused.
+#'   this probability). Any other argument raises `hypergraphs_bad_input`.
 #' @param order Integer or `NULL`. For `what = "transitions"` and
-#'   `"pathways"`: which layer to read. Default `NULL` uses the selected
-#'   order.
+#'   `"pathways"`: which layer to read, a whole number from `0` to the
+#'   model's highest order. Default `NULL` uses the selected order. The
+#'   order-0 layer has no memory and no transitions, so at order 0 both
+#'   tables have no rows. `order`, `k` and `min_count` given with a table
+#'   they do not apply to raise `hypergraphs_bad_input`.
 #' @param k Integer vector, for `what = "paths"`: the path length or
 #'   lengths in states, each between `2` and the model's highest order plus
 #'   one, e.g. `k = 3` or `k = 2:4`. Default `2` (single transitions).
 #' @param min_count Integer, for `what = "transitions"` and `"pathways"`:
 #'   drop transitions observed fewer times. Default `1`.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
-#'   applied after any filter and after `sort_by`, so `sort_by` and
-#'   `top` compose. Default `NULL` returns every row.
+#'   applied after any filter. Default `NULL` returns every row.
 #' @return A data.frame. For `what = "orders"`, one row per candidate order:
 #'   `order`, `log_likelihood`, `aic`, `bic`, `df`, `layer_df`, and
 #'   `optimal` (logical, `TRUE` for the selected order). For
@@ -49,20 +51,40 @@ hg_get.net_mogen <- function(x, what = c("orders", "transitions", "paths",
                              order = NULL, k = 2L, min_count = 1L,
                              top = NULL) {
   what <- .ho_match_what(what)
-  if (what != "pathways") {
+  applies <- switch(what, orders = character(0L), paths = "k",
+                    c("order", "min_count"))
+  given <- c(order = !is.null(order), k = !missing(k),
+             min_count = !missing(min_count))
+  .hon_refuse_args(given[setdiff(names(given), applies)], what, "net_mogen")
+  if (what == "pathways") {
+    .hon_allowed_dots(list(...), "min_prob",
+                      "hg_get(what = \"pathways\") on a `net_mogen`")
+  } else {
     .ho_no_dots(..., .for = sprintf("hg_get(what = \"%s\") on a `net_mogen`", what))
   }
+  if (what %in% c("transitions", "pathways")) {
+    order <- .hmg_layer(x, order)
+    min_count <- .ho_check_count(min_count, "min_count")
+  }
   if (what == "transitions") {
+    if (order == 0L) {
+      # the order-0 layer is the state distribution: it has no transitions
+      return(.ho_top(data.frame(path = character(0L), count = integer(0L),
+                                probability = numeric(0L),
+                                from = character(0L), to = character(0L),
+                                stringsAsFactors = FALSE), top))
+    }
     return(.ho_top(Nestimate::mogen_transitions(
-      x, order = order %||% x$optimal_order, min_count = min_count), top))
+      x, order = order, min_count = min_count), top))
   }
   if (what == "pathways") {
     return(.ho_top(.ho_pathway_table(Nestimate::pathways(
       x, order = order, min_count = min_count, ...)), top))
   }
   if (what == "paths") {
-    stopifnot("`k` must be a non-empty vector of path lengths" =
-                is.numeric(k) && length(k) >= 1L && !anyNA(k))
+    if (!is.numeric(k) || !length(k) || anyNA(k)) {
+      .ho_bad_input("`k` must be a non-empty numeric vector of path lengths")
+    }
     tables <- lapply(unique(k), \(kk) {
       counts <- .ho_top(.hmg_path_counts(x, kk), top)
       data.frame(k = rep(as.integer(kk), nrow(counts)), counts,
@@ -84,6 +106,22 @@ hg_get.net_mogen <- function(x, what = c("orders", "transitions", "paths",
   out$optimal <- out$order == x$optimal_order
   rownames(out) <- NULL
   .ho_top(out, top)
+}
+
+#' The layer of a multi-order model to read: the selected order, or a
+#' validated whole number from 0 to the highest fitted order
+#' @noRd
+.hmg_layer <- function(x, order) {
+  if (is.null(order)) return(as.integer(x$optimal_order))
+  max_order <- max(x$orders)
+  if (!is.numeric(order) || length(order) != 1L || !is.finite(order) ||
+      abs(order - round(order)) > sqrt(.Machine$double.eps) || order < 0 ||
+      order > max_order) {
+    .ho_bad_input(sprintf(paste0(
+      "`order` must be one whole number from 0 to %d (the orders the ",
+      "model fitted)"), max_order))
+  }
+  as.integer(order)
 }
 
 #' Path counts of length k read off a fitted multi-order model

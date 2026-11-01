@@ -155,3 +155,24 @@ test_that("an empty grouped Markov order result has the full orders schema", {
   expect_identical(names(hg_get(empty, what = "null")),
                    c("group", names(hg_get(fit, what = "null"))))
 })
+
+test_that("markov_order() refuses bad arguments with hypergraphs_bad_input", {
+  seqs <- list(c("a", "b", "a", "c", "a", "b"), c("b", "a", "c", "a", "b", "a"))
+  expect_error(markov_order(seqs, max_order = 0), class = "hypergraphs_bad_input")
+  expect_error(markov_order(seqs, n_perm = 0), class = "hypergraphs_bad_input")
+  expect_error(markov_order(seqs, alpha = 2), class = "hypergraphs_bad_input")
+  expect_error(markov_order(seqs, parallel = "yes"),
+               class = "hypergraphs_bad_input")
+  expect_error(markov_order(seqs, n_cores = 0), class = "hypergraphs_bad_input")
+  expect_error(markov_order(seqs, seed = "s"), class = "hypergraphs_bad_input")
+})
+
+test_that("markov_order() still reads a netobject_group, one test per group", {
+  wide <- data.frame(V1 = c("a", "b", "a", "c"), V2 = c("b", "c", "c", "a"),
+                     V3 = c("c", "a", "b", "b"), V4 = c("a", "b", "a", "c"),
+                     g = c("x", "x", "y", "y"))
+  grp <- Nestimate::build_network(wide, method = "relative", group = "g")
+  fit <- markov_order(grp, max_order = 1L, n_perm = 5L, seed = 1L)
+  expect_s3_class(fit, "net_markov_order_group")
+  expect_identical(unique(hg_get(fit)$group), c("x", "y"))
+})

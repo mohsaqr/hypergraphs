@@ -354,3 +354,27 @@ test_that("hg_cluster runs SymNMF starts in parallel with the serial result", {
   expect_error(hg_cluster(text_hypergraph(docs), k = 2, parallel = TRUE),
                class = "hypergraphs_bad_input")
 })
+
+# ---- Audit regressions (2026-11-01) ---------------------------------------
+
+test_that("sparse transduction validates and recycles edge_weights like the dense one", {
+  d <- data.frame(
+    node = c("a", "b", "c", "a", "b", "b", "c", "d", "d", "e", "f",
+             "e", "f", "g", "f", "g", "h", "e", "g", "h"),
+    edge = c(rep("x1", 3), rep("x2", 2), rep("x3", 3), rep("y1", 3),
+             rep("y2", 3), rep("y3", 3), rep("y4", 3)))
+  dense <- group_hypergraph(d, node = "node", hyperedge = "edge")
+  sparse <- group_hypergraph(d, node = "node", hyperedge = "edge",
+                             sparse = TRUE)
+  labels <- c(a = "A", h = "B")
+  for (type in c("zhou", "random_walk")) {
+    # a single weight used to fail with "non-conformable arguments"
+    expect_equal(hg_classify(sparse, labels, type = type, edge_weights = 2),
+                 hg_classify(dense, labels, type = type, edge_weights = 2),
+                 tolerance = 1e-8)
+    # a negative weight used to crash the conjugate gradient
+    expect_error(hg_classify(sparse, labels, type = type,
+                             edge_weights = c(-1, rep(1, 6))),
+                 class = "hypergraphs_bad_input")
+  }
+})

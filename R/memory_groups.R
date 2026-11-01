@@ -28,11 +28,14 @@
     # a wide data frame would read the group column as a state
     parts <- lapply(parts, \(d) d[setdiff(names(d), group)])
   } else {
+    # a data frame is split by row: one row per sequence of a wide frame,
+    # one per event of a long table
+    unit <- if (is.data.frame(data)) "row of `data`" else "sequence"
     n_seq <- if (is.data.frame(data)) nrow(data) else length(data)
     if (length(group) != n_seq) {
-      .thg_bad_input(paste0(
-        "`group` must name a column of `data` or give one label per ",
-        "sequence (", n_seq, " here)"))
+      .thg_bad_input(sprintf(paste0(
+        "`group` must name a column of `data` or give one label per %s ",
+        "(%d here)"), unit, n_seq))
     }
     labels <- group
     parts <- split(data, as.character(labels))
@@ -224,3 +227,42 @@ summary.hypergraphs_memory_group <- function(object, ...) .ho_summary(object)
 #' @rdname hg_get.hypergraphs_memory_group
 #' @export
 hg_get.hypergraphs_bootstrap_group <- function(x, ...) hg_get.hypergraphs_memory_group(x, ...)
+
+#' Plot one group of a grouped memory-network bootstrap
+#'
+#' Draws the forest plot of [plot.hypergraphs_bootstrap()] for one group
+#' of a bootstrap of a group model.
+#'
+#' @param x A `hypergraphs_bootstrap_group` from [hg_bootstrap()] on a group
+#'   model from [hon()] with `group`.
+#' @param group The name of the group to plot. May be omitted when the
+#'   bootstrap has one group; otherwise required. A missing or unknown
+#'   group raises `hypergraphs_bad_input`.
+#' @param top Integer. Number of edges to show (by descending count).
+#'   Default `20`.
+#' @param ... Passed to [plot.hypergraphs_bootstrap()].
+#' @return The ggplot object of that group's plot, invisibly.
+#' @examples
+#' seqs <- list(c("a", "b", "c", "a", "b"), c("a", "b", "c", "a", "b"),
+#'              c("x", "b", "d", "x", "b"), c("x", "b", "d", "x", "b"))
+#' by_group <- hon(seqs, group = c("g1", "g1", "g2", "g2"), max_order = 2)
+#' boot <- hg_bootstrap(by_group, n_boot = 20, seed = 1)
+#' plot(boot, group = "g2", top = 5)
+#' @export
+plot.hypergraphs_bootstrap_group <- function(x, group = NULL, top = 20L, ...) {
+  available <- names(x)
+  if (is.null(group)) {
+    if (length(available) != 1L) {
+      .thg_bad_input(sprintf(
+        "the bootstrap has %d groups; choose one with `group =` (%s)",
+        length(available), paste(available, collapse = ", ")))
+    }
+    group <- available
+  }
+  if (!(is.character(group) && length(group) == 1L && !is.na(group) &&
+        group %in% available)) {
+    .thg_bad_input(sprintf("`group` must be one of: %s",
+                           paste(available, collapse = ", ")))
+  }
+  plot(x[[group]], top = top, ...)
+}

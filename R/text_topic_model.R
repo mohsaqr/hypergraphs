@@ -529,8 +529,9 @@ hg_topics <- function(hg, k, nstart = 10L, max_iter = 1000L, tol = 1e-5,
 #'   within each group of documents given by `group`).
 #' @param n For `what = "words"`: the number of words per topic (default
 #'   `10`). For `print()`: rows of the topic table shown.
-#' @param topic For `what = "shares"` and `"words"`: keep only these topics
-#'   (labels such as `"Topic 3"`).
+#' @param topic For `what = "shares"`, `"words"` and `"prevalence"`: keep
+#'   only these topics (labels such as `"Topic 3"`); any other `what`
+#'   raises `hypergraphs_bad_input`.
 #' @param group For `what = "prevalence"`: the group of each document, as
 #'   the name of a column of the modelled text hypergraph's document table
 #'   (`group = "period"`), a named character vector (names are document ids)
@@ -553,8 +554,12 @@ hg_get.net_hg_topics <- function(x, what = c("topics", "shares", "words",
   if (!is.null(group)) {
     .thg_bad_input("`group` applies only to `what = \"prevalence\"`")
   }
+  if (!is.null(topic) && !what %in% c("shares", "words")) {
+    .thg_bad_input(paste0("`topic` applies only to `what = \"shares\"`, ",
+                          "`\"words\"` and `\"prevalence\"`"))
+  }
   out <- x[[what]]
-  if (!is.null(topic) && what %in% c("shares", "words")) {
+  if (!is.null(topic)) {
     if (!all(topic %in% x$topics$topic)) {
       .thg_bad_input(sprintf("`topic` must be among %s",
                              paste(x$topics$topic, collapse = ", ")))
@@ -738,8 +743,9 @@ plot.net_hg_topics <- function(x, y, n = 8L, type = c("words", "prevalence"),
 #'   `converged` and `frontier`. `plot()` plots exclusivity against
 #'   coherence, one labelled point per number of topics, the frontier
 #'   joined by a line and plotted as filled points. Conditions are those of
-#'   [hg_topics()]; a start that does not converge raises
-#'   `hypergraphs_no_converge`.
+#'   [hg_topics()]; when the kept start of some `k` does not converge, one
+#'   `hypergraphs_no_converge` warning names those `k`, with or without
+#'   `parallel`.
 #' @references
 #' Roberts, M. E., Stewart, B. M., & Tingley, D. (2019). stm: An R package
 #' for structural topic models. \emph{Journal of Statistical Software},
@@ -770,14 +776,20 @@ hg_topic_search <- function(hg, k, nstart = 1L, n = 10L, frexw = 0.7,
                             max_iter = 1000L, tol = 1e-5, seed = 1L,
                             parallel = FALSE, n_cores = 2L) {
   .thg_check_hg(hg)
-  if (!is.numeric(k) || length(k) < 2L || anyNA(k) || any(k != round(k)) ||
-      anyDuplicated(k) > 0L) {
+  if (!is.numeric(k) || length(k) < 2L || anyNA(k) || !all(is.finite(k)) ||
+      any(k != round(k)) || anyDuplicated(k) > 0L) {
     .thg_bad_input("`k` must hold at least two distinct whole numbers")
   }
   k <- .ho_sort(as.integer(k))
+  # hg_topics() warns when its kept start does not converge; a warning
+  # raised in a forked worker never reaches the caller, so each fit's own
+  # warning is muffled and one warning naming every such `k` is raised here,
+  # the same serially and in parallel (the `converged` column carries it)
   one_k <- \(topics) {
-    fit <- hg_topics(hg, k = topics, nstart = nstart, max_iter = max_iter,
-                     tol = tol, depth = n, seed = seed)
+    fit <- withCallingHandlers(
+      hg_topics(hg, k = topics, nstart = nstart, max_iter = max_iter,
+                tol = tol, depth = n, seed = seed),
+      hypergraphs_no_converge = \(w) invokeRestart("muffleWarning"))
     quality <- hg_topic_quality(hg, topics = fit, n = n, frexw = frexw)
     kept <- fit$restarts[fit$restarts$best, , drop = FALSE]
     data.frame(k = topics, coherence = mean(quality$coherence),
@@ -794,6 +806,13 @@ hg_topic_search <- function(hg, k, nstart = 1L, n = 10L, frexw = 0.7,
   }, logical(1L))
   out$frontier <- !dominated
   rownames(out) <- NULL
+  if (tol > 0 && !all(out$converged)) {
+    warning(warningCondition(sprintf(paste0(
+      "the kept start did not converge in %d updates (tol = %g) for k = %s; ",
+      "raise `max_iter`"), as.integer(max_iter), tol,
+      paste(out$k[!out$converged], collapse = ", ")),
+      class = "hypergraphs_no_converge", call = NULL))
+  }
   class(out) <- c("hypergraphs_topic_search", "data.frame")
   out
 }

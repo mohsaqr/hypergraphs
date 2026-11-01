@@ -400,10 +400,19 @@
   # for once there is an action column)
   if (is.data.frame(data)) {
     detected <- .ho_detect_columns(data)
+    auto_action <- is.null(action) && !is.null(detected$action)
     action <- action %||% detected$action
     if (!is.null(action)) {
       time <- time %||% detected$time
       if (is.null(session)) session <- detected$session
+    }
+    # build_network() detects action, time and session by name but never
+    # the actor, so a table found to be long only by its column names is
+    # read as one sequence of every actor's events interleaved. When a
+    # column is named as an actor, the caller has to say which it is.
+    if (auto_action && is.null(actor)) {
+      .ho_guard_undeclared_actor(data, used = c(action, time,
+                                                if (!isFALSE(session)) session))
     }
   }
   if (isFALSE(session)) session <- NULL
@@ -416,6 +425,7 @@
         names(stray)[stray][1L]))
     }
     .hon_guard_long_format(data)
+    .ho_refuse_object_as_sequences(data)
     if (models == "decode" &&
         (inherits(data, "tna") ||
          (inherits(data, "cograph_network") && !inherits(data, "netobject")))) {
@@ -433,12 +443,11 @@
   }
   .ho_check_long_columns(data, action = action, actor = actor, time = time,
                          session = session)
-  stopifnot(
-    "`time_threshold` must be a positive number, Inf, or FALSE" =
-      isFALSE(time_threshold) ||
-      (is.numeric(time_threshold) && length(time_threshold) == 1L &&
-         !is.na(time_threshold) && time_threshold > 0)
-  )
+  if (!(isFALSE(time_threshold) ||
+        (is.numeric(time_threshold) && length(time_threshold) == 1L &&
+           !is.na(time_threshold) && time_threshold > 0))) {
+    .ho_bad_input("`time_threshold` must be a positive number, Inf, or FALSE")
+  }
   keys <- c(actor, session)
   if (length(keys) > 0L && anyNA(data[keys])) {
     .ho_bad_input(sprintf(paste0(
@@ -462,6 +471,56 @@
                                  time_threshold = time_threshold,
                                  timezone = timezone)
   prepared$sequence_data
+}
+
+#' Refuse an object that is not sequences where sequences are read
+#'
+#' A list is read as one sequence per element, so any other list-based
+#' object -- a hypergraph, a fitted result -- would have its fields read as
+#' sequences of states and give a model of nonsense without an error. A
+#' list passes only when it is a plain list or one of the model objects
+#' that carry sequences (`netobject`, `netobject_group`, `tna`,
+#' `cograph_network`).
+#'
+#' @param data The sequence input, after the long-format route is ruled out.
+#' @return `NULL`, invisibly; raises `hypergraphs_bad_input`.
+#' @noRd
+.ho_refuse_object_as_sequences <- function(data) {
+  if (!is.list(data) || is.data.frame(data)) return(invisible(NULL))
+  cls <- setdiff(oldClass(data), "list")
+  if (!length(cls) || inherits(data, c("netobject", "netobject_group", "tna",
+                                       "cograph_network"))) {
+    return(invisible(NULL))
+  }
+  .ho_bad_input(sprintf(paste0(
+    "`data` is an object of class %s, not sequences: give a long event ",
+    "table (with `action`), a wide data.frame, a list of sequences, or a ",
+    "netobject, netobject_group, tna or cograph_network carrying them"),
+    paste(sprintf("`%s`", cls), collapse = "/")))
+}
+
+#' Refuse a detected long table whose actor column was not named
+#'
+#' @param data The long table, whose `action` column was found by name.
+#' @param used Columns already given a role (action, time, session).
+#' @return `NULL`, invisibly; raises `hypergraphs_long_format` (a
+#'   `hypergraphs_bad_input`) when a column carries an actor name of
+#'   `.HON_LONG_COLUMNS` and no `actor` was given.
+#' @noRd
+.ho_guard_undeclared_actor <- function(data, used) {
+  cols <- setdiff(names(data), used)
+  actors <- cols[tolower(cols) %in% .HON_LONG_COLUMNS$actor]
+  if (!length(actors)) return(invisible(NULL))
+  stop(errorCondition(
+    sprintf(paste0(
+      "`data` is read as a long event table (column `%s` taken as `action`), ",
+      "but no `actor` was given, so the events of every %s would be joined ",
+      "into one sequence. Name the columns, e.g. `action = \"%s\", ",
+      "actor = \"%s\"`; to read the table as one sequence, name `action` ",
+      "and leave `actor` out."),
+      used[1L], actors[1L], used[1L], actors[1L]),
+    class = c("hypergraphs_long_format", "hypergraphs_bad_input"),
+    call = NULL))
 }
 
 #' Columns found by name, as build_network() finds them
@@ -559,6 +618,18 @@
 .ho_sort <- function(x, ...) sort(x, ..., method = "radix")
 .ho_order <- function(...) order(..., method = "radix")
 
+# A seed is NULL or one whole number in the integer range: set.seed() would
+# truncate 1.7 to 1 and take the first of several values without a word.
+.ho_check_seed <- function(seed) {
+  if (!is.null(seed) &&
+      !(is.numeric(seed) && !is.factor(seed) && length(seed) == 1L &&
+          is.finite(seed) && abs(seed - round(seed)) < sqrt(.Machine$double.eps) &&
+          abs(seed) <= .Machine$integer.max)) {
+    .ho_bad_input("`seed` must be NULL or one whole number")
+  }
+  invisible(seed)
+}
+
 # Seed the session's random stream for the rest of the calling function and
 # hand the caller's stream back when that function returns: the caller's
 # `.Random.seed` is saved here and restored (or removed, if there was none)
@@ -566,6 +637,7 @@
 # seeded and only the restore is registered, for code that seeds itself
 # later (one seed per restart).
 .ho_local_seed <- function(seed, frame = parent.frame()) {
+  .ho_check_seed(seed)
   had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
   saved <- if (had_seed) get(".Random.seed", envir = globalenv(),
                              inherits = FALSE)
@@ -578,7 +650,7 @@
   }
   do.call(base::on.exit, list(as.call(list(restore)), add = TRUE),
           envir = frame)
-  if (!is.null(seed)) set.seed(as.integer(seed))
+  if (!is.null(seed)) set.seed(as.integer(round(seed)))
   invisible(NULL)
 }
 

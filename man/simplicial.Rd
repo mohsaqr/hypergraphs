@@ -118,7 +118,11 @@ current random state.}
 column names \code{NULL} for wide or list input.}
 
 \item{...}{For \code{type = "pathway"} on a network object: arguments passed
-to the memory-network builder.}
+to the memory-network builder. An argument the chosen \code{type} does not
+read (for example \code{validate} for a clique complex, \code{threshold} for a
+window complex, or \code{alpha} without \code{validate = TRUE}) raises
+\code{hypergraphs_bad_input} rather than being ignored. A weight or
+distance matrix with missing values is refused the same way.}
 
 \item{y}{Unused.}
 

@@ -38,9 +38,12 @@
 #' @param urls Remove URLs, `www.` addresses, `doi:` strings and bare DOIs
 #'   (default `TRUE`).
 #' @param copyright Remove a trailing copyright notice: everything from the
-#'   last copyright sign, `(c)` or `Copyright` to the end when that tail is
-#'   under `copyright_max` characters, plus "All rights reserved" (default
-#'   `TRUE`).
+#'   last notice to the end when that tail is under `copyright_max`
+#'   characters, plus "All rights reserved" (default `TRUE`). A notice starts
+#'   at a copyright sign, or at `(c)` or the word `Copyright` followed by a
+#'   year, a copyright sign or "the author(s)" (`(c) 2021 Informa`,
+#'   `Copyright: (c) 2020`, `Copyright the authors`), so a list item
+#'   "(c)" or a sentence about copyright is kept.
 #' @param copyright_max Longest tail treated as a notice (default `300`).
 #' @param boilerplate Remove publisher boilerplate wherever it occurs in a
 #'   text, not only at the end (default `FALSE`): publisher names (IEEE,
@@ -65,7 +68,9 @@
 #' @param min_chars Minimum number of characters for a word to be kept
 #'   (default `0L`, keep everything). Raise it to drop the single letters and
 #'   short fragments left by initials, enumerations and hyphenated line
-#'   breaks; `min_chars = 3` keeps words of three characters or more.
+#'   breaks; `min_chars = 3` keeps words of three characters or more. A
+#'   letter joined to digits is one word with them (`p53` has three
+#'   characters); digits alone are a number, left to `numbers`.
 #' @param stop_words Words to remove, case-insensitively at word boundaries
 #'   (default `NULL`, none). Usually left to [text_hypergraph()]'s own
 #'   `stop_words`; use it here when the cleaned text itself is shown.
@@ -149,6 +154,8 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
     text <- x
   }
   text[is.na(text)] <- ""
+  .thg_check_utf8(text, names(text) %||%
+                    as.character(seq_along(text)), arg = "x")
 
   if (isTRUE(html)) text <- .thg_clean_html(text)
   if (isTRUE(encoding)) text <- .thg_clean_encoding(text)
@@ -156,9 +163,9 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   if (isTRUE(copyright)) text <- .thg_clean_copyright(text, copyright_max)
   if (isTRUE(boilerplate)) text <- .thg_clean_boilerplate(text)
   if (isTRUE(citations)) text <- .thg_clean_citations(text)
-  for (pattern in remove) {
-    text <- gsub(paste0("(?i)", pattern), " ", text, perl = TRUE)
-  }
+  text <- Reduce(\(acc, pattern) gsub(paste0("(?i)", pattern), " ", acc,
+                                      perl = TRUE),
+                 remove, text)
   # the content floor is judged before numbers go: stripping a reference's
   # dates and pages would otherwise raise its letter share
   content_ok <- if (min_content > 0) {
@@ -187,10 +194,9 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   named <- c(nbsp = " ", amp = "&", lt = "<", gt = ">", quot = "\"",
              apos = "'", ndash = "-", mdash = "-", hellip = "...",
              lsquo = "'", rsquo = "'", ldquo = "\"", rdquo = "\"")
-  for (entity in names(named)) {
-    text <- gsub(paste0("&", entity, ";"), named[[entity]], text,
-                 fixed = TRUE)
-  }
+  text <- Reduce(\(acc, entity) gsub(paste0("&", entity, ";"),
+                                     named[[entity]], acc, fixed = TRUE),
+                 names(named), text)
   decode <- function(m, base) {
     code <- strtoi(sub("^&#[xX]?", "", sub(";$", "", m)), base = base)
     # a Unicode scalar value is in range and not a UTF-16 surrogate
@@ -309,13 +315,31 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
 
 .thg_clean_copyright <- function(text, max_chars) {
   sign <- "\u00a9"
-  # "Copyright (c) 2020" and "Copyright \u00a9 2020" put the word before the
-  # sign; the optional prefix takes the word with the notice
-  tail <- sprintf(
-    "(?i)(?:\\bcopyright\\b\\s*)?(?:%s|\\(c\\)|\\bcopyright\\b)[^%s]{0,%d}$",
-    sign, sign, as.integer(max_chars))
-  text <- gsub(tail, " ", text, perl = TRUE)
-  gsub("(?i)\\ball rights reserved\\.?", " ", text, perl = TRUE)
+  # A notice starts at the sign, or at "(c)" or the word "Copyright" that a
+  # year, the sign or "the author(s)" follows: "(c) online modules" in a
+  # list and "copyright reform" in a sentence are text, not notices.
+  # "Copyright (c) 2020", "Copyright: \u00a9 2020" and "\u00a9 Copyright
+  # 2020" stack several marks; the run of marks before the last one is
+  # taken with it, so the notice starts at its first mark.
+  follows <- "(?=[\\s:]*(?:\\d{4}|\\(c\\)|%s|the\\s+authors?\\b))"
+  mark <- sprintf(paste0("(?:%s|\\(c\\)", follows, "|\\bcopyright\\b",
+                         follows, ")"), sign, sign, sign)
+  notice <- sprintf("(?i)(?:(?:%s|\\(c\\)|\\bcopyright\\b)[\\s:]*)*%s",
+                    sign, mark)
+  # the LAST notice is cut, with everything after it, when what follows it
+  # is at most `max_chars` characters (gregexpr() positions count
+  # characters, as substr() does)
+  hits <- gregexpr(notice, text, perl = TRUE)
+  out <- vapply(seq_along(text), \(i) {
+    starts <- hits[[i]]
+    if (starts[[1L]] == -1L) return(text[[i]])
+    last <- length(starts)
+    end <- starts[[last]] + attr(starts, "match.length")[[last]] - 1L
+    if (nchar(text[[i]]) - end > max_chars) return(text[[i]])
+    paste0(substr(text[[i]], 1L, starts[[last]] - 1L), " ")
+  }, character(1L))
+  names(out) <- names(text)
+  gsub("(?i)\\ball rights reserved\\.?", " ", out, perl = TRUE)
 }
 
 # Publisher boilerplate removed anywhere in a text by `boilerplate = TRUE`:
@@ -384,16 +408,23 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   stop_words <- unique(tolower(stop_words))
   escaped <- gsub("([.\\\\+*?\\[^\\]$(){}=!<>|:-])", "\\\\\\1", stop_words,
                   perl = TRUE)
-  pattern <- sprintf("(*UCP)(?i)(?<![[:alpha:]'])(?:%s)(?![[:alpha:]'])",
+  # a word ends at a character that is neither a letter, a digit nor an
+  # apostrophe: "p53" and "covid19" are words (see .thg_clean_numbers()),
+  # so the stop word "p" must not cut "p53" down to "53"
+  pattern <- sprintf("(*UCP)(?i)(?<![[:alnum:]'])(?:%s)(?![[:alnum:]'])",
                      paste(escaped, collapse = "|"))
   gsub(pattern, " ", text, perl = TRUE)
 }
 
 # Drop whole words shorter than `min_chars`, at the same word boundaries the
-# stop-word remover uses so an apostrophe never splits a word in half.
+# stop-word remover uses so an apostrophe never splits a word in half and a
+# letter joined to digits is one word ("p53" is three characters, not the
+# word "p" before a number). A run of digits alone is a number, not a word,
+# and is left to `numbers`.
 .thg_clean_short <- function(text, min_chars) {
-  pattern <- sprintf(
-    "(*UCP)(?<![[:alpha:]'])[[:alpha:]']{1,%d}(?![[:alpha:]'])",
+  pattern <- sprintf(paste0(
+    "(*UCP)(?<![[:alnum:]'])(?=[[:alnum:]']*[[:alpha:]])",
+    "[[:alnum:]']{1,%d}(?![[:alnum:]'])"),
     as.integer(min_chars) - 1L)
   text <- gsub(pattern, " ", text, perl = TRUE)
   # Removing "J. N." leaves its periods behind; collapse the run. Scoped to

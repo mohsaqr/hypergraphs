@@ -468,3 +468,53 @@ test_that("group_hypergraph() reports the rows it drops for missing values", {
   expect_no_warning(group_hypergraph(d[1, ], node = "node",
                                      hyperedge = "hyperedge"))
 })
+
+test_that("counted sets warn about the rows they drop", {
+  d <- data.frame(n = c("a", NA, "a", "b", "c"), e = c("x", "x", "x", "y", "y"))
+  expect_warning(hg <- group_hypergraph(d, node = "n", hyperedge = "e", top = 3),
+                 class = "hypergraphs_dropped_rows")
+  expect_identical(hg_get(hg, what = "sets")$set, c("a", "b + c"))
+})
+
+test_that("arguments that do not apply are refused, never ignored", {
+  d <- data.frame(n = c("a", "b", "a", "c"), e = c("x", "x", "y", "y"),
+                  w = c(1, 2, 3, 4))
+  expect_error(group_hypergraph(d, node = "n", hyperedge = "e", weight = "w",
+                                top = 3), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(d, node = "n", hyperedge = "e", sparse = TRUE,
+                                top = 3), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(d, node = "n", hyperedge = "e", nodes = "a",
+                                min_share = 0.5), class = "hypergraphs_bad_input")
+  fit <- structure(list(
+    data = data.frame(V1 = c("a", "a", "b"), V2 = c("b", "b", "c")),
+    assignments = c(1L, 1L, 2L), k = 2L), class = "net_mmm")
+  expect_error(group_hypergraph(fit, node = "V1"), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(fit, weight = "w"), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(fit, sparse = TRUE), class = "hypergraphs_bad_input")
+  expect_s3_class(group_hypergraph(fit), "net_hg")
+})
+
+test_that("an edge with a missing end is dropped whole", {
+  edges <- data.frame(from = c("a", NA, "c"), to = c("b", "c", "a"))
+  expect_warning(hg <- group_hypergraph(edges, from = "from", to = "to"),
+                 class = "hypergraphs_dropped_rows")
+  # no singleton hyperedge {c} from the half-known edge e2
+  expect_identical(hg_get(hg)$members, c("a, b", "a, c"))
+  expect_identical(hg_get(hg)$hyperedge, c("e1", "e3"))
+})
+
+test_that("contract violations of group_hypergraph() are classed", {
+  d <- data.frame(n = c("a", "b"), e = c("x", "x"))
+  expect_error(group_hypergraph(1:3), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(d, node = "zz", hyperedge = "e"),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(d, node = "n", hyperedge = "e", weight = "zz"),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(d, node = "n", hyperedge = "e", nodes = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(d, node = "n", hyperedge = "e",
+                                nodes = c("a", "b", "a")),
+               class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(data.frame(from = "a", to = "b"), from = "from",
+                                to = "zz"), class = "hypergraphs_bad_input")
+})

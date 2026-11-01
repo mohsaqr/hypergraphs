@@ -484,3 +484,42 @@ test_that("expected and observed mutual information match the cell-by-cell defin
   # one cluster against one cluster: nothing to share, nothing expected
   expect_identical(.thg_expected_mi(table(rep(1, 5), rep(1, 5))), 0)
 })
+
+test_that("one shared node leaves the pair-counting indices undefined", {
+  x <- data.frame(node = c("a", "b"), cluster = c(1, 2))
+  y <- data.frame(node = c("a", "c"), cluster = c(1, 1))
+  expect_warning(out <- hg_agreement(x, y, method = c("ari", "ami", "nmi")),
+                 class = "hypergraphs_undefined_statistic")
+  expect_identical(out$n, 1L)
+  expect_true(all(is.na(unlist(out[c("ari", "ami", "nmi")]))))
+})
+
+test_that("ARI equals the hand computation, 1 on relabelled identity, ~0 when independent", {
+  x <- data.frame(node = letters[1:6], cluster = c(1, 1, 1, 2, 2, 2))
+  y <- data.frame(node = letters[1:6], cluster = c(1, 1, 2, 2, 3, 3))
+  # pairs together: sum_ij = 2, sum_a = 6, sum_b = 3, expected = 18 / 15
+  expect_equal(hg_agreement(x, y)$ari, (2 - 1.2) / (4.5 - 1.2), tolerance = 1e-12)
+  relabelled <- transform(x, cluster = c("q", "q", "q", "z", "z", "z"))
+  expect_identical(hg_agreement(x, relabelled, method = c("ari", "ami", "nmi"))[
+    c("ari", "ami", "nmi")], data.frame(ari = 1, ami = 1, nmi = 1))
+  set.seed(1)
+  ari <- vapply(seq_len(200L), \(i) {
+    .thg_ari(sample(1:4, 60, TRUE), sample(1:4, 60, TRUE))
+  }, numeric(1L))
+  expect_lt(abs(mean(ari)), 4 * stats::sd(ari) / sqrt(200))
+})
+
+test_that("hg_stability() and hg_seeds() raise classed errors on malformed input", {
+  hg <- text_hypergraph(c(
+    cooking_1 = "simmer the soup with onions and carrots",
+    cooking_2 = "this soup recipe needs salt on a cold night",
+    space_1 = "the telescope revealed a distant galaxy and stars",
+    space_2 = "astronomers aimed the telescope at the stars all night"
+  ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
+  expect_error(hg_stability(hg, k = 2, resample = "seeds", seeds = c(1, 1)),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_stability(hg, k = 2, resample = "seeds", seeds = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_seeds(data.frame(node = "a", cluster = "A")),
+               class = "hypergraphs_bad_input")
+})

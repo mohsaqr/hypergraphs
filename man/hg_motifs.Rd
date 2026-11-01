@@ -3,6 +3,7 @@
 \name{hg_motifs}
 \alias{hg_motifs}
 \alias{hg_get.hypergraphs_motifs}
+\alias{print.hypergraphs_motifs}
 \alias{plot.hypergraphs_motifs}
 \title{Y, T and O motif census with a hypergraph configuration null}
 \usage{
@@ -23,15 +24,20 @@ hg_motifs(
 
 \method{hg_get}{hypergraphs_motifs}(x, what = c("test", "draws"), ...)
 
+\method{print}{hypergraphs_motifs}(x, n = 10L, ...)
+
 \method{plot}{hypergraphs_motifs}(x, motif = c("Y", "T", "O"), ...)
 }
 \arguments{
 \item{hg}{A 3-uniform \code{net_hg} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
-\item{n}{Number of configuration-model draws. The paper uses 1000.}
+\item{n}{Number of configuration-model draws. The paper uses 1000. For
+\code{print()}: the number of rows of the test table shown (default \code{10}).}
 
-\item{seed}{Optional reproducibility seed; the caller's RNG state is
-restored on exit.}
+\item{seed}{\code{NULL} (default: the current random stream) or one whole
+number for the null draws; the caller's RNG state is restored on exit.
+A temporal input seeds snapshot \code{i} with \code{seed + i - 1}. Any other
+value raises \code{hypergraphs_bad_input}.}
 
 \item{what}{\code{"test"} for observed/null summaries, \code{"counts"} for observed
 counts only, or \code{"draws"} for every null count.}
@@ -65,6 +71,8 @@ hypergraph, the number on its clock otherwise.
 For \code{hg_get()}, the test table (\code{what = "test"}) or every null
 count (\code{what = "draws"}, columns \code{run}, \code{motif}, \code{count}) as a plain
 data.frame.
+
+For \code{print()}, \code{x}, invisibly.
 
 For \code{plot}, a ggplot object: the null distribution of the motif
 count as a histogram with the observed count as a vertical line and the

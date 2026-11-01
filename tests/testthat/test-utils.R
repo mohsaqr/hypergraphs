@@ -96,3 +96,76 @@ test_that("node order and the results built on it do not depend on the locale", 
           "no en_US.UTF-8 locale")
   expect_identical(results(), in_c)
 })
+
+test_that("an object that is not sequences is refused, not read as sequences", {
+  hg <- group_hypergraph(data.frame(n = c("a", "b", "c"), e = c("x", "x", "y")),
+                         node = "n", hyperedge = "e")
+  # a hypergraph is a list: its fields used to be read as sequences, so
+  # hon() built a network over states such as "group_hypergraph" and "1:2"
+  expect_error(.ho_sequence_input(hg), class = "hypergraphs_bad_input")
+  expect_error(hon(hg), class = "hypergraphs_bad_input")
+  expect_error(mogen(hg), class = "hypergraphs_bad_input")
+  expect_error(markov_order(hg), class = "hypergraphs_bad_input")
+  expect_error(hg_bootstrap(hg), class = "hypergraphs_bad_input")
+  expect_error(window_hypergraph(hg), class = "hypergraphs_bad_input")
+  expect_error(memory(hg), class = "hypergraphs_bad_input")
+  # plain lists and the model objects that carry sequences still pass
+  seqs <- list(c("a", "b", "a"), c("b", "a", "b"))
+  expect_identical(.ho_sequence_input(seqs), seqs)
+  expect_identical(.ho_sequence_input(structure(seqs, class = "list")),
+                   structure(seqs, class = "list"))
+  net <- Nestimate::build_network(.ho_wide_sequences(seqs), method = "relative")
+  expect_identical(.ho_sequence_input(net), net)
+})
+
+test_that("the long route checks time_threshold with a classed error", {
+  long <- data.frame(action = c("a", "b", "a"), actor = "u", time = 1:3)
+  expect_error(.ho_sequence_input(long, actor = "actor", time_threshold = -1),
+               class = "hypergraphs_bad_input")
+  expect_error(.ho_sequence_input(long, actor = "actor", time_threshold = "a"),
+               class = "hypergraphs_bad_input")
+  expect_error(.ho_sequence_input(long, actor = "actor",
+                                  time_threshold = c(1, 2)),
+               class = "hypergraphs_bad_input")
+})
+
+test_that(".ho_local_seed refuses a seed that set.seed() would bend", {
+  draw <- function(seed) {
+    .ho_local_seed(seed)
+    stats::runif(1L)
+  }
+  # set.seed(1.7) is set.seed(1) and set.seed(c(1, 2)) is set.seed(1)
+  lapply(list(1.7, c(1, 2), "1", NA, Inf, 1e12, factor(1)), \(s) {
+    expect_error(draw(s), class = "hypergraphs_bad_input")
+  })
+  expect_identical(draw(1), draw(1L))
+  expect_identical(draw(-5), draw(-5L))
+  set.seed(9)
+  before <- .Random.seed
+  draw(3)
+  expect_identical(.Random.seed, before)
+})
+
+test_that("a long table found by its column names must name its actor", {
+  # build_network() never detects the actor, so this table used to become
+  # one sequence of both actors' events interleaved, with only a message
+  s <- data.frame(actor = rep(c("ana", "bo"), each = 4), time = rep(1:4, 2),
+                  action = c("x", "x", "y", "y", "y", "x", "x", "y"))
+  expect_error(.ho_sequence_input(s), class = "hypergraphs_long_format")
+  expect_error(hon(s), class = "hypergraphs_long_format")
+  expect_error(hon(s), class = "hypergraphs_bad_input")
+  # naming the actor gives one sequence per actor, as build_network() does
+  ours <- .ho_sequence_input(s, actor = "actor", time_threshold = Inf)
+  expect_identical(ours, Nestimate::build_network(
+    s, method = "relative", actor = "actor", time_threshold = Inf)$data)
+  expect_identical(nrow(ours), 2L)
+  # naming action is the deliberate one-sequence reading
+  expect_message(one <- .ho_sequence_input(s, action = "action", time = "time",
+                                           time_threshold = Inf),
+                 class = "hypergraphs_single_sequence")
+  expect_identical(nrow(one), 1L)
+  # a session column detected as the session is not an undeclared actor
+  sess <- data.frame(session_id = rep(c("s1", "s2"), each = 3),
+                     action = c("a", "b", "a", "b", "a", "b"), time = 1:6)
+  expect_no_error(suppressMessages(.ho_sequence_input(sess)))
+})

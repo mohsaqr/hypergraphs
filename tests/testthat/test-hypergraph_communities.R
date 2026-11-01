@@ -188,3 +188,24 @@ test_that("IRMM's sparse passes give the dense clique reduction exactly", {
   expect_identical(unname(as.matrix(.hg_irmm_two_section(sparse, w))),
                    unname(.hg_irmm_two_section(dense, w)))
 })
+
+test_that("the size plot marks fits whose communities all share one size", {
+  skip_if_not_installed("igraph")
+  dat <- data.frame(
+    member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z",
+               "c", "x"),
+    edge = c(rep(paste0("e", 1:4), each = 3), "e5", "e5")
+  )
+  h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
+  multi <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
+  binary <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2,
+                           duplicate_edges = "collapse")
+  comparison <- hg_compare_communities(mh = multi, bh = binary)
+  expect_true("n_runs" %in% names(hg_get(comparison)))
+  # each medoid here has one distinct community size, which a step line
+  # alone cannot draw
+  built <- ggplot2::ggplot_build(plot(comparison))
+  points <- built$data[[2L]]
+  expect_identical(nrow(points),
+                   nrow(unique(hg_get(comparison, what = "sizes")[c("model", "n_nodes")])))
+})

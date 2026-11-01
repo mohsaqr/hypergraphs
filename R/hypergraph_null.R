@@ -129,6 +129,18 @@
   }, numeric(1))
 }
 
+# A seed is NULL or one whole number in the integer range: set.seed() would
+# truncate a fraction and fail with an unclassed error on anything else.
+.thg_check_seed <- function(seed, arg = "seed") {
+  if (!is.null(seed) &&
+      !(is.numeric(seed) && !is.factor(seed) && length(seed) == 1L &&
+          is.finite(seed) && abs(seed - round(seed)) < sqrt(.Machine$double.eps) &&
+          abs(seed) <= .Machine$integer.max)) {
+    .thg_bad_input(sprintf("`%s` must be NULL or one whole number", arg))
+  }
+  invisible(seed)
+}
+
 #' Degree-preserving null-model test of hypergraph structure
 #'
 #' Tests whether an observed structural statistic exceeds what the degree
@@ -175,14 +187,16 @@
 #'   literature, which reports it.
 #' @param n Number of null samples: one whole number >= 19 (default
 #'   `199L`).
-#' @param seed Seed for the null draws; set it for a reproducible test.
-#'   The global RNG state is restored on exit.
+#' @param seed `NULL` (default: the current random stream) or one whole
+#'   number seeding the null draws; set it for a reproducible test. The
+#'   caller's random number stream is restored on exit.
 #' @param alternative `"two_sided"` (default), `"greater"`, or `"less"`.
 #' @return A base `data.frame`, one row per statistic: `statistic`,
 #'   `observed`, `null_mean`, `null_lo`, `null_hi`, `z`, `p_value`, `n`,
 #'   `method`.
 #' @section Conditions: Raises `hypergraphs_bad_input` for broken contracts,
-#'   including an `n` that is not one whole number >= 19 and a request for
+#'   including an `n` that is not one whole number >= 19, a `seed` that is
+#'   not `NULL` or one whole number, and a request for
 #'   `"density"` or `"avg_edge_size"` (see Description), whatever the storage
 #'   of the incidence matrix.
 #'   `"avg_jaccard"` on fewer than two hyperedges is undefined in every null
@@ -243,7 +257,8 @@ hg_null_test <- function(hg,
       class = "hypergraphs_sparse_unsupported", call = NULL
     ))
   }
-  statistic <- match.arg(statistic, several.ok = TRUE)
+  # a statistic named twice is tested once
+  statistic <- unique(match.arg(statistic, several.ok = TRUE))
   method <- match.arg(method)
   alternative <- match.arg(alternative)
   # one whole count, cast once: a fraction would draw floor(n) samples but
@@ -251,19 +266,8 @@ hg_null_test <- function(hg,
   n <- .ho_check_count(n, "n", min = 19)
 
   if (!is.null(seed)) {
-    old_seed <- if (exists(".Random.seed", envir = globalenv())) {
-      get(".Random.seed", envir = globalenv())
-    } else {
-      NULL
-    }
-    on.exit({
-      if (is.null(old_seed)) {
-        rm(".Random.seed", envir = globalenv())
-      } else {
-        assign(".Random.seed", old_seed, envir = globalenv())
-      }
-    }, add = TRUE)
-    set.seed(seed)
+    .thg_check_seed(seed)
+    .ho_local_seed(seed)
   }
 
   membership <- (hg$incidence > 0) * 1L

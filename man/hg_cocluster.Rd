@@ -19,8 +19,9 @@ node or hyperedge.}
 
 \item{k}{Number of co-clusters, at least 2.}
 
-\item{seed}{Seed for the k-means starts; the caller's random number stream
-is restored on exit. \code{NULL} (default) uses the current stream.}
+\item{seed}{Seed for the k-means starts, one whole number; the caller's
+random number stream is restored on exit. \code{NULL} (default) uses the
+current stream.}
 
 \item{nstart}{Number of k-means starts (default \code{25L}).}
 

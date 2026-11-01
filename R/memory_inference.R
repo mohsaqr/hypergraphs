@@ -47,6 +47,7 @@
                              time = time, session = session,
                              time_threshold = time_threshold,
                              timezone = timezone)
+  .hon_check_sequence_source(data)
   data <- .coerce_sequence_input(data)
   trajectories <- .hon_parse_input(data, collapse_repeats = FALSE)
   .hon_check_states(unlist(trajectories, use.names = FALSE))
@@ -207,8 +208,10 @@
 #' conditional probability and a *support* - the fraction of replicates in
 #' which the rule's context is extracted as a rule at all. Support close
 #' to 1 for a higher-order context means the order elevation is stable
-#' under resampling, not an artifact of the particular sample; first-order
-#' contexts have support 1 by construction.
+#' under resampling, not an artifact of the particular sample. A
+#' first-order context is a rule in every replicate that observes it, so its
+#' support falls below 1 only when some replicates draw no sequence that
+#' reaches it (the same replicates are missing from its `n_boot_used`).
 #'
 #' Per-sequence observation counts are computed once; every replicate is a
 #' weighted aggregation of those counts followed by counts-based rule
@@ -222,7 +225,8 @@
 #'   model from [hon()] with `group` is resampled group by group with its
 #'   own settings, and the result is a `hypergraphs_bootstrap_group` (one bootstrap
 #'   per group; `summary()` and [hg_get()] stack them with a `group`
-#'   column).
+#'   column). The estimation and long-format arguments are then the
+#'   model's, and passing any of them raises `hypergraphs_bad_input`.
 #' @param n_boot Integer >= 2. Bootstrap replicates. Default `500`.
 #' @param level Confidence level in (0, 1). Default `0.95` (percentile
 #'   interval).
@@ -233,7 +237,8 @@
 #' @param parallel Logical. Use `parallel::mclapply` for the replicates
 #'   (not on Windows). Results are identical to the serial run.
 #' @param n_cores Integer. Cores when `parallel = TRUE`.
-#' @param seed Optional integer seed.
+#' @param seed Optional integer seed. The caller's random-number stream is
+#'   restored on exit.
 #'
 #' @return An object of class `hypergraphs_bootstrap` with `print`,
 #'   `summary` and `plot` methods. [hg_get()] returns its inference table,
@@ -272,7 +277,18 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
                          session = NULL, time_threshold = 900,
                          timezone = "UTC") {
   if (inherits(data, "hypergraphs_memory_group")) {
-    # a group model: resample each group separately, with its settings
+    # a group model: resample each group separately, with its settings; an
+    # estimation argument given here would be silently overridden by the
+    # model's, so it is refused instead
+    model_args <- c("max_order", "min_freq", "collapse_repeats", "action",
+                    "actor", "time", "session", "time_threshold", "timezone")
+    given <- intersect(names(match.call())[-1L], model_args)
+    if (length(given)) {
+      .ho_bad_input(sprintf(paste0(
+        "a group model is resampled with its own estimation settings; ",
+        "drop %s (set them in hon(..., group =) instead)"),
+        paste0("`", given, "`", collapse = ", ")))
+    }
     parts <- attr(data, "data")
     args <- attr(data, "args")
     fits <- lapply(parts, \(d) hg_bootstrap(
@@ -292,6 +308,9 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   n_boot <- .ho_check_count(n_boot, "n_boot", min = 2)
   max_order <- .ho_check_count(max_order, "max_order")
   min_freq <- .ho_check_count(min_freq, "min_freq")
+  if (!is.null(seed)) {
+    seed <- .ho_check_count(seed, "seed", min = -.Machine$integer.max)
+  }
 
   trajectories <- .hi_parse(data, action = action, actor = actor,
                             time = time, session = session,
@@ -300,8 +319,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
                             collapse_repeats = collapse_repeats)
   n_seq <- length(trajectories)
   if (n_seq < 2L) {
-    stop("Bootstrap over sequences needs at least 2 sequences.",
-         call. = FALSE)
+    .ho_bad_input("Bootstrap over sequences needs at least 2 sequences.")
   }
 
   sc <- .hi_seq_counts(unlist(trajectories, recursive = FALSE), max_order,
@@ -393,6 +411,9 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   n_perm <- .ho_check_count(n_perm, "n_perm", min = 2)
   max_order <- .ho_check_count(max_order, "max_order")
   min_freq <- .ho_check_count(min_freq, "min_freq")
+  if (!is.null(seed)) {
+    seed <- .ho_check_count(seed, "seed", min = -.Machine$integer.max)
+  }
 
   tr_x <- .hi_parse(x, action = action, actor = actor, time = time,
                     session = session, time_threshold = time_threshold,
@@ -403,7 +424,7 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
   n_x <- length(tr_x)
   n_y <- length(tr_y)
   if (n_x < 2L || n_y < 2L) {
-    stop("Each cohort needs at least 2 sequences.", call. = FALSE)
+    .ho_bad_input("Each cohort needs at least 2 sequences.")
   }
 
   trajectories <- c(tr_x, tr_y)
@@ -535,7 +556,8 @@ hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
 #'
 #' @param x A `hypergraphs_bootstrap` object from [hg_bootstrap()].
 #' @param what `"edges"`, the only table: one row per rule edge.
-#' @param ... Additional arguments (ignored).
+#' @param ... Must be empty: an argument this method does not take raises
+#'   `hypergraphs_bad_input`.
 #' @param min_support Numeric in `[0, 1]` or NULL. Keep only rule edges
 #'   with at least this bootstrap support.
 #' @param order_min Integer or NULL. Keep only rule edges of at least this
@@ -567,15 +589,11 @@ hg_get.hypergraphs_bootstrap <- function(x, what = "edges", ...,
   .ho_match_what(what, "edges")
   out <- x$edges
   if (!is.null(min_support)) {
-    stopifnot("`min_support` must be a single number in [0, 1]" =
-                is.numeric(min_support) && length(min_support) == 1L &&
-                min_support >= 0 && min_support <= 1)
+    min_support <- .ho_check_number(min_support, "min_support", 0, 1)
     out <- out[out$support >= min_support, , drop = FALSE]
   }
   if (!is.null(order_min)) {
-    stopifnot("`order_min` must be a single integer >= 1" =
-                is.numeric(order_min) && length(order_min) == 1L &&
-                order_min >= 1)
+    order_min <- .ho_check_count(order_min, "order_min")
     out <- out[out$order >= order_min, , drop = FALSE]
   }
   if (!is.null(sort_by)) {
@@ -653,6 +671,7 @@ summary.hypergraphs_bootstrap <- function(object, ...) {
 #' plot(bs, top = 10)
 #' @export
 plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
+  top <- .ho_check_count(top, "top")
   e <- x$edges
   e <- e[.ho_order(-e$count, e$from, e$to), , drop = FALSE]
   e <- e[seq_len(min(top, nrow(e))), , drop = FALSE]
@@ -693,7 +712,8 @@ plot.hypergraphs_bootstrap <- function(x, top = 20L, ...) {
 #'   weighted mean absolute difference), `p_value`, `n_comparable` (rules
 #'   estimated in both groups), `n_rules` and `n_perm_used`, the
 #'   permutations with a defined statistic.
-#' @param ... Additional arguments (ignored).
+#' @param ... Must be empty: an argument this method does not take raises
+#'   `hypergraphs_bad_input`.
 #' @param significant Logical. `TRUE` restricts to edges whose adjusted
 #'   p-value falls below the object's `alpha`. Default `FALSE` (all
 #'   edges).
@@ -723,6 +743,10 @@ hg_get.hypergraphs_comparison <- function(x, what = c("edges", "global"), ...,
                                    sort_by = NULL, top = NULL) {
   .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_comparison`")
   what <- .ho_match_what(what, c("edges", "global"))
+  if (!is.logical(significant) || length(significant) != 1L ||
+      is.na(significant)) {
+    .ho_bad_input("`significant` must be TRUE or FALSE")
+  }
   if (identical(what, "global")) {
     return(data.frame(statistic = x$global$statistic,
                       p_value = x$global$p_value,
@@ -807,7 +831,9 @@ summary.hypergraphs_comparison <- function(object, ...) {
 #' @param top Integer. Number of edges to show (by descending absolute
 #'   difference). Default `20`.
 #' @param ... Additional arguments (ignored).
-#' @return A ggplot object, invisibly.
+#' @return A ggplot object, invisibly. When no rule is estimated in both
+#'   groups there is no difference to draw, and `hypergraphs_empty_result`
+#'   is raised.
 #' @examples
 #' set.seed(1)
 #' first_order <- replicate(6, sample(c("a", "b", "c"), 12, replace = TRUE),
@@ -820,8 +846,16 @@ summary.hypergraphs_comparison <- function(object, ...) {
 #' plot(comparison, top = 10)
 #' @export
 plot.hypergraphs_comparison <- function(x, top = 20L, ...) {
+  top <- .ho_check_count(top, "top")
   e <- x$edges
   e <- e[!is.na(e$diff), , drop = FALSE]
+  if (nrow(e) == 0L) {
+    stop(errorCondition(paste0(
+      "no rule is estimated in both groups, so there is no probability ",
+      "difference to plot"),
+      class = c("hypergraphs_empty_result", "hypergraphs_bad_input"),
+      call = NULL))
+  }
   e <- e[.ho_order(-abs(e$diff), e$from, e$to), , drop = FALSE]
   e <- e[seq_len(min(top, nrow(e))), , drop = FALSE]
   e$label <- paste(e$from, "->", e$to)

@@ -139,7 +139,7 @@ test_that("plot.net_mogen works", {
 # ===========================================================================
 
 test_that("mogen rejects invalid input", {
-  expect_error(mogen(42), "data.frame or list")
+  expect_error(mogen(42), class = "hypergraphs_bad_input")
   expect_error(mogen(list(c("A", "B")), max_order = 0L), "max_order")
 })
 
@@ -309,4 +309,76 @@ test_that("hg_get(what = 'paths') takes a range of path lengths", {
                     x <- x[setdiff(names(x), "k")]; rownames(x) <- 3:4; x})
   expect_true(all(table(both$k) <= 2L))
   expect_error(hg_get(m, what = "paths", k = c(2L, 9L)), class = "hypergraphs_bad_input")
+})
+
+# ===========================================================================
+# Audit 2026-11-01: the order-0 layer and argument contracts
+# ===========================================================================
+
+test_that("hg_get(what = 'transitions') at a selected order 0 is an empty table", {
+  # memoryless data select order 0; the default table used to fail with an
+  # unclassed "'order' must be >= 1", and summary() failed with it
+  set.seed(1)
+  trajs <- replicate(20, sample(c("a", "b", "c", "d"), 12, replace = TRUE),
+                     simplify = FALSE)
+  m <- mogen(trajs, max_order = 3L)
+  expect_identical(m$optimal_order, 0L)
+  tr <- hg_get(m, what = "transitions")
+  expect_identical(nrow(tr), 0L)
+  expect_named(tr, names(hg_get(m, what = "transitions", order = 1)))
+  expect_identical(nrow(hg_get(m, what = "transitions", order = 0)), 0L)
+  expect_identical(nrow(hg_get(m, what = "pathways")), 0L)
+  expect_named(summary(m), c("orders", "transitions", "paths", "pathways"))
+})
+
+test_that("hg_get.net_mogen validates order and refuses misplaced arguments", {
+  set.seed(1)
+  trajs <- replicate(20, sample(c("a", "b", "c", "d"), 12, replace = TRUE),
+                     simplify = FALSE)
+  m <- mogen(trajs, max_order = 2L)
+  expect_error(hg_get(m, what = "transitions", order = 9),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, what = "pathways", order = 1.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, k = 3), class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, what = "paths", order = 2),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, what = "transitions", min_prob = 0.1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, what = "pathways", foo = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(m, what = "paths", k = "2"),
+               class = "hypergraphs_bad_input")
+  expect_identical(
+    hg_get(m, what = "transitions", order = 2, min_count = 2),
+    Nestimate::mogen_transitions(m, order = 2L, min_count = 2L))
+})
+
+test_that("hg_get(what = 'paths') equals a raw k-gram count", {
+  set.seed(4)
+  trajs <- replicate(15, sample(c("a", "b", "c"), sample(3:9, 1),
+                                replace = TRUE), simplify = FALSE)
+  m <- mogen(trajs, max_order = 3L)
+  kgrams <- function(k) {
+    paths <- unlist(lapply(trajs, \(s) {
+      if (length(s) < k) return(character(0))
+      vapply(seq_len(length(s) - k + 1L),
+             \(i) paste(s[i:(i + k - 1L)], collapse = " -> "), character(1))
+    }))
+    counts <- table(paths)
+    stats::setNames(as.integer(counts), names(counts))
+  }
+  lapply(2:4, \(k) {
+    got <- hg_get(m, what = "paths", k = k)
+    want <- kgrams(k)
+    expect_identical(stats::setNames(got$count, got$path)[names(want)], want)
+    expect_identical(nrow(got), length(want))
+  })
+})
+
+test_that("mogen() refuses bad arguments with hypergraphs_bad_input", {
+  trajs <- list(c("a", "b", "c"), c("b", "c", "a"))
+  expect_error(mogen(trajs, max_order = 0), class = "hypergraphs_bad_input")
+  expect_error(mogen(trajs, criterion = "xx"), class = "hypergraphs_bad_input")
+  expect_error(mogen(trajs, lrt_alpha = 1), class = "hypergraphs_bad_input")
 })

@@ -13,11 +13,11 @@
 components at each level, or \code{"nodes"} for each node's highest
 q-level.}
 
-\item{...}{Additional arguments (ignored).}
+\item{...}{Not used; an unknown argument is refused with
+\code{hypergraphs_bad_input}.}
 
-\item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
-applied after any filter and after \code{sort_by}, so \code{sort_by} and
-\code{top} compose. Default \code{NULL} returns every row.}
+\item{top}{Integer or \code{NULL}. Return only the first \code{top} rows. Default
+\code{NULL} returns every row.}
 }
 \value{
 A data.frame. For \code{what = "q_levels"}, one row per level: \code{q},

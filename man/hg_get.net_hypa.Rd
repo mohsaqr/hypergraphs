@@ -29,7 +29,8 @@ or \code{"pathways"} for the anomalous paths written as pathways
 \code{\link[=simplicial]{simplicial()}} turns into simplices.}
 
 \item{type}{For \code{"anomalies"} and \code{"pathways"}: \code{"all"}, \code{"over"} or
-\code{"under"}. Default: the \code{type} given to \code{\link[=hypa]{hypa()}}, else \code{"all"}.}
+\code{"under"}. Default: the \code{type} given to \code{\link[=hypa]{hypa()}}, else \code{"all"}. Given
+with another table it raises \code{hypergraphs_bad_input}.}
 
 \item{order_by}{\code{"sig"} (smallest p-value of the path's own direction
 first), \code{"ratio"} (largest deviation first: highest ratio for
@@ -38,7 +39,8 @@ absolute log ratio when both directions are listed), \code{"freq"} (most
 observed first) or \code{"path"} (alphabetical). Default: the \code{order_by}
 given to \code{\link[=hypa]{hypa()}}, else \code{"sig"}. For \code{"scores"}, \code{"sig"} sorts by the
 smaller of the two raw tails, \code{p_under} and \code{p_over}, so the paths
-that depart most from the null in either direction come first.}
+that depart most from the null in either direction come first. Given
+with \code{what = "pathways"} it raises \code{hypergraphs_bad_input}.}
 
 \item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
 applied after any filter and after \code{order_by}. Default \code{NULL}

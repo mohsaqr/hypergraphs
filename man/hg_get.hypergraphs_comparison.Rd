@@ -22,7 +22,8 @@ weighted mean absolute difference), \code{p_value}, \code{n_comparable} (rules
 estimated in both groups), \code{n_rules} and \code{n_perm_used}, the
 permutations with a defined statistic.}
 
-\item{...}{Additional arguments (ignored).}
+\item{...}{Must be empty: an argument this method does not take raises
+\code{hypergraphs_bad_input}.}
 
 \item{significant}{Logical. \code{TRUE} restricts to edges whose adjusted
 p-value falls below the object's \code{alpha}. Default \code{FALSE} (all

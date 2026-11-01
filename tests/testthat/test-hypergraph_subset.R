@@ -194,3 +194,10 @@ test_that("REGRESSION R10: subsetting keeps the planted SBM blocks aligned", {
   check(hg_subset(by_nodes, nodes = c("V5", "V6")))
   check(hg_subset(sbm, component = "largest"))
 })
+
+test_that("a fractional size is refused rather than matching nothing", {
+  expect_error(hg_subset(.subset_fixture(), size = 2.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_subset(.subset_fixture(), size = numeric()),
+               class = "hypergraphs_bad_input")
+})

@@ -9,9 +9,8 @@
 #' @param what `"embeddings"` (default) for the node coordinates, or
 #'   `"variance"` for the per-dimension singular values.
 #' @param ... Unused.
-#' @param top Integer or `NULL`. Return only the first `top` rows,
-#'   applied after any filter and after `sort_by`, so `sort_by` and
-#'   `top` compose. Default `NULL` returns every row.
+#' @param top Integer or `NULL`. Return only the first `top` rows.
+#'   Default `NULL` returns every row.
 #' @return A data.frame. For `what = "embeddings"`, one row per higher-order
 #'   node: `node` followed by one column per embedding dimension (`dim1`,
 #'   `dim2`, ...). For `what = "variance"`, one row per dimension: `dimension`,

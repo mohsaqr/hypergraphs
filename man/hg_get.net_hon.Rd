@@ -24,15 +24,18 @@ first -- the form \code{\link[=simplicial]{simplicial()}} turns into simplices.}
 
 \item{...}{For \code{what = "pathways"}: \code{min_count}, \code{min_prob} (drop rules
 below this count or probability) and \code{order} (keep one context order).
-Otherwise unused.}
+Any other argument, and any argument with another \code{what}, raises
+\code{hypergraphs_bad_input}.}
 
 \item{order_min}{Integer or \code{NULL}. Keep only rules whose source context
 is at least this order (e.g. \code{2} for the genuinely higher-order rules).
-Only for \code{what = "rules"}.}
+Only for \code{what = "rules"}; with another \code{what} it raises
+\code{hypergraphs_bad_input}.}
 
 \item{sort_by}{\code{NULL} (construction order, default), \code{"count"} or
 \code{"probability"} - sort largest first, ties broken by \code{from}/\code{to} so the
-order is deterministic. Only for \code{what = "rules"}.}
+order is deterministic. Only for \code{what = "rules"}; with another
+\code{what} it raises \code{hypergraphs_bad_input}.}
 
 \item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
 applied after any filter and after \code{sort_by}, so \code{sort_by} and

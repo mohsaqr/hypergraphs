@@ -27,7 +27,7 @@ persistence diagram itself is exact.}
 
 \item{max_dim}{Highest simplex dimension tracked. Default \code{3}.}
 
-\item{type}{\code{"clique"} (default) or \code{"vr"}.}
+\item{type}{\code{"clique"} (default) or \code{"vr"} (alias \code{"rips"}).}
 
 \item{max_scale}{For \code{type = "vr"}: the longest edge admitted. \code{NULL}
 uses the largest distance.}

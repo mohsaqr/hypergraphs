@@ -840,3 +840,33 @@ test_that("Katz centrality of a hypergraph without nodes is a typed empty table"
   expect_type(out$node, "character")
   expect_type(out$katz, "double")
 })
+
+test_that("hg_keywords() refuses a knn text hypergraph", {
+  # its hyperedges are document neighbourhoods named by their document, so
+  # the "words" would be document ids
+  emb <- matrix(c(1, 0, 0.9, 0.1, 0, 1), 3, byrow = TRUE,
+                dimnames = list(c("d1", "d2", "d3"), NULL))
+  kn <- text_hypergraph(c(d1 = "soup", d2 = "salt", d3 = "stars"),
+                        construction = "knn", k = 1, embeddings = emb)
+  expect_error(hg_keywords(kn, c(d1 = "A", d2 = "A", d3 = "B")),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("hg_cluster() refuses a seed that is not a number", {
+  hg <- text_hypergraph(c(d1 = "soup salt soup onion", d2 = "salt stars night",
+                          d3 = "stars sky night moon"))
+  expect_error(hg_cluster(hg, k = 2, seed = "a"),
+               class = "hypergraphs_bad_input")
+})
+
+test_that("hg_centrality() refuses a centrality named twice", {
+  hg <- text_hypergraph(c(d1 = "soup salt soup onion", d2 = "salt stars night",
+                          d3 = "stars sky night moon"))
+  # it used to return a duplicated `clique.1` column
+  expect_error(hg_centrality(hg, type = c("clique", "clique")),
+               class = "hypergraphs_bad_input")
+  # the clique centrality on this toy, by hand: shared-word counts
+  # W = [0 1 0; 1 0 2; 0 2 0], Perron vector (1, sqrt(5), 2) / sqrt(10)
+  expect_equal(hg_centrality(hg)$clique, c(1, sqrt(5), 2) / sqrt(10),
+               tolerance = 1e-10)
+})

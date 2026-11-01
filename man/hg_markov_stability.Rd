@@ -30,10 +30,12 @@ arguments (see \link{sequence-input}); leave the column names \code{NULL} for
 wide, list or model input.}
 }
 \value{
-A \code{net_markov_stability} object. Read it with \code{\link[=hg_get]{hg_get()}}: one row
-per state (\code{what = "states"}, the default), the mean first-passage
-times (\code{"passage_time"}) or the stationary distribution
-(\code{"stationary"}).
+A \code{net_markov_stability} object (a \code{net_markov_stability_group}
+for a \code{netobject_group}, one analysis per group). Read it with
+\code{\link[=hg_get]{hg_get()}}: one row per state (\code{what = "states"}, the default), the
+mean first-passage times (\code{"passage_time"}) or the stationary
+distribution (\code{"stationary"}); for a group, the same tables stacked
+with a \code{group} column first.
 }
 \description{
 Per-state persistence (self-transition probability), stationary
@@ -46,7 +48,8 @@ The quantities are defined only for an irreducible chain, one in which
 every state can reach every other. A chain that is not irreducible (a
 transient or absorbing state, or several closed classes, as a pruned
 higher-order network can have) raises \code{hypergraphs_not_ergodic}, a
-\code{hypergraphs_bad_input}, naming those states.
+\code{hypergraphs_bad_input}, naming those states (and, for a
+\code{netobject_group}, the group).
 }
 
 \examples{

@@ -20,7 +20,8 @@
 \item{what}{\code{"persistence"} (default) for the persistence diagram, or
 \code{"betti"} for the Betti curves across the filtration.}
 
-\item{...}{Additional arguments (ignored).}
+\item{...}{Not used; an unknown argument is refused with
+\code{hypergraphs_bad_input}.}
 
 \item{dimension}{Integer or \code{NULL}. Keep only this homological dimension.}
 

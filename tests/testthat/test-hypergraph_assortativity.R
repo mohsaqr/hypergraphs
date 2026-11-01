@@ -203,3 +203,8 @@ test_that("A07: scores are shift and scale invariant; regular stays NA", {
     regular, type = c("uniform", "top_2", "top_bottom"),
     scale = "degree")$assortativity)))
 })
+
+test_that("a type named twice gives one row (audit 2026-11-01)", {
+  out <- hg_assortativity(.as_hg(as_edges), type = c("uniform", "uniform"))
+  expect_identical(out$type, "uniform")
+})

@@ -274,7 +274,7 @@ test_that("trials are seeded, reproducible, and restore the caller's RNG", {
 
 # ---- accessors and methods --------------------------------------------------
 
-test_that("as.data.frame returns tidy tables for every `what`", {
+test_that("hg_get returns tidy tables for every `what`", {
   hon <- hon(.cm_toy_seqs, max_order = 2L)
   comm <- hg_communities(hon, trials = 2L)
   expect_named(hg_get(comm), c("node", "state", "community", "flow"))
@@ -557,4 +557,23 @@ test_that("hg_get() refuses a fractional community identifier", {
                class = "hypergraphs_bad_input")
   expect_identical(nrow(hg_get(comm, community = 1)),
                    sum(hg_get(comm)$community == 1))
+})
+
+test_that("hg_communities() refuses a fractional seed and restores the stream", {
+  hon <- hon(.cm_toy_seqs, max_order = 2L)
+  expect_error(hg_communities(hon, seed = 1.5), class = "hypergraphs_bad_input")
+  expect_error(hg_communities(hon, seed = "a"), class = "hypergraphs_bad_input")
+  expect_error(hg_communities(hon, seed = c(1, 2)),
+               class = "hypergraphs_bad_input")
+  # a negative whole seed is a valid set.seed() seed
+  expect_s3_class(hg_communities(hon, trials = 1L, seed = -3L),
+                  "hypergraphs_memory_communities")
+  # with no stream before the call, none is left behind
+  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    old <- get(".Random.seed", envir = globalenv())
+    on.exit(assign(".Random.seed", old, envir = globalenv()), add = TRUE)
+    rm(".Random.seed", envir = globalenv())
+  }
+  hg_communities(hon, trials = 1L, seed = 2L)
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
 })

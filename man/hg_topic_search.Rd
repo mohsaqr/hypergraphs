@@ -60,8 +60,9 @@ agreement of the topics across the starts; \code{NA} with \code{nstart = 1}),
 \code{converged} and \code{frontier}. \code{plot()} plots exclusivity against
 coherence, one labelled point per number of topics, the frontier
 joined by a line and plotted as filled points. Conditions are those of
-\code{\link[=hg_topics]{hg_topics()}}; a start that does not converge raises
-\code{hypergraphs_no_converge}.
+\code{\link[=hg_topics]{hg_topics()}}; when the kept start of some \code{k} does not converge, one
+\code{hypergraphs_no_converge} warning names those \code{k}, with or without
+\code{parallel}.
 }
 \description{
 Fits \code{\link[=hg_topics]{hg_topics()}} for every number of topics in \code{k} and scores each

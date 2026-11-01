@@ -370,12 +370,7 @@ hg_mmsbm <- function(hg, k, assortative = FALSE, nstart = 10L,
   nodes <- rownames(hg$incidence) %||% hg$nodes
   isolated <- Matrix::rowSums(B) == 0
 
-  if (!is.null(seed)) {
-    had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
-    saved_seed <- if (had_seed) get(".Random.seed", envir = globalenv())
-    on.exit(.thg_rng_restore(had_seed, saved_seed), add = TRUE, after = FALSE)
-    set.seed(as.integer(seed))
-  }
+  if (!is.null(seed)) .ho_local_seed(seed)
   # Starts drawn serially, one after the other, from one stream. EM itself
   # draws nothing, so every start is drawn before any is fitted and the fits
   # can run in parallel with the same result as the serial run.

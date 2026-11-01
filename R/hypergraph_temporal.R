@@ -355,6 +355,12 @@
 #' rewritten and `hg_get()` returns the original spells. Without them
 #' the window is the span of the data.
 #'
+#' A membership with a missing or empty node, hyperedge or time, or a
+#' missing weight, is dropped with a `hypergraphs_dropped_rows` warning that
+#' counts the rows of `data` it came from; a missing `end` is an open end,
+#' not a missing value. Time strings that cannot be read raise
+#' `hypergraphs_unparsed_time`.
+#'
 #' Every other column that is constant within a hyperedge is kept as a
 #' hyperedge attribute in the edge metadata, where `plot()` can colour by it
 #' and where [pairwise_network()] finds the source a citation block belongs to.
@@ -494,13 +500,27 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   keep <- !is.na(memberships$node) & nzchar(memberships$node) &
     !is.na(memberships$edge) & nzchar(memberships$edge) &
     !is.na(memberships$start) & !is.na(memberships$weight)
+  # an edge list row with a missing end is no relation: both of its
+  # memberships go, never a hyperedge of the one end that is known
+  if (edge_list) {
+    row_complete <- as.logical(tapply(keep, factor(rows, levels = seq_len(nrow(data))), all))
+    keep <- row_complete[rows]
+  }
+  if (!any(keep)) {
+    .thg_bad_input("no complete memberships remain after dropping missing rows")
+  }
+  if (!all(keep)) {
+    # an edge list row is two memberships; it is reported as the data's row
+    dropped <- unique(rows[!keep])
+    warning(warningCondition(sprintf(
+      "dropped %d of %d rows with a missing or empty node, hyperedge, time or weight",
+      length(dropped), nrow(data)),
+      class = "hypergraphs_dropped_rows", call = NULL))
+  }
   memberships <- memberships[keep, , drop = FALSE]
   metadata <- metadata[keep, , drop = FALSE]
   rownames(memberships) <- NULL
   rownames(metadata) <- NULL
-  if (nrow(memberships) == 0L) {
-    .thg_bad_input("no complete memberships remain after dropping missing rows")
-  }
   if (any(!is.finite(memberships$weight)) || any(memberships$weight < 0)) {
     .thg_bad_input("membership weights must be finite and non-negative")
   }
@@ -958,7 +978,18 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
 }
 
 .thg_check_mode <- function(mode, fn, arg = "mode") {
-  match.arg(mode, c("active", "cumulative"))
+  choices <- c("active", "cumulative")
+  if (identical(mode, choices)) return(choices[[1L]])
+  hit <- if (is.character(mode) && length(mode) == 1L && !is.na(mode)) {
+    pmatch(mode, choices)
+  } else {
+    NA_integer_
+  }
+  if (is.na(hit)) {
+    .thg_bad_input(sprintf("`%s` must be \"active\" or \"cumulative\" in %s()",
+                           arg, fn))
+  }
+  choices[[hit]]
 }
 
 .thg_check_multiedges <- function(multiedges) {
@@ -1066,6 +1097,15 @@ hg_snapshots <- function(x, start = NULL, end = NULL, step = NULL,
             time_unit = x$time_unit, origin = x$origin, window = grid$window)
 }
 
+#' @param x A `net_temporal_hypergraph` (for `print`).
+#' @param n Number of membership rows to print. Default `10`.
+#' @param ... Ignored.
+#' @return `print()` returns `x` invisibly. `summary()` returns a one-row
+#'   data.frame: `n_nodes`, `n_hyperedges`, `n_event_times`, `first_time`,
+#'   `last_time`, `n_memberships`, `mean_edge_size`, `median_edge_size`
+#'   (distinct members per hyperedge), `mean_duration` (`NA` for a contact
+#'   log), `format` and `time_unit`.
+#' @rdname temporal_hypergraph
 #' @export
 print.net_temporal_hypergraph <- function(x, n = 10L, ...) {
   cat(sprintf("Temporal hypergraph: %d nodes, %d hyperedges, %d event times\n",
@@ -1087,6 +1127,8 @@ print.net_temporal_hypergraph <- function(x, n = 10L, ...) {
   invisible(x)
 }
 
+#' @param object A `net_temporal_hypergraph` (for `summary`).
+#' @rdname temporal_hypergraph
 #' @export
 summary.net_temporal_hypergraph <- function(object, ...) {
   # an edge's size counts its distinct members: a member recorded twice (a
@@ -1116,10 +1158,13 @@ summary.net_temporal_hypergraph <- function(object, ...) {
 #'
 #' @param x A [temporal_hypergraph()].
 #' @param what `"memberships"` (default) for one row per node-in-hyperedge
-#'   spell (`member`, `edge`, `start`, `end`, `weight`), `"edges"` for one
-#'   row per hyperedge with its clock and attributes, `"nodes"` for the node
-#'   universe with entry times. Times are on the hypergraph's clock.
-#' @param ... Ignored.
+#'   spell (`node`, `edge`, `start`, `end`, `weight`), `"edges"` for one
+#'   row per hyperedge with its clock and attributes (`edge`, `start`, `end`,
+#'   ...), `"nodes"` for the node universe with entry times (`node`,
+#'   `start`). Times are on the hypergraph's clock.
+#' @param ... Ignored; any argument raises `hypergraphs_bad_input`.
+#' @param top Integer or `NULL`. Return only the first `top` rows. Default
+#'   `NULL` returns every row.
 #' @return A base `data.frame`.
 #' @examples
 #' seats <- data.frame(
@@ -1134,10 +1179,12 @@ summary.net_temporal_hypergraph <- function(object, ...) {
 #' @export
 hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
                                                        "edges", "nodes"),
-                                           ...) {
+                                           ..., top = NULL) {
   .ho_no_dots(..., .for = "hg_get() on a `net_temporal_hypergraph`")
   what <- .ho_match_what(what)
-  switch(what, memberships = x$memberships, edges = x$edge_data, nodes = x$node_data)
+  out <- switch(what, memberships = x$memberships, edges = x$edge_data,
+                nodes = x$node_data)
+  .ho_top(out, top)
 }
 
 #' Plot a temporal hypergraph

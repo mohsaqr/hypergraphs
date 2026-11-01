@@ -18,10 +18,14 @@
 }
 
 # Upper triangle of a symmetric weight matrix as a tidy edge list, sorted by
-# (from, to) so the row order never depends on storage or input order.
+# (from, to) so the row order never depends on storage or input order. A
+# sparse matrix is read through .thg_general_triplet(), which expands
+# symmetric storage: a symmetric matrix stored as its lower triangle holds no
+# cell with i < j, so reading its own triplets returned no pairs at all.
 .thg_tidy_pairs <- function(w, labels) {
+  labels <- as.character(labels %||% character(0L))
   if (methods::is(w, "sparseMatrix")) {
-    triplet <- methods::as(w, "TsparseMatrix")
+    triplet <- .thg_general_triplet(w)
     keep <- triplet@i < triplet@j & triplet@x != 0
     from <- labels[triplet@i[keep] + 1L]
     to <- labels[triplet@j[keep] + 1L]
@@ -241,14 +245,15 @@ plot.net_hg_pairwise <- function(x, ...) {
     ))
   }
   weighted <- weighted %||% TRUE
-  stopifnot("`weighted` must be TRUE or FALSE" =
-              length(weighted) == 1L && is.logical(weighted) &&
-              !is.na(weighted),
-            "`self_association` must be TRUE or FALSE" =
-              length(self_association) == 1L && is.logical(self_association) &&
-              !is.na(self_association),
-            "`directed` must be TRUE or FALSE" =
-              length(directed) == 1L && is.logical(directed) && !is.na(directed))
+  flags <- list(weighted = weighted, self_association = self_association,
+                directed = directed)
+  bad_flag <- !vapply(flags, \(v) {
+    is.logical(v) && length(v) == 1L && !is.na(v)
+  }, logical(1L))
+  if (any(bad_flag)) {
+    .thg_bad_input(sprintf("`%s` must be TRUE or FALSE",
+                           names(flags)[bad_flag][[1L]]))
+  }
   if (identical(method, "clique") && !identical(duplicate_edges, "count")) {
     .thg_bad_input("`duplicate_edges` applies to `type = \"association\"` or `\"citation\"` only")
   }
@@ -371,6 +376,15 @@ plot.net_hg_pairwise <- function(x, ...) {
   .thg_tidy_pairs(w, all_nodes)
 }
 
+# The hyperedge attribute columns `edge_source` can name, for a message.
+.thg_source_columns <- function(columns) {
+  if (length(columns) == 0L) {
+    return("this hypergraph has no hyperedge attribute columns")
+  }
+  sprintf("its hyperedge attribute columns are %s",
+          paste0("\"", columns, "\"", collapse = ", "))
+}
+
 .thg_resolve_edge_source <- function(hg, edge_source) {
   edges <- colnames(hg$incidence) %||% paste0("h", seq_len(hg$n_hyperedges))
   source <- edge_source
@@ -392,10 +406,20 @@ plot.net_hg_pairwise <- function(x, ...) {
     source <- stats::setNames(as.character(source$source),
                               as.character(source$edge))
   }
+  attribute_columns <- setdiff(names(hg$edge_data), "edge")
+  if (is.character(source) && length(source) == 1L && is.null(names(source)) &&
+      length(edges) != 1L) {
+    .thg_bad_input(sprintf(
+      "`edge_source = \"%s\"` is not a hyperedge attribute column; %s",
+      source, .thg_source_columns(attribute_columns)))
+  }
   if (is.null(source)) {
-    .thg_bad_input(paste0("self-association needs one source per hyperedge; ",
-                          "supply `edge_source` or construct a temporal ",
-                          "hypergraph with `source =`"))
+    .thg_bad_input(paste0(
+      "`self_association = TRUE` and `type = \"citation\"` need one source ",
+      "node per hyperedge: pass `edge_source` (a vector or named vector ",
+      "keyed by hyperedge, a data frame with `edge` and `source` columns, or ",
+      "the name of a hyperedge attribute column), or give the hyperedges a ",
+      "`source` attribute column; ", .thg_source_columns(attribute_columns)))
   }
   if (!is.atomic(source)) .thg_bad_input("`edge_source` must be a vector or data.frame")
   if (!is.null(names(source))) {
@@ -458,12 +482,7 @@ plot.net_hg_pairwise <- function(x, ...) {
 hg_line_graph <- function(hg, s = 1, what = c("edges", "matrix")) {
   .thg_check_hg(hg)
   what <- .ho_match_what(what)
-  stopifnot(
-    "`s` must be a single whole number of at least 1" =
-      length(s) == 1L && is.numeric(s) && is.finite(s) && s >= 1 &&
-      isTRUE(all.equal(s, round(s)))
-  )
-  s <- as.integer(round(s))
+  s <- .ho_check_count(s, "s")
   b <- .thg_binary(hg$incidence)
   overlap <- crossprod(b)
   diag(overlap) <- 0
@@ -471,7 +490,7 @@ hg_line_graph <- function(hg, s = 1, what = c("edges", "matrix")) {
   # densify a sparse overlap matrix.
   overlap <- overlap * (overlap >= s)
   if (methods::is(overlap, "sparseMatrix")) overlap <- Matrix::drop0(overlap)
-  edges <- colnames(hg$incidence)
+  edges <- colnames(hg$incidence) %||% character(0L)
   dimnames(overlap) <- list(edges, edges)
   if (identical(what, "matrix")) return(overlap)
   .thg_tidy_pairs(overlap, edges)

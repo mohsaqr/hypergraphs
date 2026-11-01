@@ -92,3 +92,25 @@ test_that("the dispatching verbs keep each method's defaults", {
   expect_identical(formals(hypa.default)$p_adjust,
                    formals(Nestimate::build_hypa)$p_adjust)
 })
+
+test_that("hypa() on sequences checks its arguments with classed errors", {
+  seqs <- .dp_seqs()
+  bad <- list(list(alpha = 0.5), list(alpha = 0), list(alpha = NA),
+              list(alpha = "0.05"), list(min_count = 0), list(min_count = 1.5),
+              list(order = 0), list(order = 1.5), list(order = "2"),
+              list(order = integer()), list(p_adjust = "bogus"),
+              list(p_adjust = c("BH", "none")), list(n = 0))
+  lapply(bad, \(args) {
+    expect_error(do.call(hypa, c(list(seqs), args)),
+                 class = "hypergraphs_bad_input")
+  })
+  # the values reach the estimator unchanged
+  expect_identical(.unview(hypa(seqs, min_count = 1, alpha = 0.1,
+                                p_adjust = "BH")),
+                   Nestimate::build_hypa(seqs, min_count = 1, alpha = 0.1,
+                                         p_adjust = "BH"))
+  # a network without its sequences cannot be scored
+  net <- Nestimate::build_network(.ho_wide_sequences(seqs), method = "relative")
+  net$data <- NULL
+  expect_error(hypa(net), class = "hypergraphs_bad_input")
+})

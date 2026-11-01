@@ -37,7 +37,7 @@ or \code{"quality"}.}
 \value{
 A \code{hypergraphs_community_comparison} object. \code{hg_get()} returns
 its \code{"summary"} (default; one row per fit with \code{model}, \code{medoid_seed},
-\code{n_communities}, \code{n_singletons}, \code{n_nontrivial}, \code{largest_size},
+\code{n_runs}, \code{n_communities}, \code{n_singletons}, \code{n_nontrivial}, \code{largest_size},
 \code{second_size} and \code{balance} = second / largest), \code{"similarity"} (one
 row per pair of
 fits with \code{model_a}, \code{model_b}, \code{n_nodes}, \code{ami}, \code{ari}, \code{nmi}, on
@@ -48,7 +48,8 @@ with \code{model}, \code{rank}, \code{n_nodes}) or, when \code{hg} was given, \c
 (one row per fit with the columns of \code{\link[=hg_community_quality]{hg_community_quality()}}).
 \code{plot()} plots the cluster-size distributions (\code{what = "sizes"}, the
 number of communities at least as large as each size, on logarithmic
-axes) or the similarity matrix (\code{what = "similarity"}, AMI below and
+axes, one point per distinct size so a fit whose communities all have
+the same size is still drawn) or the similarity matrix (\code{what = "similarity"}, AMI below and
 ARI above the diagonal, values printed in the cells, on a diverging
 scale from -1 through 0 (white) to 1, since chance-corrected agreement
 can be negative; undefined cells are grey).

@@ -27,8 +27,8 @@ when \code{partition} is given, except for the first-order search.}
 \item{teleportation}{Teleportation probability \eqn{\tau \in [0, 1)}
 (default 0.15, Infomap's default).}
 
-\item{seed}{Integer seed for the random node orders (default 1). The
-caller's random-number stream is restored on exit.}
+\item{seed}{One whole number, the seed for the random node orders
+(default 1). The caller's random-number stream is restored on exit.}
 
 \item{...}{Must be empty: an argument that only the hypergraph method
 takes raises \code{hypergraphs_bad_input}.}

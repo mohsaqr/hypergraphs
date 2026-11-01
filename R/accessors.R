@@ -287,6 +287,8 @@ hg_get.default <- function(x, what = NULL, ...) {
       x$order, nrow(x$contexts), sum(x$contexts$flips)),
     net_markov_stability = sprintf("Markov stability of %d states",
                                    nrow(x$stability)),
+    net_markov_stability_group = sprintf("Markov stability by group: %d groups",
+                                         length(x)),
     persistent_homology = sprintf(
       "Persistent homology: %d features in dimension%s %s",
       nrow(x$persistence),
@@ -375,18 +377,40 @@ print.hypergraphs_result <- function(x, n = 10L, ...) {
   }
   tables <- c(Filter(Negate(is.null), tables), extra)
   structure(tables, class = "hypergraphs_summary",
-            header = utils::capture.output(print(x, n = 1L))[1L])
+            header = .ho_summary_header(x))
+}
+
+#' The first line a result prints, for the header of its summary
+#'
+#' Printed with `n = 1` when the print method takes `n`, so no table is
+#' formatted only to be thrown away. A method without `n` passes it on to
+#' `print.default()`, where it partially matches `na.print` and fails; that
+#' object is printed as it is.
+#'
+#' @param x A result.
+#' @return One string.
+#' @noRd
+.ho_summary_header <- function(x) {
+  method <- Find(Negate(is.null), lapply(class(x), \(cls) {
+    utils::getS3method("print", cls, optional = TRUE)
+  }))
+  takes_n <- !is.null(method) && "n" %in% names(formals(method))
+  shown <- utils::capture.output(if (takes_n) print(x, n = 1L) else print(x))
+  shown[1L]
 }
 
 #' @rdname result-summary
 #' @param x A `hypergraphs_summary`.
 #' @param what For [hg_get()] on a summary: the name of one of its tables.
 #'   Default: the first.
+#' @param top For [hg_get()] on a summary: the first `top` rows of the
+#'   table. `NULL` (default) returns every row.
 #' @export
-hg_get.hypergraphs_summary <- function(x, what = names(x)[1L], ...) {
+hg_get.hypergraphs_summary <- function(x, what = names(x)[1L], ...,
+                                       top = NULL) {
   .ho_no_dots(..., .for = "hg_get() on a `hypergraphs_summary`")
   what <- .ho_match_what(what, names(x))
-  x[[what]]
+  .ho_top(x[[what]], top)
 }
 
 #' @param n For `print()`: number of rows of each table to show. Default
@@ -469,9 +493,19 @@ summary.hypergraphs_result <- function(object, ...) {
 plot.hypergraphs_result <- function(x, y, what = c("states", "passage_time"),
                                   ...) {
   if (inherits(x, "net_markov_stability")) {
-    return(.hms_plot(x, .ho_match_what(what), ...))
+    what <- .ho_match_what(what)
+    # only the heatmap of passage times takes further arguments (cograph's)
+    if (identical(what, "states")) {
+      .ho_no_dots(..., .for = "plot() of a Markov stability result with `what = \"states\"`")
+    }
+    return(.hms_plot(x, what, ...))
+  }
+  if (!missing(what)) {
+    .ho_bad_input(sprintf("`what` is an argument for plot() of a Markov stability result, not of a %s result",
+                          setdiff(class(x), "hypergraphs_result")[1L]))
   }
   if (!inherits(x, "persistence_landscape")) return(NextMethod())
+  .ho_no_dots(..., .for = "plot() of a persistence landscape")
   curves <- hg_get(x)
   drawn <- unique(curves$k[curves$value > 0])
   curves <- curves[curves$k %in% drawn, , drop = FALSE]

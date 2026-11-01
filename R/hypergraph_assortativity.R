@@ -170,8 +170,9 @@
 hg_assortativity <- function(hg, type = "uniform",
                              scale = c("rank", "degree")) {
   .thg_check_hg(hg)
-  type <- match.arg(type, choices = c("uniform", "top_2", "top_bottom"),
-                    several.ok = TRUE)
+  type <- unique(match.arg(type, choices = c("uniform", "top_2",
+                                             "top_bottom"),
+                           several.ok = TRUE))
   scale <- match.arg(scale)
   membership <- .hg_membership(hg)
   degree <- as.numeric(Matrix::rowSums(membership))

@@ -717,8 +717,9 @@ plot.hypergraphs_membership <- function(x, ...) {
 #' @param hg A [text_hypergraph()] (or any hypergraphs `net_hg`) with no empty
 #'   node or hyperedge.
 #' @param k Number of co-clusters, at least 2.
-#' @param seed Seed for the k-means starts; the caller's random number stream
-#'   is restored on exit. `NULL` (default) uses the current stream.
+#' @param seed Seed for the k-means starts, one whole number; the caller's
+#'   random number stream is restored on exit. `NULL` (default) uses the
+#'   current stream.
 #' @param nstart Number of k-means starts (default `25L`).
 #' @param what `"clusters"` (default) for the assignment, or `"embedding"` for
 #'   the assignment plus the embedding coordinates `dim1..dimL`.
@@ -765,6 +766,7 @@ hg_cocluster <- function(hg, k, seed = NULL, nstart = 25L,
   n_rows <- nrow(incidence) + ncol(incidence)
   k <- .ho_check_count(k, "k", min = 2, max = max(2, n_rows))
   nstart <- .ho_check_count(nstart, "nstart")
+  .ho_check_seed(seed)
   # Multipartition needs ceiling(log2(k)) singular pairs beyond the trivial
   # one, and an m x n incidence has only min(m, n) pairs in all
   n_vectors <- as.integer(ceiling(log2(k)))
@@ -808,12 +810,9 @@ hg_cocluster <- function(hg, k, seed = NULL, nstart = 25L,
       "the embedding has fewer distinct rows than `k` = %d co-clusters; ",
       "lower `k`"), k))
   }
-  if (!is.null(seed)) {
-    had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
-    saved_seed <- if (had_seed) get(".Random.seed", envir = globalenv())
-    on.exit(.thg_rng_restore(had_seed, saved_seed), add = TRUE)
-    set.seed(seed)
-  }
+  # a seed is set for this call and the caller's stream restored on exit;
+  # `seed = NULL` draws from (and advances) the caller's stream, as documented
+  if (!is.null(seed)) .ho_local_seed(seed)
   fit <- .ho_kmeans(z, k, nstart = nstart, iter.max = 100L)
   # deterministic labels: "Cluster 1" is the first row's cluster, and so on
   relabel <- match(fit$cluster, unique(fit$cluster))

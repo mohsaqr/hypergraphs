@@ -54,7 +54,10 @@ panel with a legend.}
 \value{
 A base data.frame of class \code{hypergraphs_series}, one row per window,
 with \code{time} (the window start on the hypergraph's clock), \code{n_nodes},
-\code{n_edges}, \code{n_edges_distinct}, \code{n_memberships}, and for
+\code{n_edges}, \code{n_edges_distinct}, \code{n_memberships} (the rows of the
+membership table present, so a node recorded twice in one hyperedge,
+or a state at two positions of a sequence, counts twice; the same
+count \code{summary()} of the temporal hypergraph reports), and for
 \code{mode = "active"} also \code{n_nodes_cumulative}, \code{n_edges_cumulative} and
 \code{n_edges_distinct_cumulative}. With \code{components = TRUE}, further
 \code{n_components}, \code{largest_component} (share of active nodes) and

@@ -28,8 +28,8 @@ capped at the longest sequence minus one, with a message.}
 \item{criterion}{\code{"aic"} (default), \code{"bic"} or \code{"lrt"} (likelihood-ratio
 test).}
 
-\item{lrt_alpha}{Significance level of the likelihood-ratio test.
-Default \code{0.01}.}
+\item{lrt_alpha}{Significance level of the likelihood-ratio test,
+strictly between 0 and 1. Default \code{0.01}.}
 
 \item{action, actor, time, session, time_threshold, timezone}{Long-format
 arguments (see \link{sequence-input}); leave the column names \code{NULL} for

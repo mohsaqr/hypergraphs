@@ -14,7 +14,8 @@
 #'   [simplicial()] turns into simplices.
 #' @param ... Unused.
 #' @param type For `"anomalies"` and `"pathways"`: `"all"`, `"over"` or
-#'   `"under"`. Default: the `type` given to [hypa()], else `"all"`.
+#'   `"under"`. Default: the `type` given to [hypa()], else `"all"`. Given
+#'   with another table it raises `hypergraphs_bad_input`.
 #' @param order_by `"sig"` (smallest p-value of the path's own direction
 #'   first), `"ratio"` (largest deviation first: highest ratio for
 #'   over-represented paths, lowest for under-represented ones, largest
@@ -22,7 +23,8 @@
 #'   observed first) or `"path"` (alphabetical). Default: the `order_by`
 #'   given to [hypa()], else `"sig"`. For `"scores"`, `"sig"` sorts by the
 #'   smaller of the two raw tails, `p_under` and `p_over`, so the paths
-#'   that depart most from the null in either direction come first.
+#'   that depart most from the null in either direction come first. Given
+#'   with `what = "pathways"` it raises `hypergraphs_bad_input`.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `order_by`. Default `NULL`
 #'   returns every row.
@@ -49,6 +51,10 @@ hg_get.net_hypa <- function(x, what = c("anomalies", "scores", "over",
                             type = NULL, order_by = NULL, top = NULL) {
   .ho_no_dots(..., .for = "hg_get() on a `net_hypa`")
   what <- .ho_match_what(what)
+  applies <- switch(what, anomalies = c("type", "order_by"),
+                    pathways = "type", "order_by")
+  given <- c(type = !is.null(type), order_by = !is.null(order_by))
+  .hon_refuse_args(given[setdiff(names(given), applies)], what, "net_hypa")
   view <- attr(x, "hypa_view")
   type <- match.arg(type %||% view$type %||% "all",
                     c("all", "over", "under"))

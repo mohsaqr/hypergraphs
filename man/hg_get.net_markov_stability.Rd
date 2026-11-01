@@ -2,6 +2,7 @@
 % Please edit documentation in R/memory_markov_stability.R
 \name{hg_get.net_markov_stability}
 \alias{hg_get.net_markov_stability}
+\alias{hg_get.net_markov_stability_group}
 \title{Tables of a Markov stability analysis}
 \usage{
 \method{hg_get}{net_markov_stability}(
@@ -14,10 +15,22 @@
   to = NULL,
   top = NULL
 )
+
+\method{hg_get}{net_markov_stability_group}(
+  x,
+  what = c("states", "passage_time", "stationary"),
+  ...,
+  sort_by = NULL,
+  decreasing = TRUE,
+  from = NULL,
+  to = NULL,
+  top = NULL
+)
 }
 \arguments{
 \item{x}{A \code{net_markov_stability} object from
-\code{\link[=hg_markov_stability]{hg_markov_stability()}}.}
+\code{\link[=hg_markov_stability]{hg_markov_stability()}}, or the \code{net_markov_stability_group} it returns
+for a \code{netobject_group}.}
 
 \item{what}{Which table: \code{"states"} (default, one row per state),
 \code{"passage_time"} (one row per ordered pair of states) or
@@ -50,7 +63,10 @@ the estimator stores them (probabilities rounded to 4 decimals, times to 2). For
 \code{what = "passage_time"}, one row per ordered pair with \code{from}, \code{to} and
 \code{steps}. For \code{what = "stationary"}, one row per state with \code{state},
 \code{stationary} and \code{return_time}; the passage and stationary tables
-are unrounded.
+are unrounded. For a \code{net_markov_stability_group}, the same table for
+every group (\code{from}, \code{to} and \code{sort_by} applied within each group),
+stacked with a \code{group} column first; \code{top} applies to the stacked
+table.
 }
 \description{
 Tables of a Markov stability analysis

@@ -172,10 +172,13 @@ test_that("bad input raises classed conditions", {
     hg_get(pairwise_network(fixture(), type = "association", weighted = TRUE)),
     class = "hypergraphs_bad_input"
   )
-  expect_error(hg_get(pairwise_network(fixture(), weighted = NA)), "TRUE or FALSE")
-  expect_error(hg_line_graph(fixture(), s = 0), "at least 1")
-  expect_error(hg_line_graph(fixture(), s = 1.5), "whole number")
-  expect_error(hg_line_graph(fixture(), s = c(1, 2)), "single")
+  expect_error(hg_get(pairwise_network(fixture(), weighted = NA)),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_line_graph(fixture(), s = 0), class = "hypergraphs_bad_input")
+  expect_error(hg_line_graph(fixture(), s = 1.5),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_line_graph(fixture(), s = c(1, 2)),
+               class = "hypergraphs_bad_input")
 })
 
 test_that("pairwise_network() returns a network object whose hg_get() edges are the projection", {
@@ -237,4 +240,73 @@ test_that("A15: a hyperedge given two different sources is refused", {
     hg_get(pairwise_network(path, type = "citation",
                             edge_source = c(Y = "s3", X = "s1", X = "s1"))),
     base)
+})
+
+# ---- Audit regressions (2026-11-01) ---------------------------------------
+
+test_that("a symmetric matrix stored as its lower triangle keeps its pairs", {
+  w <- matrix(c(0, 2, 1, 2, 0, 0, 1, 0, 0), 3, 3,
+              dimnames = list(c("a", "b", "c"), c("a", "b", "c")))
+  lower <- Matrix::forceSymmetric(Matrix::Matrix(w, sparse = TRUE),
+                                  uplo = "L")
+  upper <- Matrix::forceSymmetric(Matrix::Matrix(w, sparse = TRUE),
+                                  uplo = "U")
+  expected <- data.frame(from = c("a", "a"), to = c("b", "c"),
+                         weight = c(2, 1))
+  expect_identical(.thg_tidy_pairs(lower, rownames(w)), expected)
+  expect_identical(.thg_tidy_pairs(upper, rownames(w)), expected)
+  expect_identical(.thg_tidy_pairs(w, rownames(w)), expected)
+})
+
+test_that("the line graph of a hypergraph without hyperedges is empty", {
+  empty <- matrix(0, 3, 0, dimnames = list(c("a", "b", "c"), NULL))
+  for (inc in list(empty, Matrix::Matrix(empty, sparse = TRUE))) {
+    hg <- .thg_from_incidence(inc, params = list())
+    out <- hg_line_graph(hg)
+    expect_named(out, c("from", "to", "weight"))
+    expect_identical(nrow(out), 0L)
+    expect_identical(dim(hg_line_graph(hg, what = "matrix")), c(0L, 0L))
+  }
+})
+
+test_that("projection flags and the line-graph threshold are classed", {
+  hg <- group_hypergraph(
+    data.frame(node = c("a", "b", "c", "b", "c", "d"),
+               edge = c("e1", "e1", "e1", "e2", "e2", "e2")),
+    node = "node", hyperedge = "edge")
+  expect_error(pairwise_network(hg, weighted = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(pairwise_network(hg, type = "association",
+                                self_association = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(pairwise_network(hg, type = "citation",
+                                edge_source = c(e1 = "a", e2 = "d"),
+                                directed = NA),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_line_graph(hg, s = 0), class = "hypergraphs_bad_input")
+  expect_error(hg_line_graph(hg, s = 1.5), class = "hypergraphs_bad_input")
+  expect_error(hg_line_graph(hg, s = c(1, 2)), class = "hypergraphs_bad_input")
+})
+
+test_that("a missing or misnamed source is a classed error naming real routes", {
+  # the message used to point at a `source =` argument of
+  # temporal_hypergraph(), which does not exist
+  d <- data.frame(cited = c("a", "b", "b", "c"), block = c("x", "x", "y", "y"),
+                  citing = c("s1", "s1", "s2", "s2"))
+  hg <- group_hypergraph(d, node = "cited", hyperedge = "block")
+  expect_error(pairwise_network(hg, type = "citation"),
+               class = "hypergraphs_bad_input")
+  err <- tryCatch(pairwise_network(hg, type = "citation"),
+                  hypergraphs_bad_input = identity)
+  expect_false(grepl("temporal", conditionMessage(err)))
+  expect_error(pairwise_network(hg, type = "citation", edge_source = "citer"),
+               class = "hypergraphs_bad_input")
+  expect_error(pairwise_network(hg, type = "association",
+                                self_association = TRUE),
+               class = "hypergraphs_bad_input")
+  # the attribute column named in the message is the working route
+  expect_identical(
+    hg_get(pairwise_network(hg, type = "citation", edge_source = "citing")),
+    data.frame(from = c("a", "b", "b", "c"), to = c("s1", "s1", "s2", "s2"),
+               weight = c(1, 1, 1, 1)))
 })

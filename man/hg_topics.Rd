@@ -70,8 +70,9 @@ within each group of documents given by \code{group}).}
 \item{n}{For \code{what = "words"}: the number of words per topic (default
 \code{10}). For \code{print()}: rows of the topic table shown.}
 
-\item{topic}{For \code{what = "shares"} and \code{"words"}: keep only these topics
-(labels such as \code{"Topic 3"}).}
+\item{topic}{For \code{what = "shares"}, \code{"words"} and \code{"prevalence"}: keep
+only these topics (labels such as \code{"Topic 3"}); any other \code{what}
+raises \code{hypergraphs_bad_input}.}
 
 \item{group}{For \code{what = "prevalence"}: the group of each document, as
 the name of a column of the modelled text hypergraph's document table

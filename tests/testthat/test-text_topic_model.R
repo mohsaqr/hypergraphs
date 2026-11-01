@@ -599,3 +599,36 @@ test_that("hg_topics() factorises document-word counts for every construction", 
   window <- text_hypergraph(docs, construction = "window", window = 3)
   expect_error(hg_topics(window, k = 2), class = "hypergraphs_bad_input")
 })
+
+test_that("hg_get() refuses `topic` for a table it does not filter", {
+  fit <- hg_topics(text_hypergraph(.tm_toy()), k = 2, nstart = 2)
+  expect_error(hg_get(fit, what = "topics", topic = "Topic 1"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(fit, what = "documents", topic = "Topic 1"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(fit, what = "restarts", topic = "Topic 1"),
+               class = "hypergraphs_bad_input")
+  expect_setequal(unique(hg_get(fit, what = "shares",
+                                topic = "Topic 2")$topic), "Topic 2")
+})
+
+test_that("hg_topic_search() warns once for unconverged k, also in parallel", {
+  hg <- text_hypergraph(.tm_toy())
+  caught <- function(expr) {
+    classes <- character()
+    withCallingHandlers(expr, warning = \(w) {
+      classes <<- c(classes, class(w)[[1L]])
+      invokeRestart("muffleWarning")
+    })
+    classes
+  }
+  serial <- caught(hg_topic_search(hg, k = 2:3, max_iter = 3))
+  expect_identical(serial, "hypergraphs_no_converge")
+  skip_on_os("windows")
+  # a warning raised inside a forked worker used to be lost
+  forked <- caught(hg_topic_search(hg, k = 2:3, max_iter = 3,
+                                   parallel = TRUE))
+  expect_identical(forked, "hypergraphs_no_converge")
+  expect_error(hg_topic_search(hg, k = c(2, Inf)),
+               class = "hypergraphs_bad_input")
+})

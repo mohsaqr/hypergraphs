@@ -37,7 +37,8 @@ one-module codelength is 0, as for a single state: there is
 nothing to save), \code{n_communities}.}
 }}
 
-\item{...}{Ignored.}
+\item{...}{Must be empty: an argument this method does not take raises
+\code{hypergraphs_bad_input}.}
 
 \item{community}{Integer vector or \code{NULL}: keep only these communities
 (tables \code{"states"}, \code{"physical"}, \code{"modules"}).}

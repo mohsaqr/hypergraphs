@@ -260,7 +260,7 @@ test_that("accessors reject unknown what = and bad filters", {
   h <- hon(.ac_seqs(), max_order = 2L, min_freq = 20L)
   expect_error(hg_get(h, what = "nope"), class = "hypergraphs_bad_input")
   expect_error(hg_get(h, order_min = 0L), "`order_min` must be")
-  expect_error(hg_get(h, sort_by = "nope"), "should be one of")
+  expect_error(hg_get(h, sort_by = "nope"), class = "hypergraphs_bad_input")
 
   ph <- hg_homology(.ac_mat(), n_steps = 6L, max_dim = 2L)
   expect_error(
@@ -305,7 +305,7 @@ test_that("hg_get has a method for every imported result class, and nothing else
   imported_classes <- c(
     "net_hon", "net_honem", "net_hypa", "net_mogen", "net_markov_order",
     "net_markov_order_group", "net_path_dependence", "net_markov_stability",
-    "simplicial_complex", "persistent_homology", "q_analysis",
+    "net_markov_stability_group", "simplicial_complex", "persistent_homology", "q_analysis",
     "persistence_landscape"
   )
   ours <- getNamespaceInfo("hypergraphs", "S3methods")
@@ -521,4 +521,38 @@ test_that("hg_get() refuses an argument its method does not take", {
   expect_error(hg_get(sc, dimm = 1), class = "hypergraphs_bad_input")
   # pathways still pass their arguments on
   expect_no_error(hg_get(honet, what = "pathways"))
+})
+
+test_that("a summary's header never passes `n` to a print method without it", {
+  # print.default() reads `n = 1` as `na.print` and fails, so a result whose
+  # print method has no `n` gave summary() an error
+  plain <- structure(data.frame(a = 1:2), class = c("hg_test_plain", "data.frame"))
+  expect_identical(.ho_summary_header(plain),
+                   utils::capture.output(print(data.frame(a = 1:2)))[1L])
+  fit <- hon(rep(list(c("a", "b", "c", "a")), 2L), max_order = 1L)
+  expect_identical(.ho_summary_header(fit),
+                   utils::capture.output(print(fit, n = 1L))[1L])
+})
+
+test_that("hg_get() on a summary takes `top` like every table reader", {
+  fit <- hon(rep(list(c("a", "b", "c", "a", "c")), 2L), max_order = 2L)
+  s <- summary(fit)
+  expect_identical(hg_get(s, what = "rules", top = 2),
+                   hg_get(fit, what = "rules", top = 2))
+  expect_identical(hg_get(s), hg_get(fit))
+  expect_error(hg_get(s, top = 0), class = "hypergraphs_bad_input")
+})
+
+test_that("plot() of an imported result refuses arguments it does not use", {
+  P <- matrix(c(0.5, 0.3, 0.2, 0.2, 0.5, 0.3, 0.1, 0.4, 0.5), 3, 3,
+              byrow = TRUE, dimnames = list(c("A", "B", "C"), c("A", "B", "C")))
+  ms <- hg_markov_stability(P)
+  expect_s3_class(plot(ms), "ggplot")
+  expect_error(plot(ms, bogus = 1), class = "hypergraphs_bad_input")
+  expect_error(plot(ms, what = "nope"), class = "hypergraphs_bad_input")
+  m <- matrix(c(0, 1, 2, 1, 0, 1.5, 2, 1.5, 0), 3, 3)
+  ls <- hg_landscape(hg_homology(m, n_steps = 4L, max_dim = 1L))
+  expect_s3_class(plot(ls), "ggplot")
+  expect_error(plot(ls, what = "passage_time"), class = "hypergraphs_bad_input")
+  expect_error(plot(ls, colour = "red"), class = "hypergraphs_bad_input")
 })

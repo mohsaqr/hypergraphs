@@ -254,9 +254,8 @@ print.net_hg_measures <- function(x, ...) {
   }
   if (length(x$intersection_profile)) {
     cat("\nIntersection profile (pair counts by overlap size):\n")
-    for (nm in names(x$intersection_profile)) {
-      cat(sprintf("  %-12s: %d\n", nm, x$intersection_profile[[nm]]))
-    }
+    cat(sprintf("  %-12s: %d\n", names(x$intersection_profile),
+                as.integer(x$intersection_profile)), sep = "")
   }
   invisible(x)
 }

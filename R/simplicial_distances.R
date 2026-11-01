@@ -42,6 +42,39 @@
   is.infinite(diagram$death)
 }
 
+# A persistence diagram argument: a persistent_homology object or a data
+# frame with columns dimension, birth and death. Anything else is refused
+# with hypergraphs_bad_input before the diagram is read (.ph_as_diagram(),
+# kept identical to Nestimate's, raises a plain error).
+.ph_check_input <- function(x, arg) {
+  if (inherits(x, "persistent_homology")) return(invisible(NULL))
+  if (!is.data.frame(x)) {
+    .ho_input_error(sprintf(paste0(
+      "`%s` must be a persistent_homology object from hg_homology() or a ",
+      "data.frame with columns dimension, birth, death"), arg))
+  }
+  absent <- setdiff(c("dimension", "birth", "death"), names(x))
+  if (length(absent)) {
+    .ho_input_error(sprintf("`%s` lacks the column%s %s", arg,
+                            if (length(absent) == 1L) "" else "s",
+                            paste(absent, collapse = ", ")))
+  }
+  invisible(NULL)
+}
+
+# The `dimension` argument of a diagram distance: NULL, or whole numbers
+# >= 0.
+.ph_check_dimension <- function(dimension) {
+  if (is.null(dimension)) return(NULL)
+  ok <- is.numeric(dimension) && !is.factor(dimension) &&
+    all(is.finite(dimension)) && all(dimension >= 0) &&
+    all(abs(dimension - round(dimension)) < sqrt(.Machine$double.eps))
+  if (!ok) {
+    .ho_input_error("`dimension` must be NULL or whole numbers >= 0")
+  }
+  as.integer(round(dimension))
+}
+
 # Diagram coordinates a distance can be computed from: integer dimensions,
 # finite births, deaths finite or Inf.
 .ph_check_diagram <- function(diagram, arg) {
@@ -105,26 +138,26 @@
 #' @export
 hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
                            internal_p = Inf) {
+  .ph_check_input(d1, "d1")
+  .ph_check_input(d2, "d2")
   df1 <- .ph_as_diagram(d1)
   df2 <- .ph_as_diagram(d2)
   .ph_check_diagram(df1, "d1")
   .ph_check_diagram(df2, "d2")
   ess1 <- .ph_essential(d1, df1)
   ess2 <- .ph_essential(d2, df2)
-  if (length(order) != 1L || !is.finite(order) || order < 1) {
-    stop("`order` must be one finite number >= 1.", call. = FALSE)
+  if (!(is.numeric(order) && length(order) == 1L && is.finite(order) &&
+        order >= 1)) {
+    .ho_input_error("`order` must be one finite number >= 1.")
   }
-  if (length(internal_p) != 1L || is.na(internal_p) || internal_p < 1) {
-    stop("`internal_p` must be one number >= 1 or Inf.", call. = FALSE)
+  if (!(is.numeric(internal_p) && length(internal_p) == 1L &&
+        !is.na(internal_p) && internal_p >= 1)) {
+    .ho_input_error("`internal_p` must be one number >= 1 or Inf.")
   }
   dims <- if (is.null(dimension)) {
     .ho_sort(unique(c(df1$dimension, df2$dimension)))
   } else {
-    if (!is.numeric(dimension) || anyNA(dimension) ||
-        any(dimension != as.integer(dimension))) {
-      stop("`dimension` must contain integers.", call. = FALSE)
-    }
-    as.integer(dimension)
+    .ph_check_dimension(dimension)
   }
   if (length(dims) == 0L) {
     return(stats::setNames(numeric(0), character(0)))
@@ -294,13 +327,13 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
 #'
 #' @param x A `persistence_landscape` object from [hg_landscape()].
 #' @param what `"landscape"`, the only table.
-#' @param ... Additional arguments (ignored).
+#' @param ... Not used; an unknown argument is refused with
+#'   `hypergraphs_bad_input`.
 #' @param k Integer or `NULL`. Keep only this landscape level.
 #' @return A data.frame, one row per (level, grid point): `k` (landscape
 #'   level), `t` (filtration value), `value` (landscape height).
-#' @param top Integer or `NULL`. Return only the first `top` rows,
-#'   applied after any filter and after `sort_by`, so `sort_by` and
-#'   `top` compose. Default `NULL` returns every row.
+#' @param top Integer or `NULL`. Return only the first `top` rows, applied
+#'   after the `k` filter. Default `NULL` returns every row.
 #' @examples
 #' set.seed(1)
 #' w <- matrix(runif(36), 6, 6, dimnames = list(letters[1:6], letters[1:6]))

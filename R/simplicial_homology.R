@@ -7,7 +7,8 @@
 #'
 #' @param x A `persistent_homology` object from
 #'   [hg_homology()].
-#' @param ... Additional arguments (ignored).
+#' @param ... Not used; an unknown argument is refused with
+#'   `hypergraphs_bad_input`.
 #' @param what `"persistence"` (default) for the persistence diagram, or
 #'   `"betti"` for the Betti curves across the filtration.
 #' @param dimension Integer or `NULL`. Keep only this homological dimension.
@@ -39,7 +40,7 @@ hg_get.persistent_homology <- function(
     out <- out[out$dimension == dimension, , drop = FALSE]
   }
   if (!is.null(sort_by)) {
-    sort_by <- match.arg(sort_by, "persistence")
+    sort_by <- .sc_choice(sort_by, "persistence", "sort_by")
     if (what == "betti") {
       stop(errorCondition(
         "`sort_by` applies only to what = \"persistence\"",

@@ -29,7 +29,8 @@ a list of vectors, or a model object carrying its sequences. A group
 model from \code{\link[=hon]{hon()}} with \code{group} is resampled group by group with its
 own settings, and the result is a \code{hypergraphs_bootstrap_group} (one bootstrap
 per group; \code{summary()} and \code{\link[=hg_get]{hg_get()}} stack them with a \code{group}
-column).}
+column). The estimation and long-format arguments are then the
+model's, and passing any of them raises \code{hypergraphs_bad_input}.}
 
 \item{n_boot}{Integer >= 2. Bootstrap replicates. Default \code{500}.}
 
@@ -47,7 +48,8 @@ wide or list input.}
 
 \item{n_cores}{Integer. Cores when \code{parallel = TRUE}.}
 
-\item{seed}{Optional integer seed.}
+\item{seed}{Optional integer seed. The caller's random-number stream is
+restored on exit.}
 }
 \value{
 An object of class \code{hypergraphs_bootstrap} with \code{print},
@@ -65,8 +67,10 @@ distribution yields a percentile confidence interval for its
 conditional probability and a \emph{support} - the fraction of replicates in
 which the rule's context is extracted as a rule at all. Support close
 to 1 for a higher-order context means the order elevation is stable
-under resampling, not an artifact of the particular sample; first-order
-contexts have support 1 by construction.
+under resampling, not an artifact of the particular sample. A
+first-order context is a rule in every replicate that observes it, so its
+support falls below 1 only when some replicates draw no sequence that
+reaches it (the same replicates are missing from its \code{n_boot_used}).
 }
 \details{
 Per-sequence observation counts are computed once; every replicate is a

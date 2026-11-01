@@ -22,7 +22,7 @@
 \alias{summary.net_hg_topics}
 \title{Summaries of results}
 \usage{
-\method{hg_get}{hypergraphs_summary}(x, what = names(x)[1L], ...)
+\method{hg_get}{hypergraphs_summary}(x, what = names(x)[1L], ..., top = NULL)
 
 \method{print}{hypergraphs_summary}(x, n = 5L, ...)
 
@@ -59,6 +59,9 @@
 Default: the first.}
 
 \item{...}{Unused.}
+
+\item{top}{For \code{\link[=hg_get]{hg_get()}} on a summary: the first \code{top} rows of the
+table. \code{NULL} (default) returns every row.}
 
 \item{n}{For \code{print()}: number of rows of each table to show. Default
 \code{5}.}

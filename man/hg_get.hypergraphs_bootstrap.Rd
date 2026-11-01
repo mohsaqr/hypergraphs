@@ -19,7 +19,8 @@
 
 \item{what}{\code{"edges"}, the only table: one row per rule edge.}
 
-\item{...}{Additional arguments (ignored).}
+\item{...}{Must be empty: an argument this method does not take raises
+\code{hypergraphs_bad_input}.}
 
 \item{min_support}{Numeric in \verb{[0, 1]} or NULL. Keep only rule edges
 with at least this bootstrap support.}

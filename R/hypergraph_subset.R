@@ -164,8 +164,10 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
                           "`size` or `component = \"largest\"`"))
   }
   if (no_filter) return(.thg_largest_component(hg))
-  if (!is.null(size) && (!is.numeric(size) || anyNA(size) || any(size < 1))) {
-    .thg_bad_input("`size` must be a vector of positive member counts")
+  if (!is.null(size) && (!is.numeric(size) || !length(size) ||
+                          any(!is.finite(size)) || any(size < 1) ||
+                          any(abs(size - round(size)) > sqrt(.Machine$double.eps)))) {
+    .thg_bad_input("`size` must be a vector of positive whole member counts")
   }
   edge_names <- colnames(hg$incidence)
   keep_edge <- rep(TRUE, hg$n_hyperedges)
@@ -196,15 +198,16 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
                              paste(unknown, collapse = ", ")))
     }
     row <- match(edge_names, as.character(hg$edge_data$edge))
-    for (attribute in names(where)) {
+    matches <- lapply(names(where), function(attribute) {
       values <- hg$edge_data[[attribute]][row]
       wanted <- where[[attribute]]
       # a value no hyperedge takes would return an empty hypergraph that
       # reads like a real result; a misspelt value is an error
       absent <- wanted[!wanted %in% values]
       if (length(absent)) .thg_bad_input(.thg_where_absent(attribute, absent, values))
-      keep_edge <- keep_edge & !is.na(values) & values %in% wanted
-    }
+      !is.na(values) & values %in% wanted
+    })
+    keep_edge <- Reduce(`&`, matches, keep_edge)
   }
   if (!is.null(size)) {
     members <- as.numeric(Matrix::colSums(.thg_binary(hg$incidence)))

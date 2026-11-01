@@ -72,9 +72,8 @@ hg_get.net_markov_order_group <- function(x, what = c("orders", "null"),
 #'   `significant`. For `what = "null"`, one row per
 #'   permutation replicate: `order`, `replicate`, `g2` (the replicate's
 #'   likelihood-ratio statistic under the null).
-#' @param top Integer or `NULL`. Return only the first `top` rows,
-#'   applied after any filter and after `sort_by`, so `sort_by` and
-#'   `top` compose. Default `NULL` returns every row.
+#' @param top Integer or `NULL`. Return only the first `top` rows.
+#'   Default `NULL` returns every row.
 #' @examples
 #' seqs <- list(c("a", "b", "a", "c", "a", "b"), c("b", "a", "c", "a", "b", "a"))
 #' fit <- markov_order(seqs, max_order = 2L, n_perm = 20L, seed = 1L)

@@ -436,3 +436,26 @@ test_that("stop_words are compared after lowercasing when lowercase = TRUE", {
   expect_true("The" %in% kept$word)
   expect_false("the" %in% kept$word)
 })
+
+test_that("text that is not valid UTF-8 is refused, naming the document", {
+  # a Latin-1 byte (u-umlaut) in text that claims to be UTF-8 used to stop
+  # inside tolower() with an unclassed error naming no document
+  broken <- rawToChar(as.raw(c(0x73, 0xfc, 0x70, 0x20, 0x73, 0x6f, 0x75,
+                               0x70)))
+  Encoding(broken) <- "UTF-8"
+  expect_error(text_hypergraph(c(ok = "soup salt", bad = broken)),
+               class = "hypergraphs_bad_input")
+  expect_error(text_hypergraph(c(ok = "soup salt", bad = broken)), "bad")
+  # text marked latin1 is valid text and is read as before
+  latin <- "caf\xe9 soup"
+  Encoding(latin) <- "latin1"
+  hg <- text_hypergraph(c(a = latin, b = "soup"))
+  expect_true("café" %in% hg_get(hg, what = "vocabulary")$word)
+})
+
+test_that("a window size that is not a whole number is refused", {
+  expect_error(text_hypergraph(c(a = "x y z w"), construction = "window",
+                               window = 2.5))
+  expect_s3_class(text_hypergraph(c(a = "x y z w"), construction = "window",
+                                  window = 2), "text_hypergraph")
+})

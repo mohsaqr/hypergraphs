@@ -95,8 +95,10 @@ columns. With
 view, truncated to the console width; the returned table itself is
 the long form. Raises \code{hypergraphs_bad_input} for unknown node names, a \code{type} that
 needs the token layer on a hypergraph without one, a malformed
-\code{scores} table, or a bag-of-words \code{text_hypergraph(nodes = "word")},
-whose hyperedges are documents rather than words.
+\code{scores} table, a bag-of-words \code{text_hypergraph(nodes = "word")},
+whose hyperedges are documents rather than words, or a
+\code{text_hypergraph(construction = "knn")}, whose hyperedges are document
+neighbourhoods.
 
 \code{plot()} returns a ggplot: one panel per cluster (rows) and score type
 (columns), each with its own word axis, horizontal bars of \code{value} per

@@ -126,9 +126,13 @@
 #'     observed and triadic structure must be inferred from triangles.
 #' }
 #'
-#' Rows with `NA` in the node, hyperedge or weight column are dropped with a
-#' `hypergraphs_dropped_rows` warning that counts them; when every row has
-#' one, `hypergraphs_bad_input` is raised.
+#' Rows with `NA` in the node, hyperedge or weight column (and, for counted
+#' sets, the `group` column) are dropped with a `hypergraphs_dropped_rows`
+#' warning that counts them; when every row has one, `hypergraphs_bad_input`
+#' is raised. An argument that does not apply to the input (`weight`,
+#' `nodes` or `sparse` when sets are counted; any column, weight or storage
+#' argument for a topic model or a clustering) raises
+#' `hypergraphs_bad_input` rather than being ignored.
 #'
 #' @section Frequent sets within groups:
 #' With `group`, `top` or `min_share`, a data frame is read as transactions.
@@ -268,6 +272,21 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   }
   # with a minimum share and no `top`, every set reaching the share is kept
   default_top <- if (is.null(min_share)) 8L else Inf
+  # the columns, weights, node universe and storage of a membership table
+  # have no counterpart in a topic model or a clustering: refused, never
+  # ignored
+  frame_only <- c(node = !is.null(node), hyperedge = !is.null(hyperedge),
+                  weight = !is.null(weight), nodes = !is.null(nodes),
+                  sparse = !identical(sparse, FALSE),
+                  separator = !is.null(separator), from = !is.null(from),
+                  to = !is.null(to))
+  if (inherits(data, c("net_hg_topics", "net_mmm", "net_clustering",
+                       "netobject_group")) && any(frame_only)) {
+    .thg_bad_input(sprintf(
+      "%s appl%s to a data frame, not to a %s",
+      paste0("`", names(frame_only)[frame_only], "`", collapse = ", "),
+      if (sum(frame_only) == 1L) "ies" else "y", class(data)[1L]))
+  }
   if (inherits(data, "net_hg_topics")) {
     return(.thg_topic_set_hypergraph(data, threshold = threshold,
                                      group = group, top = top %||% default_top,
@@ -293,12 +312,27 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
                           "counted: give `group`, `top` or `min_share`, a topic model, or ",
                           "clustered sequences"))
   }
-  stopifnot(is.data.frame(data))
+  if (!is.data.frame(data)) {
+    .thg_bad_input(sprintf(paste0(
+      "`data` must be a data frame, a topic model or a clustering of ",
+      "sequences, not an object of class %s"),
+      paste(class(data), collapse = "/")))
+  }
+  if (counted && (!is.null(weight) || !is.null(nodes) ||
+                  !identical(sparse, FALSE))) {
+    .thg_bad_input(paste0("`weight`, `nodes` and `sparse` do not apply when ",
+                          "sets are counted (`group`, `top` or `min_share`)"))
+  }
   if (!is.null(separator)) {
     data <- .thg_expand_delimited(data, node, separator)
   }
   member <- node
   labels <- NULL
+  # the row of `data` each membership row comes from, for the dropped-row
+  # count: an edge list row becomes two memberships
+  source_row <- seq_len(nrow(data))
+  n_source <- nrow(data)
+  reported <- NULL
   if (is.null(member) && is.null(hyperedge) && is.null(from) && is.null(to)) {
     # nothing named: detect an edge list, then co-presence columns
     from <- .thg_match_column(data, "from")
@@ -311,15 +345,14 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     }
   }
   if (!is.null(from) || !is.null(to)) {
-    stopifnot(
-      "name either `from` and `to` or `node` and `hyperedge`, not both" =
-        is.null(member) && is.null(hyperedge),
-      "`from` and `to` must both name columns of `data`" =
-        is.character(from) && length(from) == 1L && from %in% names(data) &&
-        is.character(to) && length(to) == 1L && to %in% names(data)
-    )
-    if (!is.null(weight)) {
-      stopifnot(is.character(weight), length(weight) == 1L, weight %in% names(data))
+    if (!is.null(member) || !is.null(hyperedge)) {
+      .thg_bad_input("name either `from` and `to` or `node` and `hyperedge`, not both")
+    }
+    if (!.thg_is_column(from, data) || !.thg_is_column(to, data)) {
+      .thg_bad_input("`from` and `to` must both name columns of `data`")
+    }
+    if (!is.null(weight) && !.thg_is_column(weight, data)) {
+      .thg_bad_input("`weight` must name one column of `data`")
     }
     # the remaining columns ride along as candidate edge attributes, under
     # their own names; the structural columns take names no metadata column
@@ -333,31 +366,40 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     rows <- c(seq_len(nrow(data)), seq_len(nrow(data)))
     long <- data[rows, metadata, drop = FALSE]
     long[[member]] <- c(as.character(data[[from]]), as.character(data[[to]]))
+    # an edge with a missing end is no relation: both of its memberships go,
+    # never a hyperedge of the one end that is known
+    broken <- is.na(data[[from]]) | is.na(data[[to]])
+    long[[member]][rep(broken, 2L)] <- NA_character_
+    source_row <- rows
     long[[hyperedge]] <- paste0("e", rows)
     if (!is.null(weight)) long[[weight_column]] <- data[[weight]][rows]
     rownames(long) <- NULL
     data <- long[, c(member, hyperedge, weight_column, metadata), drop = FALSE]
+    reported <- c(from, to, weight)
     weight <- weight_column
     labels <- list(node = "actor", hyperedge = "edge",
                    weight = if (!is.null(weight)) "weight")
   }
-  stopifnot(
-    "`node` must name one column of `data`" =
-      is.character(member) && length(member) == 1L && member %in% names(data),
-    "`hyperedge` must name one column of `data`" =
-      is.character(hyperedge) && length(hyperedge) == 1L && hyperedge %in% names(data)
-  )
+  if (!.thg_is_column(member, data)) {
+    .thg_bad_input("`node` must name one column of `data`")
+  }
+  if (!.thg_is_column(hyperedge, data)) {
+    .thg_bad_input("`hyperedge` must name one column of `data`")
+  }
   if (counted) {
     return(.thg_frame_set_hypergraph(data, member, hyperedge, group,
                                      top %||% default_top, states, min_size,
                                      min_share))
   }
-  stopifnot(
-    is.null(weight) ||
-      (is.character(weight) && length(weight) == 1L && weight %in% names(data)),
-    is.null(nodes) || is.atomic(nodes),
-    is.logical(sparse), length(sparse) == 1L, !is.na(sparse)
-  )
+  if (!is.null(weight) && !.thg_is_column(weight, data)) {
+    .thg_bad_input("`weight` must name one column of `data`")
+  }
+  if (!is.null(nodes) && !is.atomic(nodes)) {
+    .thg_bad_input("`nodes` must be a vector of node names")
+  }
+  if (!is.logical(sparse) || length(sparse) != 1L || is.na(sparse)) {
+    .thg_bad_input("`sparse` must be TRUE or FALSE")
+  }
 
   cols <- c(member, hyperedge, weight)
   candidates <- setdiff(names(data), cols)
@@ -370,8 +412,8 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   if (!all(complete)) {
     warning(warningCondition(sprintf(
       "dropped %d of %d rows with a missing value in %s",
-      sum(!complete), length(complete),
-      paste0("`", cols, "`", collapse = ", ")),
+      length(unique(source_row[!complete])), n_source,
+      paste0("`", reported %||% cols, "`", collapse = ", ")),
       class = "hypergraphs_dropped_rows", call = NULL))
   }
   d <- d[complete, , drop = FALSE]
@@ -387,11 +429,13 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   if (!is.null(nodes)) {
     nodes <- as.character(nodes)
     if (anyNA(nodes) || any(!nzchar(nodes)) || anyDuplicated(nodes)) {
-      stop("`nodes` must contain unique, non-missing node names.", call. = FALSE)
+      .thg_bad_input("`nodes` must contain unique, non-missing node names.")
     }
     missing_members <- setdiff(unique(d[[member]]), nodes)
     if (length(missing_members)) {
-      stop("Every observed member must occur in `nodes`.", call. = FALSE)
+      .thg_bad_input(sprintf(
+        "Every observed member must occur in `nodes`; missing: %s",
+        paste(utils::head(missing_members, 5L), collapse = ", ")))
     }
   }
   member_levels <- .ho_sort(if (is.null(nodes)) unique(d[[member]]) else nodes)
@@ -501,6 +545,12 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   )
   if (!is.null(edge_data)) out$edge_data <- edge_data
   structure(out, class = "net_hg")
+}
+
+# Does `name` name exactly one column of `data`?
+.thg_is_column <- function(name, data) {
+  is.character(name) && length(name) == 1L && !is.na(name) &&
+    name %in% names(data)
 }
 
 # `base`, or base_1, base_2, ... when `base` is among `taken`: the name of a
@@ -657,11 +707,19 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
                            anyNA(states))) {
     .thg_bad_input("`states` must be a character vector of values to keep")
   }
-  d <- data[stats::complete.cases(data[, c(node, hyperedge, group)]),
-            c(node, hyperedge, group), drop = FALSE]
-  if (!nrow(d)) {
+  cols <- c(node, hyperedge, group)
+  complete <- stats::complete.cases(data[, cols, drop = FALSE])
+  if (!any(complete)) {
     .thg_bad_input("no complete row of `node`, `hyperedge` and `group`")
   }
+  if (!all(complete)) {
+    warning(warningCondition(sprintf(
+      "dropped %d of %d rows with a missing value in %s",
+      sum(!complete), length(complete),
+      paste0("`", cols, "`", collapse = ", ")),
+      class = "hypergraphs_dropped_rows", call = NULL))
+  }
+  d <- data[complete, cols, drop = FALSE]
   items <- as.character(d[[node]])
   transaction <- as.character(d[[hyperedge]])
   # without `group`, the sets are counted over every hyperedge together

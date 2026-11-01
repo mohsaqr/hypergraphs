@@ -8,7 +8,8 @@ hg_bottleneck(d1, d2, dimension = NULL, tol = .Machine$double.eps^0.5)
 }
 \arguments{
 \item{d1, d2}{\code{\link[=hg_homology]{hg_homology()}} results, or data.frames with columns
-\code{dimension}, \code{birth}, \code{death}.}
+\code{dimension}, \code{birth}, \code{death}. Anything else raises
+\code{hypergraphs_bad_input}.}
 
 \item{dimension}{Integer vector of dimensions to compare. \code{NULL} compares
 every dimension present in either diagram.}
@@ -25,6 +26,13 @@ The largest displacement of the best matching between two persistence
 diagrams, where a point may also match the diagonal. Essential classes
 are matched only to essential classes; a dimension whose essential
 counts differ is \code{Inf} apart.
+}
+\details{
+An essential class is a row with \code{death = Inf} or \code{death = 0}, in an
+\code{\link[=hg_homology]{hg_homology()}} result and in a data.frame alike. \code{\link[=hg_wasserstein]{hg_wasserstein()}}
+reads a data.frame differently: there only \code{death = Inf} marks an
+essential class and \code{death = 0} is a finite death, so the two distances
+can disagree on a data.frame with rows that die at 0.
 }
 \examples{
 d1 <- data.frame(dimension = 0L, birth = 0, death = 2)

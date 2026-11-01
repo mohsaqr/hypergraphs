@@ -382,3 +382,78 @@ test_that("plot() draws every state for each measure, and the passage heatmap", 
   expect_no_error(plot(ms, what = "passage_time"))
   expect_error(plot(ms, what = "nope"))
 })
+
+# ===========================================================================
+# Audit 2026-11-01: netobject_group input and argument contracts
+# ===========================================================================
+
+.ms_group_fixture <- function() {
+  set.seed(1)
+  seqs <- replicate(20, sample(c("a", "b", "c", "d"), 12, replace = TRUE),
+                    simplify = FALSE)
+  wide <- as.data.frame(do.call(rbind, seqs), stringsAsFactors = FALSE)
+  wide$g <- rep(c("x", "y"), 10)
+  Nestimate::build_network(wide, method = "relative", group = "g")
+}
+
+test_that("hg_markov_stability() reads a netobject_group, one chain per group", {
+  # documented input; it used to be refused as "not irreducible (0
+  # recurrent classes)" because the group was checked as one chain
+  grp <- .ms_group_fixture()
+  ms <- hg_markov_stability(grp)
+  expect_s3_class(ms, "net_markov_stability_group")
+  expect_identical(.ho_unresult(ms),
+                   Nestimate::markov_stability(grp))
+  states <- hg_get(ms)
+  expect_identical(names(states)[1L], "group")
+  expect_identical(unique(states$group), c("x", "y"))
+  per_group <- hg_get(hg_markov_stability(grp$x))
+  expect_identical(states[states$group == "x", -1L, drop = FALSE],
+                   per_group)
+  pt <- hg_get(ms, what = "passage_time", from = "a", to = "b")
+  expect_identical(nrow(pt), 2L)
+  expect_identical(nrow(hg_get(ms, top = 3)), 3L)
+  expect_named(summary(ms), c("states", "passage_time", "stationary"))
+  expect_error(hg_get(ms, what = "passage_time", from = "zz"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(ms, foo = 1), class = "hypergraphs_bad_input")
+})
+
+test_that("a reducible group chain is refused with the group named", {
+  wide <- data.frame(V1 = c("a", "b", "a", "a"), V2 = c("b", "a", "b", "b"),
+                     V3 = c("a", "b", "c", "c"), g = c("x", "x", "y", "y"))
+  grp <- Nestimate::build_network(wide, method = "relative", group = "g")
+  err <- tryCatch(hg_markov_stability(grp), error = identity)
+  expect_s3_class(err, "hypergraphs_not_ergodic")
+  expect_match(conditionMessage(err), "group \"", fixed = TRUE)
+})
+
+test_that("hg_markov_stability() and its accessor refuse bad arguments", {
+  P <- matrix(c(0.5, 0.5, 0.5, 0.5), 2, 2,
+              dimnames = list(c("A", "B"), c("A", "B")))
+  expect_error(hg_markov_stability(P, normalize = "x"),
+               class = "hypergraphs_bad_input")
+  ms <- hg_markov_stability(P)
+  expect_error(hg_get(ms, sort_by = "zz"), class = "hypergraphs_bad_input")
+  expect_error(hg_get(ms, decreasing = NA), class = "hypergraphs_bad_input")
+})
+
+test_that("passage times match Kemeny and Snell's fundamental matrix", {
+  P <- matrix(c(0.5, 0.3, 0.2,
+                0.2, 0.5, 0.3,
+                0.1, 0.4, 0.5), 3, 3, byrow = TRUE,
+              dimnames = list(c("A", "B", "C"), c("A", "B", "C")))
+  ms <- hg_markov_stability(P)
+  st <- hg_get(ms, what = "stationary")
+  pi <- st$stationary
+  expect_equal(as.numeric(pi %*% P), pi, tolerance = 1e-12)
+  expect_equal(st$return_time, 1 / pi, tolerance = 1e-12)
+  W <- matrix(pi, 3, 3, byrow = TRUE)
+  Z <- solve(diag(3) - P + W)
+  M <- (matrix(diag(Z), 3, 3, byrow = TRUE) - Z) / W
+  diag(M) <- 1 / pi
+  pt <- hg_get(ms, what = "passage_time")
+  got <- matrix(NA_real_, 3, 3, dimnames = dimnames(P))
+  got[cbind(pt$from, pt$to)] <- pt$steps
+  expect_equal(unname(got), unname(M), tolerance = 1e-10)
+})

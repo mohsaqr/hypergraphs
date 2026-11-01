@@ -76,15 +76,6 @@
   current[!duplicated(signatures)]
 }
 
-.thg_restore_seed <- function(seed) {
-  if (is.null(seed)) return(invisible(NULL))
-  old <- if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
-    get(".Random.seed", envir = globalenv(), inherits = FALSE)
-  } else NULL
-  set.seed(seed)
-  old
-}
-
 #' Y, T and O motif census with a hypergraph configuration null
 #'
 #' Counts the three possible induced four-node motifs in a simple 3-uniform
@@ -95,9 +86,12 @@
 #' cardinality before duplicate-edge collapse.
 #'
 #' @param hg A 3-uniform `net_hg` or a [temporal_hypergraph()].
-#' @param n Number of configuration-model draws. The paper uses 1000.
-#' @param seed Optional reproducibility seed; the caller's RNG state is
-#'   restored on exit.
+#' @param n Number of configuration-model draws. The paper uses 1000. For
+#'   `print()`: the number of rows of the test table shown (default `10`).
+#' @param seed `NULL` (default: the current random stream) or one whole
+#'   number for the null draws; the caller's RNG state is restored on exit.
+#'   A temporal input seeds snapshot `i` with `seed + i - 1`. Any other
+#'   value raises `hypergraphs_bad_input`.
 #' @param what `"test"` for observed/null summaries, `"counts"` for observed
 #'   counts only, or `"draws"` for every null count.
 #' @param alternative Direction of the empirical permutation test:
@@ -132,6 +126,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
                       multiedges = TRUE) {
   what <- .ho_match_what(what)
   alternative <- match.arg(alternative)
+  .thg_check_seed(seed)
   snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_motifs", "snapshot_mode")
   if (inherits(hg, "net_temporal_hypergraph")) {
     snaps <- hg_snapshots(hg, start = start, end = end, step = step,
@@ -164,13 +159,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
   # as.integer() would turn into NA
   n <- .ho_check_count(n, "n", min = 2)
 
-  old_seed <- .thg_restore_seed(seed)
-  if (!is.null(seed)) on.exit({
-    if (is.null(old_seed)) {
-      if (exists(".Random.seed", envir = globalenv(), inherits = FALSE))
-        rm(".Random.seed", envir = globalenv())
-    } else assign(".Random.seed", old_seed, envir = globalenv())
-  }, add = TRUE)
+  if (!is.null(seed)) .ho_local_seed(seed)
 
   null <- vapply(seq_len(n), function(i) {
     .thg_yto_counts(.thg_configuration_mcmc(edges))
@@ -226,6 +215,16 @@ hg_get.hypergraphs_motifs <- function(x, what = c("test", "draws"), ...) {
   attr(x, "draws") <- NULL
   class(x) <- "data.frame"
   x
+}
+
+#' @rdname hg_motifs
+#' @return For `print()`, `x`, invisibly.
+#' @export
+print.hypergraphs_motifs <- function(x, n = 10L, ...) {
+  cat(sprintf("Y/T/O motif census against %d configuration-model draws\n",
+              x$n_null[[1L]]))
+  .ho_print_table(x, n)
+  invisible(x)
 }
 
 #' @rdname result-summary

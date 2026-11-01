@@ -14,9 +14,8 @@
 
 \item{...}{Additional arguments (ignored).}
 
-\item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
-applied after any filter and after \code{sort_by}, so \code{sort_by} and
-\code{top} compose. Default \code{NULL} returns every row.}
+\item{top}{Integer or \code{NULL}. Return only the first \code{top} rows.
+Default \code{NULL} returns every row.}
 }
 \value{
 A data.frame. For \code{what = "orders"}, one row per candidate order:

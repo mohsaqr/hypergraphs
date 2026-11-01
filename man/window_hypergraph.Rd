@@ -87,13 +87,20 @@ the special case already covered by \code{\link[=group_hypergraph]{group_hypergr
 data with \code{member = action} and \code{group = actor}; use this verb when the
 hyperedges should be local in time.
 }
+\section{Conditions}{
+
+\code{hypergraphs_bad_input} for an argument out of range, an input that is
+not sequences, or a state label holding the control character U+0001;
+\code{hypergraphs_empty_result} (also a \code{hypergraphs_bad_input}) when no window
+or no hyperedge remains.
+}
+
 \examples{
 hg <- window_hypergraph(human_long, action = "code",
                         actor = "session_id", time = "timestamp",
                         window = 3L)
 hg
-edges <- hg_get(hg)
-head(edges)
+hg_get(hg, sort_by = "weight", top = 6)
 
 # Tumbling windows over wide-format sequences
 wide <- data.frame(

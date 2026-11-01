@@ -34,7 +34,11 @@ trailing \code{NA}s end a sequence.}
 \code{cograph_network} that carries its sequence data. Nestimate model
 objects retain literal state values, including numeric states.
 Positional integer codes are decoded for \code{tna} models and converted
-\code{cograph_network} data explicitly carrying a tna encoding alphabet.}
+\code{cograph_network} data explicitly carrying a tna encoding alphabet.
+\code{\link[=markov_order]{markov_order()}} and \code{\link[=hg_markov_stability]{hg_markov_stability()}} fit one model per group
+of a \code{netobject_group}; \code{\link[=hon]{hon()}}, \code{\link[=mogen]{mogen()}}, \code{\link[=hypa]{hypa()}} and \code{\link[=memory]{memory()}}
+refuse one with \code{hypergraphs_bad_input} (pass \verb{group =} to \code{\link[=hon]{hon()}}
+instead), as they refuse a model object without its sequence data.}
 }
 These are the conventions of the tna family of packages, and the same
 call builds the same sequences there.

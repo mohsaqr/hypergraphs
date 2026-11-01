@@ -53,8 +53,7 @@ memory network becomes a pathway complex for the simplicial family
 bs <- hg_bootstrap(human_long, action = "code", actor = "session_id",
                     time = "timestamp", n_boot = 20, max_order = 2,
                     seed = 1)
-rules <- hg_get(bs, order_min = 2)
-head(rules)
+hg_get(bs, order_min = 2, top = 6)
 
 }
 \keyword{datasets}

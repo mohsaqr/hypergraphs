@@ -128,9 +128,13 @@ directly. The two functions are complementary:
 observed and triadic structure must be inferred from triangles.
 }
 
-Rows with \code{NA} in the node, hyperedge or weight column are dropped with a
-\code{hypergraphs_dropped_rows} warning that counts them; when every row has
-one, \code{hypergraphs_bad_input} is raised.
+Rows with \code{NA} in the node, hyperedge or weight column (and, for counted
+sets, the \code{group} column) are dropped with a \code{hypergraphs_dropped_rows}
+warning that counts them; when every row has one, \code{hypergraphs_bad_input}
+is raised. An argument that does not apply to the input (\code{weight},
+\code{nodes} or \code{sparse} when sets are counted; any column, weight or storage
+argument for a topic model or a clustering) raises
+\code{hypergraphs_bad_input} rather than being ignored.
 }
 \note{
 Dense and sparse paths are tested for exact equality. The sparse

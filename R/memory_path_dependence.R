@@ -24,7 +24,9 @@
 #'   (`TRUE` when the two differ).
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
-#'   `top` compose. Default `NULL` returns every row.
+#'   `top` compose. Default `NULL` returns every row. An invalid
+#'   `min_count`, `flips`, `sort_by` or `top` raises
+#'   `hypergraphs_bad_input`.
 #' @examples
 #' # one sequence per row
 #' wide <- data.frame(t1 = c("a", "x", "a", "x"), t2 = c("b", "b", "b", "b"),
@@ -49,12 +51,11 @@ hg_get.net_path_dependence <- function(x, what = "contexts", ...,
     out <- out[out$count >= min_count, , drop = FALSE]
   }
   if (!is.null(flips)) {
-    stopifnot("`flips` must be NULL, TRUE or FALSE" =
-                is.logical(flips) && length(flips) == 1L && !is.na(flips))
+    flips <- .hon_check_flag(flips, "flips")
     out <- out[out$flips %in% flips, , drop = FALSE]
   }
   if (!is.null(sort_by)) {
-    sort_by <- match.arg(sort_by, "kl")
+    sort_by <- .hon_check_choice(sort_by, "kl", "sort_by")
     out <- out[.ho_order(-out[[sort_by]], out$context), , drop = FALSE]
   }
   rownames(out) <- NULL

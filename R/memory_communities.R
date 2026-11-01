@@ -468,8 +468,8 @@
 #'   when `partition` is given, except for the first-order search.
 #' @param teleportation Teleportation probability \eqn{\tau \in [0, 1)}
 #'   (default 0.15, Infomap's default).
-#' @param seed Integer seed for the random node orders (default 1). The
-#'   caller's random-number stream is restored on exit.
+#' @param seed One whole number, the seed for the random node orders
+#'   (default 1). The caller's random-number stream is restored on exit.
 #' @return A `hypergraphs_memory_communities` object. Read it with [hg_get()]:
 #'   `what = "states"` (one row per state node), `"physical"` (one row per
 #'   physical node x module), `"modules"`, `"trials"`, `"first_order"` and
@@ -528,9 +528,8 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
         is.finite(teleportation) && teleportation >= 0 && teleportation < 1)) {
     .hcm_bad_input("`teleportation` must be a single number in [0, 1)")
   }
-  if (!(is.numeric(seed) && length(seed) == 1L && is.finite(seed))) {
-    .hcm_bad_input("`seed` must be a single number")
-  }
+  # a fractional seed would be truncated by set.seed(), so it is refused
+  seed <- .ho_check_count(seed, "seed", min = -.Machine$integer.max)
   trials <- as.integer(trials)
   W <- hon$weights
   if (!is.matrix(W) || nrow(W) < 1L) {
@@ -547,16 +546,7 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
   n_phys <- length(phys_names)
 
   # scoped RNG: restore the caller's stream on exit
-  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
-  old_seed <- if (had_seed) get(".Random.seed", envir = globalenv())
-  on.exit({
-    if (had_seed) {
-      assign(".Random.seed", old_seed, envir = globalenv())
-    } else if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
-      rm(".Random.seed", envir = globalenv())
-    }
-  }, add = TRUE, after = FALSE)
-  set.seed(seed)
+  .ho_local_seed(seed)
 
   fl <- .hcm_flow(unname(W), teleportation)
 
@@ -669,7 +659,8 @@ hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
 #' Tidy tables of a memory-network community result
 #'
 #' @param x A `hypergraphs_memory_communities` object.
-#' @param ... Ignored.
+#' @param ... Must be empty: an argument this method does not take raises
+#'   `hypergraphs_bad_input`.
 #' @param what Which table:
 #'   \describe{
 #'     \item{`"states"` (default)}{one row per memory node: `node` (the

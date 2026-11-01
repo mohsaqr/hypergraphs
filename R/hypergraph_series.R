@@ -30,7 +30,10 @@
 #'   is a breadth-first search per node and time.
 #' @return A base data.frame of class `hypergraphs_series`, one row per window,
 #'   with `time` (the window start on the hypergraph's clock), `n_nodes`,
-#'   `n_edges`, `n_edges_distinct`, `n_memberships`, and for
+#'   `n_edges`, `n_edges_distinct`, `n_memberships` (the rows of the
+#'   membership table present, so a node recorded twice in one hyperedge,
+#'   or a state at two positions of a sequence, counts twice; the same
+#'   count `summary()` of the temporal hypergraph reports), and for
 #'   `mode = "active"` also `n_nodes_cumulative`, `n_edges_cumulative` and
 #'   `n_edges_distinct_cumulative`. With `components = TRUE`, further
 #'   `n_components`, `largest_component` (share of active nodes) and

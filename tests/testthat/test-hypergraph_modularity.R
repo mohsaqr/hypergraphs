@@ -225,3 +225,51 @@ test_that("hg_communities(type = \"irmm\") dispatches to the IRMM engine", {
   via <- hg_communities(fx$hg, type = "irmm", n_runs = 3L, seeds = 1:3)
   expect_identical(via, direct)
 })
+
+test_that("hand-computed scores on two triples bridged by a pair (all three types)", {
+  # e1, e2 = {a,b,c}; e3, e4 = {x,y,z}; e5 = {c,x}. With A = {a,b,c},
+  # B = {x,y,z} the four triples are owned (edge contribution 4 of 5) and
+  # the bridge is split 1:1 (no strict majority, contributes 0). Degrees
+  # a2 b2 c3 x3 y2 z2, so vol(A) = vol(B) = 7 and p = 1/2 for both.
+  # Degree tax per community, W_3 = 4, W_2 = 1:
+  #   linear   4 (2/3 * 3/8 + 1/8) + 1/4 = 1.75
+  #   strict   4 (1/8)             + 1/4 = 0.75
+  #   majority 4 (3/8 + 1/8)       + 1/4 = 2.25
+  dat <- data.frame(
+    member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z",
+               "c", "x"),
+    edge = c(rep(paste0("e", 1:4), each = 3), "e5", "e5")
+  )
+  h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
+  split <- c(a = "A", b = "A", c = "A", x = "B", y = "B", z = "B")
+  expected <- c(linear = (4 - 3.5) / 5, strict = (4 - 1.5) / 5,
+                majority = (4 - 4.5) / 5)
+  scores <- vapply(names(expected), \(t) {
+    hg_modularity(h, split, type = t)$modularity
+  }, numeric(1L))
+  expect_equal(scores, expected, tolerance = 1e-12)
+  # INVARIANT: the one-block partition owns every hyperedge and pays the
+  # whole weight as tax, so it scores 0 under every type
+  one_block <- stats::setNames(rep("all", 6L), h$nodes)
+  zero <- vapply(names(expected), \(t) {
+    hg_modularity(h, one_block, type = t)$modularity
+  }, numeric(1L))
+  expect_equal(zero, c(linear = 0, strict = 0, majority = 0), tolerance = 1e-12)
+})
+
+test_that("invalid edge_weights raise hypergraphs_bad_input in modularity and IRMM", {
+  dat <- data.frame(member = c("a", "b", "c", "c", "d"),
+                    edge = c("e1", "e1", "e1", "e2", "e2"))
+  h <- group_hypergraph(dat, node = "member", hyperedge = "edge")
+  part <- c(a = 1, b = 1, c = 1, d = 2)
+  expect_error(hg_modularity(h, part, edge_weights = c(1, -1)),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_modularity(h, part, edge_weights = c(1, 2, 3)),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_modularity(h, part, edge_weights = c(1, NA)),
+               class = "hypergraphs_bad_input")
+  skip_if_not_installed("igraph")
+  expect_error(hg_communities(h, type = "irmm", n_runs = 1,
+                              edge_weights = c(0, 1)),
+               class = "hypergraphs_bad_input")
+})

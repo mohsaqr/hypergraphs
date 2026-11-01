@@ -40,18 +40,18 @@ test_that("hypa handles k=1 (first-order)", {
 })
 
 test_that("hypa rejects invalid input", {
-  expect_error(hypa(42), "data.frame or list")
-  expect_error(hypa(list(c("A", "B")), order = 0L), "integers >= 1")
+  expect_error(hypa(42), class = "hypergraphs_bad_input")
+  expect_error(hypa(list(c("A", "B")), order = 0L), class = "hypergraphs_bad_input")
   expect_error(hypa(list(c("A", "B")), alpha = 0.6),
-               "alpha.*must be a single number in \\(0, 0.5\\)")
+               class = "hypergraphs_bad_input")
   expect_error(hypa(list(c("A", "B", "C")), alpha = 0.5),
-               "alpha.*must be a single number in \\(0, 0.5\\)")
+               class = "hypergraphs_bad_input")
   expect_error(hypa(list(c("A", "B", "C")), min_count = 1.5),
-               "min_count.*single whole number")
+               class = "hypergraphs_bad_input")
   expect_error(hypa(list(c("A", "B", "C")), min_count = 0),
-               "min_count.*single whole number")
+               class = "hypergraphs_bad_input")
   expect_error(hypa(list(c("A", "B", "C")), min_count = c(1, 2)),
-               "min_count.*single whole number")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("hypa takes `order`; the old `k` alias is refused", {
@@ -459,11 +459,11 @@ test_that("$over and $under data frames have p_adjusted columns", {
 test_that("invalid p_adjust method errors", {
   trajs <- list(c("A", "B", "C"), c("B", "C", "A"))
   expect_error(hypa(trajs, order = 1L, p_adjust = "invalid_method"),
-               "p_adjust.*must be one of")
+               class = "hypergraphs_bad_input")
   expect_error(hypa(trajs, order = 1L, p_adjust = 42),
-               "p_adjust.*must be one of")
+               class = "hypergraphs_bad_input")
   expect_error(hypa(trajs, order = 1L, p_adjust = c("BH", "bonferroni")),
-               "p_adjust.*must be one of")
+               class = "hypergraphs_bad_input")
 })
 
 test_that("p_adjust stored in result object", {
@@ -639,4 +639,16 @@ test_that("hypa is invariant to relabelling the states", {
 test_that("hg_get(what = 'scores') sorts by the smaller tail when order_by = 'sig'", {
   scores <- hg_get(hypa(.hypa_markov_seqs(4L), order = 2L), what = "scores")
   expect_false(is.unsorted(pmin(scores$p_under, scores$p_over)))
+})
+
+test_that("hg_get.net_hypa refuses type and order_by where they do not apply", {
+  seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
+               c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
+  fit <- hypa(seqs, order = 2, min_count = 1)
+  expect_error(hg_get(fit, what = "scores", type = "over"),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(fit, what = "pathways", order_by = "ratio"),
+               class = "hypergraphs_bad_input")
+  expect_s3_class(hg_get(fit, what = "over", order_by = "ratio"), "data.frame")
+  expect_s3_class(hg_get(fit, what = "pathways", type = "over"), "data.frame")
 })

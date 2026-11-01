@@ -37,7 +37,11 @@
 #'     `cograph_network` that carries its sequence data. Nestimate model
 #'     objects retain literal state values, including numeric states.
 #'     Positional integer codes are decoded for `tna` models and converted
-#'     `cograph_network` data explicitly carrying a tna encoding alphabet.}
+#'     `cograph_network` data explicitly carrying a tna encoding alphabet.
+#'     [markov_order()] and [hg_markov_stability()] fit one model per group
+#'     of a `netobject_group`; [hon()], [mogen()], [hypa()] and [memory()]
+#'     refuse one with `hypergraphs_bad_input` (pass `group =` to [hon()]
+#'     instead), as they refuse a model object without its sequence data.}
 #' }
 #' These are the conventions of the tna family of packages, and the same
 #' call builds the same sequences there.
@@ -97,8 +101,9 @@ NULL
 #' 9, 15. \doi{10.1140/epjds/s13688-020-00233-y}
 #' @param group `NULL` (default) for one network, or the grouping of the
 #'   sequences for a group model: the name of a column of `data` (long or
-#'   wide format), or a vector with one label per sequence (per row of a
-#'   wide data frame, per element of a list). A group model holds one
+#'   wide format), or a vector with one label per row of a data frame (per
+#'   sequence of a wide frame, per event of a long table) or per element of
+#'   a list. A `netobject_group` is refused: it is grouped already. A group model holds one
 #'   network per group and the data of each group; it is the input of
 #'   [hg_compare()] and can be passed to [hg_bootstrap()] and [hg_get()].
 #' @seealso [honem()], [hg_centrality()], [hg_communities()],
@@ -122,6 +127,10 @@ hon <- function(data, max_order = 5L, min_freq = 1L,
                 collapse_repeats = FALSE, method = "hon+",
                 action = NULL, actor = NULL, time = NULL, session = NULL,
                 time_threshold = 900, timezone = "UTC", group = NULL) {
+  .ho_check_count(max_order, "max_order")
+  .ho_check_count(min_freq, "min_freq")
+  .hon_check_flag(collapse_repeats, "collapse_repeats")
+  .hon_check_choice(method, c("hon+", "hon"), "method")
   if (!is.null(group)) {
     return(.hon_group(data, group = group, max_order = max_order,
                       min_freq = min_freq,
@@ -172,6 +181,14 @@ hon <- function(data, max_order = 5L, min_freq = 1L,
 #' hg_get(emb)
 #' @export
 honem <- function(hon, dim = 32L, max_power = 10L) {
+  if (!inherits(hon, "net_hon") &&
+      !(is.matrix(hon) && is.numeric(hon) && nrow(hon) == ncol(hon))) {
+    .ho_bad_input(paste0("`hon` must be a net_hon object or a square matrix ",
+                         "(a net_hon from hon(), or a weighted adjacency ",
+                         "matrix)"))
+  }
+  .ho_check_count(dim, "dim")
+  .ho_check_count(max_power, "max_power")
   .ho_result(Nestimate::build_honem(.ho_unresult(hon), dim = dim,
                                     max_power = max_power))
 }
@@ -189,8 +206,8 @@ honem <- function(hon, dim = 32L, max_power = 10L) {
 #'   capped at the longest sequence minus one, with a message.
 #' @param criterion `"aic"` (default), `"bic"` or `"lrt"` (likelihood-ratio
 #'   test).
-#' @param lrt_alpha Significance level of the likelihood-ratio test.
-#'   Default `0.01`.
+#' @param lrt_alpha Significance level of the likelihood-ratio test,
+#'   strictly between 0 and 1. Default `0.01`.
 #' @return A `net_mogen` object (also a `cograph_network`). Read it with
 #'   [hg_get()]: the order-selection table (`what = "orders"`, the default),
 #'   the fitted transitions of a layer (`"transitions"`), the path counts
@@ -216,6 +233,11 @@ mogen <- function(data, max_order = 5L, criterion = c("aic", "bic", "lrt"),
                   lrt_alpha = 0.01,
                   action = NULL, actor = NULL, time = NULL, session = NULL,
                   time_threshold = 900, timezone = "UTC") {
+  .ho_check_count(max_order, "max_order")
+  if (!identical(criterion, c("aic", "bic", "lrt"))) {
+    .hon_check_choice(criterion, c("aic", "bic", "lrt"), "criterion")
+  }
+  .hon_check_level(lrt_alpha, "lrt_alpha")
   data <- .ho_sequence_input(data, action = action, actor = actor,
                              time = time, session = session,
                              time_threshold = time_threshold,
@@ -266,12 +288,22 @@ markov_order <- function(data, max_order = 3L, n_perm = 500L,
                             seed = NULL, action = NULL, actor = NULL,
                             time = NULL, session = NULL,
                             time_threshold = 900, timezone = "UTC") {
+  .ho_check_count(max_order, "max_order")
+  .ho_check_count(n_perm, "n_perm")
+  .hon_check_level(alpha, "alpha")
+  .hon_check_flag(parallel, "parallel")
+  .ho_check_count(n_cores, "n_cores")
+  if (!is.null(seed) &&
+      !(is.numeric(seed) && length(seed) == 1L && is.finite(seed) &&
+        abs(seed - round(seed)) < sqrt(.Machine$double.eps))) {
+    .ho_bad_input("`seed` must be NULL or one whole number")
+  }
   data <- .ho_sequence_input(data, action = action, actor = actor,
                              time = time, session = session,
                              time_threshold = time_threshold,
                              timezone = timezone,
                              models = "decode")
-  data <- .hon_estimator_input(data, check_labels = FALSE)
+  data <- .hon_estimator_input(data, check_labels = FALSE, groups = TRUE)
   .ho_result(Nestimate::markov_order_test(data, max_order = max_order,
                                           n_perm = n_perm, alpha = alpha,
                                           parallel = parallel,
@@ -318,11 +350,18 @@ memory <- function(data, order = 2L, min_count = 5L, base = 2,
                                action = NULL, actor = NULL, time = NULL,
                                session = NULL,
                                time_threshold = 900, timezone = "UTC") {
+  .ho_check_count(order, "order", min = 2)
+  .ho_check_count(min_count, "min_count")
+  if (!(is.numeric(base) && length(base) == 1L && is.finite(base) &&
+        base > 0 && abs(base - 1) > sqrt(.Machine$double.eps))) {
+    .ho_bad_input("`base` must be one positive number other than 1")
+  }
   data <- .ho_sequence_input(data, action = action, actor = actor,
                              time = time, session = session,
                              time_threshold = time_threshold,
                              timezone = timezone,
                              lists = "wide", models = "decode")
+  .hon_check_sequence_source(data)
   # path_dependence() reads a gap as the end of a context already, so the
   # sequences are only checked, not split
   .hon_check_states(unlist(.hon_sequence_values(data), use.names = FALSE))
@@ -344,16 +383,19 @@ memory <- function(data, order = 2L, min_count = 5L, base = 2,
 #'   probabilities are estimated.
 #' @param normalize Logical. Normalise the rows to sum to one. Default
 #'   `TRUE`.
-#' @return A `net_markov_stability` object. Read it with [hg_get()]: one row
-#'   per state (`what = "states"`, the default), the mean first-passage
-#'   times (`"passage_time"`) or the stationary distribution
-#'   (`"stationary"`).
+#' @return A `net_markov_stability` object (a `net_markov_stability_group`
+#'   for a `netobject_group`, one analysis per group). Read it with
+#'   [hg_get()]: one row per state (`what = "states"`, the default), the
+#'   mean first-passage times (`"passage_time"`) or the stationary
+#'   distribution (`"stationary"`); for a group, the same tables stacked
+#'   with a `group` column first.
 #' @section Conditions:
 #' The quantities are defined only for an irreducible chain, one in which
 #' every state can reach every other. A chain that is not irreducible (a
 #' transient or absorbing state, or several closed classes, as a pruned
 #' higher-order network can have) raises `hypergraphs_not_ergodic`, a
-#' `hypergraphs_bad_input`, naming those states.
+#' `hypergraphs_bad_input`, naming those states (and, for a
+#' `netobject_group`, the group).
 #' @references
 #' Kemeny, J. G., & Snell, J. L. (1976). \emph{Finite Markov Chains}.
 #' Springer.
@@ -371,13 +413,22 @@ hg_markov_stability <- function(data, normalize = TRUE,
                                 action = NULL, actor = NULL, time = NULL,
                                 session = NULL,
                                 time_threshold = 900, timezone = "UTC") {
+  .hon_check_flag(normalize, "normalize")
   data <- .ho_sequence_input(data, action = action, actor = actor,
                              time = time, session = session,
                              time_threshold = time_threshold,
                              timezone = timezone,
                              lists = "wide")
   data <- .ho_unresult(data)
-  .hms_check_irreducible(.hms_chain_structure(.hms_support(data)))
+  if (inherits(data, "netobject_group")) {
+    # one chain per group, each checked under its group's name
+    labels <- names(data) %||% as.character(seq_along(data))
+    Map(\(net, label) {
+      .hms_check_irreducible(.hms_chain_structure(net, label), label)
+    }, data, labels)
+  } else {
+    .hms_check_irreducible(.hms_chain_structure(.hms_support(data)))
+  }
   .ho_result(Nestimate::markov_stability(data, normalize = normalize))
 }
 
@@ -393,16 +444,16 @@ hg_markov_stability <- function(data, normalize = TRUE,
 # The chain's structure; a state with no outgoing transition (a dead end a
 # pruned network can leave) is reported by the estimator with a plain error,
 # raised here as hypergraphs_not_ergodic. Every other error passes unchanged.
-.hms_chain_structure <- function(data) {
+.hms_chain_structure <- function(data, label = NULL) {
   tryCatch(Nestimate::chain_structure(data), error = function(e) {
     message <- conditionMessage(e)
     if (!grepl("no outgoing transitions", message, fixed = TRUE)) stop(e)
     dead_ends <- sub(".*for state\\(s\\): ([^.]*)\\..*", "\\1", message)
     stop(errorCondition(sprintf(paste0(
-      "the chain is not irreducible (no outgoing transition from: %s), so ",
+      "%sthe chain is not irreducible (no outgoing transition from: %s), so ",
       "its stationary distribution, return times and passage times are not ",
       "defined. Lower `min_freq` or `max_order` of the network."),
-      dead_ends), class = c("hypergraphs_not_ergodic", "hypergraphs_bad_input"),
+      .hms_group_prefix(label), dead_ends), class = c("hypergraphs_not_ergodic", "hypergraphs_bad_input"),
       call = NULL))
   })
 }
@@ -410,7 +461,7 @@ hg_markov_stability <- function(data, normalize = TRUE,
 # The stationary distribution, return and passage times exist only for an
 # irreducible chain (Kemeny & Snell 1976); a chain that is not is refused
 # with the states that break it.
-.hms_check_irreducible <- function(structure) {
+.hms_check_irreducible <- function(structure, label = NULL) {
   if (isTRUE(structure$is_irreducible)) return(invisible(NULL))
   name_some <- function(states) {
     shown <- utils::head(states, 5L)
@@ -425,9 +476,14 @@ hg_markov_stability <- function(data, normalize = TRUE,
     if (length(transient)) sprintf("transient: %s", name_some(transient)),
     if (length(absorbing)) sprintf("absorbing: %s", name_some(absorbing)))
   stop(errorCondition(sprintf(paste0(
-    "the chain is not irreducible (%s), so its stationary distribution, ",
+    "%sthe chain is not irreducible (%s), so its stationary distribution, ",
     "return times and passage times are not defined. Lower `min_freq` or ",
     "`max_order` of the network, or analyse one recurrent class."),
-    paste(parts, collapse = "; ")),
+    .hms_group_prefix(label), paste(parts, collapse = "; ")),
     class = c("hypergraphs_not_ergodic", "hypergraphs_bad_input"), call = NULL))
+}
+
+# "group <name>: " in front of a message about one group's chain.
+.hms_group_prefix <- function(label) {
+  if (is.null(label)) "" else sprintf("group \"%s\": ", label)
 }

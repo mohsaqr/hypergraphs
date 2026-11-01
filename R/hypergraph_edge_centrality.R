@@ -74,71 +74,75 @@ hg_edge_centrality <- function(hg, s = 1L,
     return(data.frame(edge = character(), s = integer(), measure = character(),
                       value = numeric(), stringsAsFactors = FALSE))
   }
-  rows <- list()
-  cursor <- 1L
-  for (ss in as.integer(s)) {
-    line <- hg_line_graph(hg, s = ss, what = "matrix")
-    line <- (line != 0) * 1
-    n_line <- nrow(line)
-    # HypergraphX delegates these measures to NetworkX.  In particular,
-    # NetworkX normalizes undirected betweenness by 2 / ((n - 1)(n - 2))
-    # and applies the Wasserman--Faust disconnected-graph correction to
-    # closeness.  cograph deliberately uses a general max-normalization for
-    # most measures, so request raw graph scores here and apply the paper's
-    # conventions explicitly.
-    # The line graph goes to cograph as an edge list, which a sparse
-    # incidence yields without densifying; a hyperedge with no s-neighbour
-    # is absent from it and scores 0 below, as in NetworkX.
-    triplet <- .thg_general_triplet(line)
-    upper <- triplet@i < triplet@j
-    line_edges <- data.frame(from = rownames(line)[triplet@i[upper] + 1L],
-                             to = rownames(line)[triplet@j[upper] + 1L],
-                             weight = rep(1, sum(upper)),
-                             stringsAsFactors = FALSE)
-    component_size <- NULL
-    if (normalized && "closeness" %in% measure && n_line > 0L) {
-      membership <- .thg_edge_list_components(triplet@i[upper] + 1L,
-                                              triplet@j[upper] + 1L, n_line)
-      component_size <- tabulate(membership)[membership]
-      names(component_size) <- rownames(line)
-    }
-    for (metric in measure) {
-      value <- if (nrow(line_edges) == 0L) {
-        stats::setNames(numeric(n_line), rownames(line))
-      } else {
-        switch(metric,
-          betweenness = cograph::centrality_betweenness(
-            line_edges, weighted = FALSE, directed = FALSE, normalized = FALSE
-          ),
-          closeness = cograph::centrality_closeness(
-            line_edges, weighted = FALSE, directed = FALSE,
-            normalized = normalized
-          )
-        )
-      }
-      value <- stats::setNames(as.numeric(value[rownames(line)]),
-                               rownames(line))
-      if (normalized && identical(metric, "betweenness")) {
-        scale <- if (n_line > 2L) 2 / ((n_line - 1) * (n_line - 2)) else 1
-        value <- value * scale
-      }
-      if (normalized && identical(metric, "closeness") && n_line > 1L) {
-        value <- value * (component_size[names(value)] - 1) / (n_line - 1)
-      }
-      value[!is.finite(value)] <- 0
-      tab <- data.frame(
-        edge = colnames(line), s = ss, measure = metric,
-        value = as.numeric(value[colnames(line)]), stringsAsFactors = FALSE
-      )
-      tab <- tab[.ho_order(-tab$value, tab$edge), , drop = FALSE]
-      if (!is.null(top)) tab <- utils::head(tab, as.integer(top))
-      rows[[cursor]] <- tab
-      cursor <- cursor + 1L
-    }
-  }
+  rows <- lapply(as.integer(s), \(ss) {
+    .thg_edge_centrality_one(hg, ss, measure, normalized, top)
+  })
+  rows <- unlist(rows, recursive = FALSE)
   out <- do.call(rbind, rows)
   rownames(out) <- NULL
   out
+}
+
+# Betweenness and closeness of the hyperedges at one threshold `ss`: a list
+# of one tidy table per requested measure, each ranked by value.
+.thg_edge_centrality_one <- function(hg, ss, measure, normalized, top) {
+  line <- hg_line_graph(hg, s = ss, what = "matrix")
+  line <- (line != 0) * 1
+  n_line <- nrow(line)
+  # HypergraphX delegates these measures to NetworkX.  In particular,
+  # NetworkX normalizes undirected betweenness by 2 / ((n - 1)(n - 2))
+  # and applies the Wasserman--Faust disconnected-graph correction to
+  # closeness.  cograph deliberately uses a general max-normalization for
+  # most measures, so request raw graph scores here and apply the paper's
+  # conventions explicitly.
+  # The line graph goes to cograph as an edge list, which a sparse
+  # incidence yields without densifying; a hyperedge with no s-neighbour
+  # is absent from it and scores 0 below, as in NetworkX.
+  triplet <- .thg_general_triplet(line)
+  upper <- triplet@i < triplet@j
+  line_edges <- data.frame(from = rownames(line)[triplet@i[upper] + 1L],
+                           to = rownames(line)[triplet@j[upper] + 1L],
+                           weight = rep(1, sum(upper)),
+                           stringsAsFactors = FALSE)
+  component_size <- NULL
+  if (normalized && "closeness" %in% measure && n_line > 0L) {
+    membership <- .thg_edge_list_components(triplet@i[upper] + 1L,
+                                            triplet@j[upper] + 1L, n_line)
+    component_size <- tabulate(membership)[membership]
+    names(component_size) <- rownames(line)
+  }
+  lapply(measure, \(metric) {
+    value <- if (nrow(line_edges) == 0L) {
+      stats::setNames(numeric(n_line), rownames(line))
+    } else {
+      switch(metric,
+        betweenness = cograph::centrality_betweenness(
+          line_edges, weighted = FALSE, directed = FALSE, normalized = FALSE
+        ),
+        closeness = cograph::centrality_closeness(
+          line_edges, weighted = FALSE, directed = FALSE,
+          normalized = normalized
+        )
+      )
+    }
+    value <- stats::setNames(as.numeric(value[rownames(line)]),
+                             rownames(line))
+    if (normalized && identical(metric, "betweenness")) {
+      scale <- if (n_line > 2L) 2 / ((n_line - 1) * (n_line - 2)) else 1
+      value <- value * scale
+    }
+    if (normalized && identical(metric, "closeness") && n_line > 1L) {
+      value <- value * (component_size[names(value)] - 1) / (n_line - 1)
+    }
+    value[!is.finite(value)] <- 0
+    tab <- data.frame(
+      edge = colnames(line), s = ss, measure = metric,
+      value = as.numeric(value[colnames(line)]), stringsAsFactors = FALSE
+    )
+    tab <- tab[.ho_order(-tab$value, tab$edge), , drop = FALSE]
+    if (!is.null(top)) tab <- utils::head(tab, as.integer(top))
+    tab
+  })
 }
 
 # Connected components of an undirected graph on `n` vertices given as an

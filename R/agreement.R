@@ -233,7 +233,10 @@
 #'   `aligned` (nodes that stay with the majority of their `x` label in
 #'   `y` -- the sum of `overlap` over `what = "mapping"`, so a
 #'   label-name-free count of how many nodes a re-fit keeps together)
-#'   and the requested measure columns. For `what = "table"`: one row per
+#'   and the requested measure columns (`NA`, with a
+#'   `hypergraphs_undefined_statistic` warning, when the labelings share a
+#'   single node, since the measures compare pairs of nodes). For
+#'   `what = "table"`: one row per
 #'   label pair with columns `label_x`, `label_y` and `n`. For
 #'   `what = "mapping"`: one row per label of `x` with columns `label_x`,
 #'   `n` (its nodes), `label_y` (the label of `y` holding most of them),
@@ -315,9 +318,22 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
     agreement = mean(joined$label_x == joined$label_y),
     aligned = as.integer(sum(apply(cross, 1L, max)))
   )
-  if ("ari" %in% method) out$ari <- .thg_ari(joined$label_x, joined$label_y)
-  if ("ami" %in% method) out$ami <- .thg_ami(joined$label_x, joined$label_y)
-  if ("nmi" %in% method) out$nmi <- .thg_nmi(joined$label_x, joined$label_y)
+  # The indices compare how two labelings group pairs of nodes; one shared
+  # node has no pair, so they are undefined there, not perfect (as in
+  # hg_compare_communities()).
+  defined <- nrow(joined) >= 2L
+  if (!defined) {
+    warning(warningCondition(paste0(
+      "`x` and `y` share one node; the ARI, AMI and NMI compare pairs of ",
+      "nodes and are NA"), class = "hypergraphs_undefined_statistic",
+      call = NULL))
+  }
+  score <- function(metric) {
+    if (defined) metric(joined$label_x, joined$label_y) else NA_real_
+  }
+  if ("ari" %in% method) out$ari <- score(.thg_ari)
+  if ("ami" %in% method) out$ami <- score(.thg_ami)
+  if ("nmi" %in% method) out$nmi <- score(.thg_nmi)
   out
 }
 
@@ -403,7 +419,8 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
 #'   labels included) and `ari` (their adjusted Rand index).
 #'
 #'   Raises `hypergraphs_bad_input` for a `fraction` outside (0, 1), a
-#'   subsample too small to hold `k` clusters, a non-positive `n_boot`, or
+#'   subsample too small to hold `k` clusters, a non-positive `n_boot`,
+#'   `seeds` that are not two distinct finite numbers, or
 #'   `what = "clusters"` with `resample = "seeds"`.
 #' @references
 #' Hennig, C. (2007). Cluster-wise assessment of cluster stability.
@@ -441,11 +458,10 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
     .thg_bad_input("`k` must be a vector of whole-number cluster counts, each at least 2")
   }
   if (identical(resample, "seeds")) {
-    stopifnot(
-      "`seeds` must be two distinct seeds" =
-        is.numeric(seeds) && length(seeds) == 2L &&
-          !isTRUE(all.equal(seeds[[1]], seeds[[2]]))
-    )
+    if (!(is.numeric(seeds) && length(seeds) == 2L && all(is.finite(seeds)) &&
+          !isTRUE(all.equal(seeds[[1]], seeds[[2]])))) {
+      .thg_bad_input("`seeds` must be two distinct finite seeds")
+    }
     if (identical(what, "clusters")) {
       .thg_bad_input(paste0("`what = \"clusters\"` needs `resample = ",
                             "\"subset\"`; the seed check has one row per k"))
@@ -470,10 +486,7 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
 
   # the subsamples, drawn once from `seed` and shared by every k; the
   # caller's stream is restored on exit (hg_cluster() also calls set.seed())
-  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
-  saved_seed <- if (had_seed) get(".Random.seed", envir = globalenv())
-  on.exit(.thg_rng_restore(had_seed, saved_seed), add = TRUE)
-  set.seed(seed)
+  .ho_local_seed(seed)
   draws <- lapply(seq_len(n_boot), \(b) sample(n, m))
 
   # a tie at k on the full hypergraph is reported in the one summary
@@ -665,11 +678,12 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
 #' hg_seeds(pool, n = 1)
 #' @export
 hg_seeds <- function(embedding, n = 5L) {
-  stopifnot(
-    "`embedding` must be the data.frame from hg_cluster(what = \"embedding\") (columns `node`, `cluster`, `pi`)" =
-      is.data.frame(embedding) &&
-        all(c("node", "cluster", "pi") %in% names(embedding))
-  )
+  if (!(is.data.frame(embedding) &&
+        all(c("node", "cluster", "pi") %in% names(embedding)))) {
+    .thg_bad_input(paste0(
+      "`embedding` must be the data.frame from hg_cluster(what = ",
+      "\"embedding\") (columns `node`, `cluster`, `pi`)"))
+  }
   n <- .ho_check_count(n, "n")
   chosen <- do.call(rbind, lapply(split(embedding, embedding$cluster), \(g)
     utils::head(g[.ho_order(-g$pi, g$node), , drop = FALSE], n)))

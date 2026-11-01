@@ -24,18 +24,20 @@ simplicial degree of every node (the table of \code{\link[=hg_degree]{hg_degree(
 \code{"validation"} for the tests of a window complex built with
 \code{validate = TRUE}.}
 
-\item{...}{Additional arguments (ignored).}
+\item{...}{Not used; an unknown argument is refused with
+\code{hypergraphs_bad_input}.}
 
 \item{dimension}{Integer or \code{NULL}. For \code{what = "simplices"}: keep only
 simplices of this dimension (\code{0} vertices, \code{1} edges, \code{2} triangles).
-For \code{what = "validation"}: keep only the sets of \code{dimension + 1} actions.}
+For \code{what = "validation"}: keep only the sets of \code{dimension + 1} actions.
+Given with another table it is refused with \code{hypergraphs_bad_input}.}
 
 \item{normalized}{Logical. Only for \code{what = "degree"}: divide each count
-by its largest possible value. Default \code{FALSE}.}
+by its largest possible value. Default \code{FALSE}. Set to \code{TRUE} with
+another table it is refused with \code{hypergraphs_bad_input}.}
 
-\item{top}{Integer or \code{NULL}. Return only the first \code{top} rows,
-applied after any filter and after \code{sort_by}, so \code{sort_by} and
-\code{top} compose. Default \code{NULL} returns every row.}
+\item{top}{Integer or \code{NULL}. Return only the first \code{top} rows, applied
+after the \code{dimension} filter. Default \code{NULL} returns every row.}
 }
 \value{
 A data.frame. For \code{what = "simplices"}, one row per simplex:

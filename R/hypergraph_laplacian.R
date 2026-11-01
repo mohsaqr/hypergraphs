@@ -287,32 +287,11 @@ hg_laplacian <- function(hg,
   normalization <- match.arg(normalization)
   .hl_validate_hg(hg)
   .hl_require_dense(hg, "the dense transduction engine")
-  stopifnot(
-    "`xi` must be a single number in (0, 1)" =
-      is.numeric(xi) && length(xi) == 1L && xi > 0 && xi < 1
-  )
+  .hl_check_xi(xi)
   n <- hg$n_nodes
   nodes <- hg$nodes
-
-  # Normalize `labels` to a full-length character vector with NAs
-  lab <- if (!is.null(names(labels))) {
-    labels <- .thg_known_assignment(labels, nodes, hg, arg = "labels")
-    full <- rep(NA_character_, n)
-    full[match(names(labels), nodes)] <- as.character(labels)
-    full
-  } else {
-    if (length(labels) != n) {
-      stop(sprintf(paste0("Unnamed `labels` must have length n_nodes ",
-                          "(= %d), got %d."), n, length(labels)),
-           call. = FALSE)
-    }
-    as.character(labels)
-  }
+  lab <- .hl_full_labels(labels, nodes, hg)
   classes <- .ho_sort(unique(lab[!is.na(lab)]))
-  if (length(classes) < 2L) {
-    stop("`labels` must contain at least two distinct classes.",
-         call. = FALSE)
-  }
 
   parts <- .hl_build(hg, type = type, edge_weights = edge_weights)
   S <- diag(n) - (parts$L + t(parts$L)) / 2
@@ -340,6 +319,39 @@ hg_laplacian <- function(hg,
 }
 
 # ---- Internal machinery -------------------------------------------------
+
+# The spreading coefficient of the transduction engines: one number in
+# (0, 1). Shared by .hg_transduction_fit() and .thg_sparse_transduction().
+.hl_check_xi <- function(xi) {
+  xi <- .ho_check_number(xi, "xi", min = 0, max = 1)
+  if (!(xi > 0 && xi < 1)) .ho_input_error("`xi` must be strictly between 0 and 1")
+  xi
+}
+
+# `labels` as one character label per node (NA = unlabelled), from a named
+# vector over (a subset of) the nodes or an unnamed vector aligned with
+# them; at least two distinct classes must be labelled. Shared by the dense
+# and sparse transduction engines.
+.hl_full_labels <- function(labels, nodes, hg) {
+  n <- length(nodes)
+  lab <- if (!is.null(names(labels))) {
+    labels <- .thg_known_assignment(labels, nodes, hg, arg = "labels")
+    full <- rep(NA_character_, n)
+    full[match(names(labels), nodes)] <- as.character(labels)
+    full
+  } else {
+    if (length(labels) != n) {
+      .ho_input_error(sprintf(paste0(
+        "Unnamed `labels` must have length n_nodes (= %d), got %d."),
+        n, length(labels)))
+    }
+    as.character(labels)
+  }
+  if (length(unique(lab[!is.na(lab)])) < 2L) {
+    .ho_input_error("`labels` must contain at least two distinct classes.")
+  }
+  lab
+}
 
 # Decision rule on a node x class score matrix. "none" is the Zhou (2007)
 # argmax on the raw spread scores; "class_mass" first divides each class
@@ -381,12 +393,11 @@ hg_laplacian <- function(hg,
 #' Validate a net_hg for spectral work (connected, non-degenerate)
 #' @noRd
 .hl_validate_hg <- function(hg) {
-  stopifnot(
-    "`hg` must be a net_hg (network_hypergraph/group_hypergraph)" =
-      inherits(hg, "net_hg"),
-    "`hg` must have at least 2 nodes" = hg$n_nodes >= 2L,
-    "`hg` must have at least 1 hyperedge" = hg$n_hyperedges >= 1L
-  )
+  .thg_check_hg(hg)
+  if (hg$n_nodes < 2L) .ho_input_error("`hg` must have at least 2 nodes")
+  if (hg$n_hyperedges < 1L) {
+    .ho_input_error("`hg` must have at least 1 hyperedge")
+  }
   if (!.hl_connected(hg)) {
     stop(errorCondition(
       paste0("The hypergraph is not connected; the random walk has no ",
@@ -625,12 +636,14 @@ hg_laplacian <- function(hg,
 #' @noRd
 .hl_check_edge_weights <- function(edge_weights, m) {
   if (is.null(edge_weights)) return(NULL)
-  stopifnot(
-    "`edge_weights` must be positive numeric, length 1 or one per hyperedge" =
-      is.numeric(edge_weights) &&
-      (length(edge_weights) == 1L || length(edge_weights) == m) &&
-      all(is.finite(edge_weights)) && all(edge_weights > 0)
-  )
+  ok <- is.numeric(edge_weights) && !is.factor(edge_weights) &&
+    (length(edge_weights) == 1L || length(edge_weights) == m) &&
+    all(is.finite(edge_weights)) && all(edge_weights > 0)
+  if (!ok) {
+    .ho_input_error(sprintf(paste0(
+      "`edge_weights` must be positive finite numbers, one or one per ",
+      "hyperedge (%d)"), m))
+  }
   if (length(edge_weights) == 1L) {
     edge_weights <- rep(as.numeric(edge_weights), m)
   }
@@ -733,14 +746,18 @@ plot.net_hg_cluster <- function(x,
   what <- .ho_match_what(what)
   has_spectrum <- any(is.finite(x$eigenvalues))
   if (!has_spectrum && what == "spectrum") {
-    stop("This clustering objective has no Laplacian spectrum; use `what = \"embedding\"`.",
-         call. = FALSE)
+    .ho_input_error(paste0("This clustering objective has no Laplacian ",
+                           "spectrum; use `what = \"embedding\"`."))
   }
   if (!has_spectrum && what == "both") what <- "embedding"
   okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
              "#D55E00", "#CC79A7", "#999999", "#000000")
 
-  n_show <- as.integer(n_values %||% min(3L * x$k, x$n_nodes))
+  # a sparse fit computes only the k + 1 smallest eigenvalues, so the
+  # panel never asks for more than the fit holds
+  n_show <- min(.ho_check_count(n_values %||% min(3L * x$k, x$n_nodes),
+                                "n_values"),
+                length(x$eigenvalues))
   df_s <- data.frame(
     index = seq_len(n_show),
     value = x$eigenvalues[seq_len(n_show)],

@@ -1024,3 +1024,16 @@ test_that("hg_get() never reads a fractional dimension as another one", {
   expect_error(hg_get(validated, what = "validation", dimension = 1.5),
                class = "hypergraphs_bad_input")
 })
+
+test_that("hg_get() refuses a filter the chosen table does not read", {
+  sc <- simplicial(.make_sc_mat())
+  expect_error(hg_get(sc, what = "f_vector", dimension = 1),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(sc, what = "betti", normalized = TRUE),
+               class = "hypergraphs_bad_input")
+  expect_error(hg_get(sc, normalized = TRUE), class = "hypergraphs_bad_input")
+  expect_identical(hg_get(sc, what = "degree", normalized = TRUE),
+                   hg_degree(sc, normalized = TRUE))
+  expect_error(hg_get(hg_homology(.make_sc_mat()), sort_by = "birth"),
+               class = "hypergraphs_bad_input")
+})

@@ -43,8 +43,9 @@ literature, which reports it.}
 \item{n}{Number of null samples: one whole number >= 19 (default
 \code{199L}).}
 
-\item{seed}{Seed for the null draws; set it for a reproducible test.
-The global RNG state is restored on exit.}
+\item{seed}{\code{NULL} (default: the current random stream) or one whole
+number seeding the null draws; set it for a reproducible test. The
+caller's random number stream is restored on exit.}
 
 \item{alternative}{\code{"two_sided"} (default), \code{"greater"}, or \code{"less"}.}
 }
@@ -77,7 +78,8 @@ observed value within the null distribution.
 }
 \section{Conditions}{
  Raises \code{hypergraphs_bad_input} for broken contracts,
-including an \code{n} that is not one whole number >= 19 and a request for
+including an \code{n} that is not one whole number >= 19, a \code{seed} that is
+not \code{NULL} or one whole number, and a request for
 \code{"density"} or \code{"avg_edge_size"} (see Description), whatever the storage
 of the incidence matrix.
 \code{"avg_jaccard"} on fewer than two hyperedges is undefined in every null

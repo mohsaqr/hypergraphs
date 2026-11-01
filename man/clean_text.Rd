@@ -46,9 +46,12 @@ numbers (\verb{3.2.1}) (default \code{TRUE}).}
 (default \code{TRUE}).}
 
 \item{copyright}{Remove a trailing copyright notice: everything from the
-last copyright sign, \code{(c)} or \code{Copyright} to the end when that tail is
-under \code{copyright_max} characters, plus "All rights reserved" (default
-\code{TRUE}).}
+last notice to the end when that tail is under \code{copyright_max}
+characters, plus "All rights reserved" (default \code{TRUE}). A notice starts
+at a copyright sign, or at \code{(c)} or the word \code{Copyright} followed by a
+year, a copyright sign or "the author(s)" (\verb{(c) 2021 Informa},
+\verb{Copyright: (c) 2020}, \verb{Copyright the authors}), so a list item
+"(c)" or a sentence about copyright is kept.}
 
 \item{copyright_max}{Longest tail treated as a notice (default \code{300}).}
 
@@ -82,7 +85,9 @@ own boilerplate. Default \code{NULL}.}
 \item{min_chars}{Minimum number of characters for a word to be kept
 (default \code{0L}, keep everything). Raise it to drop the single letters and
 short fragments left by initials, enumerations and hyphenated line
-breaks; \code{min_chars = 3} keeps words of three characters or more.}
+breaks; \code{min_chars = 3} keeps words of three characters or more. A
+letter joined to digits is one word with them (\code{p53} has three
+characters); digits alone are a number, left to \code{numbers}.}
 
 \item{min_content}{Minimum share of alphabetic characters among
 non-space characters, judged on the repaired text before numbers are

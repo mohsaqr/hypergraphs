@@ -54,13 +54,15 @@ test_that("the long route builds the sequences build_network() builds", {
                       actor = c("project", "session_id"),
                       time = "order_in_session")
   )
-  # a gap of more than 900 seconds starts a new sequence; the session column
-  # is found by its name when `session` is NULL
-  expect_identical(unname(n), c(429L, 526L, 429L, 429L, 429L, 429L))
-  # an `action` column is found by its name too
+  # a gap of more than 900 seconds starts a new sequence; a session column
+  # counts only when it is declared, so `project` alone joins its sessions
+  expect_identical(unname(n), c(429L, 526L, 429L, 34L, 429L, 429L))
+  # names give no role: an `action` column has to be declared
   renamed <- human_long
   names(renamed)[names(renamed) == "code"] <- "action"
-  expect_identical(.ho_sequence_input(renamed, actor = "session_id",
+  expect_error(.ho_sequence_input(renamed), class = "hypergraphs_long_format")
+  expect_identical(.ho_sequence_input(renamed, action = "action",
+                                      actor = "session_id",
                                       time = "order_in_session"),
                    .ho_sequence_input(human_long, action = "code",
                                       actor = "session_id",
@@ -70,12 +72,12 @@ test_that("the long route builds the sequences build_network() builds", {
                         time = "when"), 12L)
 })
 
-test_that("session = FALSE switches the session detection off", {
+test_that("session = FALSE means no session, the same as NULL", {
   by_project <- .ho_sequence_input(human_long, action = "code",
                                    actor = "project",
                                    time = "order_in_session",
                                    session = FALSE)
-  # without the session column there is nothing to detect: the same call
+  # without the session column the call is the same
   without <- human_long[setdiff(names(human_long), "session_id")]
   net <- Nestimate::build_network(without, method = "relative",
                                   action = "code", actor = "project",

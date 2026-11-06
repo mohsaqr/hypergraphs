@@ -320,7 +320,8 @@ plot.hypergraphs_series <- function(x, columns = NULL, facets = TRUE, ...) {
 #' @return A ggplot object.
 #' @examples
 #' hg <- group_hypergraph(data.frame(node = c("a", "b", "c", "a", "c", "d"),
-#'                                   hyperedge = c(1, 1, 1, 2, 2, 2)))
+#'                                   hyperedge = c(1, 1, 1, 2, 2, 2)),
+#'                        node = "node", hyperedge = "hyperedge")
 #' plot(hg_edges(hg, what = "distribution"))
 #' @keywords internal
 #' @export

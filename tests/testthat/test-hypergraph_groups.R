@@ -440,19 +440,21 @@ test_that("edge attributes do not depend on row order (R05)", {
   expect_identical(picked$n_hyperedges, 1L)
 })
 
-test_that("the canonical node and hyperedge columns are detected (R20)", {
+test_that("the node and hyperedge columns are declared", {
   d <- data.frame(node = c("a", "b", "c"), hyperedge = c("e", "e", "f"))
-  detected <- group_hypergraph(d)
-  expect_identical(detected, group_hypergraph(d, node = "node",
-                                              hyperedge = "hyperedge"))
-  mixed <- data.frame(Node = c("a", "b"), HyperEdge = c("e", "e"))
-  expect_identical(group_hypergraph(mixed)$n_hyperedges, 1L)
-  # an explicit name still wins over detection
+  # names give no role
+  expect_error(group_hypergraph(d), class = "hypergraphs_bad_input")
+  expect_error(group_hypergraph(data.frame(from = "a", to = "b")),
+               class = "hypergraphs_bad_input")
+  expect_identical(group_hypergraph(d, node = "node",
+                                    hyperedge = "hyperedge")$n_hyperedges, 2L)
   d$team <- c("t1", "t1", "t1")
   expect_identical(group_hypergraph(d, node = "node", hyperedge = "team")$n_hyperedges,
                    1L)
   td <- data.frame(node = c("a", "b"), hyperedge = c("e", "e"), time = c(1, 1))
-  expect_identical(temporal_hypergraph(td)$edges, "e")
+  expect_error(temporal_hypergraph(td), class = "hypergraphs_bad_input")
+  expect_identical(temporal_hypergraph(td, node = "node", hyperedge = "hyperedge",
+                                       time = "time")$edges, "e")
 })
 
 test_that("group_hypergraph() reports the rows it drops for missing values", {

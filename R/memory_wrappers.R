@@ -18,10 +18,11 @@
 #'     identify whose events they are, `session` the column (or columns)
 #'     that split an actor's events into sessions, and `time` the column
 #'     that orders them: timestamps in any common date-time format, Unix
-#'     times, or positions; row order when `NULL`. A column named
-#'     `action`, `time`, `session` or `session_id` (in any case) is used
-#'     when its argument is `NULL`; `session = FALSE` switches the session
-#'     detection off. When `time` is given, a gap of more than
+#'     times, or positions; row order when `NULL`. Column names give no
+#'     role: a column called `action` that is not declared raises
+#'     `hypergraphs_long_format`, and an undeclared `time`, `session` or
+#'     `session_id` column beside `action` is named in a message of class
+#'     `hypergraphs_column_role` and not used. When `time` is given, a gap of more than
 #'     `time_threshold` seconds between consecutive events starts a new
 #'     sequence (default `900`, fifteen minutes); `time_threshold = FALSE`
 #'     keeps each actor or session in one sequence however long the gaps.

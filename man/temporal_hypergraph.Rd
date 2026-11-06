@@ -33,15 +33,12 @@ temporal_hypergraph(
 (a wide data frame of states, a list of character vectors, or a \code{tna} /
 \code{netobject} model); see Details.}
 
-\item{from, to}{Column names of a pairwise edge list. Detected from the
-alias table when neither is given and \code{node}/\code{hyperedge} are not named.}
+\item{from, to}{Column names of a pairwise edge list. Column names give no
+role, so a relational table names either these two or \code{node} and
+\code{hyperedge}; otherwise it raises \code{hypergraphs_bad_input}.}
 
 \item{node, hyperedge}{Column names of membership data: the node, and the
-grouping whose shared values bind nodes into one hyperedge. Naming
-either selects the membership format; the other is then detected by
-alias if not given. When no column is named and no edge list is
-detected, both are detected by alias (\code{node}, \code{actor}, \code{person}, ...
-and \code{hyperedge}, \code{group}, \code{event}, ...), as \code{\link[=group_hypergraph]{group_hypergraph()}} does.}
+grouping whose shared values bind nodes into one hyperedge. Name both.}
 
 \item{time}{Column with the instant of a contact hyperedge.}
 
@@ -51,9 +48,9 @@ and \code{hyperedge}, \code{group}, \code{event}, ...), as \code{\link[=group_hy
 \item{weight}{Optional membership-weight column.}
 
 \item{nodes}{Optional node universe: a character vector of node names, or
-a data frame whose first column holds the names and whose \code{start},
-\code{time} or \code{date} column, if present, gives the time each node enters (on
-the same clock as \code{data}). Nodes that never appear in a hyperedge are
+a data frame whose first column holds the names and whose \code{start} column,
+if present, gives the time each node enters (on the same clock as \code{data}).
+Nodes that never appear in a hyperedge are
 then kept as zero-degree nodes of every snapshot, and \code{\link[=hg_growth]{hg_growth()}}
 counts a node from its own start. Every observed node must be in the
 universe.}
@@ -128,8 +125,10 @@ data: ask for it with \code{mode = "cumulative"} in \code{\link[=hg_snapshot]{hg
 A third shape is a \strong{sequence table}: one row per session and one column
 per position holding the state at that step (the wide format of tna and
 TraMineR), a list of character vectors, or a \code{tna} / \code{netobject} model
-built from one. It is recognised when no relational column is named or
-detected and every column is categorical. Each session is one hyperedge
+built from one. It is recognised when no column is named, none is called
+like a relational or clock column (\code{from}, \code{time}, \code{actor} with \code{group}, ...;
+such a table raises \code{hypergraphs_bad_input} so its columns get declared), and
+every column is categorical. Each session is one hyperedge
 whose members are the states it contains, and a state's membership is a
 contact at its position, \code{1} to the session's length, on a \code{"step"}
 clock: the simple co-occurrence reading in which time is order.
@@ -143,10 +142,8 @@ shown by \code{t}, and \code{window = 3} at \code{t} is what it showed on steps 
 \code{t + 2}. When every membership carries its hyperedge's time, as a
 tribunal or a citation block does, nothing changes.
 
-Column names are resolved case-insensitively from the same alias table
-Dynet uses, so \code{Sender}/\code{Receiver}, \code{source}/\code{target}, \code{onset}/\code{terminus}
-and \code{timestamp} are understood without being spelled out; a name you give
-explicitly must exist as written. Times may be numeric, \code{Date}, \code{POSIXct}
+Column names give no role: the columns of a table are named in the call, and
+a name you give must exist as written. Times may be numeric, \code{Date}, \code{POSIXct}
 or character date-time strings. Numeric times are kept as they are and
 reported in \code{"step"} units; calendar input is converted to elapsed time
 since the earliest time in the data, in a unit chosen for the span

@@ -191,7 +191,8 @@ test_that("data.frame input is unchanged (frozen before the clustering branch)",
                          node = "ref", hyperedge = "blk", separator = ";"),
     f = group_hypergraph(df, "person", "session",
                          nodes = c("Alice", "Bob", "Carol", "Dave", "Eve", "Zed")),
-    g = group_hypergraph(data.frame(from = c("a", "b"), to = c("b", "c")))
+    g = group_hypergraph(data.frame(from = c("a", "b"), to = c("b", "c")),
+                         from = "from", to = "to")
   )
   for (n in names(frozen)) expect_identical(now[[n]], frozen[[n]], label = n)
 })

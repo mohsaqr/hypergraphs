@@ -34,10 +34,8 @@ hypergraph's nodes (people, events, words, items).}
 
 \item{hyperedge}{Character. Name of the column whose shared values bind
 nodes into one hyperedge (sessions, trials, teams, citation blocks).
-When neither pair of columns is named, \code{from} and \code{to} are detected
-case-insensitively from the alias table \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} uses
-(\code{source}/\code{target}, \code{sender}/\code{receiver}, ...), and failing that \code{node}
-and \code{hyperedge}.}
+Column names give no role: name \code{node} and \code{hyperedge}, or \code{from} and
+\code{to}; otherwise it raises \code{hypergraphs_bad_input}.}
 
 \item{weight}{Character or \code{NULL}. If supplied, the column is summed per
 \verb{(node, hyperedge)} pair to produce a weighted incidence matrix. Default

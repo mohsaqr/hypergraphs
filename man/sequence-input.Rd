@@ -15,10 +15,11 @@ names the state column, \code{actor} the column (or columns) that
 identify whose events they are, \code{session} the column (or columns)
 that split an actor's events into sessions, and \code{time} the column
 that orders them: timestamps in any common date-time format, Unix
-times, or positions; row order when \code{NULL}. A column named
-\code{action}, \code{time}, \code{session} or \code{session_id} (in any case) is used
-when its argument is \code{NULL}; \code{session = FALSE} switches the session
-detection off. When \code{time} is given, a gap of more than
+times, or positions; row order when \code{NULL}. Column names give no
+role: a column called \code{action} that is not declared raises
+\code{hypergraphs_long_format}, and an undeclared \code{time}, \code{session} or
+\code{session_id} column beside \code{action} is named in a message of class
+\code{hypergraphs_column_role} and not used. When \code{time} is given, a gap of more than
 \code{time_threshold} seconds between consecutive events starts a new
 sequence (default \code{900}, fifteen minutes); \code{time_threshold = FALSE}
 keeps each actor or session in one sequence however long the gaps.

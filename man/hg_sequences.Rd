@@ -66,10 +66,8 @@ hon(seqs, action = "action", actor = "actor", time = "time")
 }\if{html}{\out{</div>}}
 
 Those three column names are fixed, which is what makes the second call
-the same every time. Name all three: the memory verbs find the \code{action}
-and \code{time} columns by name on their own but not the \code{actor} column, so a
-call without \code{actor = "actor"} joins every actor's documents into one
-sequence.
+the same every time. Name all three: column names give no role, and a call
+without \code{actor = "actor"} joins every actor's documents into one sequence.
 
 This closes the one missing edge in the cross-family design:
 \code{hg_get(x, what = "pathways")} bridges the memory family to the others and \code{\link[=window_hypergraph]{window_hypergraph()}} bridges

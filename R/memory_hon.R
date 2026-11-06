@@ -505,7 +505,7 @@
   for (source_key in ls(distr)) {
     source <- .hon_decode(source_key)
     src_len <- length(source)
-    if (src_len > 1L) {
+    if (src_len > 1L && length(distr[[source_key]]) > 0L) {
       new_order <- src_len
       order_key <- as.character(new_order)
       # For each suffix (starting positions 2, 3, ..., src_len)

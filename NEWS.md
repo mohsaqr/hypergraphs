@@ -2,6 +2,23 @@
 
 ## Breaking changes
 
+* Column names give no role, as in `Nestimate::build_network()` since Nestimate
+  1.0.7, so the same arguments build the same sequences in both packages. A
+  column called `action`, `time`, `session` or `session_id` was used when its
+  argument was `NULL`. Now a column called `action` that is not declared raises
+  `hypergraphs_long_format`, and an undeclared `time`, `session` or `session_id`
+  column beside `action` is named in a message of class
+  `hypergraphs_column_role` and not used: events follow row order and sessions
+  are not split. Calls that relied on those names need the arguments added.
+  `session = FALSE` now means the same as `NULL`. Requires Nestimate >= 1.0.7.
+* `temporal_hypergraph()`, `group_hypergraph()` and `hypergraph()` on a table no
+  longer detect columns from an alias table (`source`/`target`, `Timestamp`,
+  `onset`/`terminus`, `actor`/`group`, a `weight` column, ...). Name the columns:
+  `from` and `to`, or `node` and `hyperedge`, and `time`, or `start` and `end`.
+  A relational table without them raises `hypergraphs_bad_input`, also when it
+  is all categorical and would otherwise read as sequences. A `weight` column
+  counts only when named. A `nodes` table gives entry times in its `start`
+  column; `time` and `date` are no longer read.
 * `hg_centrality()` now defaults to `type = "clique"`. The `"Z"` and `"H"`
   centralities are defined by Benson (2019) for uniform hypergraphs only:
   with mixed hyperedge sizes the equation mixes polynomial degrees, so its

@@ -146,26 +146,51 @@ test_that(".ho_local_seed refuses a seed that set.seed() would bend", {
   expect_identical(.Random.seed, before)
 })
 
-test_that("a long table found by its column names must name its actor", {
-  # build_network() never detects the actor, so this table used to become
-  # one sequence of both actors' events interleaved, with only a message
+test_that("a long table declares its roles", {
   s <- data.frame(actor = rep(c("ana", "bo"), each = 4), time = rep(1:4, 2),
                   action = c("x", "x", "y", "y", "y", "x", "x", "y"))
   expect_error(.ho_sequence_input(s), class = "hypergraphs_long_format")
   expect_error(hon(s), class = "hypergraphs_long_format")
   expect_error(hon(s), class = "hypergraphs_bad_input")
-  # naming the actor gives one sequence per actor, as build_network() does
-  ours <- .ho_sequence_input(s, actor = "actor", time_threshold = Inf)
+  # a column called action alone is enough to refuse
+  expect_error(.ho_sequence_input(data.frame(action = c("a", "b"), T2 = "c")),
+               class = "hypergraphs_long_format")
+  # other roles mean nothing without action
+  expect_error(.ho_sequence_input(s, actor = "actor"),
+               class = "hypergraphs_bad_input")
+  # declaring the roles gives one sequence per actor, as build_network() does
+  ours <- .ho_sequence_input(s, action = "action", actor = "actor",
+                             time = "time", time_threshold = Inf)
   expect_identical(ours, Nestimate::build_network(
-    s, method = "relative", actor = "actor", time_threshold = Inf)$data)
+    s, method = "relative", action = "action", actor = "actor", time = "time",
+    time_threshold = Inf)$data)
   expect_identical(nrow(ours), 2L)
-  # naming action is the deliberate one-sequence reading
+  # naming action alone is the deliberate one-sequence reading
   expect_message(one <- .ho_sequence_input(s, action = "action", time = "time",
                                            time_threshold = Inf),
                  class = "hypergraphs_single_sequence")
   expect_identical(nrow(one), 1L)
-  # a session column detected as the session is not an undeclared actor
+})
+
+test_that("an undeclared time or session column beside action is named, not used", {
   sess <- data.frame(session_id = rep(c("s1", "s2"), each = 3),
-                     action = c("a", "b", "a", "b", "a", "b"), time = 1:6)
-  expect_no_error(suppressMessages(.ho_sequence_input(sess)))
+                     action = c("a", "b", "a", "b", "a", "b"), time = 6:1,
+                     who = "p")
+  expect_message(
+    undeclared <- .ho_sequence_input(sess, action = "action", actor = "who"),
+    class = "hypergraphs_column_role")
+  # row order, one sequence
+  expect_identical(nrow(undeclared), 1L)
+  expect_identical(unlist(undeclared[paste0("T", 1:6)], use.names = FALSE),
+                   sess$action)
+  # declared, nothing is announced and the sessions split
+  expect_no_message(
+    declared <- .ho_sequence_input(sess, action = "action", actor = "who",
+                                   session = "session_id", time = "time",
+                                   time_threshold = Inf))
+  expect_identical(nrow(declared), 2L)
+  # the same call gives the same sequences in both packages
+  expect_identical(declared, Nestimate::build_network(
+    sess, method = "relative", action = "action", actor = "who",
+    session = "session_id", time = "time", time_threshold = Inf)$data)
 })

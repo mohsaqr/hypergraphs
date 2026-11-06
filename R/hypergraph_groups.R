@@ -52,10 +52,8 @@
 #'   hypergraph's nodes (people, events, words, items).
 #' @param hyperedge Character. Name of the column whose shared values bind
 #'   nodes into one hyperedge (sessions, trials, teams, citation blocks).
-#'   When neither pair of columns is named, `from` and `to` are detected
-#'   case-insensitively from the alias table [temporal_hypergraph()] uses
-#'   (`source`/`target`, `sender`/`receiver`, ...), and failing that `node`
-#'   and `hyperedge`.
+#'   Column names give no role: name `node` and `hyperedge`, or `from` and
+#'   `to`; otherwise it raises `hypergraphs_bad_input`.
 #' @param weight Character or `NULL`. If supplied, the column is summed per
 #'   `(node, hyperedge)` pair to produce a weighted incidence matrix. Default
 #'   `NULL` produces a 0/1 binary incidence matrix.
@@ -334,15 +332,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   n_source <- nrow(data)
   reported <- NULL
   if (is.null(member) && is.null(hyperedge) && is.null(from) && is.null(to)) {
-    # nothing named: detect an edge list, then co-presence columns
-    from <- .thg_match_column(data, "from")
-    to <- .thg_match_column(data, "to", exclude = from)
-    if (is.null(from) || is.null(to)) {
-      from <- NULL
-      to <- NULL
-      member <- .thg_match_column(data, "actor")
-      hyperedge <- .thg_match_column(data, "group", exclude = member)
-    }
+    .thg_bad_input("name `node` and `hyperedge`, or `from` and `to`: column names are not read")
   }
   if (!is.null(from) || !is.null(to)) {
     if (!is.null(member) || !is.null(hyperedge)) {

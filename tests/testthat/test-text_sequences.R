@@ -296,7 +296,8 @@ test_that("forum_posts topics carry the planted second-order rule", {
     text_hypergraph(forum_posts, column = "text", id = "post"),
     actor = "student", order_by = "turn", state = "topic"
   )
-  fit <- hon(topic_sequences, actor = "actor", max_order = 2L)
+  fit <- hon(topic_sequences, action = "action", actor = "actor", time = "time",
+             max_order = 2L)
   rules <- hg_get(fit, order_min = 2L, sort_by = "probability", top = 6L)
   # the six "two different topics -> the third" rules lead, near 0.8 + 0.2/3
   third <- vapply(seq_len(nrow(rules)), \(i) {

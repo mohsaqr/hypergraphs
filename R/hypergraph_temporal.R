@@ -9,8 +9,9 @@
 }
 
 # ---------------------------------------------------------------------------
-# Column detection: Dynet's alias table (R/detect.R), checked case-
-# insensitively after stripping non-alphanumerics; order is priority order.
+# Column names give no role (2026-11-06, as Nestimate 1.0.7). Dynet's alias table
+# (R/detect.R), compared after stripping non-alphanumerics, only refuses tables
+# whose columns need declaring, and names the clock columns for the plots.
 # ---------------------------------------------------------------------------
 
 .thg_aliases <- list(
@@ -37,6 +38,9 @@
 
 .thg_norm_name <- function(x) gsub("[^a-z0-9]", "", tolower(x))
 
+# The alias table never gives a column a role: it only keeps a table of events
+# from being read as a table of sequences (.thg_is_sequence_input()), which then
+# fails with the message that names the arguments.
 .thg_match_column <- function(data, role, exclude = character()) {
   aliases <- .thg_aliases[[role]]
   cand <- setdiff(names(data), exclude)
@@ -45,10 +49,9 @@
   if (length(hit) == 0L) NULL else cand[hit[1L]]
 }
 
-# One column: an explicit name must exist as given; otherwise the first alias
-# match, or NULL.
-.thg_resolve_column <- function(data, given, role, exclude = character(),
-                                arg = role) {
+# One column, as declared: a name must exist as given; no name is NULL. Column
+# names give no role.
+.thg_resolve_column <- function(data, given, arg) {
   if (!is.null(given)) {
     if (!is.character(given) || length(given) != 1L || is.na(given)) {
       .thg_bad_input(sprintf("`%s` must be a single column name", arg))
@@ -62,7 +65,7 @@
     }
     return(given)
   }
-  .thg_match_column(data, role, exclude)
+  NULL
 }
 
 # ---------------------------------------------------------------------------
@@ -320,8 +323,10 @@
 #' A third shape is a **sequence table**: one row per session and one column
 #' per position holding the state at that step (the wide format of tna and
 #' TraMineR), a list of character vectors, or a `tna` / `netobject` model
-#' built from one. It is recognised when no relational column is named or
-#' detected and every column is categorical. Each session is one hyperedge
+#' built from one. It is recognised when no column is named, none is called
+#' like a relational or clock column (`from`, `time`, `actor` with `group`, ...;
+#' such a table raises `hypergraphs_bad_input` so its columns get declared), and
+#' every column is categorical. Each session is one hyperedge
 #' whose members are the states it contains, and a state's membership is a
 #' contact at its position, `1` to the session's length, on a `"step"`
 #' clock: the simple co-occurrence reading in which time is order.
@@ -335,10 +340,8 @@
 #' `t + 2`. When every membership carries its hyperedge's time, as a
 #' tribunal or a citation block does, nothing changes.
 #'
-#' Column names are resolved case-insensitively from the same alias table
-#' Dynet uses, so `Sender`/`Receiver`, `source`/`target`, `onset`/`terminus`
-#' and `timestamp` are understood without being spelled out; a name you give
-#' explicitly must exist as written. Times may be numeric, `Date`, `POSIXct`
+#' Column names give no role: the columns of a table are named in the call, and
+#' a name you give must exist as written. Times may be numeric, `Date`, `POSIXct`
 #' or character date-time strings. Numeric times are kept as they are and
 #' reported in `"step"` units; calendar input is converted to elapsed time
 #' since the earliest time in the data, in a unit chosen for the span
@@ -370,22 +373,19 @@
 #' @param data A data frame with one row per relation, or a sequence table
 #'   (a wide data frame of states, a list of character vectors, or a `tna` /
 #'   `netobject` model); see Details.
-#' @param from,to Column names of a pairwise edge list. Detected from the
-#'   alias table when neither is given and `node`/`hyperedge` are not named.
+#' @param from,to Column names of a pairwise edge list. Column names give no
+#'   role, so a relational table names either these two or `node` and
+#'   `hyperedge`; otherwise it raises `hypergraphs_bad_input`.
 #' @param node,hyperedge Column names of membership data: the node, and the
-#'   grouping whose shared values bind nodes into one hyperedge. Naming
-#'   either selects the membership format; the other is then detected by
-#'   alias if not given. When no column is named and no edge list is
-#'   detected, both are detected by alias (`node`, `actor`, `person`, ...
-#'   and `hyperedge`, `group`, `event`, ...), as [group_hypergraph()] does.
+#'   grouping whose shared values bind nodes into one hyperedge. Name both.
 #' @param time Column with the instant of a contact hyperedge.
 #' @param start,end Columns with the interval on which a hyperedge is active.
 #'   `start` without an `end` column is read as a contact clock.
 #' @param weight Optional membership-weight column.
 #' @param nodes Optional node universe: a character vector of node names, or
-#'   a data frame whose first column holds the names and whose `start`,
-#'   `time` or `date` column, if present, gives the time each node enters (on
-#'   the same clock as `data`). Nodes that never appear in a hyperedge are
+#'   a data frame whose first column holds the names and whose `start` column,
+#'   if present, gives the time each node enters (on the same clock as `data`).
+#'   Nodes that never appear in a hyperedge are
 #'   then kept as zero-degree nodes of every snapshot, and [hg_growth()]
 #'   counts a node from its own start. Every observed node must be in the
 #'   universe.
@@ -636,10 +636,10 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   x
 }
 
-# A sequence table is states only: no relational column is named or detected,
-# no clock column is detected, and every column is categorical. Anything
-# else takes the relational route, where a table without ends still fails
-# with the message that names them.
+# A sequence table is states only: no column is named, none is called like a
+# relational or clock column, and every column is categorical. Anything else
+# takes the relational route, where a table without declared columns fails with
+# the message that names them.
 .thg_is_sequence_input <- function(data, from, to, actor, group, time, start, end) {
   named <- !is.null(from) || !is.null(to) || !is.null(actor) || !is.null(group) ||
     !is.null(time) || !is.null(start) || !is.null(end)
@@ -684,71 +684,36 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   if (copresence && (!is.null(from) || !is.null(to))) {
     .thg_bad_input("name either `from` and `to` or `node` and `hyperedge`, not both")
   }
-  claimed <- character()
   if (copresence) {
-    actor <- .thg_resolve_column(data, actor, "actor", arg = "node")
-    group <- .thg_resolve_column(data, group, "group", exclude = actor, arg = "hyperedge")
+    actor <- .thg_resolve_column(data, actor, arg = "node")
+    group <- .thg_resolve_column(data, group, arg = "hyperedge")
     if (is.null(actor) || is.null(group)) {
-      .thg_bad_input("membership data need both `node` and `hyperedge`; name the one that could not be detected")
+      .thg_bad_input("membership data need both `node` and `hyperedge`; name both")
     }
     claimed <- c(actor, group)
   } else {
-    named <- !is.null(from) || !is.null(to)
-    from <- .thg_resolve_column(data, from, "from", arg = "from")
-    to <- .thg_resolve_column(data, to, "to", exclude = from, arg = "to")
-    if (!named && (is.null(from) || is.null(to))) {
-      # nothing named and no edge list detected: membership columns, by the
-      # alias table, as group_hypergraph() detects them
-      actor <- .thg_match_column(data, "actor")
-      group <- .thg_match_column(data, "group", exclude = actor)
-      if (is.null(actor) || is.null(group)) {
-        actor <- NULL
-        group <- NULL
-      } else {
-        from <- NULL
-        to <- NULL
-        claimed <- c(actor, group)
-      }
+    from <- .thg_resolve_column(data, from, arg = "from")
+    to <- .thg_resolve_column(data, to, arg = "to")
+    if (is.null(from) || is.null(to)) {
+      .thg_bad_input("name `from` and `to` for an edge list, or `node` and `hyperedge` for membership data: column names are not read")
     }
-    if (is.null(actor) && (is.null(from) || is.null(to))) {
-      .thg_bad_input("name `from` and `to` for an edge list, or `node` and `hyperedge` for membership data")
-    }
-    if (is.null(actor)) claimed <- c(from, to)
+    claimed <- c(from, to)
   }
   if (!is.null(start) && !is.null(time)) {
     .thg_bad_input("supply only one of `start` and `time`")
   }
-  weight <- .thg_resolve_column(data, weight, "weight", exclude = claimed, arg = "weight")
-  claimed <- c(claimed, weight)
+  weight <- .thg_resolve_column(data, weight, arg = "weight")
   if (!is.null(time)) {
-    clock <- .thg_resolve_column(data, time, "time", arg = "time")
+    clock <- .thg_resolve_column(data, time, arg = "time")
     if (!is.null(end)) .thg_bad_input("`end` belongs to the interval format; name `start` with it, not `time`")
     format <- "contact"
-    end <- NULL
   } else if (!is.null(start)) {
-    clock <- .thg_resolve_column(data, start, "start", arg = "start")
-    end <- .thg_resolve_column(data, end, "end", exclude = c(claimed, clock), arg = "end")
+    clock <- .thg_resolve_column(data, start, arg = "start")
+    end <- .thg_resolve_column(data, end, arg = "end")
     format <- if (is.null(end)) "contact" else "interval"
   } else {
-    detected_start <- .thg_match_column(data, "start", claimed)
-    detected_end <- .thg_match_column(data, "end", c(claimed, detected_start))
-    if (!is.null(end)) {
-      end <- .thg_resolve_column(data, end, "end", arg = "end")
-      if (is.null(detected_start)) .thg_bad_input("`end` needs a `start` column; name it")
-      clock <- detected_start
-      format <- "interval"
-    } else if (!is.null(detected_start) && !is.null(detected_end)) {
-      clock <- detected_start
-      end <- detected_end
-      format <- "interval"
-    } else {
-      clock <- .thg_match_column(data, "time", claimed) %||% detected_start
-      if (is.null(clock)) {
-        .thg_bad_input("no clock found: name `time` for a contact log or `start` and `end` for intervals")
-      }
-      end <- NULL
-      format <- "contact"
-    }
+    if (!is.null(end)) .thg_bad_input("`end` needs a `start` column; name it")
+    .thg_bad_input("no clock named: name `time` for a contact log or `start` and `end` for intervals; column names are not read")
   }
   list(from = from, to = to, actor = actor, group = group, clock = clock,
        end = end, weight = weight, format = format)
@@ -764,8 +729,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, node = NULL,
   if (is.data.frame(nodes)) {
     if (ncol(nodes) == 0L) .thg_bad_input("a `nodes` data.frame needs a column of node names")
     node <- as.character(nodes[[1L]])
-    clock <- intersect(c("start", "time", "date"), names(nodes))
-    start <- if (length(clock)) nodes[[clock[[1L]]]] else rep(NA, length(node))
+    start <- if ("start" %in% names(nodes)) nodes[["start"]] else rep(NA, length(node))
   } else if (is.atomic(nodes)) {
     node <- as.character(nodes)
     start <- rep(NA, length(node))

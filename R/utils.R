@@ -362,20 +362,19 @@
 #   * a list of vectors, one sequence per element;
 #   * a model object carrying its sequences (netobject, netobject_group,
 #     tna, cograph_network).
-# The long route is Nestimate's: build_network()'s detection of the columns
-# named action, time and session / session_id when those arguments are
-# NULL, then Nestimate::prepare() with the same arguments, whose wide
-# $sequence_data is returned unchanged. The sequences are therefore the
-# ones build_network(method = "relative", ...) builds from the same call.
-# `session = FALSE` switches session detection off. A long table passed
-# without `action` and without an `action` column is refused
+# The long route is Nestimate's: column roles are declared, as in
+# build_network() since Nestimate 1.0.7, and Nestimate::prepare() with the same
+# arguments gives the wide $sequence_data returned unchanged. The sequences are
+# therefore the ones build_network(method = "relative", ...) builds from the
+# same call. `session = FALSE` means the same as `NULL`. A long table passed
+# without `action`, or a column called `action` that is not declared, is refused
 # (hypergraphs_long_format).
 
 #' Coerce any sequence input to what a sequence verb consumes
 #'
 #' @param data Sequence input (see the block comment above).
 #' @param action,actor,time,session Long-format column names or `NULL`;
-#'   `session = FALSE` switches session detection off.
+#'   `session = FALSE` is the same as `NULL`.
 #' @param time_threshold,timezone Passed to [Nestimate::prepare()].
 #' @param lists `"keep"` returns a list of sequences as a list; `"wide"`
 #'   pads it into a wide data.frame (one row per sequence, `NA`-padded),
@@ -394,27 +393,6 @@
                                models = c("keep", "decode")) {
   lists <- match.arg(lists)
   models <- match.arg(models)
-  # build_network()'s column detection: a column named action, time,
-  # session or session_id (any case) is used when its argument is NULL
-  # (time and session matter only for a long table, so they are looked
-  # for once there is an action column)
-  if (is.data.frame(data)) {
-    detected <- .ho_detect_columns(data)
-    auto_action <- is.null(action) && !is.null(detected$action)
-    action <- action %||% detected$action
-    if (!is.null(action)) {
-      time <- time %||% detected$time
-      if (is.null(session)) session <- detected$session
-    }
-    # build_network() detects action, time and session by name but never
-    # the actor, so a table found to be long only by its column names is
-    # read as one sequence of every actor's events interleaved. When a
-    # column is named as an actor, the caller has to say which it is.
-    if (auto_action && is.null(actor)) {
-      .ho_guard_undeclared_actor(data, used = c(action, time,
-                                                if (!isFALSE(session)) session))
-    }
-  }
   if (isFALSE(session)) session <- NULL
   if (is.null(action)) {
     stray <- c(actor = !is.null(actor), time = !is.null(time),
@@ -424,6 +402,7 @@
         "`%s` requires `action` (the state column of a long event table)",
         names(stray)[stray][1L]))
     }
+    .ho_stop_undeclared_action(data)
     .hon_guard_long_format(data)
     .ho_refuse_object_as_sequences(data)
     if (models == "decode" &&
@@ -443,6 +422,7 @@
   }
   .ho_check_long_columns(data, action = action, actor = actor, time = time,
                          session = session)
+  .ho_unused_role_notice(data, time = time, session = session)
   if (!(isFALSE(time_threshold) ||
         (is.numeric(time_threshold) && length(time_threshold) == 1L &&
            !is.na(time_threshold) && time_threshold > 0))) {
@@ -499,45 +479,49 @@
     paste(sprintf("`%s`", cls), collapse = "/")))
 }
 
-#' Refuse a detected long table whose actor column was not named
+#' Refuse a column called `action` that was not declared
 #'
-#' @param data The long table, whose `action` column was found by name.
-#' @param used Columns already given a role (action, time, session).
-#' @return `NULL`, invisibly; raises `hypergraphs_long_format` (a
-#'   `hypergraphs_bad_input`) when a column carries an actor name of
-#'   `.HON_LONG_COLUMNS` and no `actor` was given.
+#' Names give no role: the same rule as `Nestimate::build_network()`.
+#'
+#' @param data The sequence input.
+#' @return `NULL`, invisibly; raises `hypergraphs_long_format`.
 #' @noRd
-.ho_guard_undeclared_actor <- function(data, used) {
-  cols <- setdiff(names(data), used)
-  actors <- cols[tolower(cols) %in% .HON_LONG_COLUMNS$actor]
-  if (!length(actors)) return(invisible(NULL))
+.ho_stop_undeclared_action <- function(data) {
+  if (!is.data.frame(data)) return(invisible(NULL))
+  hit <- names(data)[tolower(names(data)) == "action"]
+  if (length(hit) == 0L) return(invisible(NULL))
   stop(errorCondition(
-    sprintf(paste0(
-      "`data` is read as a long event table (column `%s` taken as `action`), ",
-      "but no `actor` was given, so the events of every %s would be joined ",
-      "into one sequence. Name the columns, e.g. `action = \"%s\", ",
-      "actor = \"%s\"`; to read the table as one sequence, name `action` ",
-      "and leave `actor` out."),
-      used[1L], actors[1L], used[1L], actors[1L]),
+    sprintf(paste0("column names are not read, and `%s` is not declared. Set ",
+                   "`action = \"%s\"` for a long event table, with `actor` ",
+                   "and `time` as they apply."), hit[1L], hit[1L]),
     class = c("hypergraphs_long_format", "hypergraphs_bad_input"),
     call = NULL))
 }
 
-#' Columns found by name, as build_network() finds them
+#' Say that an undeclared time or session column beside `action` went unused
 #'
-#' @param data A data.frame.
-#' @return A list with `action`, `time` and `session`: the column whose
-#'   lower-cased name is `"action"`, `"time"`, and `"session"` (else
-#'   `"session_id"`), each `NULL` when there is no single such column.
+#' It changes the sequences, so the call names it, as
+#' `Nestimate::build_network()` does.
+#'
+#' @param data The long table.
+#' @param time,session The declared columns, or `NULL`.
+#' @return `NULL`, invisibly; raises a message of class
+#'   `hypergraphs_column_role`.
 #' @noRd
-.ho_detect_columns <- function(data) {
+.ho_unused_role_notice <- function(data, time, session) {
   lower <- tolower(names(data))
-  match1 <- \(name) {
-    hit <- which(lower == name)
-    if (length(hit) == 1L) names(data)[hit]
-  }
-  list(action = match1("action"), time = match1("time"),
-       session = match1("session") %||% match1("session_id"))
+  unused <- c(
+    if (is.null(time)) names(data)[lower == "time"],
+    if (is.null(session)) names(data)[lower %in% c("session", "session_id")]
+  )
+  if (length(unused) == 0L) return(invisible(NULL))
+  notice <- simpleMessage(sprintf(
+    paste0("%s not used: events are read in row order and sessions are not ",
+           "split. Set `time` or `session` to use them.\n"),
+    paste(sprintf("`%s`", unused), collapse = ", ")))
+  class(notice) <- c("hypergraphs_column_role", class(notice))
+  message(notice)
+  invisible(NULL)
 }
 
 #' Validate the long-format column arguments against a data.frame

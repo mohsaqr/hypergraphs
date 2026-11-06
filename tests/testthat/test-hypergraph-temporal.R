@@ -88,8 +88,8 @@ test_that("temporal constructors reject invalid spells and read per-row times as
   expect_identical(th$edge_data$start, 1)
   expect_identical(th$edge_data$end, 2)
   expect_identical(th$memberships$end, c(1, 2))
-  detected <- temporal_hypergraph(spread, node = "member", hyperedge = "event")
-  expect_identical(hg_get(detected), hg_get(th))
+  expect_error(temporal_hypergraph(spread, node = "member", hyperedge = "event"),
+               class = "hypergraphs_bad_input")
   interval <- data.frame(member = "a", event = "e1", start = 2, end = 1)
   expect_error(temporal_hypergraph(interval, node = "member", hyperedge = "event",
                                    start = "start", end = "end"),
@@ -111,19 +111,35 @@ test_that("the argument names removed in 0.7.9 are refused", {
                "unused argument")
 })
 
-test_that("columns are detected from Dynet's alias table, case-insensitively", {
+test_that("the columns of a relational table are declared", {
   log <- data.frame(Sender = c("a", "b"), Receiver = c("b", "c"),
                     Timestamp = c(1, 2), stringsAsFactors = FALSE)
-  detected <- temporal_hypergraph(log)
-  explicit <- temporal_hypergraph(log, from = "Sender", to = "Receiver",
-                                  time = "Timestamp")
-  expect_identical(detected, explicit)
+  expect_error(temporal_hypergraph(log), class = "hypergraphs_bad_input")
+  expect_error(temporal_hypergraph(log, from = "Sender", to = "Receiver"),
+               class = "hypergraphs_bad_input")
+  expect_identical(
+    temporal_hypergraph(log, from = "Sender", to = "Receiver",
+                        time = "Timestamp")$format, "contact")
   spells <- data.frame(source = c("a", "b"), target = c("b", "c"),
                        onset = c(1, 2), terminus = c(3, 4))
-  interval <- temporal_hypergraph(spells)
+  expect_error(temporal_hypergraph(spells), class = "hypergraphs_bad_input")
+  interval <- temporal_hypergraph(spells, from = "source", to = "target",
+                                  start = "onset", end = "terminus")
   expect_identical(interval$format, "interval")
   expect_identical(interval$params$time, "onset")
   expect_identical(interval$params$end, "terminus")
+  # a start without a declared end is a contact clock, not an interval
+  expect_identical(temporal_hypergraph(spells, from = "source", to = "target",
+                                       start = "onset")$format, "contact")
+  # a categorical table named like relational columns is not read as sequences
+  expect_error(temporal_hypergraph(data.frame(from = c("a", "b"), to = c("b", "c"))),
+               class = "hypergraphs_bad_input")
+  # one column in `weight` counts only when declared
+  weighted <- data.frame(from = c("a", "b"), to = c("b", "c"), time = 1:2,
+                         weight = c(5, 7))
+  expect_identical(
+    temporal_hypergraph(weighted, from = "from", to = "to", time = "time")$params$weight,
+    NULL)
   # an explicit name must exist as written
   expect_error(temporal_hypergraph(log, from = "sender", to = "Receiver", time = "Timestamp"),
                class = "hypergraphs_missing_column")
@@ -132,7 +148,8 @@ test_that("columns are detected from Dynet's alias table, case-insensitively", {
   copresence <- data.frame(student = c("a", "b"), seminar = "s1", time = 1)
   expect_error(temporal_hypergraph(copresence, node = "student"),
                class = "hypergraphs_bad_input")
-  static <- group_hypergraph(spells)
+  expect_error(group_hypergraph(spells), class = "hypergraphs_bad_input")
+  static <- group_hypergraph(spells, from = "source", to = "target")
   expect_identical(static$n_hyperedges, 2L)
 })
 

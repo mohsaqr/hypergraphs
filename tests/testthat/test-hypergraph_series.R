@@ -61,14 +61,19 @@ test_that("a node universe with entry times drives node counts and snapshots", {
   expect_identical(snap$n_hyperedges, 1L)
   all_snap <- hg_snapshot(thg, mode = "cumulative")
   expect_identical(all_snap$n_nodes, 5L)
-  # the node table's first column is the name; `time` also gives the entry
-  named <- data.frame(key = c("a", "b", "c", "d", "z"), time = c(1, 1, 2, 3, 0))
+  # the node table's first column is the name; `start` gives the entry
+  named <- data.frame(key = c("a", "b", "c", "d", "z"), start = c(1, 1, 2, 3, 0))
   dat <- data.frame(member = c("a", "b", "b", "c", "c", "d", "a", "b"),
                     event = rep(c("e1", "e2", "e3", "e4"), each = 2),
                     time = rep(c(1, 2, 3, 3), each = 2))
   renamed <- temporal_hypergraph(dat, node = "member", hyperedge = "event",
                                  time = "time", nodes = named)
   expect_identical(renamed$node_data, thg$node_data)
+  # a column called `time` gives no entry time: names give no role
+  no_entry <- temporal_hypergraph(dat, node = "member", hyperedge = "event",
+                                  time = "time",
+                                  nodes = data.frame(key = named$key, time = named$start))
+  expect_true(all(is.na(no_entry$node_data$start)))
   expect_error(temporal_hypergraph(dat, node = "member", hyperedge = "event",
                                    time = "time", nodes = list(1)),
                class = "hypergraphs_bad_input")

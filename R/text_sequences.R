@@ -26,10 +26,8 @@
 #' ```
 #'
 #' Those three column names are fixed, which is what makes the second call
-#' the same every time. Name all three: the memory verbs find the `action`
-#' and `time` columns by name on their own but not the `actor` column, so a
-#' call without `actor = "actor"` joins every actor's documents into one
-#' sequence.
+#' the same every time. Name all three: column names give no role, and a call
+#' without `actor = "actor"` joins every actor's documents into one sequence.
 #'
 #' This closes the one missing edge in the cross-family design:
 #' `hg_get(x, what = "pathways")` bridges the memory family to the others and [window_hypergraph()] bridges

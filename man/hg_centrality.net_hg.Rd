@@ -105,6 +105,10 @@ Z and H are defined for uniform hypergraphs only (Benson 2019): on mixed
 hyperedge sizes they raise \code{hypergraphs_nonuniform_hypergraph}. Use
 \code{"clique"} or \code{"pagerank"} there.
 
+The Z-eigenvector is not unique when the hypergraph has several components:
+different iterations can solve the equation with different vectors, so compare
+\code{"Z"} values within one connected hypergraph only.
+
 \strong{Hypergraph PageRank} (\code{"pagerank"}): the stationary distribution of
 the damped EDVW random walk of Chitra & Raphael (2019): from node
 \eqn{v}, pick a hyperedge \eqn{e \ni v} with probability proportional

@@ -198,6 +198,10 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' hyperedge sizes they raise `hypergraphs_nonuniform_hypergraph`. Use
 #' `"clique"` or `"pagerank"` there.
 #'
+#' The Z-eigenvector is not unique when the hypergraph has several components:
+#' different iterations can solve the equation with different vectors, so compare
+#' `"Z"` values within one connected hypergraph only.
+#'
 #' **Hypergraph PageRank** (`"pagerank"`): the stationary distribution of
 #' the damped EDVW random walk of Chitra & Raphael (2019): from node
 #' \eqn{v}, pick a hyperedge \eqn{e \ni v} with probability proportional

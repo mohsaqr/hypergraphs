@@ -1,8 +1,8 @@
 testthat::skip_on_cran()
 
-# A data.frame is read as a long event table when `action` is given or a
-# column is named `action` (with `time` and `session` / `session_id` found by
-# name too, as build_network() finds them). A long table whose columns carry
+# A data.frame is read as a long event table when `action` is given. A column
+# called `action` that is not declared is refused, as in build_network() since
+# Nestimate 1.0.7. A long table whose columns carry
 # other names (code, user, timestamp, ...) and that is passed without
 # `action =` would be read as wide, promoting actor ids and timestamps to
 # states. These tests pin the guard that refuses it, and pin that it does
@@ -99,9 +99,8 @@ test_that("hg_sequences output is one sequence bare and per actor with arguments
   topics <- hg_cluster(hg, k = 3L)  # three document types, so k = 3
   seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
   expect_identical(names(seqs), c("actor", "time", "action"))
-  # its columns are named action and time, so they are found by name; its
-  # actor column is not, so the bare call is refused rather than joining
-  # every student's events into one sequence
+  # names give no role, so the bare call is refused rather than joining every
+  # student's events into one sequence
   expect_error(hg_bootstrap(seqs, n_boot = 2L),
                class = "hypergraphs_long_format")
   fit <- hg_bootstrap(seqs, action = "action", actor = "actor", time = "time",

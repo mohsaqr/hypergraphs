@@ -38,8 +38,8 @@
   row_degree <- degree[match(node_levels, x$nodes)]
 
   # columns: by `sort_by` (counts largest first, as hg_get() sorts; times --
-  # dates, or a clock column such as a snapshot's numeric `start` -- and text
-  # ascending), then by the highest member row, then by name, so hyperedges
+  # dates, or a clock of the object such as a snapshot's numeric `start` -- and
+  # text ascending), then by the highest member row, then by name, so hyperedges
   # that share the busiest nodes stand together
   by_edge <- split(members$row, factor(members$edge, levels = edge_names))
   first_row <- vapply(by_edge, \(r) if (length(r)) min(r) else Inf, numeric(1))
@@ -48,7 +48,7 @@
     .ho_order(first_row, edge_names)
   } else if (is.numeric(key) && !(is.character(sort_by) &&
                                    length(sort_by) == 1L &&
-                                   .thg_norm_name(sort_by) %in% .thg_clock_names())) {
+                                   sort_by %in% .thg_clock_columns(x))) {
     .ho_order(-key, first_row, edge_names)
   } else {
     .ho_order(key, first_row, edge_names)

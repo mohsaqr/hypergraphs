@@ -223,6 +223,10 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
                              time = time, session = session,
                              time_threshold = time_threshold,
                              timezone = timezone, models = "decode")
+  # a network is a list: its fields would otherwise be read as sequences
+  if (inherits(data, c("netobject", "netobject_group"))) {
+    data <- .ho_model_sequences(data)
+  }
   trajectories <- .wh_parse_input(data, action = NULL, actor = NULL,
                                   time = NULL)
   n_sequences <- length(trajectories)

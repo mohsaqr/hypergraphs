@@ -29,14 +29,15 @@
 #'     `timezone` is the time zone of timestamps that carry none (default
 #'     `"UTC"`). Events with a missing actor or session raise
 #'     `hypergraphs_bad_input`; a missing action stays in its sequence as a
-#'     gap. Without `actor` all events form one sequence, announced by the
-#'     message `hypergraphs_single_sequence`.}
+#'     gap. With `action` alone all events form one sequence; `session`, or a
+#'     `time` gap above `time_threshold`, splits them without an `actor`. When one
+#'     sequence is built, the message `hypergraphs_single_sequence` says so.}
 #'   \item{Wide data.frame or character matrix}{one sequence per row;
 #'     trailing `NA`s end a sequence.}
 #'   \item{List}{one character vector per sequence.}
 #'   \item{Model object}{a `netobject`, `netobject_group`, `tna` or
-#'     `cograph_network` that carries its sequence data. Nestimate model
-#'     objects retain literal state values, including numeric states.
+#'     `cograph_network` that carries its sequence data. A `netobject`
+#'     retains literal state values, including numeric states.
 #'     Positional integer codes are decoded for `tna` models and converted
 #'     `cograph_network` data explicitly carrying a tna encoding alphabet.
 #'     [markov_order()] and [hg_markov_stability()] fit one model per group
@@ -62,7 +63,11 @@
 #' `user`, `timestamp`, ...) that is passed without `action =` and has no
 #' `action` column raises `hypergraphs_long_format` (a
 #' `hypergraphs_bad_input`): read as wide, its actor ids and times would
-#' silently become states. `actor`, `time` or `session` without an action
+#' silently become states. So does any other frame that is not one column or
+#' nothing but a numbered run of positions (`T1`, `T2`, ...), and columns of only 0
+#' and 1 are refused because they could be one-hot codes: declare the columns with
+#' `action`, or give a wide table's positions alone, as a character matrix or a list
+#' of sequences. `actor`, `time` or `session` without an action
 #' column raises `hypergraphs_bad_input`.
 #' @keywords internal
 NULL
@@ -159,7 +164,7 @@ hon <- function(data, max_order = 5L, min_freq = 1L,
 #' as `"a -> b"` included), followed by a truncated singular value
 #' decomposition, one row per node. The paper instead combines order-indexed
 #' neighbourhood matrices over the first-order states, which it does not
-#' define precisely enough to reproduce; see `Nestimate::build_honem()`.
+#' define precisely enough to reproduce.
 #'
 #' @param hon A `net_hon` from [hon()], or a square weighted adjacency
 #'   matrix.

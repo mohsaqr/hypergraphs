@@ -44,21 +44,21 @@ test_that("window-count and occurrence conservation hold across random data", {
 })
 
 test_that("w = 2 sliding reduces to adjacent pairwise co-occurrence counts", {
+  # a b b a c a b: adjacent pairs ab bb ba ac ca ab, unordered {a,b} x 3
+  # (ab, ba, ab), {a,c} x 2 (ac, ca), {b} x 1 (bb, one node counted twice)
+  hg <- window_hypergraph(list(c("a", "b", "b", "a", "c", "a", "b")),
+                          window = 2L)
+  expect_identical(hg$hyperedges, list(c(1L, 2L), c(1L, 3L), 2L))
+  expect_identical(hg$window_counts, c(3L, 2L, 1L))
+  expect_identical(hg$incidence[, "h3"], c(a = 0, b = 2, c = 0))
+})
+
+test_that("w = 2 sliding gives one window per adjacent pair", {
+  # the comparison against an independent pair table on this random
+  # sequence is local (test-equiv-reference-random-2.R)
   set.seed(99)
   traj <- sample(c("a", "b", "c", "d"), 40, replace = TRUE)
   hg <- window_hypergraph(list(traj), window = 2L)
-  # Independent count of unordered adjacent pairs
-  pairs <- paste(pmin(traj[-length(traj)], traj[-1L]),
-                 pmax(traj[-length(traj)], traj[-1L]), sep = "|")
-  expected <- table(pairs)
-  got <- stats::setNames(
-    hg$window_counts,
-    vapply(hg$hyperedges,
-           function(idx) paste(hg$nodes[idx][c(1L, length(idx))],
-                               collapse = "|"),
-           character(1L))
-  )
-  expect_identical(as.integer(expected[names(got)]), as.integer(got))
   expect_identical(sum(hg$window_counts), length(traj) - 1L)
 })
 

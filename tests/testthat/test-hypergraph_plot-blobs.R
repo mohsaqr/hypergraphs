@@ -111,7 +111,7 @@ test_that("node sizes without direction are points with an area legend", {
   sizes <- data.frame(state = c("Wrong", "Hint", "Retry", "Question",
                                 "Assurance", "Quit"),
                       trials = c(2095.5, 1200, 2000, 800, 95.5, 95.5))
-  p <- plot(hg, node_sizes = sizes)
+  p <- plot(hg, node_sizes = sizes, unit = "trials")
   points <- .layers_of(p, "GeomPoint")
   expect_length(points, 1L)
   expect_true("size" %in% names(points[[1L]]$mapping))
@@ -137,48 +137,59 @@ test_that("node sizes without direction are points with an area legend", {
                    c("3,667", "95.5", "0.123"))
 })
 
-test_that("the count attribute colours, titles and names the unit by itself", {
-  hg <- .blob_hg()
-  short <- plot(hg)
-  long <- plot(hg, color_by = "trials", titles = "trials", unit = "trials")
+test_that("a computed frequency colours and titles by itself, a data column only when named", {
+  # three sets: a-b in three trials, b-c in two, c-d in one
+  events <- data.frame(
+    trial = rep(paste0("t", 1:6), each = 2L),
+    event = c("a", "b", "a", "b", "a", "b", "b", "c", "b", "c", "c", "d")
+  )
+  sets <- hypergraph(events, action = "event", session = "trial", top = 3L)
+  short <- plot(sets)
+  long <- plot(sets, color_by = "count", titles = FALSE)
   expect_identical(ggplot2::ggplot_build(short)$data,
                    ggplot2::ggplot_build(long)$data)
   expect_identical(short$scales$get_scales("fill")$name, "Trials")
-  expect_identical(.layers_of(short, "GeomLabel")[[1L]]$data$label,
+  # the sets of one group are told apart by their members: title boxes on request
+  expect_length(.layers_of(short, "GeomLabel"), 0L)
+  titled <- plot(sets, titles = "count")
+  expect_identical(sort(gsub("^.*\n", "", .layers_of(titled, "GeomLabel")[[1L]]$data$label)),
+                   c("1 trials", "2 trials", "3 trials"))
+  # overrides win
+  expect_identical(plot(sets, legend_title = "n")$scales$get_scales("fill")$name, "n")
+  expect_identical(plot(sets, unit = "steps")$scales$get_scales("fill")$name, "Steps")
+
+  # a numeric column of the data is shown only when named
+  hg <- .blob_hg()
+  plain <- plot(hg)
+  expect_length(.layers_of(plain, "GeomLabel"), 0L)
+  expect_length(unique(plain$layers[[1L]]$data$colour), 1L)
+  named <- plot(hg, color_by = "trials", titles = "trials", unit = "trials")
+  expect_identical(named$scales$get_scales("fill")$name, "Trials")
+  expect_identical(.layers_of(named, "GeomLabel")[[1L]]$data$label,
                    c("Hint\n1,200 trials", "Question\n800 trials",
                      "Exit\n95.5 trials"))
-  # overrides win
-  expect_identical(plot(hg, legend_title = "n")$scales$get_scales("fill")$name, "n")
-  expect_identical(plot(hg, unit = "steps")$scales$get_scales("fill")$name, "Steps")
-  expect_length(.layers_of(plot(hg, titles = FALSE), "GeomLabel"), 0L)
-  # a numeric attribute that is the same on every hyperedge gives way to the
-  # one that varies; two that vary leave the choice to the call
-  with_share <- .blob_members()
-  with_share$share <- 1
-  expect_identical(
-    ggplot2::ggplot_build(plot(.blob_hg(with_share)))$data,
-    ggplot2::ggplot_build(short)$data)
-  with_share$share <- rep(c(0.5, 0.7, 0.9), each = 3L)
-  undecided <- plot(.blob_hg(with_share))
-  expect_length(.layers_of(undecided, "GeomLabel"), 0L)
-  expect_length(unique(undecided$layers[[1L]]$data$colour), 1L)
-  # a constant numeric attribute alone (the session number of the runs of one
-  # session) is no count: no title boxes, one colour
-  one_session <- .blob_members()
-  one_session$trials <- NULL
-  one_session$session <- 1L
-  constant <- plot(.blob_hg(one_session))
-  expect_length(.layers_of(constant, "GeomLabel"), 0L)
-  expect_length(unique(constant$layers[[1L]]$data$colour), 1L)
-  # a clock column (a temporal snapshot's start time) is no count either,
-  # even when it varies: no title boxes unless the call names it
-  timed <- .blob_members()
-  timed$trials <- NULL
-  timed$start <- rep(c(24964, 15417, 16632), each = 3L)
-  clocked <- plot(.blob_hg(timed))
+  # whatever it is called, also `count`, and whether or not it varies
+  shown_by_name <- function(column, values) {
+    members <- .blob_members()
+    members$trials <- NULL
+    members[[column]] <- rep(values, each = 3L)
+    p <- plot(.blob_hg(members))
+    c(length(.layers_of(p, "GeomLabel")), length(unique(p$layers[[1L]]$data$colour)))
+  }
+  expect_identical(shown_by_name("count", c(3, 2, 1)), c(0L, 1L))
+  expect_identical(shown_by_name("session", c(1L, 2L, 3L)), c(0L, 1L))
+  expect_identical(shown_by_name("session", c(1L, 1L, 1L)), c(0L, 1L))
+  # a snapshot's own clock is no count, even when it varies: no title boxes
+  # unless the call names it
+  events <- data.frame(who = c("a", "b", "b", "c", "c", "a"),
+                       what = rep(c("e1", "e2", "e3"), each = 2L),
+                       when = rep(c(24964, 15417, 16632), each = 2L))
+  snap <- hg_snapshot(temporal_hypergraph(events, node = "who", hyperedge = "what",
+                                          time = "when"), mode = "cumulative")
+  clocked <- plot(snap)
   expect_length(.layers_of(clocked, "GeomLabel"), 0L)
   expect_length(unique(clocked$layers[[1L]]$data$colour), 1L)
-  expect_length(.layers_of(plot(.blob_hg(timed), titles = "start"), "GeomLabel"), 1L)
+  expect_length(.layers_of(plot(snap, titles = "start"), "GeomLabel"), 1L)
   # no titles on panels that are titled already
   expect_s3_class(plot(hg, dismantled = TRUE), "ggplot")
 })

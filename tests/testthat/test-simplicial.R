@@ -546,7 +546,14 @@ test_that("simplicial() verifies against igraph on K4", {
   skip_if_not_installed("igraph")
   mat <- .make_sc_mat()
   expect_no_warning(sc <- simplicial(mat))
-  expect_identical(.unclass_sc(sc), Nestimate::build_simplicial(mat))
+  # K4: 4 nodes, 6 edges, 4 faces, 1 solid
+  expect_identical(sc$n_simplices, 15L)
+  # the nodes keep the matrix's labels in its order, so each simplex names the
+  # right members: the vertices read A, B, C, D and the solid all four
+  expect_identical(sc$nodes, c("A", "B", "C", "D"))
+  simplices <- hg_get(sc)
+  expect_setequal(simplices$members[simplices$dimension == 0L], c("A", "B", "C", "D"))
+  expect_identical(simplices$members[simplices$dimension == 3L], "A, B, C, D")
 })
 
 test_that("simplicial() verifies against igraph on a triangle", {

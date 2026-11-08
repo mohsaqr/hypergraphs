@@ -1,14 +1,8 @@
 testthat::skip_on_cran()
 
-# Calibration of hg_agreement() against scikit-learn 1.8.0, the reference
-# implementation the legal-hypergraphs literature scores partitions with.
-# The values below were produced by sklearn.metrics.adjusted_rand_score,
-# adjusted_mutual_info_score and normalized_mutual_info_score on exactly the
-# partitions .agree_cases() builds; the generating script is
-# tmp/agree_run.R. sklearn's AMI and NMI default to average_method =
-# "arithmetic", which is the normalisation .thg_ami() / .thg_nmi() implement --
-# a switch to "max" or "geometric" would change every value here, so this
-# fixture is what pins the convention.
+# Invariants of hg_agreement(): label permutation, symmetry, identity, a
+# hand-counted adjusted Rand index and the community medoid. The comparison
+# with scikit-learn lives in local_testing_and_equivalence/.
 #
 # The partitions are built by modular arithmetic rather than sampled, so the
 # fixture cannot drift with an RNG change.
@@ -33,43 +27,10 @@ testthat::skip_on_cran()
   )
 }
 
-.sklearn_reference <- list(
-  identical      = c(ari = 1, ami = 1, nmi = 1),
-  relabelled     = c(ari = 1, ami = 1, nmi = 1),
-  independent    = c(ari = 0.0156624767712796, ami = 0.0679455245479407,
-                     nmi = 0.102101678811944),
-  unequal_k      = c(ari = -0.0239246627640621, ami = -0.0635306763941731,
-                     nmi = 0.00133643825544592),
-  many_singleton = c(ari = -0.0251156642432254, ami = -0.0576700607453535,
-                     nmi = 0.586885374781399),
-  one_cluster    = c(ari = 0, ami = 0, nmi = 0),
-  near_identical = c(ari = 0.858156939957116, ami = 0.875424997296611,
-                     nmi = 0.888257949991517),
-  skewed         = c(ari = -0.000307353301151132, ami = 0.0218473479910435,
-                     nmi = 0.0419273306577388),
-  large          = c(ari = 0.113499724376495, ami = 0.447878249992796,
-                     nmi = 0.502646567943462)
-)
-
 .as_partition <- function(labels) {
   data.frame(node = as.character(seq_along(labels)),
              label = as.character(labels), stringsAsFactors = FALSE)
 }
-
-test_that("hg_agreement matches scikit-learn on nine partition shapes", {
-  cases <- .agree_cases()
-  expect_setequal(names(cases), names(.sklearn_reference))
-  worst <- vapply(names(cases), function(nm) {
-    got <- hg_agreement(.as_partition(cases[[nm]]$a),
-                        .as_partition(cases[[nm]]$b),
-                        method = c("ari", "ami", "nmi"))
-    reference <- .sklearn_reference[[nm]]
-    max(abs(c(got$ari - reference[["ari"]], got$ami - reference[["ami"]],
-              got$nmi - reference[["nmi"]])))
-  }, numeric(1L))
-  # measured worst deviation over the 27 comparisons was 1.6e-13
-  expect_true(all(worst < 1e-10))
-})
 
 test_that("the agreement measures obey the invariants that define them", {
   cases <- .agree_cases()
@@ -100,7 +61,45 @@ test_that("the agreement measures obey the invariants that define them", {
   expect_equal(self$ari, 1)
   expect_equal(self$ami, 1)
   expect_equal(self$nmi, 1)
-  expect_lt(.sklearn_reference$unequal_k[["ari"]], 0)
+  unrelated <- hg_agreement(.as_partition(cases$unequal_k$a),
+                            .as_partition(cases$unequal_k$b), method = "ari")
+  expect_lt(unrelated$ari, 0)
+})
+
+test_that("the adjusted Rand index matches a hand count of pairs", {
+  # a = 1 1 2 2 3 3, b = 1 1 2 2 2 3: pairs together in both 2, in a 3, in b 4,
+  # of 15; expected 3 * 4 / 15 = 0.8, so ARI = (2 - 0.8) / (3.5 - 0.8) = 4 / 9
+  got <- hg_agreement(.as_partition(c(1, 1, 2, 2, 3, 3)),
+                      .as_partition(c(1, 1, 2, 2, 2, 3)), method = "ari")
+  expect_equal(got$ari, 4 / 9)
+  # a = 1 1 2 2, b = 1 1 1 2: one pair together in both, exactly the 2 * 3 / 6
+  # expected by chance, so ARI = 0
+  chance <- hg_agreement(.as_partition(c(1, 1, 2, 2)),
+                         .as_partition(c(1, 1, 1, 2)), method = "ari")
+  expect_equal(chance$ari, 0)
+})
+
+test_that("AMI and NMI match their definitions worked by hand", {
+  # a = 1 1 2 2, b = 1 2 1 2: no shared information (MI = 0). Every margin
+  # is 2 of 4, so each n_ij is 0, 1, 2 with chance 1/6, 4/6, 1/6 and
+  # E[MI] = 4 * (1/6) * (2/4) * log(2) = log(2) / 3, against H = log(2):
+  # AMI = (0 - log(2) / 3) / (log(2) - log(2) / 3) = -1/2
+  crossed <- hg_agreement(.as_partition(c(1, 1, 2, 2)),
+                          .as_partition(c(1, 2, 1, 2)),
+                          method = c("ami", "nmi"))
+  expect_equal(crossed$ami, -1 / 2)
+  expect_equal(crossed$nmi, 0)
+  # a = 1 1 2 2, b = 1 1 1 2: joint 1/2, 1/4, 1/4 against margins 1/2, 3/4, 1/4
+  mi <- log(4 / 3) / 2 + log(2 / 3) / 4 + log(2) / 4
+  h_mean <- (log(2) - (3 / 4 * log(3 / 4) + 1 / 4 * log(1 / 4))) / 2
+  # each row of two meets the column of three in 1 or 2 (chance 1/2 each) and
+  # the column of one in 1 (chance 1/2)
+  emi <- 2 * (log(4 / 6) / 8 + log(8 / 6) / 4 + log(2) / 8)
+  nested <- hg_agreement(.as_partition(c(1, 1, 2, 2)),
+                         .as_partition(c(1, 1, 1, 2)),
+                         method = c("ami", "nmi"))
+  expect_equal(nested$nmi, mi / h_mean)
+  expect_equal(nested$ami, (mi - emi) / (h_mean - emi))
 })
 
 test_that("the community medoid is the run with the largest summed AMI", {

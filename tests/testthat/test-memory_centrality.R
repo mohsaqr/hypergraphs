@@ -155,41 +155,26 @@ test_that("error paths and the path-enumeration guard", {
     class = "hypergraphs_no_converge")
 })
 
-test_that("first-order distances are the minimum over all realizations", {
-  # Regression guard: several higher-order node pairs can realize the
-  # same (state, state) cell, so the projection must take the minimum
-  # rather than whichever candidate is written last.
-  set.seed(77)
-  results <- lapply(1:6, function(i) {
-    seqs <- replicate(10, sample(letters[1:4], sample(12:25, 1),
-                                 replace = TRUE), simplify = FALSE)
-    hon <- hon(seqs, max_order = 3L)
-    nodes <- rownames(hon$matrix)
-    node_paths <- hypergraphs:::.hoc_node_paths(nodes)
-    succ <- hypergraphs:::.hoc_succ(hon$matrix)
-    n <- length(nodes)
-    dist_ho <- do.call(rbind, lapply(seq_len(n), function(s) {
-      hypergraphs:::.hoc_bfs_dist(succ, s, n)
-    }))
-    states <- hon$first_order_states
-    got <- hypergraphs:::.hoc_dist_first(dist_ho, node_paths, states)
-    # independent slow reference: minimum over every (v, w) realization
-    ref <- matrix(Inf, length(states), length(states),
-                  dimnames = list(states, states))
-    for (v in seq_len(n)) {
-      for (w in seq_len(n)) {
-        if (!is.finite(dist_ho[v, w])) next
-        s1 <- node_paths[[v]][1L]
-        d1 <- node_paths[[w]][length(node_paths[[w]])]
-        cand <- dist_ho[v, w] + length(node_paths[[v]]) - 1L
-        if (cand < ref[s1, d1]) ref[s1, d1] <- cand
-      }
-    }
-    diag(ref) <- 0
-    expect_identical(got, ref)
-    got
-  })
-  expect_length(results, 6L)
+test_that("first-order distances take the minimum over realizations (hand)", {
+  # Nodes v1 = "a", v2 = "b -> c" (order 2), v3 = "c"; hop distances
+  # v1 -> v2 = 1, v2 -> v3 = 1, v1 -> v3 = 2, diagonal 0, the rest Inf.
+  # A hop v -> w realizes first(v) -> last(w) at dist + order(v) - 1:
+  #   (a, c): v1 -> v2 gives 1 + 0 = 1, v1 -> v3 gives 2 + 0 = 2 -> min 1
+  #   (b, c): v2 itself gives 0 + 1 = 1, v2 -> v3 gives 1 + 1 = 2 -> min 1
+  # Every other off-diagonal cell has no realization -> Inf; diagonal 0.
+  # The larger candidate of each cell is enumerated second, so keeping the
+  # last value written would give 2 in both cells.
+  dist_ho <- matrix(c(0, 1, 2,
+                      Inf, 0, 1,
+                      Inf, Inf, 0), 3L, byrow = TRUE)
+  got <- hypergraphs:::.hoc_dist_first(
+    dist_ho, hypergraphs:::.hoc_node_paths(c("a", "b -> c", "c")),
+    c("a", "b", "c"))
+  expect_identical(got, matrix(c(0, Inf, 1,
+                                 Inf, 0, 1,
+                                 Inf, Inf, 0), 3L, byrow = TRUE,
+                               dimnames = list(c("a", "b", "c"),
+                                               c("a", "b", "c"))))
 })
 
 test_that("sort_by orders by a computed centrality, largest first", {

@@ -60,8 +60,19 @@ test_that("hypa takes `order`; the old `k` alias is refused", {
   expect_error(hypa(trajs, k = 2L, min_count = 1L),
                class = "hypergraphs_bad_input")
   h_order <- hypa(trajs, order = 2L, min_count = 1L)
-  expect_identical(.unview(h_order),
-                   Nestimate::build_hypa(trajs, order = 2L, min_count = 1L))
+  expect_s3_class(h_order, "net_hypa")
+  expect_setequal(unique(hg_get(h_order, what = "scores")$order), 2L)
+  # expected counts worked by hand: each 3-gram is seen once. B A and C A each
+  # send 1 into A B and A C, which each take 1: 1 * 1 / 2 = 0.5 on all four
+  # routes; the same for A C and B C into C A and C B. A B sends 2 into B C
+  # and B D, which take 1 each: 2 * 1 / 2 = 1
+  scores <- hg_get(h_order, what = "scores")
+  hand <- c("B -> A -> B" = 0.5, "B -> A -> C" = 0.5, "C -> A -> B" = 0.5,
+            "C -> A -> C" = 0.5, "A -> C -> A" = 0.5, "A -> C -> B" = 0.5,
+            "B -> C -> A" = 0.5, "B -> C -> B" = 0.5, "A -> B -> C" = 1,
+            "A -> B -> D" = 1)
+  expect_identical(sort(scores$path), sort(names(hand)))
+  expect_equal(scores$expected, unname(hand[scores$path]))
 })
 
 test_that("hypa alpha parameter affects classification", {
@@ -570,19 +581,18 @@ test_that("order-2 expected counts equal the first-order Markov expectation", {
   seqs <- .hypa_markov_seqs(1L)
   scores <- hg_get(hypa(seqs, order = 2L), what = "scores")
   expect_gt(nrow(scores), 0L)
-  # independent oracle: n(x y .) n(. y z) / n(. y .) over the 3-grams
-  grams <- do.call(rbind, lapply(seqs, \(s) {
-    k <- length(s)
-    data.frame(x = s[seq_len(k - 2L)], y = s[2:(k - 1L)], z = s[3:k])
-  }))
-  n_xy <- table(paste(grams$x, grams$y))
-  n_yz <- table(paste(grams$y, grams$z))
-  n_y <- table(grams$y)
-  parts <- strsplit(scores$path, " -> ", fixed = TRUE)
-  oracle <- vapply(parts, \(p) {
-    n_xy[[paste(p[1L], p[2L])]] * n_yz[[paste(p[2L], p[3L])]] / n_y[[p[2L]]]
-  }, numeric(1L))
-  expect_equal(scores$expected, oracle, tolerance = 1e-10)
+  # The recount of the 3-grams on random Markov chains lives in
+  # local_testing_and_equivalence/test-equiv-reference-random-2.R.
+  # 3-grams a b c (x2), a b d, x b c: n(a b .) = 3, n(x b .) = 1,
+  # n(. b c) = 3, n(. b d) = 1, n(. b .) = 4, so E = n(x y .) n(. y z) / 4:
+  # a b c 3 * 3 / 4 = 2.25, a b d 3 * 1 / 4 = 0.75, x b c 1 * 3 / 4 = 0.75,
+  # x b d 1 * 1 / 4 = 0.25 (sum 4 = the four observed 3-grams)
+  trajs <- list(c("a", "b", "c"), c("a", "b", "c"), c("a", "b", "d"),
+                c("x", "b", "c"))
+  hand <- hg_get(hypa(trajs, order = 2L), what = "scores", order_by = "path")
+  expect_identical(hand$path, c("a -> b -> c", "a -> b -> d",
+                                "x -> b -> c", "x -> b -> d"))
+  expect_equal(hand$expected, c(2.25, 0.75, 0.75, 0.25), tolerance = 1e-12)
 })
 
 test_that("the two tails are complementary: p_under + p_over = 1", {

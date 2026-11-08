@@ -11,7 +11,7 @@
 # ---------------------------------------------------------------------------
 # Column names give no role (2026-11-06, as Nestimate 1.0.7). Dynet's alias table
 # (R/detect.R), compared after stripping non-alphanumerics, only refuses tables
-# whose columns need declaring, and names the clock columns for the plots.
+# whose columns need declaring.
 # ---------------------------------------------------------------------------
 
 .thg_aliases <- list(
@@ -21,19 +21,12 @@
                "targetid", "toid", "j"),
   start    = c("start", "onset", "begin", "starttime", "startdate", "tstart",
                "fromtime"),
-  end      = c("end", "terminus", "finish", "endtime", "enddate", "tend",
-               "totime", "stop"),
-  duration = c("duration", "dur", "elapsed", "length", "lasted"),
   time     = c("time", "timestamp", "datetime", "date", "when", "t", "occurred",
                "createdat", "posttime"),
-  thread   = c("thread", "threadid", "discussion", "discussiontitle", "topic",
-               "conversation", "parent", "postid", "root"),
-  session  = c("session", "period", "wave", "phase", "cohort", "course"),
   group    = c("group", "event", "context", "room", "class", "meeting",
                "venue", "team", "channel", "hyperedge"),
   actor    = c("actor", "person", "member", "student", "participant", "user",
-               "id", "name", "node"),
-  weight   = c("weight", "weights", "strength")
+               "id", "name", "node")
 )
 
 .thg_norm_name <- function(x) gsub("[^a-z0-9]", "", tolower(x))

@@ -83,22 +83,22 @@ test_that("expected counts preserve every node's strength", {
   }))
 })
 
-test_that("the fitted null equals symmetric matrix scaling (independent oracle)", {
-  co <- .hg_hypa_cooccurrence(random_incidence_hg(2L, n = 25L,
-                                                  n_edges = 300L)$incidence)
-  s <- co$strength[co$strength > 0]
-  fit <- .hg_hypa_fit(s)
-  # Symmetric Sinkhorn on the all-ones matrix with a zero diagonal: the
-  # strength-preserving symmetric scaling is unique, so both must agree.
-  start <- matrix(1, length(s), length(s))
-  diag(start) <- 0
-  oracle <- Reduce(\(e, i) {
-    d <- sqrt(s / rowSums(e))
-    e * outer(d, d)
-  }, seq_len(3000L), start)
-  fitted <- outer(fit$x, fit$x)
-  diag(fitted) <- 0
-  expect_equal(fitted, oracle, tolerance = 1e-6)
+# The comparison with an independent Sinkhorn scaling on a random incidence
+# lives in local_testing_and_equivalence/test-equiv-reference-random-2.R.
+test_that("the fitted null equals the hand solution on three nodes", {
+  # Strengths s = (3, 3, 2): expected pair counts e_ij = x_i x_j with
+  # e12 + e13 = 3, e12 + e23 = 3, e13 + e23 = 2. Adding all three gives
+  # e12 + e13 + e23 = 4, so e12 = 2, e13 = 1, e23 = 1, hence
+  # x = (sqrt(2), sqrt(2), 1 / sqrt(2)) and m = 8 / 2 = 4.
+  fit <- .hg_hypa_fit(c(3, 3, 2))
+  expect_true(fit$converged)
+  expect_identical(fit$m, 4)
+  expect_equal(fit$x, c(sqrt(2), sqrt(2), 1 / sqrt(2)), tolerance = 1e-8)
+  expected <- outer(fit$x, fit$x)
+  diag(expected) <- 0
+  expect_equal(expected, matrix(c(0, 2, 1,
+                                  2, 0, 1,
+                                  1, 1, 0), 3L), tolerance = 1e-8)
 })
 
 test_that("a star has no fitted null and warns by class", {
@@ -166,9 +166,24 @@ test_that("classification applies the under rule first, each with its floor", {
 })
 
 test_that("the scored set is exactly the pairs that can be classified", {
-  hg <- avoiding_hubs_hg()
-  out <- hypa(hg, min_count = 4L)
-  # brute force over every possible pair of nodes with positive strength
+  # two hubs each paired once with a, b, c, d and never with each other, plus
+  # {a, b}: 15 possible pairs, 9 observed once; h1|h2 is never observed but
+  # expected 1.24 times, so at min_count = 1 it is under-eligible only, and
+  # the five unobserved leaf pairs (expected < 1) are not scored. The
+  # 300-random-hyperedge version is local (test-equiv-reference-random-2.R).
+  edges <- c(lapply(c("a", "b", "c", "d"), \(x) c("h1", x)),
+             lapply(c("a", "b", "c", "d"), \(x) c("h2", x)),
+             list(c("a", "b")))
+  names(edges) <- sprintf("e%d", seq_along(edges))
+  hg <- group_hypergraph(
+    data.frame(node = unlist(edges),
+               hyperedge = rep(names(edges), lengths(edges))),
+    node = "node", hyperedge = "hyperedge")
+  out <- hypa(hg, min_count = 1L)
+  expect_setequal(pair_key(out),
+                  c("a|b", "a|h1", "b|h1", "c|h1", "d|h1",
+                    "a|h2", "b|h2", "c|h2", "d|h2", "h1|h2"))
+  # the same set by brute force over every pair of nodes with positive strength
   co <- .hg_hypa_cooccurrence(hg$incidence)
   active <- which(co$strength > 0)
   fit <- .hg_hypa_fit(co$strength[active])
@@ -179,8 +194,8 @@ test_that("the scored set is exactly the pairs that can be classified", {
                           to = hg$nodes[active[idx[, 2]]],
                           observed = dense[idx],
                           expected = fit$x[idx[, 1]] * fit$x[idx[, 2]])
-  eligible <- subset(all_pairs, observed >= 4 | expected >= 4)
-  expect_gt(sum(eligible$observed < 4), 0L)  # some are under-eligible only
+  eligible <- subset(all_pairs, observed >= 1 | expected >= 1)
+  expect_identical(sum(eligible$observed < 1), 1L)  # h1|h2, under-eligible only
   expect_setequal(pair_key(out), pair_key(eligible))
   matched <- eligible[match(pair_key(out), pair_key(eligible)), ]
   expect_equal(out$observed, as.integer(matched$observed))

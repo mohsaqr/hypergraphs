@@ -1,16 +1,14 @@
-# hypergraphs (development version)
+# hypergraphs 0.7.13
 
 ## Breaking changes
 
-* Column names give no role, as in `Nestimate::build_network()` since Nestimate
-  1.0.7, so the same arguments build the same sequences in both packages. A
-  column called `action`, `time`, `session` or `session_id` was used when its
-  argument was `NULL`. Now a column called `action` that is not declared raises
+* Column names give no role. A column called `action`, `time`, `session` or
+  `session_id` was used when its argument was `NULL`. Now a column called `action` that is not declared raises
   `hypergraphs_long_format`, and an undeclared `time`, `session` or `session_id`
   column beside `action` is named in a message of class
   `hypergraphs_column_role` and not used: events follow row order and sessions
   are not split. Calls that relied on those names need the arguments added.
-  `session = FALSE` now means the same as `NULL`. Requires Nestimate >= 1.0.7.
+  `session = FALSE` now means the same as `NULL`.
 * `temporal_hypergraph()`, `group_hypergraph()` and `hypergraph()` on a table no
   longer detect columns from an alias table (`source`/`target`, `Timestamp`,
   `onset`/`terminus`, `actor`/`group`, a `weight` column, ...). Name the columns:
@@ -19,6 +17,35 @@
   is all categorical and would otherwise read as sequences. A `weight` column
   counts only when named. A `nodes` table gives entry times in its `start`
   column; `time` and `date` are no longer read.
+* `plot()` of a hypergraph no longer picks a numeric column of the data by itself.
+  The documented default that a single varying numeric attribute, such as a
+  `trials` column kept by `group_hypergraph()`, coloured the hulls and wrote title
+  boxes is removed: the plot cannot tell a count from an identifier, and a
+  `session` number was read as a count, or was skipped only because of its name.
+  Name the column: `plot(hg, color_by = "trials", titles = "trials", unit =
+  "trials")`. Frequencies the package computed are still drawn by default: the
+  count of each frequent set, the window counts of a window hypergraph and the
+  count of a text hyperedge. `sort_by` runs upward only on a clock the object
+  knows: the `start` and `end` of a temporal hypergraph, a snapshot or a window
+  hypergraph with `collapse = FALSE`, and the columns declared as `time` or `end`.
+* A frame read as sequences with no role declared must be one column or nothing but
+  a numbered run of positions (`T1`, `T2`, ...). Any other frame raises
+  `hypergraphs_long_format`, because its ids, dates and covariates would become
+  states. Columns of only 0 and 1 are refused too, because they could be one-hot
+  codes. Declare the columns with `action`, or give a wide table's positions alone, as
+  a character matrix or a list of sequences.
+* The sequence verbs no longer print that a `session_id` column is not used when
+  it is declared under any role, such as the `actor` or the `time`. The message said
+  events were read in row order and sessions not split whatever was declared; it now
+  says only what holds for the call.
+* A network, tna or cograph object reaches `hon()`, `mogen()`, `hypa()` and
+  `markov_order()` with its positions declared, whatever they are called, numbered
+  ones too (a model of 0/1 positions was refused as possible one-hot codes). A
+  column added to unnumbered positions a verb returned is refused; numbered
+  positions carry no mark, so a column added in the same run is read as one more
+  position.
+* The note about one long sequence follows what was built: it was shown for several
+  sequences, with `session` or with time gaps and no `actor`.
 * `hg_centrality()` now defaults to `type = "clique"`. The `"Z"` and `"H"`
   centralities are defined by Benson (2019) for uniform hypergraphs only:
   with mixed hyperedge sizes the equation mixes polynomial degrees, so its
@@ -33,8 +60,8 @@
   converged. On large uniform hyperedges the shift swamped the update and
   returned the uniform vector without a warning (a 20-member, 3-petal
   sunflower gave a hub/petal ratio of 1 instead of sqrt(3)).
-* The memory and topology verbs follow the Nestimate corrections of
-  2026-10-27 once that version is installed: path-based degrees of freedom
+* The memory and topology verbs follow the corrections of 2026-10-27 to
+  the imported network models once that version is installed: path-based degrees of freedom
   in `mogen()` and `markov_order()`, the Scholtes order rule for
   `mogen(criterion = "lrt")`, Atkin's Q-vector in `hg_qanalysis()`, and
   persistent homology built one dimension above `max_dim`.
@@ -61,6 +88,17 @@
 
 ## Bug fixes
 
+* `window_hypergraph()` and `simplicial(type = "window")` on a network read its
+  fields as sequences: a frequency network of two sequences gave 17 nodes such as
+  `NULL` and `0.5` and 34 windows instead of 3 states and 4 windows. They now read
+  its sequences. `group_hypergraph()` read the one-hot networks of a group as the
+  states 0 and 1. A one-hot network (also a bare `cograph_network`), an association
+  network (`cor`, `pcor`, `glasso`, `ising`, `mgm`) and, in the window
+  constructors, a group of networks raise `hypergraphs_bad_input`, since none holds
+  one set of sequences of states.
+* Duplicated column names raise `hypergraphs_bad_input`: a column added under a
+  name the frame already had was read as a state. A single column of 0 and 1 is
+  refused like several.
 * Wrong answers found by the audit: `window_hypergraph()` split a state
   label containing the internal separator (such labels are now refused);
   an edge list row with one missing end became a singleton hyperedge in
@@ -90,12 +128,12 @@
   classed `hypergraphs_empty_result` from `window_hypergraph()` and
   `hg_line_graph()` on empty input.
 
-* Memory constructors preserve literal numeric states from Nestimate models.
+* Memory constructors preserve literal numeric states from network models.
   Only tna models and explicitly encoded converted data decode positional
   state codes. Equivalent raw and model inputs now give the same HON,
   MOGen and HYPA results.
-* Model input is normalized locally before calling Nestimate, so this fix
-  also works with the minimum supported Nestimate 0.9.26.
+* Model input is normalized locally, so this fix also works with the oldest
+  supported version of the imported network models.
 * Grouped mixture/clustering input preserves numeric state values.
   Component matrix labels alone no longer imply encoded data; explicit
   `labels` or `alphabet` attributes identify positional codes.

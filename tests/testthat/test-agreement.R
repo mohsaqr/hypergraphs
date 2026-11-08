@@ -451,36 +451,21 @@ test_that("hg_stability() refuses fractional cluster and resample counts", {
                class = "hypergraphs_bad_input")
 })
 
-test_that("expected and observed mutual information match the cell-by-cell definition", {
-  # Vinh, Epps & Bailey (2010), eq. for E[MI]: a sum over every pair of
-  # margins (a_i, b_j) and every admissible n_ij, written as the loop.
-  reference_emi <- function(tab) {
-    n <- sum(tab)
-    total <- 0
-    for (ai in rowSums(tab)) for (bj in colSums(tab)) {
-      lo <- max(1, ai + bj - n)
-      hi <- min(ai, bj)
-      if (lo > hi) next
-      nij <- seq.int(lo, hi)
-      total <- total + sum(stats::dhyper(nij, ai, n - ai, bj) * (nij / n) *
-                             log((nij * n) / (ai * bj)))
-    }
-    total
-  }
-  reference_mi <- function(tab) {
-    p <- tab / sum(tab)
-    outer_p <- outer(rowSums(p), colSums(p))
-    sum(p[p > 0] * log(p[p > 0] / outer_p[p > 0]))
-  }
-  set.seed(11)
-  tables <- lapply(1:40, function(r) {
-    n <- sample(c(2, 7, 50, 300), 1)
-    table(sample(sample(1:25, 1), n, TRUE), sample(sample(1:25, 1), n, TRUE))
-  })
-  emi <- vapply(tables, .thg_expected_mi, numeric(1L))
-  expect_identical(emi, vapply(tables, reference_emi, numeric(1L)))
-  expect_equal(vapply(tables, .thg_mutual_information, numeric(1L)),
-               vapply(tables, reference_mi, numeric(1L)), tolerance = 1e-12)
+test_that("expected and observed mutual information equal hand values", {
+  # The random-table comparison with the cell-by-cell definitions lives in
+  # local_testing_and_equivalence/test-equiv-reference-random-2.R.
+  # x = (1,1,1,2), y = (1,1,2,2): p = [.5 .25; 0 .25], rows (.75, .25),
+  # columns (.5, .5): MI = .5 log(.5/.375) + .25 log(.25/.375)
+  #                        + .25 log(.25/.125)
+  tab <- table(c(1, 1, 1, 2), c(1, 1, 2, 2))
+  expect_equal(.thg_mutual_information(tab),
+               0.5 * log(4 / 3) + 0.25 * log(2 / 3) + 0.25 * log(2),
+               tolerance = 1e-12)
+  # two singletons against two singletons (n = 2): every margin pair is
+  # (1, 1), n_ij = 1 with probability dhyper(1, 1, 1, 1) = 1/2, so each of
+  # the four pairs adds 1/2 * 1/2 * log(2) -> E[MI] = log(2) = MI
+  expect_equal(.thg_expected_mi(table(c(1, 2), c(1, 2))), log(2),
+               tolerance = 1e-12)
   # one cluster against one cluster: nothing to share, nothing expected
   expect_identical(.thg_expected_mi(table(rep(1, 5), rep(1, 5))), 0)
 })

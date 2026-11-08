@@ -572,59 +572,16 @@ test_that("hg_get() refuses a fractional homology dimension", {
   expect_identical(nrow(hg_get(ph, what = "betti", dimension = 1)), 1L)
 })
 
-# ---- Audit 2026-11-01: Wasserstein against an independent oracle ----------
+# ---- Audit 2026-11-01: Wasserstein hand value ------------------------------
 
-# Brute force over every bijection of the diagonal-augmented diagrams; the
-# diagonal distance of (b, d) under L_p is the distance to its L_p
-# projection, the midpoint ((b + d) / 2, (b + d) / 2).
-.ph_brute_wasserstein <- function(p, q, order, internal_p) {
-  p <- as.matrix(p[, c("birth", "death")])
-  q <- as.matrix(q[, c("birth", "death")])
-  ground <- function(a, b) {
-    if (is.infinite(internal_p)) max(abs(a - b)) else
-      sum(abs(a - b)^internal_p)^(1 / internal_p)
-  }
-  to_diag <- function(a) ground(a, rep(mean(a), 2L))
-  n1 <- nrow(p)
-  n2 <- nrow(q)
-  size <- n1 + n2
-  cost <- outer(seq_len(size), seq_len(size), Vectorize(\(i, j) {
-    if (i <= n1 && j <= n2) ground(p[i, ], q[j, ])
-    else if (i <= n1) to_diag(p[i, ])
-    else if (j <= n2) to_diag(q[j, ])
-    else 0
-  }))
-  perms <- function(v) {
-    if (length(v) <= 1L) return(list(v))
-    do.call(c, lapply(seq_along(v), \(i) lapply(perms(v[-i]), \(r) c(v[i], r))))
-  }
-  best <- min(vapply(perms(seq_len(size)), \(pm) {
-    sum(cost[cbind(seq_len(size), pm)]^order)
-  }, numeric(1L)))
-  best^(1 / order)
-}
-
-test_that("hg_wasserstein() equals an exhaustive matching on small diagrams", {
+# The exhaustive-matching comparison on random diagrams lives in
+# local_testing_and_equivalence/test-equiv-reference-random-2.R.
+test_that("hg_wasserstein() equals a hand-computed matching", {
   # hand value: (1,5),(2,4) vs (1,4),(6,8), order 1, L_inf: (1,5)-(1,4) costs
   # 1, (2,4) to the diagonal 1, (6,8) to the diagonal 1 -> 3
   p <- data.frame(dimension = 1L, birth = c(1, 2), death = c(5, 4))
   q <- data.frame(dimension = 1L, birth = c(1, 6), death = c(4, 8))
   expect_equal(unname(hg_wasserstein(p, q)), 3)
-  set.seed(42)
-  invisible(lapply(seq_len(40), \(r) {
-    mk <- function(n) {
-      b <- stats::runif(n)
-      data.frame(dimension = rep(0L, n), birth = b, death = b + stats::runif(n))
-    }
-    a <- mk(sample(1:3, 1L))
-    b <- mk(sample(0:3, 1L))
-    ord <- sample(c(1, 2, 2.5), 1L)
-    ip <- sample(c(1, 2, Inf), 1L)
-    expect_equal(unname(hg_wasserstein(a, b, dimension = 0L, order = ord,
-                                       internal_p = ip)),
-                 .ph_brute_wasserstein(a, b, ord, ip),
-                 tolerance = sqrt(.Machine$double.eps))
-  }))
 })
 
 test_that("hg_wasserstein() is a metric on finite diagrams", {

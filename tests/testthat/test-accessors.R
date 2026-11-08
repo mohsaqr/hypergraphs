@@ -112,8 +112,23 @@ test_that("hg_get.net_mogen returns the order table and transitions", {
 
   tr <- hg_get(mo, what = "transitions")
   expect_tidy(tr)
-  tr_direct <- Nestimate::mogen_transitions(mo, order = mo$optimal_order)
-  expect_identical(tr, tr_direct)
+  expect_identical(tr, hg_get(mo, what = "transitions", order = mo$optimal_order))
+  # counted on their own: every transition is a k-gram of the same sequences
+  grams <- hg_get(mo, what = "paths", k = mo$optimal_order + 1L)
+  expect_identical(sort(tr$count), sort(grams$count))
+  # a probability is the path's share of everything that leaves its context,
+  # printed to four decimals
+  context_total <- ave(tr$count, tr$from, FUN = sum)
+  expect_identical(tr$probability, round(tr$count / context_total, 4))
+  # and against the sequences themselves: each count is the number of times its
+  # from states followed by its to state occur in a row
+  k <- mo$optimal_order + 1L
+  raw <- table(unlist(lapply(.ac_seqs(), function(s) {
+    if (length(s) < k) return(character(0L))
+    vapply(seq_len(length(s) - k + 1L),
+           \(i) paste(s[i:(i + k - 1L)], collapse = " -> "), character(1L))
+  })))
+  expect_identical(tr$count, as.integer(raw[paste(tr$from, tr$to, sep = " -> ")]))
 })
 
 test_that("hg_get.net_markov_order returns orders and the null", {

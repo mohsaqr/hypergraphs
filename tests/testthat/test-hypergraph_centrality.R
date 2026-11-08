@@ -201,17 +201,14 @@ test_that("pagerank: symmetric two-node hypergraph is exactly uniform", {
                tolerance = 1e-12)
 })
 
-test_that("pagerank matches a dense linear-system solve on EDVW walks", {
+test_that("pagerank on EDVW walks is a positive distribution", {
+  # The dense linear-solve comparison on these walks lives in
+  # local_testing_and_equivalence/test-equiv-reference-random-2.R.
   set.seed(7)
   results <- lapply(1:10, function(i) {
     hg <- window_hypergraph(
       list(sample(letters[1:5], 60, replace = TRUE)), window = 3L)
     pr <- .hg_centrality_fit(hg, type = "pagerank", damping = 0.85, tol = 1e-12)
-    rw <- hypergraphs:::.hl_rw_transition(hg)
-    n <- hg$n_nodes
-    ref <- solve(diag(n) - 0.85 * t(rw$P), rep(0.15 / n, n))
-    expect_equal(.hc_vec(pr, "pagerank"), ref, tolerance = 1e-7,
-                 ignore_attr = TRUE)
     expect_equal(sum(pr$pagerank), 1, tolerance = 1e-12)
     expect_true(all(pr$pagerank > 0))
     hg
@@ -383,11 +380,12 @@ test_that("A06: subhypergraph centrality is log diag expm, row by row", {
 })
 
 test_that("A06: subhypergraph matches log(diag(expm)) on small graphs", {
-  # independent oracle: the matrix exponential by eigendecomposition of the
-  # whole matrix, on graphs whose spectra keep it in floating range
+  # the matrix exponential by eigendecomposition of the whole matrix, on
+  # fixed graphs whose spectra keep it in floating range. The same check on
+  # a random uniform hypergraph lives in
+  # local_testing_and_equivalence/test-equiv-reference-random-2.R.
   lapply(list(
     .hc_two_overlapping(),
-    random_hypergraph("uniform", n = 12, m = 10, k = 3, seed = 3),
     group_hypergraph(
       data.frame(node = c("a", "b", "c", "d", "e", "f", "g"),
                  hyperedge = c("X", "X", "X", "Y", "Y", "Z", "W")),

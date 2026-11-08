@@ -8,34 +8,21 @@ testthat::skip_on_cran()
   )
 }
 
-# The pairwise loop the vectorised census replaced, kept as its oracle.
-.motif_loop <- function(edges) {
-  if (length(edges) < 2L) return(c(Y = 0L, T = 0L, O = 0L))
-  four_sets <- character()
-  for (i in seq_len(length(edges) - 1L)) {
-    for (j in (i + 1L):length(edges)) {
-      if (length(intersect(edges[[i]], edges[[j]])) == 2L) {
-        union_nodes <- sort(union(edges[[i]], edges[[j]]))
-        if (length(union_nodes) == 4L) {
-          four_sets <- c(four_sets, paste(union_nodes, collapse = ","))
-        }
-      }
-    }
-  }
-  if (!length(four_sets)) return(c(Y = 0L, T = 0L, O = 0L))
-  pair_count <- as.integer(table(four_sets))
-  c(Y = sum(pair_count == 1L), T = sum(pair_count == 3L),
-    O = sum(pair_count == 6L))
-}
-
-test_that("INVARIANT: vectorised motif census equals the pairwise loop", {
-  set.seed(11)
-  for (r in seq_len(25)) {
-    n <- sample(6:14, 1)
-    m <- sample(4:24, 1)
-    edges <- unique(lapply(seq_len(m), function(i) sort(sample(n, 3))))
-    expect_identical(hypergraphs:::.thg_yto_counts(edges), .motif_loop(edges))
-  }
+# The random comparison with the pairwise loop lives in
+# local_testing_and_equivalence/test-equiv-reference-random-2.R.
+test_that("motif census counts hand-built Y, T and O sets", {
+  # Y: {1,2,3},{1,2,4} share two nodes on {1,2,3,4} -> 1 overlapping pair;
+  #    {20,21,22},{20,21,23} likewise -> a second Y.
+  # T: three of the four 3-subsets of {5,6,7,8} -> choose(3, 2) = 3 pairs.
+  # O: all four 3-subsets of {9,10,11,12} -> choose(4, 2) = 6 pairs.
+  # {1,30,31} shares one node with {1,2,3}: no motif. Census Y=2, T=1, O=1.
+  edges <- list(c(1L, 2L, 3L), c(1L, 2L, 4L),
+                c(20L, 21L, 22L), c(20L, 21L, 23L),
+                c(5L, 6L, 7L), c(5L, 6L, 8L), c(5L, 7L, 8L),
+                c(9L, 10L, 11L), c(9L, 10L, 12L), c(9L, 11L, 12L),
+                c(10L, 11L, 12L), c(1L, 30L, 31L))
+  expect_identical(hypergraphs:::.thg_yto_counts(edges),
+                   c(Y = 2L, T = 1L, O = 1L))
 })
 
 test_that("motif tests carry their draws and plot", {

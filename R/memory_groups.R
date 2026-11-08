@@ -16,10 +16,11 @@
                           "its sequences with `group =` instead"))
   }
   if (inherits(data, c("netobject", "tna", "cograph_network"))) {
-    data <- .coerce_sequence_input(data)
+    data <- .ho_model_sequences(data)
   }
+  # a character matrix holds nothing but positions
   if (is.matrix(data) && !is.numeric(data)) {
-    data <- as.data.frame(data, stringsAsFactors = FALSE)
+    data <- .ho_mark_positions(as.data.frame(data, stringsAsFactors = FALSE))
   }
   if (is.data.frame(data) && is.character(group) && length(group) == 1L &&
       group %in% names(data)) {

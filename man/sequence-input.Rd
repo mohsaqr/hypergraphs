@@ -26,14 +26,15 @@ keeps each actor or session in one sequence however long the gaps.
 \code{timezone} is the time zone of timestamps that carry none (default
 \code{"UTC"}). Events with a missing actor or session raise
 \code{hypergraphs_bad_input}; a missing action stays in its sequence as a
-gap. Without \code{actor} all events form one sequence, announced by the
-message \code{hypergraphs_single_sequence}.}
+gap. With \code{action} alone all events form one sequence; \code{session}, or a
+\code{time} gap above \code{time_threshold}, splits them without an \code{actor}. When one
+sequence is built, the message \code{hypergraphs_single_sequence} says so.}
 \item{Wide data.frame or character matrix}{one sequence per row;
 trailing \code{NA}s end a sequence.}
 \item{List}{one character vector per sequence.}
 \item{Model object}{a \code{netobject}, \code{netobject_group}, \code{tna} or
-\code{cograph_network} that carries its sequence data. Nestimate model
-objects retain literal state values, including numeric states.
+\code{cograph_network} that carries its sequence data. A \code{netobject}
+retains literal state values, including numeric states.
 Positional integer codes are decoded for \code{tna} models and converted
 \code{cograph_network} data explicitly carrying a tna encoding alphabet.
 \code{\link[=markov_order]{markov_order()}} and \code{\link[=hg_markov_stability]{hg_markov_stability()}} fit one model per group
@@ -59,7 +60,11 @@ A data.frame with columns named like an event table (\code{code}, \code{state},
 \code{user}, \code{timestamp}, ...) that is passed without \verb{action =} and has no
 \code{action} column raises \code{hypergraphs_long_format} (a
 \code{hypergraphs_bad_input}): read as wide, its actor ids and times would
-silently become states. \code{actor}, \code{time} or \code{session} without an action
+silently become states. So does any other frame that is not one column or
+nothing but a numbered run of positions (\code{T1}, \code{T2}, ...), and columns of only 0
+and 1 are refused because they could be one-hot codes: declare the columns with
+\code{action}, or give a wide table's positions alone, as a character matrix or a list
+of sequences. \code{actor}, \code{time} or \code{session} without an action
 column raises \code{hypergraphs_bad_input}.
 }
 

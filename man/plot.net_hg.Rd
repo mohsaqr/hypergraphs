@@ -69,8 +69,8 @@ Not used with a \code{layout} table.}
 \item{seed}{Seed for the force-directed layouts (default \code{1}); the
 caller's random number stream is left untouched.}
 
-\item{color_by}{Colour of the hulls: \code{NULL} (the hyperedges' count
-attribute described above, the window counts of a
+\item{color_by}{Colour of the hulls: \code{NULL} (the frequency the package computed,
+described above: the count of a frequent set or text hyperedge, the window counts of a
 \code{\link[=window_hypergraph]{window_hypergraph()}}, else one colour), \code{"size"}
 (hyperedge cardinality, one Okabe-Ito colour per size), \code{"weight"}
 (the hyperedge weights of a \code{\link[=window_hypergraph]{window_hypergraph()}}, the number of
@@ -189,7 +189,7 @@ proportional to the event value.}
 
 \item{titles}{Write a title box beside every hyperedge, just outside its
 pebble on the side facing away from the centre of the figure. \code{NULL}
-(default) writes the hyperedges' count attribute described above (not
+(default) writes the count of each hyperedge where described above (not
 when \code{dismantled = TRUE}), else none; \code{FALSE} writes
 none; \code{TRUE} writes the hyperedge names; a selector
 resolved like \code{color_by} (an edge-metadata column, a vector named by
@@ -213,8 +213,7 @@ note get none; names that are not hyperedges are skipped. Requires
 \code{legend_title} is given), follows the number in each title box, and
 names the node area ("trials with the event") and the transition
 widths. \code{NULL} (default) is the unit the hypergraph records
-(\code{"sequences"} for \code{\link[=group_hypergraph]{group_hypergraph()}} of a clustering), else the
-name of the hyperedges' count attribute described above, else those
+(\code{"sequences"} for \code{\link[=group_hypergraph]{group_hypergraph()}} of a clustering), else those
 texts stay generic.}
 
 \item{pieces}{How the bipartite layout places a hypergraph that falls into
@@ -264,9 +263,9 @@ Details).}
 by highest member row, then name), \code{"size"}, the name of a column in the
 edge metadata such as a date, a vector named by hyperedge, or a vector
 with one value per hyperedge. Numbers sort largest first, as in
-\code{\link[=hg_get]{hg_get()}}; dates, text and a clock column (\code{start}, \code{end}, \code{time},
-... as \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} names them, numeric in a snapshot) sort
-ascending. Ties fall back to the default order. For
+\code{\link[=hg_get]{hg_get()}}; dates, text and a clock of the object (the \code{start} and \code{end}
+of a temporal hypergraph or snapshot, or a column declared as \code{time} or
+\code{end}) sort ascending. Ties fall back to the default order. For
 \code{type = "storyline"} it is the order of the columns, always ascending;
 \code{NULL} keeps the stored order of the hyperedges.}
 
@@ -297,14 +296,12 @@ supplied per hyperedge, and outlined with a line type by the same kinds of
 selector. A hyperedge with a single member is drawn as its node alone.
 }
 \details{
-A hypergraph whose hyperedges carry one numeric attribute -- such as a
-\code{trials} count that \code{\link[=group_hypergraph]{group_hypergraph()}} kept because it is constant
-within each group -- is drawn by that attribute with no further argument:
-it colours the pebbles, writes a title box with the count beside each
-one, and names the unit of the legends. Of several numeric attributes,
-the one that varies between hyperedges is read when only one does (a
-membership share of 1 on every hyperedge is passed over); otherwise none
-is. \code{color_by}, \code{titles} and \code{unit} override it.
+The frequency the package computed for each hyperedge is drawn with no further
+argument: the count of each frequent set, the window counts of a window
+hypergraph and the count of a text hyperedge colour the pebbles and name the unit
+of the legends. A text hypergraph and frequent sets of several groups also get a
+title box beside each hyperedge. A numeric column of the data, whatever it is
+called, is shown only when named: \code{plot(hg, color_by = "trials", titles = "trials", unit = "trials")}. \code{color_by}, \code{titles} and \code{unit} override the default.
 
 Node labels are bold with a white halo, the legends sit below the plot
 (a colour bar 2.5 cm per key, discrete legends at most four keys to a
@@ -414,8 +411,8 @@ plot(hg, node_sizes = counts, direction = moves,
 plot(hg, node_sizes = counts, direction = moves, transitions = moves,
      arrow_style = "outside")
 
-# groups of events with their trial counts: the count colours the pebbles
-# and writes a title box per group; points sized by how many trials
+# groups of events with their trial counts: named, the count colours the
+# pebbles and writes a title box per group; points sized by how many trials
 # contain each event
 members <- data.frame(
   group = c("Hint", "Hint", "Hint", "Question", "Question", "Question"),
@@ -425,7 +422,8 @@ members <- data.frame(
 trial_groups <- group_hypergraph(members, node = "state", hyperedge = "group")
 event_trials <- data.frame(state = c("Wrong", "Hint", "Question", "Retry"),
                            trials = c(200, 120, 80, 190))
-plot(trial_groups, node_sizes = event_trials)
+plot(trial_groups, color_by = "trials", titles = "trials", unit = "trials",
+     node_sizes = event_trials)
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal

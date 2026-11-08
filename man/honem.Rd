@@ -28,7 +28,7 @@ the transition matrix over all of the network's nodes (memory nodes such
 as \code{"a -> b"} included), followed by a truncated singular value
 decomposition, one row per node. The paper instead combines order-indexed
 neighbourhood matrices over the first-order states, which it does not
-define precisely enough to reproduce; see \code{Nestimate::build_honem()}.
+define precisely enough to reproduce.
 }
 \examples{
 seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),

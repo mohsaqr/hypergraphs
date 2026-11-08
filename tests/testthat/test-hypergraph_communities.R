@@ -72,10 +72,13 @@ test_that("A14: comparison quality scores each fit's saved projection", {
   info <- hg_communities(h, n_runs = 2, trials = 2)
   q <- hg_get(hg_compare_communities(irmm = irmm, info = info, hg = h),
               what = "quality")
-  # independent: cograph's modularity on the IRMM reweighted graph
-  direct <- cograph::cluster_quality(irmm$projection, irmm$medoid$community,
-                                     weighted = TRUE, directed = FALSE)
-  expect_equal(q$modularity[[1L]], direct$global$modularity, tolerance = 1e-12)
+  # Newman's weighted modularity of the medoid on the IRMM reweighted graph,
+  # Q = sum over same-community pairs of (A_ij - k_i k_j / 2m) / 2m
+  w <- irmm$projection
+  k <- rowSums(w)
+  same <- outer(irmm$medoid$community, irmm$medoid$community, "==")
+  modularity <- sum((w - outer(k, k) / sum(w))[same]) / sum(w)
+  expect_equal(q$modularity[[1L]], modularity, tolerance = 1e-12)
   # Infomap fit: its saved projection is the association graph, so the score
   # equals the public quality verb on the same hypergraph
   expect_equal(q[2L, -1L],

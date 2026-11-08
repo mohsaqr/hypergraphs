@@ -75,6 +75,27 @@ test_that("sort_by orders the columns by an edge-metadata column", {
   expect_identical(nrow(cols), argentina$n_hyperedges)
 })
 
+test_that("a numeric sort_by runs up only on a clock the object knows", {
+  events <- data.frame(who = c("a", "b", "b", "c", "c", "a"),
+                       what = rep(c("e1", "e2", "e3"), each = 2L),
+                       when = rep(c(3, 1, 2), each = 2L))
+  snap <- hg_snapshot(temporal_hypergraph(events, node = "who", hyperedge = "what",
+                                          time = "when"), mode = "cumulative")
+  order_of <- function(p) {
+    cols <- unique(.inc_members(p)[c("edge", "col")])
+    cols$edge[order(cols$col)]
+  }
+  expect_identical(
+    order_of(plot(snap, type = "incidence", sort_by = "start")),
+    c("e2", "e3", "e1"))
+  # a column of the same name in a plain hypergraph is an ordinary number
+  attribute <- group_hypergraph(transform(events, start = when), node = "who",
+                                hyperedge = "what")
+  expect_identical(
+    order_of(plot(attribute, type = "incidence", sort_by = "start")),
+    c("e1", "e3", "e2"))
+})
+
 test_that("a numeric sort_by puts the largest first", {
   p <- plot(.inc_hg(), type = "incidence", sort_by = "size")
   cols <- unique(.inc_members(p)[c("edge", "col")])
@@ -149,4 +170,17 @@ test_that("hull-only arguments and bad input raise hypergraphs_bad_input", {
 test_that("the hull plot is unchanged by the new arguments", {
   expect_s3_class(plot(.inc_hg()), "ggplot")
   expect_identical(.inc_geoms(plot(.inc_hg()), "GeomSegment"), 0L)
+})
+
+test_that("sort_by on the clock of an uncollapsed window hypergraph runs forward", {
+  d <- data.frame(code = c("a", "b", "c", "a", "b", "c", "a", "b"), who = "p",
+                  at = 1:8)
+  h <- window_hypergraph(d, action = "code", actor = "who", time = "at",
+                         window = 3L, collapse = FALSE)
+  p <- plot(h, type = "incidence", sort_by = "start")
+  cols <- unique(.inc_members(p)[c("edge", "col")])
+  cols <- cols[order(cols$col), ]
+  starts <- h$edge_data$start[match(cols$edge, h$edge_data$edge)]
+  # eight events, windows of three: starts 1 to 6, left to right
+  expect_identical(as.numeric(starts), as.numeric(1:6))
 })

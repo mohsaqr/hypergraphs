@@ -48,7 +48,7 @@
                              time_threshold = time_threshold,
                              timezone = timezone)
   .hon_check_sequence_source(data)
-  data <- .coerce_sequence_input(data)
+  data <- .ho_model_sequences(data)
   trajectories <- .hon_parse_input(data, collapse_repeats = FALSE)
   .hon_check_states(unlist(trajectories, use.names = FALSE))
   trajectories <- lapply(trajectories, \(traj) {

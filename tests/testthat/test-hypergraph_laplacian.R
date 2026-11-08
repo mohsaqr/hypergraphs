@@ -26,22 +26,27 @@
                    weight = "hours")
 }
 
-# ---- formula: Zhou Theta against independent brute-force ---------------
+# ---- formula: Zhou Theta by hand ----------------------------------------
 
-test_that("zhou Laplacian matches the paper formula computed brute-force", {
-  hg <- .hl_weighted()
-  H <- (hg$incidence > 0) * 1.0
-  n <- nrow(H); m <- ncol(H)
-  set.seed(7)
-  w <- runif(m, 0.5, 2)
-  d <- as.vector(H %*% w)
-  delta <- colSums(H)
-  Theta_bf <- outer(seq_len(n), seq_len(n), Vectorize(function(u, v) {
-    sum(w * H[u, ] * H[v, ] / delta) / sqrt(d[u] * d[v])
-  }))
-  L <- hg_laplacian(hg, type = "zhou", edge_weights = w)
-  expect_equal(unclass(L), diag(n) - Theta_bf,
-               ignore_attr = TRUE, tolerance = 1e-12)
+test_that("zhou Laplacian equals the paper formula on a hand-computed case", {
+  # The brute-force formula on random edge weights lives in
+  # local_testing_and_equivalence/test-equiv-reference-random-2.R.
+  # e1 = {a, b} (w 1, delta 2), e2 = {a, b, c} (w 2, delta 3);
+  # d = (3, 3, 2). Theta_uv = sum_e w_e H_ue H_ve / delta_e / sqrt(d_u d_v):
+  # Theta_aa = Theta_ab = Theta_bb = (1/2 + 2/3) / 3 = 7/18,
+  # Theta_ac = Theta_bc = (2/3) / sqrt(6), Theta_cc = (2/3) / 2 = 1/3,
+  # so L = I - Theta has 11/18, -7/18, -2 / (3 sqrt(6)) and 2/3.
+  hg <- group_hypergraph(
+    data.frame(node = c("a", "b", "a", "b", "c"),
+               edge = c("e1", "e1", "e2", "e2", "e2")),
+    node = "node", hyperedge = "edge")
+  off <- -2 / (3 * sqrt(6))
+  hand <- matrix(c(11 / 18, -7 / 18, off,
+                   -7 / 18, 11 / 18, off,
+                   off, off, 2 / 3), 3L, byrow = TRUE,
+                 dimnames = list(c("a", "b", "c"), c("a", "b", "c")))
+  L <- hg_laplacian(hg, type = "zhou", edge_weights = c(1, 2))
+  expect_equal(unclass(L), hand, ignore_attr = TRUE, tolerance = 1e-12)
 })
 
 test_that("random_walk Laplacian matches brute-force EDVW construction", {

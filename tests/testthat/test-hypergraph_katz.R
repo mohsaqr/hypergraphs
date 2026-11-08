@@ -25,7 +25,9 @@ test_that("one hyperedge of size n is K_n: closed form alpha (n-1) / (1 - alpha 
 })
 
 test_that("Katz equals the truncated walk series sum_k alpha^k A^k 1", {
-  hg <- .kz_hg(kz_edges)
+  # a fixed five-node hypergraph (triangle a b c, then c - d - e); the
+  # random 30-edge version is local (test-equiv-reference-random-2.R)
+  hg <- .kz_hg(list(e1 = c("a", "b", "c"), e2 = c("c", "d"), e3 = c("d", "e")))
   membership <- (hg$incidence > 0) * 1
   adjacency <- tcrossprod(membership)
   diag(adjacency) <- 0

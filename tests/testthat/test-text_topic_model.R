@@ -9,14 +9,18 @@
 }
 
 test_that("one update is the Lee-Seung KL update, computed densely", {
-  set.seed(3)
-  X <- matrix(rpois(6 * 5, 2), 6, 5)
-  X[X == 0] <- 0
+  # fixed 3 x 3 counts with zeros; the random-matrix version is local
+  # (test-equiv-reference-random-2.R). By hand for row 1 of W: X[1, ] =
+  # (2, 1, 0), W[1, ] = (1, 0.5), so WH[1, ] = (1.25, 1, 1.5) and
+  # q[1, ] = (1.6, 1, 0); (q H')[1, ] = (2.1, 1.8), rowSums(H) = (2.5, 2.5):
+  # W1[1, ] = (1 * 2.1 / 2.5, 0.5 * 1.8 / 2.5) = (0.84, 0.36).
+  X <- matrix(c(2, 0, 1, 1, 3, 0, 0, 1, 2), 3, 3)
   Xs <- methods::as(X, "CsparseMatrix")
   k <- 2L
-  W <- matrix(runif(6 * k, 0.5, 1.5), 6, k)
-  H <- matrix(runif(k * 5, 0.5, 1.5), k, 5)
+  W <- matrix(c(1, 0.5, 1, 0.5, 1, 1), 3, k)
+  H <- matrix(c(1, 0.5, 0.5, 1, 1, 1), k, 3)
   fit <- .tm_fit(Xs, t(W), H, max_iter = 1L, tol = 0)
+  expect_equal(fit$W[1, ], c(0.84, 0.36), tolerance = 1e-12)
   # the update written with dense matrices, straight from the paper: W
   # first, then H with the new W; the model floored where X is non-zero
   floored <- function(W, H) {
@@ -25,9 +29,9 @@ test_that("one update is the Lee-Seung KL update, computed densely", {
     wh
   }
   q <- ifelse(X > 0, X / floored(W, H), 0)
-  W1 <- W * (q %*% t(H)) / matrix(rowSums(H), 6, k, byrow = TRUE)
+  W1 <- W * (q %*% t(H)) / matrix(rowSums(H), nrow(X), k, byrow = TRUE)
   q1 <- ifelse(X > 0, X / floored(W1, H), 0)
-  H1 <- H * (t(W1) %*% q1) / matrix(colSums(W1), k, 5)
+  H1 <- H * (t(W1) %*% q1) / matrix(colSums(W1), k, ncol(X))
   H1[H1 < .Machine$double.eps] <- 0
   expect_equal(fit$W, W1, tolerance = 1e-12)
   expect_equal(t(fit$Ht), H1, tolerance = 1e-12)
@@ -84,23 +88,29 @@ test_that("the average Jaccard and the Hungarian assignment are exact", {
   # depth 3 {a,b,c}/{a,c,b} = 1
   expect_equal(.tm_average_jaccard(c("a", "b", "c"), c("a", "c", "b")),
                mean(c(1, 1 / 3, 1)))
+  # The brute-force comparison on random cost matrices lives in
+  # local_testing_and_equivalence/test-equiv-reference-random-2.R.
+  # cost rows (4 1 3), (2 0 5), (3 2 2); the six assignments cost
+  # (1,2,3) 4+0+2=6, (1,3,2) 4+5+2=11, (2,1,3) 1+2+2=5, (2,3,1) 1+5+3=9,
+  # (3,1,2) 3+2+2=7, (3,2,1) 3+0+3=6 -> unique optimum (2,1,3), cost 5
+  cost <- matrix(c(4, 1, 3,
+                   2, 0, 5,
+                   3, 2, 2), 3L, byrow = TRUE)
+  expect_identical(.tm_hungarian(cost), c(2L, 1L, 3L))
+  # (i - j)^2: the identity costs 0 and every other permutation moves some
+  # i off the diagonal, where every cell is at least 1 -> unique optimum
+  # 1, 2, 3, 4
+  expect_identical(.tm_hungarian(outer(1:4, 1:4, \(i, j) (i - j)^2)),
+                   1:4)
+})
+
+test_that("the Hungarian assignment is a permutation of 1..n", {
+  # the optimality check against the brute force stays local
   set.seed(11)
-  permutations <- function(n) {
-    if (n == 1L) return(matrix(1L))
-    smaller <- permutations(n - 1L)
-    do.call(rbind, lapply(seq_len(n), \(first) {
-      cbind(first, matrix(setdiff(seq_len(n), first)[smaller],
-                          nrow(smaller)))
-    }))
-  }
   lapply(2:6, \(n) {
-    cost <- matrix(runif(n * n), n, n)
-    all <- permutations(n)
-    brute <- min(apply(all, 1L, \(p) sum(cost[cbind(seq_len(n), p)])))
-    assignment <- .tm_hungarian(cost)
+    assignment <- .tm_hungarian(matrix(runif(n * n), n, n))
     expect_setequal(assignment, seq_len(n))
-    expect_equal(sum(cost[cbind(seq_len(n), assignment)]), brute,
-                 tolerance = 1e-12)
+    expect_identical(sort(assignment), seq_len(n))
   })
 })
 

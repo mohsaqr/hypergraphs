@@ -70,7 +70,20 @@ test_that("hypa dispatches on hypergraphs and on sequences", {
   expect_true(all(c("from", "to", "observed", "expected") %in% names(pairs)))
   paths <- hypa(.dp_seqs(), min_count = 1L)
   expect_s3_class(paths, "net_hypa")
-  expect_identical(.unview(paths), Nestimate::build_hypa(.dp_seqs(), min_count = 1L))
+  # the expected counts redistribute the observed ones
+  expect_equal(sum(hg_get(paths, what = "scores")$expected),
+               sum(hg_get(paths, what = "scores")$count))
+  # worked by hand: the 3-grams are a h b 4, h b a 3, b a h 2 and the same on
+  # the c/d side. a h and c h each send 4 into h b and h d, which each take 4,
+  # so all four routes expect 4 * 4 / 8 = 2; every other route is the only way
+  # out of its node and expects what it saw
+  scores <- hg_get(paths, what = "scores")
+  hand <- c("a -> h -> b" = 2, "c -> h -> d" = 2, "a -> h -> d" = 2,
+            "c -> h -> b" = 2, "b -> a -> h" = 2, "d -> c -> h" = 2,
+            "h -> b -> a" = 3, "h -> d -> c" = 3)
+  expect_identical(sort(scores$path), sort(names(hand)))
+  expect_equal(scores$expected, unname(hand[scores$path]))
+  expect_equal(scores$count, c(4, 4, 0, 0, 2, 2, 3, 3)[match(scores$path, names(hand))])
 })
 
 test_that("hypa refuses an argument of the other method", {
@@ -89,8 +102,6 @@ test_that("the dispatching verbs keep each method's defaults", {
   # both HYPA methods follow LaRock et al. (2020): no correction by default
   expect_identical(formals(hypa.net_hg)$p_adjust, "none")
   expect_identical(formals(hypa.default)$p_adjust, "none")
-  expect_identical(formals(hypa.default)$p_adjust,
-                   formals(Nestimate::build_hypa)$p_adjust)
 })
 
 test_that("hypa() on sequences checks its arguments with classed errors", {
@@ -104,11 +115,26 @@ test_that("hypa() on sequences checks its arguments with classed errors", {
     expect_error(do.call(hypa, c(list(seqs), args)),
                  class = "hypergraphs_bad_input")
   })
-  # the values reach the estimator unchanged
-  expect_identical(.unview(hypa(seqs, min_count = 1, alpha = 0.1,
-                                p_adjust = "BH")),
-                   Nestimate::build_hypa(seqs, min_count = 1, alpha = 0.1,
-                                         p_adjust = "BH"))
+  # the values reach the estimator
+  stricter <- hypa(seqs, min_count = 1, alpha = 0.1, p_adjust = "BH")
+  expect_identical(stricter$alpha, 0.1)
+  expect_identical(stricter$p_adjust, "BH")
+  expect_equal(sum(hg_get(stricter, what = "scores")$expected),
+               sum(hg_get(stricter, what = "scores")$count))
+  # the expected counts do not depend on alpha or the correction: 2 on the four
+  # routes that share h (4 * 4 / 8) and the observed count elsewhere
+  scores <- hg_get(stricter, what = "scores")
+  hand <- c("a -> h -> b" = 2, "c -> h -> d" = 2, "a -> h -> d" = 2,
+            "c -> h -> b" = 2, "b -> a -> h" = 2, "d -> c -> h" = 2,
+            "h -> b -> a" = 3, "h -> d -> c" = 3)
+  expect_equal(scores$expected, unname(hand[scores$path]))
+  # BH over 8 tests lifts the two smallest over-tail p-values (tied at ranks 1
+  # and 2) to 8 / 2 = 4 times their size, above alpha = 0.1, so nothing is
+  # anomalous; uncorrected, both are
+  expect_equal(scores$p_adj_over[scores$path == "a -> h -> b"],
+               4 * scores$p_over[scores$path == "a -> h -> b"])
+  expect_identical(stricter$n_anomalous, 0L)
+  expect_identical(hypa(seqs, min_count = 1, alpha = 0.1)$n_anomalous, 2L)
   # a network without its sequences cannot be scored
   net <- Nestimate::build_network(.ho_wide_sequences(seqs), method = "relative")
   net$data <- NULL

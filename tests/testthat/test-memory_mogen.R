@@ -194,8 +194,12 @@ test_that("hg_get(what = 'paths') works on a model of a wide data.frame", {
   result <- hg_get(mogen(df, max_order = 1L), what = "paths", k = 2L)
   expect_true(is.data.frame(result))
   expect_named(result, c("k", "path", "count", "proportion"))
-  expect_true(nrow(result) > 0L)
-  expect_identical(result[setdiff(names(result), "k")], Nestimate::path_counts(df, k = 2L))
+  # A->B B->C, B->C C->A: B->C twice of four, the others once each
+  expect_identical(result$count[result$path == "B -> C"], 2L)
+  expect_identical(sum(result$count), 4L)
+  expect_identical(result, data.frame(k = 2L, path = c("B -> C", "A -> B", "C -> A"),
+                                      count = c(2L, 1L, 1L),
+                                      proportion = c(2, 1, 1) / 4))
 })
 
 # --- hg_get(what = "paths"): list input ---
@@ -203,8 +207,12 @@ test_that("hg_get(what = 'paths') works on a model of a list", {
   trajs <- list(c("A", "B", "C"), c("A", "B", "D"))
   result <- hg_get(mogen(trajs, max_order = 2L), what = "paths", k = 2L)
   expect_true(is.data.frame(result))
-  expect_true(nrow(result) > 0L)
-  expect_identical(result[setdiff(names(result), "k")], Nestimate::path_counts(trajs, k = 2L))
+  # A->B twice, B->C once, B->D once: shares of 4
+  expect_identical(result$count[result$path == "A -> B"], 2L)
+  expect_identical(sum(result$count), 4L)
+  expect_identical(result, data.frame(k = 2L, path = c("A -> B", "B -> C", "B -> D"),
+                                      count = c(2L, 1L, 1L),
+                                      proportion = c(2, 1, 1) / 4))
 })
 
 # --- hg_get(what = "paths"): trajectories shorter than k contribute nothing ---
@@ -240,7 +248,11 @@ test_that("hg_get(what = 'paths') reads a wide frame with trailing NAs", {
                    T4 = c("D", NA), stringsAsFactors = FALSE)
   result <- hg_get(mogen(df, max_order = 2L), what = "paths", k = 2L)
   expect_false(any(grepl("NA", result$path, fixed = TRUE)))
-  expect_identical(result[setdiff(names(result), "k")], Nestimate::path_counts(df, k = 2L))
+  # A->B B->C C->D, A->B: four, A->B twice
+  expect_identical(sum(result$count), 4L)
+  expect_identical(result, data.frame(k = 2L, path = c("A -> B", "B -> C", "C -> D"),
+                                      count = c(2L, 1L, 1L),
+                                      proportion = c(2, 1, 1) / 4))
 })
 
 # --- print.net_mogen: LRT criterion branch uses AIC label ---
@@ -349,31 +361,48 @@ test_that("hg_get.net_mogen validates order and refuses misplaced arguments", {
                class = "hypergraphs_bad_input")
   expect_error(hg_get(m, what = "paths", k = "2"),
                class = "hypergraphs_bad_input")
-  expect_identical(
-    hg_get(m, what = "transitions", order = 2, min_count = 2),
-    Nestimate::mogen_transitions(m, order = 2L, min_count = 2L))
+  kept <- hg_get(m, what = "transitions", order = 2, min_count = 2)
+  expect_s3_class(kept, "data.frame")
+  expect_gt(nrow(kept), 0L)
+  expect_true(all(kept$count >= 2))
+  # counted on their own: the 3-grams of the same sequences seen at least twice
+  grams <- hg_get(m, what = "paths", k = 3L)
+  expect_identical(sort(kept$count), sort(grams$count[grams$count >= 2L]))
+  # each kept probability is its 3-gram's share of all 3-grams opening with the
+  # same two states (dropped ones included), printed to four decimals
+  context_total <- tapply(grams$count, sub(" -> [^ ]+$", "", grams$path), sum)
+  expect_identical(kept$probability,
+                   round(kept$count / as.vector(context_total[kept$from]), 4))
+  # the first kept row is b -> b -> b (8 times); the recount of these counts
+  # against the raw sequences is local (test-equiv-reference-random-2.R)
+  expect_identical(kept$to[1L], "b")
 })
 
-test_that("hg_get(what = 'paths') equals a raw k-gram count", {
-  set.seed(4)
-  trajs <- replicate(15, sample(c("a", "b", "c"), sample(3:9, 1),
-                                replace = TRUE), simplify = FALSE)
-  m <- mogen(trajs, max_order = 3L)
-  kgrams <- function(k) {
-    paths <- unlist(lapply(trajs, \(s) {
-      if (length(s) < k) return(character(0))
-      vapply(seq_len(length(s) - k + 1L),
-             \(i) paste(s[i:(i + k - 1L)], collapse = " -> "), character(1))
-    }))
-    counts <- table(paths)
-    stats::setNames(as.integer(counts), names(counts))
-  }
-  lapply(2:4, \(k) {
-    got <- hg_get(m, what = "paths", k = k)
-    want <- kgrams(k)
-    expect_identical(stats::setNames(got$count, got$path)[names(want)], want)
-    expect_identical(nrow(got), length(want))
-  })
+test_that("hg_get(what = 'paths') and min_count count k-grams by hand", {
+  # a b a b and b a b. 2-grams: a -> b in positions 1, 3 of the first and 2 of
+  # the second (3), b -> a once in each (2); proportions 3/5, 2/5.
+  # 3-grams: b -> a -> b once in each (2), a -> b -> a once (1); 4-grams:
+  # a -> b -> a -> b (1). The random-sequence recount is local
+  # (test-equiv-reference-random-2.R).
+  m <- mogen(list(c("a", "b", "a", "b"), c("b", "a", "b")), max_order = 3L)
+  two <- hg_get(m, what = "paths", k = 2L)
+  expect_identical(two$path, c("a -> b", "b -> a"))
+  expect_identical(two$count, c(3L, 2L))
+  expect_equal(two$proportion, c(0.6, 0.4))
+  three <- hg_get(m, what = "paths", k = 3L)
+  expect_identical(three$path, c("b -> a -> b", "a -> b -> a"))
+  expect_identical(three$count, c(2L, 1L))
+  four <- hg_get(m, what = "paths", k = 4L)
+  expect_identical(four$path, "a -> b -> a -> b")
+  expect_identical(four$count, 1L)
+  # min_count = 2 keeps only b -> a -> b; both 3-grams opening with b -> a
+  # end in b, so its probability is 2 / 2 = 1
+  kept <- hg_get(m, what = "transitions", order = 2, min_count = 2)
+  expect_identical(kept$path, "b -> a -> b")
+  expect_identical(kept$from, "b -> a")
+  expect_identical(kept$to, "b")
+  expect_identical(kept$count, 2L)
+  expect_equal(kept$probability, 1)
 })
 
 test_that("mogen() refuses bad arguments with hypergraphs_bad_input", {

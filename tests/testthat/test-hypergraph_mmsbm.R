@@ -1,8 +1,9 @@
 testthat::skip_on_cran()
 
 # Hy-MMSBM (Ruggeri et al. 2023). The authors' code is the oracle in
-# local_testing_and_equivalence/test-oracle-mmsbm.R; these tests check the
-# formulas against brute-force sums, EM invariants, and the verb's contract.
+# local_testing_and_equivalence/test-oracle-mmsbm.R, and the brute-force sums
+# on random u, w are in test-equiv-reference-random-2.R there; these tests
+# check the formulas on hand values, EM invariants, and the verb's contract.
 
 # A hypergraph from a list of hyperedges (character node names).
 .mm_hg <- function(edges) {
@@ -22,88 +23,45 @@ testthat::skip_on_cran()
   .mm_hg(c(within, list(c("a1", "b1"), c("a2", "b2", "b3"))))
 }
 
-# Brute-force EM step from the paper's Eqs. (7)-(9) with C absorbed into w
-# (C = 1) and exponential priors (Appendix A): explicit sums over every
-# hyperedge, node pair and community pair.
-.mm_brute_step <- function(edges, A, u, w, w_prior = 0, u_prior = 0) {
-  k <- ncol(u)
-  n <- nrow(u)
-  pairs_of <- \(e) if (length(e) < 2L) matrix(integer(), 0L, 2L) else
-    t(utils::combn(e, 2L))
-  lambda_of <- \(u, w) vapply(edges, \(e) {
-    p <- pairs_of(e)
-    sum(vapply(seq_len(nrow(p)), \(r) sum(u[p[r, 1L], ] %*% w %*% u[p[r, 2L], ]),
-               numeric(1L)))
-  }, numeric(1L))
-  lambda <- lambda_of(u, w)
-  # w: numerator sum_e A_e sum_{i<j in e} w_kq (u_ik u_jq + u_iq u_jk) / 2 / lambda_e
-  num_w <- Reduce(`+`, lapply(seq_along(edges), \(e) {
-    p <- pairs_of(edges[[e]])
-    Reduce(`+`, lapply(seq_len(nrow(p)), \(r) {
-      ui <- u[p[r, 1L], ]
-      uj <- u[p[r, 2L], ]
-      (outer(ui, uj) + outer(uj, ui)) / 2
-    })) * w * A[e] / lambda[e]
-  }))
-  all_pairs <- t(utils::combn(n, 2L))
-  den_w <- Reduce(`+`, lapply(seq_len(nrow(all_pairs)), \(r) {
-    ui <- u[all_pairs[r, 1L], ]
-    uj <- u[all_pairs[r, 2L], ]
-    (outer(ui, uj) + outer(uj, ui)) / 2
-  }))
-  w_new <- num_w / (den_w + w_prior)
-  lambda <- lambda_of(u, w_new)
-  # u: numerator sum_{e ni i} A_e sum_{j in e, j != i} sum_q u_ik w_kq u_jq / lambda_e
-  u_new <- t(vapply(seq_len(n), \(i) {
-    num <- Reduce(`+`, lapply(seq_along(edges), \(e) {
-      if (!(i %in% edges[[e]])) return(numeric(k))
-      others <- setdiff(edges[[e]], i)
-      u[i, ] * as.numeric(w_new %*% colSums(u[others, , drop = FALSE])) *
-        A[e] / lambda[e]
-    }))
-    den <- as.numeric(w_new %*% colSums(u[-i, , drop = FALSE]))
-    num / (den + u_prior)
-  }, numeric(k)))
-  list(u = u_new, w = w_new)
-}
-
 .mm_sparse <- function(edges, n) {
   Matrix::sparseMatrix(i = unlist(edges),
                        j = rep(seq_along(edges), lengths(edges)),
                        x = 1, dims = c(n, length(edges)))
 }
 
-test_that("lambda_e via Eq. (C2) equals the explicit pair sum (Eq. 2)", {
-  set.seed(1)
-  n <- 7L
-  edges <- list(1:3, c(2L, 5L), c(1L, 4L, 6L, 7L), 1:7)
-  u <- matrix(stats::runif(n * 3L), n, 3L)
-  w <- matrix(stats::runif(9L), 3L, 3L)
-  w <- (w + t(w)) / 2
-  fast <- hypergraphs:::.mmsbm_lambda(.mm_sparse(edges, n), u, w)$lambda
-  slow <- vapply(edges, \(e) {
-    p <- t(utils::combn(e, 2L))
-    sum(vapply(seq_len(nrow(p)), \(r) sum(u[p[r, 1L], ] %*% w %*% u[p[r, 2L], ]),
-               numeric(1L)))
-  }, numeric(1L))
-  expect_equal(fast, slow, tolerance = 1e-13)
+test_that("lambda_e via Eq. (C2) equals the hand pair sum (Eq. 2)", {
+  # u rows e1 = (1,0), e2 = (0,1), e3 = (1,1); w = [1 2; 2 3].
+  # u_1'w u_2 = w_12 = 2; u_1'w u_3 = w_11 + w_12 = 3;
+  # u_2'w u_3 = w_21 + w_22 = 5.
+  # lambda{1,2,3} = 2 + 3 + 5 = 10, lambda{1,3} = 3, lambda{2,3} = 5.
+  u <- rbind(c(1, 0), c(0, 1), c(1, 1))
+  w <- matrix(c(1, 2, 2, 3), 2L, 2L)
+  B <- .mm_sparse(list(1:3, c(1L, 3L), c(2L, 3L)), 3L)
+  expect_equal(hypergraphs:::.mmsbm_lambda(B, u, w)$lambda, c(10, 3, 5),
+               tolerance = 1e-14)
 })
 
-test_that("one EM step equals the brute-force Eqs. (7)-(9), with and without priors", {
-  set.seed(2)
-  n <- 6L
-  edges <- list(1:3, c(2L, 4L), c(3L, 5L, 6L), c(1L, 6L), 2:5)
-  A <- c(1, 2, 1.5, 1, 3)
-  B <- .mm_sparse(edges, n)
-  u <- matrix(stats::runif(n * 2L), n, 2L)
-  w <- matrix(c(1.2, 0.3, 0.3, 0.8), 2L, 2L)
-  lapply(list(c(0, 0), c(1, 0), c(2.5, 0.5)), \(pr) {
-    brute <- .mm_brute_step(edges, A, u, w, w_prior = pr[1L], u_prior = pr[2L])
-    w_new <- hypergraphs:::.mmsbm_w_update(B, A, u, w, pr[1L])
-    u_new <- hypergraphs:::.mmsbm_u_update(B, A, u, w_new, pr[2L])
-    expect_equal(w_new, brute$w, tolerance = 1e-12)
-    expect_equal(u_new, brute$u, tolerance = 1e-12)
-  })
+test_that("one EM step equals the hand Eqs. (7)-(9), with and without priors", {
+  # Path 1-2-3 (hyperedges {1,2}, {2,3}, A = 1), K = 1, u = 1, w = 1.
+  # w: each lambda_e = w = 1, so the numerator is sum_e A_e w = 2; the
+  #    denominator is the sum over all three node pairs = 3 (+ prior):
+  #    w_new = 2/3 (prior 0), 2/4 = 1/2 (prior 1).
+  # u (with w_new): lambda_e = w_new, so node i's numerator is the number
+  #    of hyperedges holding it (1, 2, 1); its denominator is
+  #    w_new * (sum of the other u) = 2/3 * 2 = 4/3 (+ prior):
+  #    u_new = (3/4, 3/2, 3/4) (prior 0), (3/7, 6/7, 3/7) (prior 1).
+  B <- .mm_sparse(list(c(1L, 2L), c(2L, 3L)), 3L)
+  A <- c(1, 1)
+  u <- matrix(1, 3L, 1L)
+  w <- matrix(1)
+  w_new <- hypergraphs:::.mmsbm_w_update(B, A, u, w, 0)
+  expect_equal(w_new, matrix(2 / 3), tolerance = 1e-14)
+  expect_equal(hypergraphs:::.mmsbm_w_update(B, A, u, w, 1), matrix(1 / 2),
+               tolerance = 1e-14)
+  expect_equal(hypergraphs:::.mmsbm_u_update(B, A, u, w_new, 0),
+               matrix(c(3 / 4, 3 / 2, 3 / 4)), tolerance = 1e-14)
+  expect_equal(hypergraphs:::.mmsbm_u_update(B, A, u, w_new, 1),
+               matrix(c(3 / 7, 6 / 7, 3 / 7)), tolerance = 1e-14)
 })
 
 test_that("maximum-likelihood EM never decreases the log-likelihood", {

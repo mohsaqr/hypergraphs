@@ -62,11 +62,14 @@ test_that("the guard does not fire on the wide frames the verbs accept", {
   # a list of sequences is untouched by the guard
   expect_s3_class(hg_bootstrap(list(c("A", "B", "C"), c("B", "C", "A")),
                                 n_boot = 2L, seed = 1L), "hypergraphs_bootstrap")
-  # one canonical name alone is not enough: a wide frame may legitimately
-  # have a column called "time" without being a long table
+  # a position named "time" breaks the numbered run: refused, then declared
   one_name <- .lf_wide()
   names(one_name)[1L] <- "time"
-  expect_s3_class(hg_bootstrap(one_name, n_boot = 2L, seed = 1L),
+  expect_error(hg_bootstrap(one_name, n_boot = 2L, seed = 1L),
+               class = "hypergraphs_long_format")
+  declared <- Nestimate::build_network(one_name, method = "relative",
+                                       state_cols = names(one_name))
+  expect_s3_class(hg_bootstrap(declared, n_boot = 2L, seed = 1L),
                   "hypergraphs_bootstrap")
 })
 

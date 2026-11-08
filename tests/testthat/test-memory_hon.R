@@ -562,9 +562,26 @@ test_that("hg_get.net_hon refuses arguments its table does not take", {
   expect_error(hg_get(net, sort_by = "zz"), class = "hypergraphs_bad_input")
   expect_error(hg_get(net, order_min = "x"), class = "hypergraphs_bad_input")
   # the documented pathway filters still pass through
-  expect_identical(hg_get(net, what = "pathways", min_count = 1, order = 2),
-                   data.frame(pathway = Nestimate::pathways(
-                     net, min_count = 1, order = 2)))
+  # x's next state depends on what came before it, so x has second-order nodes
+  memory_net <- hon(c(rep(list(c("a", "x", "c")), 20L),
+                      rep(list(c("b", "x", "d")), 20L)), max_order = 2L)
+  expect_identical(hg_get(memory_net, what = "pathways", min_count = 1, order = 2)$pathway,
+                   c("a x -> c", "b x -> d"))
+  expect_identical(nrow(hg_get(memory_net, what = "pathways", min_count = 100)), 0L)
+  # sorted by probability, worked by hand: a, b and the two contexts each have
+  # one way out (1); x without a context goes to c or d, 20 of 40 each (0.5)
+  by_probability <- hg_get(memory_net, sort_by = "probability")
+  expect_identical(by_probability$path,
+                   c("a -> x", "a -> x -> c", "b -> x", "b -> x -> d",
+                     "x -> c", "x -> d"))
+  expect_equal(by_probability$probability, c(1, 1, 1, 1, 0.5, 0.5))
+  expect_equal(by_probability$count, rep(20, 6L))
+  # each path ends in its to state: a -> x, a -> x -> c, b -> x, b -> x -> d, ...
+  expect_identical(by_probability$to, c("x", "c", "x", "d", "c", "d"))
+  # on the bigger model every probability is a share in (0, 1], largest first
+  shares <- hg_get(net, sort_by = "probability")
+  expect_true(all(shares$probability > 0 & shares$probability <= 1))
+  expect_false(is.unsorted(rev(shares$probability)))
   # partial matching of sort_by is kept
   expect_identical(hg_get(net, sort_by = "prob"),
                    hg_get(net, sort_by = "probability"))

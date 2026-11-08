@@ -398,11 +398,26 @@
   min(4.2, max(2.2, 4.2 * sqrt(12 / max(n, 1))))
 }
 
-# Normalised names of the columns that hold a position in time (start, end,
-# duration, time, session: the alias table of temporal_hypergraph()).
-.thg_clock_names <- function() {
-  .thg_norm_name(unlist(.thg_aliases[c("start", "end", "duration", "time",
-                                       "session")]))
+# The column of `edge_data` holding a frequency the package computed: the count of
+# each frequent set, and how often a text hyperedge occurs. `NULL` otherwise, also
+# for a column of the data called `count`.
+.thg_count_column <- function(x) {
+  computed <- isTRUE(x$params$source %in% c("clustered_sequences", "frame_sets",
+                                            "topic_sets"))
+  if (computed && "count" %in% names(x$edge_data)) return("count")
+  if (inherits(x, "text_hypergraph") && "n" %in% names(x$edge_data)) "n"
+}
+
+# The columns of `edge_data` that hold a position in time, as the object knows
+# them: the `start` and `end` a temporal hypergraph, a snapshot or an uncollapsed
+# window hypergraph built itself, and the clock columns the call declared. Column
+# names give no role.
+.thg_clock_columns <- function(x) {
+  built <- if (inherits(x, "net_temporal_hypergraph") ||
+               !is.null(x$params$temporal_mode) ||
+               (identical(x$params$source, "window_hypergraph") &&
+                  isFALSE(x$params$collapse))) c("start", "end")
+  unique(c(built, x$params$time, x$params$end))
 }
 
 .thg_linetypes <- c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
@@ -420,14 +435,13 @@
 #' supplied per hyperedge, and outlined with a line type by the same kinds of
 #' selector. A hyperedge with a single member is drawn as its node alone.
 #'
-#' A hypergraph whose hyperedges carry one numeric attribute -- such as a
-#' `trials` count that [group_hypergraph()] kept because it is constant
-#' within each group -- is drawn by that attribute with no further argument:
-#' it colours the pebbles, writes a title box with the count beside each
-#' one, and names the unit of the legends. Of several numeric attributes,
-#' the one that varies between hyperedges is read when only one does (a
-#' membership share of 1 on every hyperedge is passed over); otherwise none
-#' is. `color_by`, `titles` and `unit` override it.
+#' The frequency the package computed for each hyperedge is drawn with no further
+#' argument: the count of each frequent set, the window counts of a window
+#' hypergraph and the count of a text hyperedge colour the pebbles and name the unit
+#' of the legends. A text hypergraph and frequent sets of several groups also get a
+#' title box beside each hyperedge. A numeric column of the data, whatever it is
+#' called, is shown only when named: `plot(hg, color_by = "trials", titles =
+#' "trials", unit = "trials")`. `color_by`, `titles` and `unit` override the default.
 #'
 #' Node labels are bold with a white halo, the legends sit below the plot
 #' (a colour bar 2.5 cm per key, discrete legends at most four keys to a
@@ -495,8 +509,8 @@
 #'   Not used with a `layout` table.
 #' @param seed Seed for the force-directed layouts (default `1`); the
 #'   caller's random number stream is left untouched.
-#' @param color_by Colour of the hulls: `NULL` (the hyperedges' count
-#'   attribute described above, the window counts of a
+#' @param color_by Colour of the hulls: `NULL` (the frequency the package computed,
+#'   described above: the count of a frequent set or text hyperedge, the window counts of a
 #'   [window_hypergraph()], else one colour), `"size"`
 #'   (hyperedge cardinality, one Okabe-Ito colour per size), `"weight"`
 #'   (the hyperedge weights of a [window_hypergraph()], the number of
@@ -605,7 +619,7 @@
 #'   proportional to the event value.
 #' @param titles Write a title box beside every hyperedge, just outside its
 #'   pebble on the side facing away from the centre of the figure. `NULL`
-#'   (default) writes the hyperedges' count attribute described above (not
+#'   (default) writes the count of each hyperedge where described above (not
 #'   when `dismantled = TRUE`), else none; `FALSE` writes
 #'   none; `TRUE` writes the hyperedge names; a selector
 #'   resolved like `color_by` (an edge-metadata column, a vector named by
@@ -626,8 +640,7 @@
 #'   `legend_title` is given), follows the number in each title box, and
 #'   names the node area ("trials with the event") and the transition
 #'   widths. `NULL` (default) is the unit the hypergraph records
-#'   (`"sequences"` for [group_hypergraph()] of a clustering), else the
-#'   name of the hyperedges' count attribute described above, else those
+#'   (`"sequences"` for [group_hypergraph()] of a clustering), else those
 #'   texts stay generic.
 #' @param pieces How the bipartite layout places a hypergraph that falls into
 #'   disconnected pieces: `"packed"` (default; pieces are laid out one by
@@ -660,9 +673,9 @@
 #'   by highest member row, then name), `"size"`, the name of a column in the
 #'   edge metadata such as a date, a vector named by hyperedge, or a vector
 #'   with one value per hyperedge. Numbers sort largest first, as in
-#'   [hg_get()]; dates, text and a clock column (`start`, `end`, `time`,
-#'   ... as [temporal_hypergraph()] names them, numeric in a snapshot) sort
-#'   ascending. Ties fall back to the default order. For
+#'   [hg_get()]; dates, text and a clock of the object (the `start` and `end`
+#'   of a temporal hypergraph or snapshot, or a column declared as `time` or
+#'   `end`) sort ascending. Ties fall back to the default order. For
 #'   `type = "storyline"` it is the order of the columns, always ascending;
 #'   `NULL` keeps the stored order of the hyperedges.
 #' @param ... For `type = "storyline"`: `top` (the number of nodes with the
@@ -751,8 +764,8 @@
 #' plot(hg, node_sizes = counts, direction = moves, transitions = moves,
 #'      arrow_style = "outside")
 #'
-#' # groups of events with their trial counts: the count colours the pebbles
-#' # and writes a title box per group; points sized by how many trials
+#' # groups of events with their trial counts: named, the count colours the
+#' # pebbles and writes a title box per group; points sized by how many trials
 #' # contain each event
 #' members <- data.frame(
 #'   group = c("Hint", "Hint", "Hint", "Question", "Question", "Question"),
@@ -762,7 +775,8 @@
 #' trial_groups <- group_hypergraph(members, node = "state", hyperedge = "group")
 #' event_trials <- data.frame(state = c("Wrong", "Hint", "Question", "Retry"),
 #'                            trials = c(200, 120, 80, 190))
-#' plot(trial_groups, node_sizes = event_trials)
+#' plot(trial_groups, color_by = "trials", titles = "trials", unit = "trials",
+#'      node_sizes = event_trials)
 #' @export
 plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                 center = NULL, seed = 1L, color_by = NULL,
@@ -925,24 +939,14 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
       title_gap < 0) {
     .thg_bad_input("`title_gap` must be one non-negative number")
   }
-  # A numeric hyperedge attribute (such as a count of trials that
-  # group_hypergraph() kept because it is constant within each group) is
-  # what the pebbles show unless the call says otherwise: it colours them,
-  # writes the title boxes and names the unit. An attribute with one value on
-  # every hyperedge (a membership share of 1 throughout, or the session
-  # number of the runs of one session) tells them apart no better than none
-  # and is never chosen; of several that vary, the call has to choose. A
-  # column named as a clock (start, end, duration, time, session: the
-  # alias table of temporal_hypergraph()) is a position in time, not a count,
-  # and is chosen only by name.
-  clock <- .thg_clock_names()
-  numeric_attributes <- Filter(function(column) {
-    is.numeric(x$edge_data[[column]]) && all(is.finite(x$edge_data[[column]])) &&
-      !.thg_norm_name(column) %in% clock
-  }, setdiff(names(x$edge_data), "edge"))
-  varying <- Filter(function(column) length(unique(x$edge_data[[column]])) > 1L,
-                    numeric_attributes)
-  count <- if (length(varying) == 1L) varying
+  # The frequency of each hyperedge is what the pebbles show unless the call says
+  # otherwise, when the package computed it: it colours them, writes the title
+  # boxes and names the unit. One count on every hyperedge tells them apart no
+  # better than none and is never chosen. A numeric column of the data is shown
+  # only when the call names it: whether it is a count or an identifier cannot be
+  # read from its values or its name.
+  computed <- .thg_count_column(x)
+  count <- if (!is.null(computed) && length(unique(x$edge_data[[computed]])) > 1L) computed
   # a window hypergraph is coloured by its window counts, without title boxes
   if (is.null(count) && !is.null(x$window_counts) &&
       length(unique(x$window_counts)) > 1L) {

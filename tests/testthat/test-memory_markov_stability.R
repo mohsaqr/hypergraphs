@@ -402,12 +402,21 @@ test_that("hg_markov_stability() reads a netobject_group, one chain per group", 
   grp <- .ms_group_fixture()
   ms <- hg_markov_stability(grp)
   expect_s3_class(ms, "net_markov_stability_group")
-  expect_identical(.ho_unresult(ms),
-                   Nestimate::markov_stability(grp))
   states <- hg_get(ms)
   expect_identical(names(states)[1L], "group")
   expect_identical(unique(states$group), c("x", "y"))
   per_group <- hg_get(hg_markov_stability(grp$x))
+  # group x, against its own transition matrix P: the stationary row solves
+  # pi P = pi and sums to 1, persistence is the diagonal of P and the sojourn
+  # time is 1 / (1 - P_ii); the table prints them to 4, 4 and 2 decimals
+  P <- grp$x$weights
+  x_states <- states[states$group == "x", , drop = FALSE]
+  expect_identical(x_states$state, rownames(P))
+  expect_equal(sum(x_states$stationary), 1, tolerance = 1e-3)
+  expect_equal(as.vector(x_states$stationary %*% P), x_states$stationary,
+               tolerance = 1e-3)
+  expect_identical(x_states$persistence, round(unname(diag(P)), 4))
+  expect_identical(x_states$sojourn_time, round(1 / (1 - unname(diag(P))), 2))
   expect_identical(states[states$group == "x", -1L, drop = FALSE],
                    per_group)
   pt <- hg_get(ms, what = "passage_time", from = "a", to = "b")

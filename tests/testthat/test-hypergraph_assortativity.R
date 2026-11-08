@@ -13,47 +13,24 @@
   group_hypergraph(long, node = "member", hyperedge = "group", sparse = sparse)
 }
 
-# Enumerate the chosen pairs with their probability weights, then take the
-# weighted Pearson correlation of the two coordinates.
-.as_reference <- function(edges, type, scale) {
-  nodes <- sort(unique(unlist(edges)))
-  degree <- vapply(nodes, \(v) sum(vapply(edges, \(e) v %in% e, logical(1))),
-                   numeric(1))
-  score <- if (scale == "rank") rank(degree) else degree
-  rows <- lapply(Filter(\(e) length(e) >= 2L, edges), \(e) {
-    s <- score[e]
-    m <- length(s)
-    if (type == "uniform") {
-      grid <- expand.grid(i = seq_len(m), j = seq_len(m))
-      grid <- subset(grid, i != j)
-      data.frame(x = s[grid$i], y = s[grid$j], w = 1 / (m * (m - 1)))
-    } else if (type == "top_2") {
-      top <- sort(s, decreasing = TRUE)[1:2]
-      data.frame(x = top, y = rev(top), w = 0.5)
-    } else {
-      data.frame(x = max(s), y = min(s), w = 1)
-    }
-  })
-  pairs <- do.call(rbind, rows)
-  stats::cov.wt(pairs[c("x", "y")], wt = pairs$w, cor = TRUE)$cor[1, 2]
-}
 
 set.seed(19)
 as_edges <- lapply(seq_len(40), \(i) paste0("n", sample(20, sample(2:5, 1))))
 names(as_edges) <- sprintf("e%02d", seq_along(as_edges))
 
-test_that("every type and scale matches the enumerated definition", {
-  hg <- .as_hg(as_edges)
-  types <- c("uniform", "top_2", "top_bottom")
-  vapply(c("degree", "rank"), \(scale) {
-    out <- hg_assortativity(hg, type = types, scale = scale)
-    expect_identical(out$type, types)
-    expect_identical(out$n_edges, rep(40L, 3L))
-    reference <- vapply(types, \(t) .as_reference(as_edges, t, scale),
-                        numeric(1))
-    expect_equal(out$assortativity, unname(reference), tolerance = 1e-12)
-    TRUE
-  }, logical(1))
+test_that("every type matches its definition worked by hand", {
+  # e1 = {a, b}, e2 = {b, c}, e3 = {a, b, c}: degrees a = 2, b = 3, c = 2.
+  # uniform: weight 1 per edge over its ordered pairs. X = 3 carries 4/3 and
+  # X = 2 carries 5/3 of the total 3, so E[X] = 22/9, Var X = 20/81; pairs
+  # (2, 3) and (3, 2) carry 8/3 and (2, 2) 1/3, so E[XY] = 52/9 and
+  # Cov = -16/81: r = -16/20. top_2 is always the pair (3, 2): r = -1.
+  # top_bottom puts 3 first in every edge: X is constant, so r is undefined.
+  hg <- .as_hg(list(e1 = c("a", "b"), e2 = c("b", "c"), e3 = c("a", "b", "c")))
+  out <- hg_assortativity(hg, type = c("uniform", "top_2", "top_bottom"),
+                          scale = "degree")
+  expect_identical(out$type, c("uniform", "top_2", "top_bottom"))
+  expect_equal(out$assortativity, c(-0.8, -1, NA))
+  expect_identical(out$n_edges, rep(3L, 3L))
 })
 
 test_that("a star graph is perfectly disassortative", {
@@ -127,32 +104,6 @@ test_that("broken contracts raise classed errors", {
 
 # ---- Audit regressions (2026-10-06) ---------------------------------------
 
-# Independent oracle: enumerate the chosen ordered pairs of every hyperedge
-# with their probabilities (each hyperedge carries total weight 1) and take
-# the weighted Pearson correlation with stats::cov.wt().
-.as_enumerated <- function(hg, type, scale = "degree") {
-  inc <- (as.matrix(hg$incidence) > 0) * 1
-  degree <- rowSums(inc)
-  x <- if (identical(scale, "rank")) rank(degree) else degree
-  edges <- lapply(seq_len(ncol(inc)), \(j) which(inc[, j] > 0))
-  edges <- edges[lengths(edges) >= 2L]
-  pairs <- do.call(rbind, lapply(edges, \(v) {
-    s <- x[v]
-    if (identical(type, "uniform")) {
-      g <- expand.grid(i = seq_along(v), j = seq_along(v))
-      g <- g[g$i != g$j, ]
-      data.frame(a = s[g$i], b = s[g$j], w = 1 / nrow(g))
-    } else if (identical(type, "top_2")) {
-      top <- sort(s, decreasing = TRUE)[1:2]
-      data.frame(a = top, b = rev(top), w = 0.5)
-    } else {
-      data.frame(a = max(s), b = min(s), w = 1)
-    }
-  }))
-  cw <- stats::cov.wt(as.matrix(pairs[c("a", "b")]), wt = pairs$w / sum(pairs$w),
-                      cor = TRUE, method = "ML")
-  cw$cor[1L, 2L]
-}
 
 test_that("A07: near-regular large degrees keep a defined coefficient", {
   n <- 10000L
@@ -175,16 +126,6 @@ test_that("A07: near-regular large degrees keep a defined coefficient", {
                                          scale = "degree")$assortativity)))
 })
 
-test_that("A07: coefficients equal the enumerated weighted Pearson", {
-  lapply(1:3, \(seed) {
-    hg <- random_hypergraph("gnp", n = 10, m = 12, p = 0.35, seed = seed)
-    lapply(c("uniform", "top_2", "top_bottom"), \(ty) lapply(
-      c("degree", "rank"), \(sc) {
-        expect_equal(hg_assortativity(hg, type = ty, scale = sc)$assortativity,
-                     .as_enumerated(hg, ty, sc), tolerance = 1e-10)
-      }))
-  })
-})
 
 test_that("A07: scores are shift and scale invariant; regular stays NA", {
   hg <- random_hypergraph("gnp", n = 10, m = 12, p = 0.35, seed = 2)

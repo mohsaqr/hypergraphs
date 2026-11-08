@@ -21,6 +21,31 @@
 #' @return A data.frame or list suitable for \code{.hon_parse_input()}.
 #' @noRd
 .coerce_sequence_input <- function(data) {
+  # Only sequences of states read as sequences: a group of networks, the 0/1
+  # codes of a one-hot network, the variables of an association network and a
+  # list of anything but state vectors would otherwise become "states".
+  if (inherits(data, "netobject_group")) {
+    stop(errorCondition(paste(
+      "A netobject_group holds one network per group, not one set of",
+      "sequences; pass one group's network or the sequences."),
+      class = "nestimate_bad_input", call = NULL))
+  }
+  if (inherits(data, c("netobject", "cograph_network"))) {
+    params <- data$params
+    if (is.list(params) && (!is.null(params[["codes"]]) ||
+                            identical(params[["format"]], "onehot"))) {
+      stop(errorCondition(paste(
+        "This is a one-hot network, whose data hold 0 and 1 per code, not",
+        "positions of states. Build it from sequences."),
+        class = "nestimate_bad_input", call = NULL))
+    }
+    if (isTRUE(data$method %in% c("cor", "pcor", "glasso", "ising", "mgm"))) {
+      stop(errorCondition(sprintf(paste(
+        "This \"%s\" network holds variables, not sequences of states; build",
+        "it with a transition method or pass the sequences."), data$method),
+        class = "nestimate_bad_input", call = NULL))
+    }
+  }
   if (inherits(data, "tna")) {
     if (is.null(data$data)) { # nocov start
       stop("tna object has no sequence data ($data). ",
@@ -54,9 +79,24 @@
     }
     return(as.data.frame(data$data, stringsAsFactors = FALSE))
   }
+  # a matrix of only 0 and 1 could hold one-hot codes or positions
+  if (is.matrix(data) && (is.numeric(data) || is.logical(data)) &&
+      all(data[!is.na(data)] %in% c(0, 1))) {
+    stop(errorCondition(paste(
+      "This matrix holds only 0 and 1, so it could hold one-hot codes or",
+      "positions. If they are positions, give them as a character matrix."),
+      class = "nestimate_bad_input", call = NULL))
+  }
   ## Bare sequence matrix (character / logical) -> wide data.frame.
   if (is.matrix(data) && !is.numeric(data)) {
     return(as.data.frame(data, stringsAsFactors = FALSE))
+  }
+  # a fitted result (htest, acf, ...) is a classed list of atomic fields
+  if (is.list(data) && !is.data.frame(data) &&
+      (!is.null(oldClass(data)) || !all(vapply(data, is.atomic, logical(1L))))) {
+    stop(errorCondition(
+      "A list of sequences must be a plain list holding one vector of states per sequence.",
+      class = "nestimate_bad_input", call = NULL))
   }
   data
 }
@@ -127,16 +167,19 @@
 
   edges <- .extract_edges_from_matrix(mat, directed = directed)
 
-  structure(list(
+  out <- structure(list(
     data = raw_data, weights = mat, nodes = nodes_df,
     edges = edges, directed = directed, method = method,
-    params = list(), scaling = NULL, threshold = 0,
+    params = x$params %||% list(), scaling = NULL, threshold = 0,
     n_nodes = length(states), n_edges = nrow(edges),
     level = NULL,
     meta = x$meta %||% list(source = "cograph", layout = NULL,
                             tna = list(method = method)),
     node_groups = x$node_groups
   ), class = c("netobject", "cograph_network"))
+  # the declaration and the columns it names travel with the data
+  if (!is.null(x$metadata)) out$metadata <- x$metadata
+  out
 }
 
 #' Extract a tidy edge list from a weight matrix
@@ -313,7 +356,7 @@
         paste(labels[!ok], collapse = ", ")))
     }
     return(stats::setNames(
-      lapply(unclass(x), \(net) rows_of(.coerce_sequence_input(net))), labels))
+      lapply(unclass(x), \(net) rows_of(.ho_model_sequences(net))), labels))
   }
   if (!inherits(x, c("net_mmm", "net_clustering"))) {
     .thg_bad_input("expected a net_mmm, net_clustering or netobject_group")
@@ -402,16 +445,20 @@
         "`%s` requires `action` (the state column of a long event table)",
         names(stray)[stray][1L]))
     }
-    .ho_stop_undeclared_action(data)
-    .hon_guard_long_format(data)
+    if (is.null(.ho_marked_positions(data))) {
+      .ho_stop_undeclared_action(data)
+      .hon_guard_long_format(data)
+      .ho_stop_undeclared_frame(data)
+    }
     .ho_refuse_object_as_sequences(data)
     if (models == "decode" &&
         (inherits(data, "tna") ||
          (inherits(data, "cograph_network") && !inherits(data, "netobject")))) {
-      data <- .coerce_sequence_input(data)
+      data <- .ho_model_sequences(data)
     }
+    # a character matrix holds nothing but positions
     if (is.matrix(data) && !is.numeric(data)) {
-      data <- as.data.frame(data, stringsAsFactors = FALSE)
+      data <- .ho_mark_positions(as.data.frame(data, stringsAsFactors = FALSE))
     }
     if (lists == "wide" && is.list(data) && !is.data.frame(data) &&
         !inherits(data, c("netobject", "netobject_group", "tna",
@@ -422,7 +469,8 @@
   }
   .ho_check_long_columns(data, action = action, actor = actor, time = time,
                          session = session)
-  .ho_unused_role_notice(data, time = time, session = session)
+  .ho_unused_role_notice(data, time = time, session = session, actor = actor,
+                         action = action)
   if (!(isFALSE(time_threshold) ||
         (is.numeric(time_threshold) && length(time_threshold) == 1L &&
            !is.na(time_threshold) && time_threshold > 0))) {
@@ -434,14 +482,6 @@
       "missing values in %s: every event needs an identifier; drop or ",
       "relabel these rows first"), paste0("`", keys, "`", collapse = ", ")))
   }
-  if (is.null(actor)) {
-    # build_network()'s notice: without an actor every event is one sequence
-    notice <- simpleMessage(paste0(
-      "A network with one long sequence is not recommended and can't be ",
-      "validated using bootstrap and other confirmatory testings.\n"))
-    class(notice) <- c("hypergraphs_single_sequence", class(notice))
-    message(notice)
-  }
   # only the columns that define the sequences, so prepare() has no other
   # columns to aggregate into session metadata
   columns <- unique(c(action, actor, time, session))
@@ -450,6 +490,14 @@
                                  session = session,
                                  time_threshold = time_threshold,
                                  timezone = timezone)
+  # build_network()'s notice, for what was built: sessions and time gaps split
+  if (nrow(prepared$sequence_data) == 1L) {
+    notice <- simpleMessage(paste0(
+      "A network with one long sequence is not recommended and can't be ",
+      "validated using bootstrap and other confirmatory testings.\n"))
+    class(notice) <- c("hypergraphs_single_sequence", class(notice))
+    message(notice)
+  }
   prepared$sequence_data
 }
 
@@ -498,27 +546,156 @@
     call = NULL))
 }
 
+#' Every name numbered, with one prefix
+#'
+#' T1, T2, ...; 1, 2, ...; and the window columns W0_T1, W1_T1, ... of a one-hot
+#' import, which are one run.
+#'
+#' @param nms Column names.
+#' @return `TRUE` when `nms` is one run of positions.
+#' @noRd
+.ho_position_run <- function(nms) {
+  prefix <- sub("[0-9]+$", "", nms)
+  prefix[grepl("^W[0-9]+_T[0-9]+$", nms)] <- "W_T"
+  all(grepl("[0-9]+$", nms)) && length(unique(prefix)) == 1L
+}
+
+#' The columns a Nestimate verb marked as positions
+#'
+#' `Nestimate::extract_sequences()`, `mark_first_state()` and a network's `$data`
+#' mark positions whose names are not a numbered run. The mark holds the columns,
+#' so a column added afterwards is not trusted.
+#'
+#' @param data The sequence input.
+#' @return The column names, or `NULL` when the frame does not hold them.
+#' @noRd
+.ho_marked_positions <- function(data) {
+  if (!is.data.frame(data)) return(NULL)
+  marked <- attr(data, "nestimate_positions", exact = TRUE)
+  nms <- names(data)
+  # setequal() ignores repeats, so a duplicated name would let a column in
+  if (is.character(marked) && !anyDuplicated(nms) &&
+      length(marked) == length(nms) && setequal(marked, nms)) marked
+}
+
+#' Mark the positions read from a model object
+#'
+#' A model's sequences are declared: passed on to a Nestimate estimator they read
+#' as positions whatever they are called.
+#'
+#' @param data A frame of positions, or anything else, returned unchanged.
+#' @return `data`; a numbered run needs no mark and stays a plain data frame.
+#' @noRd
+.ho_mark_positions <- function(data) {
+  if (!is.data.frame(data)) return(data)
+  nms <- names(data)
+  if (!.ho_position_run(nms)) attr(data, "nestimate_positions") <- nms
+  data
+}
+
+#' The sequences of a model object, declared as positions
+#'
+#' `.coerce_sequence_input()` stays a copy of Nestimate's, so the mark is added here.
+#'
+#' @param data A model object or sequence input.
+#' @return The frame of positions, marked, or `data` when it is not a frame.
+#' @noRd
+.ho_model_sequences <- function(data) {
+  if (inherits(data, "netobject_group")) {
+    .ho_bad_input(paste0("a netobject_group holds one network per group, not one ",
+                         "set of sequences; give one group's network or the sequences"))
+  }
+  if (inherits(data, c("netobject", "cograph_network"))) {
+    params <- data$params
+    # a one-hot network holds 0 and 1 per code, not positions of states
+    if (is.list(params) && (!is.null(params[["codes"]]) ||
+                            identical(params[["format"]], "onehot"))) {
+      .ho_bad_input(paste0("this is a one-hot network, whose data hold 0 and 1 per code, ",
+                           "not positions of states; build it from sequences"))
+    }
+    # an association network holds variables measured on each row
+    if (isTRUE(data$method %in% c("cor", "pcor", "glasso", "ising", "mgm"))) {
+      .ho_bad_input(sprintf(paste0("this \"%s\" network holds variables, not ",
+                                   "sequences of states"), data$method))
+    }
+  }
+  # the model declared these columns as positions, numbered or not: marked, a
+  # numbered 0/1 run is not mistaken for undeclared one-hot codes downstream
+  seqs <- .coerce_sequence_input(data)
+  if (is.data.frame(seqs)) attr(seqs, "nestimate_positions") <- names(seqs)
+  seqs
+}
+
+#' Refuse a frame that is not plainly a run of positions
+#'
+#' Sequence verbs read every column of a frame as a position. With nothing
+#' declared that is safe only for one column or a numbered run (T1, T2, ...): any
+#' other frame would turn its ids, dates and covariates into states, and columns of
+#' only 0 and 1 could be one-hot codes. This refuses; it assigns no role from a name.
+#'
+#' @param data The sequence input.
+#' @return `NULL`, invisibly; raises `hypergraphs_long_format`.
+#' @noRd
+.ho_stop_undeclared_frame <- function(data) {
+  if (!is.data.frame(data) || ncol(data) == 0L) return(invisible(NULL))
+  nms <- names(data)
+  # two columns with one name cannot be told apart, and readers keep different ones
+  dup <- unique(nms[duplicated(nms)])
+  if (length(dup) > 0L) {
+    stop(errorCondition(
+      sprintf("column names must be unique; repeated: %s.",
+              paste(sprintf("`%s`", dup), collapse = ", ")),
+      class = "hypergraphs_bad_input", call = NULL))
+  }
+  if (!is.null(.ho_marked_positions(data))) return(invisible(NULL))
+  binary <- vapply(data, function(col) {
+    (is.numeric(col) || is.logical(col)) && all(col[!is.na(col)] %in% c(0, 1))
+  }, logical(1L))
+  # columns of 0 and 1 could be one-hot codes or positions: no reading is guessed
+  if (all(binary)) {
+    stop(errorCondition(
+      sprintf(paste0("these columns hold only 0 and 1, so they could be one-hot codes ",
+                     "or positions: %s. If they are positions, give them as a character ",
+                     "matrix or a list of sequences."),
+              paste(sprintf("`%s`", utils::head(nms, 6L)), collapse = ", ")),
+      class = c("hypergraphs_long_format", "hypergraphs_bad_input"), call = NULL))
+  }
+  if (length(nms) == 1L || .ho_position_run(nms)) return(invisible(NULL))
+  stop(errorCondition(
+    sprintf(paste0("no column role is declared, and these columns are not a ",
+                   "numbered run of positions (T1, T2, ...): %s. Set `action` ",
+                   "for a long event table; give a wide table's positions alone, ",
+                   "as a character matrix or a list of sequences."),
+            paste(sprintf("`%s`", utils::head(nms, 6L)), collapse = ", ")),
+    class = c("hypergraphs_long_format", "hypergraphs_bad_input"), call = NULL))
+}
+
 #' Say that an undeclared time or session column beside `action` went unused
 #'
 #' It changes the sequences, so the call names it, as
 #' `Nestimate::build_network()` does.
 #'
 #' @param data The long table.
-#' @param time,session The declared columns, or `NULL`.
+#' @param time,session,actor,action The declared columns, or `NULL`. A column
+#'   declared under any role is in use, whatever it is called.
 #' @return `NULL`, invisibly; raises a message of class
 #'   `hypergraphs_column_role`.
 #' @noRd
-.ho_unused_role_notice <- function(data, time, session) {
+.ho_unused_role_notice <- function(data, time, session, actor = NULL,
+                                   action = NULL) {
   lower <- tolower(names(data))
-  unused <- c(
+  unused <- setdiff(c(
     if (is.null(time)) names(data)[lower == "time"],
     if (is.null(session)) names(data)[lower %in% c("session", "session_id")]
-  )
+  ), c(action, actor, time, session))
   if (length(unused) == 0L) return(invisible(NULL))
+  effects <- c(if (is.null(time)) "events are read in row order",
+               if (is.null(session)) "no session column splits them")
+  roles <- c(if (is.null(time)) "`time`", if (is.null(session)) "`session`")
   notice <- simpleMessage(sprintf(
-    paste0("%s not used: events are read in row order and sessions are not ",
-           "split. Set `time` or `session` to use them.\n"),
-    paste(sprintf("`%s`", unused), collapse = ", ")))
+    "%s not used: %s. Set %s to use them.\n",
+    paste(sprintf("`%s`", unused), collapse = ", "),
+    paste(effects, collapse = " and "), paste(roles, collapse = " or ")))
   class(notice) <- c("hypergraphs_column_role", class(notice))
   message(notice)
   invisible(NULL)

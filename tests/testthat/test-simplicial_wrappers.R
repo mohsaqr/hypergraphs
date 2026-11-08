@@ -1,10 +1,11 @@
 testthat::skip_on_cran()
 
-# ---- Simplicial wrappers: identity with the Nestimate estimators ----
+# ---- Simplicial wrappers ----
 #
 # simplicial(), hg_homology(), hg_landscape(), hg_bottleneck(), hg_betti(),
-# hg_euler(), hg_qanalysis() and hg_degree() return the estimator's result
-# unchanged; identical() against the direct call on several inputs.
+# hg_euler(), hg_qanalysis() and hg_degree(), checked on values worked by hand.
+# Agreement with the direct Nestimate call is local only:
+# local_testing_and_equivalence/test-equiv-wrappers-nestimate.R.
 
 .sw_mat <- function(seed = 1L, n = 7L) {
   set.seed(seed)
@@ -15,64 +16,116 @@ testthat::skip_on_cran()
   m
 }
 
-test_that("simplicial() is the complex builder for every type", {
+test_that("simplicial() builds each type", {
+  # a triangle: three nodes, three edges, one face
+  triangle <- matrix(0.6, 3, 3, dimnames = list(letters[1:3], letters[1:3]))
+  diag(triangle) <- 0
+  full <- simplicial(triangle, threshold = 0.5)
+  expect_s3_class(full, "simplicial_complex")
+  expect_identical(full$n_simplices, 7L)
+  # above the weights, only the nodes are left
+  expect_identical(simplicial(triangle, threshold = 0.7)$n_simplices, 3L)
   m <- .sw_mat()
-  expect_identical(.unclass_sc(simplicial(m, threshold = 0.5)),
-                   Nestimate::build_simplicial(m, threshold = 0.5))
-  expect_identical(.unclass_sc(simplicial(m, threshold = 0.3, max_dim = 2L)),
-                   Nestimate::build_simplicial(m, threshold = 0.3,
-                                               max_dim = 2L))
+  # a lower threshold never removes a simplex
+  expect_gte(simplicial(m, threshold = 0.3)$n_simplices,
+             simplicial(m, threshold = 0.5)$n_simplices)
   d <- 1 - m
   diag(d) <- 0
-  expect_identical(.unclass_sc(simplicial(d, type = "vr", max_scale = 0.6)),
-                   Nestimate::build_simplicial(d, type = "vr",
-                                               max_scale = 0.6))
+  expect_s3_class(simplicial(d, type = "vr", max_scale = 0.6), "simplicial_complex")
+  # three points: p-q and p-r at distance 1, q-r at sqrt(2)
+  points <- matrix(c(0, 0, 1, 0, 0, 1), 3L, byrow = TRUE,
+                   dimnames = list(c("p", "q", "r"), c("x", "y")))
+  near <- simplicial(points, type = "vr", max_scale = 1.2)
+  expect_identical(near$type, "vr")
+  expect_identical(near$n_simplices, 5L)
+  expect_identical(simplicial(points, type = "vr", max_scale = 1.5)$n_simplices, 7L)
   seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
                c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
   h <- hon(seqs, max_order = 2L)
-  expect_identical(.unclass_sc(simplicial(h, type = "pathway")),
-                   Nestimate::build_simplicial(h, type = "pathway"))
-  net <- Nestimate::build_network(.ho_wide_sequences(seqs),
-                                  method = "relative")
-  expect_identical(.unclass_sc(simplicial(net, threshold = 0.2)),
-                   Nestimate::build_simplicial(net, threshold = 0.2))
+  pathway <- simplicial(h, type = "pathway")
+  expect_s3_class(pathway, "simplicial_complex")
+  # b's next state depends on what came before it: the pathways a b -> c and
+  # x b -> d are two triangles sharing b, so 5 nodes, 6 edges and 2 faces
+  expect_identical(pathway$n_simplices, 13L)
+  expect_identical(pathway$nodes, c("a", "b", "c", "d", "x"))
+  faces <- hg_get(pathway)
+  expect_setequal(faces$members[faces$dimension == 2L], c("a, b, c", "b, d, x"))
+  expect_setequal(faces$members[faces$dimension == 1L],
+                  c("a, b", "a, c", "b, c", "b, d", "b, x", "d, x"))
+  net <- Nestimate::build_network(.ho_wide_sequences(seqs), method = "relative")
+  expect_s3_class(simplicial(net, threshold = 0.2), "simplicial_complex")
 })
 
-test_that("the measures of a complex are the estimator's", {
+test_that("the measures of a complex follow from its simplices", {
+  # a triangle: three nodes, three edges, one face
+  triangle <- matrix(0.6, 3, 3, dimnames = list(letters[1:3], letters[1:3]))
+  diag(triangle) <- 0
+  solid <- simplicial(triangle, threshold = 0.5)
+  # a filled triangle: one component, no loop, Euler 3 - 3 + 1
+  expect_equal(unname(hg_betti(solid)), c(1, 0, 0))
+  expect_equal(hg_euler(solid), 1)
+  # each node: itself, two edges, the face
+  by_node <- hg_degree(solid)
+  expect_equal(by_node$d1, rep(2, 3L))
+  expect_equal(by_node$d2, rep(1, 3L))
+  expect_equal(by_node$total, rep(3, 3L))
+  # normalized, each count is divided by what is possible for 3 nodes:
+  # 2 of 2 edges and 1 of 1 face, so every node is at 1 and 1
+  normalized <- hg_degree(solid, normalized = TRUE)
+  expect_equal(normalized$d1, rep(1, 3L))
+  expect_equal(normalized$d2, rep(1, 3L))
+  expect_equal(normalized$total, rep(2, 3L))
   sc <- simplicial(.sw_mat(), threshold = 0.4)
-  expect_identical(hg_betti(sc), Nestimate::betti_numbers(sc))
-  expect_identical(hg_euler(sc), Nestimate::euler_characteristic(sc))
-  expect_identical(.ho_unresult(hg_qanalysis(sc)), Nestimate::q_analysis(sc))
-  ref <- Nestimate::simplicial_degree(sc, normalized = TRUE)
-  rownames(ref) <- NULL
-  expect_identical(hg_degree(sc, normalized = TRUE), ref)
-  expect_identical(hg_get(sc, what = "degree", normalized = TRUE), ref)
+  expect_s3_class(hg_qanalysis(sc), "q_analysis")
+  degree <- hg_degree(sc, normalized = TRUE)
+  # with 7 nodes a node can sit in choose(6, k) k-simplices
+  raw <- hg_degree(sc)
+  expect_identical(degree$node, raw$node)
+  expect_equal(degree$d1, raw$d1 / 6)
+  expect_equal(degree$d2, raw$d2 / choose(6, 2))
+  expect_equal(degree$d3, raw$d3 / choose(6, 3))
+  expect_equal(degree$d4, raw$d4 / choose(6, 4))
+  expect_identical(hg_get(sc, what = "degree", normalized = TRUE), degree)
   expect_identical(hg_get(sc, what = "degree", top = 2L),
                    utils::head(hg_degree(sc), 2L))
   expect_error(hg_degree(list()), class = "hypergraphs_bad_input")
 })
 
-test_that("hg_homology, hg_landscape and hg_bottleneck are the estimator's", {
+test_that("hg_homology, hg_landscape and hg_bottleneck keep their invariants", {
   m <- .sw_mat()
   ph <- hg_homology(m, n_steps = 8L, max_dim = 2L)
-  expect_identical(.ho_unresult(ph),
-                   Nestimate::persistent_homology(m, n_steps = 8L,
-                                                  max_dim = 2L))
+  expect_s3_class(ph, "persistent_homology")
   d <- 1 - m
   diag(d) <- 0
-  expect_identical(.ho_unresult(hg_homology(d, type = "vr", max_scale = 0.7)),
-                   Nestimate::persistent_homology(d, type = "vr",
-                                                  max_scale = 0.7))
-  expect_identical(.ho_unresult(hg_landscape(ph, k_max = 3L, dimension = 0L)),
-                   Nestimate::persistence_landscape(.ho_unresult(ph),
-                                                    k_max = 3L,
-                                                    dimension = 0L))
+  expect_s3_class(hg_homology(d, type = "vr", max_scale = 0.7), "persistent_homology")
+  levels3 <- hg_landscape(ph, k_max = 3L, dimension = 0L)
+  expect_s3_class(levels3, "persistence_landscape")
+  # three landscape functions on one grid of 200 points, peaks pinned for this
+  # fixture and falling with k
+  grid <- hg_get(levels3)
+  expect_identical(as.vector(table(grid$k)), c(200L, 200L, 200L))
+  peaks <- as.vector(tapply(grid$value, grid$k, max))
+  expect_equal(peaks, c(0.163234397385798, 0.138501912933405, 0.0656383179225279),
+               tolerance = 1e-10)
+  # two points at distance 0.8: one bar from 0 to 0.8, whose tent peaks at 0.4
+  apart <- matrix(c(0, 0.8, 0.8, 0), 2L, dimnames = list(c("a", "b"), c("a", "b")))
+  tent <- hg_landscape(hg_homology(apart, type = "vr", max_scale = 1, max_dim = 1L),
+                       k_max = 1L, dimension = 0L)
+  expect_equal(max(hg_get(tent)$value), 0.4, tolerance = 0.03)
   ph2 <- hg_homology(.sw_mat(2L), n_steps = 8L, max_dim = 2L)
-  expect_identical(hg_bottleneck(ph, ph2),
-                   Nestimate::bottleneck_distance(ph, ph2))
-  expect_identical(hg_bottleneck(ph, ph2, dimension = 0L),
-                   Nestimate::bottleneck_distance(ph, ph2, dimension = 0L))
-  # invariant: a diagram is at distance 0 from itself
+  # one bar each, born at the weight and dying at 0: moving 0.5 onto 0.8 costs
+  # 0.3, less than sending them to the diagonal (0.25 and 0.4)
+  pair <- function(w) {
+    matrix(c(0, w, w, 0), 2L, dimnames = list(c("a", "b"), c("a", "b")))
+  }
+  expect_equal(unname(hg_bottleneck(hg_homology(pair(0.5), n_steps = 20L, max_dim = 1L),
+                                    hg_homology(pair(0.8), n_steps = 20L, max_dim = 1L))),
+               0.3)
+  # a distance: positive between different diagrams, symmetric, 0 to itself
+  expect_true(all(hg_bottleneck(ph, ph2) > 0))
+  expect_equal(hg_bottleneck(ph, ph2), hg_bottleneck(ph2, ph))
+  expect_equal(hg_bottleneck(ph, ph2, dimension = 0L),
+               hg_bottleneck(ph2, ph, dimension = 0L))
   self <- hg_bottleneck(ph, ph)
   expect_equal(unname(self), rep(0, length(self)))
 })
@@ -288,9 +341,16 @@ test_that("simplicial() refuses an argument its type does not read", {
     expect_error(do.call(simplicial, args), class = "hypergraphs_bad_input")
   }))
   # the arguments each type does read still work
-  expect_identical(.unclass_sc(simplicial(m, type = "vr", max_scale = 0.6)),
-                   Nestimate::build_simplicial(m, type = "vr",
-                                               max_scale = 0.6))
+  vr <- simplicial(m, type = "vr", max_scale = 0.6)
+  expect_s3_class(vr, "simplicial_complex")
+  # pinned for this fixture; a larger scale adds simplices
+  expect_identical(vr$n_simplices, 43L)
+  expect_gt(simplicial(m, type = "vr", max_scale = 1)$n_simplices, 43L)
+  # three points with p-q 0.5, p-r 0.8, q-r 0.94: at 0.6 only p-q joins, so
+  # 3 nodes and 1 edge
+  points <- matrix(c(0, 0, 0.5, 0, 0, 0.8), 3L, byrow = TRUE,
+                   dimnames = list(c("p", "q", "r"), c("x", "y")))
+  expect_identical(simplicial(points, type = "vr", max_scale = 0.6)$n_simplices, 4L)
   expect_s3_class(simplicial(h, type = "pathway", max_pathways = 2),
                   "simplicial_complex")
 })

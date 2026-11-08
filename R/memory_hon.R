@@ -82,7 +82,9 @@
 )
 
 .hon_guard_long_format <- function(data) {
-  if (!is.data.frame(data)) return(invisible(NULL))
+  if (!is.data.frame(data) || !is.null(.ho_marked_positions(data))) {
+    return(invisible(NULL))
+  }
   cols <- names(data)
   hits <- lapply(.HON_LONG_COLUMNS, function(aliases) {
     cols[tolower(cols) %in% aliases]
@@ -186,7 +188,7 @@
   if (inherits(data, "netobject_group")) return(NULL)
   if (inherits(data, c("netobject", "tna", "cograph_network"))) {
     if (is.null(data$data)) return(NULL)
-    data <- .coerce_sequence_input(data)
+    data <- .ho_model_sequences(data)
   }
   if (is.matrix(data)) data <- as.data.frame(data, stringsAsFactors = FALSE)
   if (is.data.frame(data)) {
@@ -346,7 +348,7 @@
   .hon_check_sequence_source(data, groups = groups)
   if (inherits(data, "netobject_group")) return(data)
   if (inherits(data, c("netobject", "tna", "cograph_network"))) {
-    data <- .coerce_sequence_input(data)
+    data <- .ho_model_sequences(data)
   }
   sequences <- .hon_sequence_values(data)
   if (is.null(sequences)) return(data)

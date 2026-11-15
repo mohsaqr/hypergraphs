@@ -50,8 +50,8 @@ knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
   if (!is.matrix(embeddings) || !is.numeric(embeddings)) {
     .ho_input_error("`embeddings` must be a numeric matrix")
   }
-  if (nrow(embeddings) < 2L) {
-    .ho_input_error("`embeddings` must have at least two rows")
+  if (nrow(embeddings) < 2L || ncol(embeddings) < 1L) {
+    .ho_input_error("`embeddings` must have at least two rows and one column")
   }
   if (anyNA(embeddings) || any(!is.finite(embeddings))) {
     .ho_input_error("`embeddings` must hold finite values, with none missing")
@@ -65,20 +65,17 @@ knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
-  norms <- sqrt(rowSums(embeddings^2))
-  if (any(is.infinite(norms))) {
-    # squaring overflowed a large but finite entry: divide each row by its
-    # largest entry first (cosine similarity does not change with scale)
-    largest <- apply(abs(embeddings), 1L, max)
-    embeddings <- embeddings / ifelse(largest > 0, largest, 1)
-    norms <- sqrt(rowSums(embeddings^2))
-  }
-  if (any(norms < sqrt(.Machine$double.eps))) {
+  # Cosine depends on direction, even for very small non-zero vectors.
+  # Scale before squaring to avoid both underflow and overflow of the norm.
+  largest <- apply(abs(embeddings), 1L, max)
+  if (any(largest == 0)) {
     stop(errorCondition(
       "`embeddings` contains all-zero rows; cosine similarity is undefined",
       class = "hypergraphs_bad_input", call = NULL
     ))
   }
+  embeddings <- embeddings / largest
+  norms <- sqrt(rowSums(embeddings^2))
 
   sims <- tcrossprod(embeddings / norms)
   diag(sims) <- 1

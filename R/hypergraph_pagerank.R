@@ -54,9 +54,9 @@
 #'
 #' Chitra & Raphael prove that with edge-*independent* vertex weights the
 #' walk collapses to a random walk on a weighted clique-expansion graph —
-#' so the hypergraph brings genuinely new information exactly when the
-#' incidence weights differ across the hyperedges a vertex belongs to
-#' (tested against the closed-form graph stationary distribution). With
+#' so edge-dependent weights are necessary for this walk to carry information
+#' beyond that graph reduction; they are not sufficient on their own
+#' (the edge-independent case is tested against the graph stationary distribution). With
 #' `damping = 1` and default `edge_weights`, the result equals the
 #' stationary distribution of the Hayashi et al. (2020) EDVW walk used by
 #' [hg_cluster()] (tested at `1e-12` against [hg_laplacian()]), and

@@ -183,7 +183,8 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 #' eigenvector of \eqn{W}. With `normalize = FALSE` it equals
-#' `igraph::eigen_centrality()` on [pairwise_network()] output.
+#' `igraph::eigen_centrality()` on `pairwise_network(hg, weighted = FALSE)`
+#' output. Incidence magnitudes are ignored by CEC.
 #'
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
 #' eigen-equation on the hyperedge tensor,
@@ -213,7 +214,8 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' weights (a binary incidence) the walk is equivalent to PageRank on the
 #' weighted clique expansion with edge weights
 #' \eqn{\sum_{e \ni u,v} w(e)/\delta(e)} -- the hypergraph adds
-#' information exactly when \eqn{\gamma} is edge-dependent. Nodes left in
+#' information beyond this reduction only if \eqn{\gamma} is edge-dependent;
+#' edge dependence alone is not sufficient. Nodes left in
 #' no hyperedge (possible after `min_weight`/`min_size` filtering)
 #' teleport from every step and receive only teleportation mass. The
 #' undamped stationary distribution of the same walk is the `pi` column

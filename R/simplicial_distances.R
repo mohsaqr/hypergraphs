@@ -14,17 +14,22 @@
   if (is.data.frame(x)) {
     need <- c("dimension", "birth", "death")
     if (!all(need %in% names(x))) {
-      stop("data.frame must have columns: ",
-           paste(need, collapse = ", "), call. = FALSE)
+      stop(errorCondition(paste0("data.frame must have columns: ",
+           paste(need, collapse = ", ")),
+           class = "nestimate_bad_input", call = NULL))
     }
     return(x[, c("dimension", "birth", "death")])
   }
-  stop("d1/d2 must be persistent_homology or data.frame.", call. = FALSE)
+  stop(errorCondition("d1/d2 must be persistent_homology or data.frame.",
+                      class = "nestimate_bad_input", call = NULL))
 }
 
 #' @noRd
 .is_essential <- function(p) {
-  is.infinite(p$death) | p$death == 0
+  # death 0 marks an essential class in the clique encoding only when the
+  # class was born (birth > 0); a (0, 0) pair is a zero-length finite point,
+  # as persistence_landscape() reads it
+  is.infinite(p$death) | (p$death == 0 & p$birth > 0)
 }
 
 # Which rows of a diagram are essential classes. A persistent_homology
@@ -79,13 +84,14 @@
 # finite births, deaths finite or Inf.
 .ph_check_diagram <- function(diagram, arg) {
   ok <- is.numeric(diagram$dimension) && is.numeric(diagram$birth) &&
-    is.numeric(diagram$death) && !anyNA(diagram$dimension) &&
+    is.numeric(diagram$death) && all(is.finite(diagram$dimension)) &&
+    all(diagram$dimension >= 0) &&
     all(diagram$dimension == round(diagram$dimension)) &&
     all(is.finite(diagram$birth)) && !anyNA(diagram$death) &&
     !any(diagram$death == -Inf)
   if (!ok) {
     .ho_input_error(sprintf(paste0(
-      "`%s` must hold whole-number dimensions, finite births and deaths ",
+      "`%s` must hold finite whole-number dimensions >= 0, finite births and deaths ",
       "that are finite or Inf"), arg))
   }
   invisible(NULL)
@@ -190,11 +196,23 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
   fin1 <- as.matrix(p1[!ess1, c("birth", "death"), drop = FALSE])
   fin2 <- as.matrix(p2[!ess2, c("birth", "death"), drop = FALSE])
   costs <- .wasserstein_ground_costs(fin1, fin2, internal_p)
+  # An essential birth displacement cannot be avoided by matching to the
+  # diagonal; if it overflows, so does the distance. A finite pair cost,
+  # however, need not occur in the optimal assignment (even self-distance
+  # used to become Inf when two distant points had an overflowing cross-cost).
+  if (any(!is.finite(ess_cost))) return(Inf)
+  coordinate_scale <- 1
+  if (any(!is.finite(c(costs$pair, costs$diag1, costs$diag2)))) {
+    coordinate_scale <- max(abs(c(fin1, fin2)))
+    costs <- .wasserstein_ground_costs(fin1, fin2, internal_p,
+                                       scale = coordinate_scale)
+    ess_cost <- ess_cost / coordinate_scale
+  }
   scale <- max(0, ess_cost, costs$pair, costs$diag1, costs$diag2)
   if (!is.finite(scale) || scale == 0) return(scale)
   essential_power <- sum((ess_cost / scale) ^ order)
   finite_power <- .wasserstein_assignment(costs, scale, order)
-  scale * (essential_power + finite_power) ^ (1 / order)
+  coordinate_scale * (scale * (essential_power + finite_power) ^ (1 / order))
 }
 
 # The L_p norm of (a, b) elementwise, computed on max-scaled entries so a
@@ -205,15 +223,24 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
   out <- m * ((a / ifelse(m > 0, m, 1)) ^ p +
                 (b / ifelse(m > 0, m, 1)) ^ p) ^ (1 / p)
   out[m == 0] <- 0
+  out[is.infinite(m)] <- Inf
   out
 }
 
 # Ground distances of the finite points: point to point (n1 x n2) and each
 # point to the diagonal. The diagonal distance of (b, d) under L_p is
 # |d - b| / 2^(1 - 1/p), and |d - b| / 2 under L_infinity.
-.wasserstein_ground_costs <- function(p1, p2, internal_p) {
+.wasserstein_ground_costs <- function(p1, p2, internal_p, scale = 1) {
+  # Subtract first when possible to retain small displacements on a large
+  # common offset; scale before subtracting only when subtraction overflows.
+  difference <- function(a, b) {
+    out <- abs(a - b) / scale
+    overflow <- is.infinite(out)
+    out[overflow] <- abs(a[overflow] / scale - b[overflow] / scale)
+    out
+  }
   diagonal_cost <- function(p) {
-    persistence <- abs(p[, "death"] - p[, "birth"])
+    persistence <- difference(p[, "death"], p[, "birth"])
     if (is.infinite(internal_p)) {
       persistence / 2
     } else {
@@ -224,8 +251,8 @@ hg_wasserstein <- function(d1, d2, dimension = NULL, order = 1,
   n2 <- nrow(p2)
   pair <- matrix(numeric(0), n1, n2)
   if (n1 && n2) {
-    db <- abs(outer(p1[, "birth"], p2[, "birth"], "-"))
-    dd <- abs(outer(p1[, "death"], p2[, "death"], "-"))
+    db <- outer(p1[, "birth"], p2[, "birth"], difference)
+    dd <- outer(p1[, "death"], p2[, "death"], difference)
     pair <- matrix(.lp_norm2(db, dd, internal_p), n1, n2)
   }
   list(pair = pair,

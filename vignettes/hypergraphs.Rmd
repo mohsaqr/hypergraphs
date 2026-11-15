@@ -14,30 +14,36 @@ join_and <- function(v) sub(", ([^,]*)$", " and \\1", toString(v))
 n_steps <- length(unique(hypergraphs::tutoring_events$step))
 ```
 
-Higher-order network models extend pairwise networks in two directions. One
-represents interactions among groups of nodes with hypergraphs and simplicial
-complexes; the other represents memory in paths. This document covers
-hypergraphs. A hypergraph consists of a set of nodes and a set of
-hyperedges, and a hyperedge is a subset of the nodes of any size. An edge of
-a network is the special case of a hyperedge with two nodes. A hypergraph is
-represented by its incidence matrix, which has one row per node, one column
-per hyperedge, and an entry of one where the node belongs to the hyperedge.
-The projection of a hypergraph to a network replaces each hyperedge by the
-pairs of its nodes, and different hypergraphs can have the same projection.
-Measures computed from the incidence matrix keep the information that the
-projection loses.
+Hypergraphs extend ordinary networks by allowing edges to connect more
+than two nodes. These edges, called hyperedges, can represent interactions
+or associations involving an entire group. Hyperedges can differ in size,
+allowing pairs and larger groups to be represented within the same
+hypergraph.
+
+For example, consider a scientific article written by three researchers.
+A coauthorship network represents the article by connecting each pair of
+authors, producing three edges. A hypergraph represents the article by one
+hyperedge containing all three authors. An article with four authors forms
+a hyperedge containing four nodes. Each hyperedge therefore identifies
+the complete authorship group associated with an article.
+
+This tutorial uses an event log from an AI tutoring system. Event types
+are nodes, and each trial forms a hyperedge containing the distinct event
+types recorded within it. The analysis examines which events occur
+together within trials, how frequently they participate, and how they form
+communities. The examples introduce hypergraph construction, structural
+measures, centrality, clustering, and comparison with randomised
+hypergraphs using the `hypergraphs` R package.
 
 ## Data
 
-The examples use `tutoring_events`, a data frame in long format with one row
-per event, from `r format(n_steps, big.mark = ",")` problem steps that
-learners worked through with an AI tutor. A step begins with the task, the
-learner attempts an answer, and the answer is correct or incorrect. After an
-incorrect answer the tutor responds with guidance, a question, an order, a
-refutation, a prompt to reflect or comfort, and the learner reattempts or
-gives up. A step ends with `Completed` after a correct answer and with
-`Stopped` when it ends without one. A trial is the part of a step between two
-answers.
+The examples use `tutoring_events`, an event log containing
+`r format(n_steps, big.mark = ",")` problem steps completed or discontinued
+by learners working with an AI tutor. Each row records one event. A step
+begins with a task and can include an initial answer, tutor feedback, and
+further attempts. The events `Completed` and `Stopped` identify the recorded
+outcomes. A trial is one attempt and its associated events within a step;
+the supplied `trial` identifier defines its boundaries.
 
 ```{r data}
 library(hypergraphs)
@@ -49,16 +55,19 @@ n_trials <- length(unique(tutoring_events$trial))
 n_events <- length(unique(tutoring_events$event))
 ```
 
-The data contain `r format(n_trials, big.mark = ",")` trials and
-`r n_events` distinct events.
+There are `r format(n_trials, big.mark = ",")` trials and
+`r n_events` event types. The event types, rather than individual event
+occurrences, will be the nodes of the hypergraph.
 
 ## Hypergraphs from observed groups
 
-When group membership is observed, each group is a hyperedge. In an event
-log, the events of a session form such a group, and a trial is a session in
-this sense. In `hypergraph()`, `action` names the column of the events and
-`session` the column of the trials, and the events of each trial become one
-hyperedge.
+Begin by specifying the observational unit. Here, each trial is an
+observed group, and its distinct event types form a hyperedge. In
+`hypergraph()`, `action = "event"` identifies the event-type column and
+`session = "trial"` identifies the grouping column. The resulting object
+retains one hyperedge per trial, including trials with identical membership.
+This representation records which event types occurred together; it does
+not retain their order or repeated occurrences within a trial.
 
 ```{r trials}
 trial_hg <- hypergraph(tutoring_events, action = "event", session = "trial")
@@ -72,21 +81,34 @@ modal_size <- names(size_counts)[which.max(size_counts)]
 n_sets <- length(unique(trial_edges$members))
 ```
 
-Most trials contain `r modal_size` events, and the largest contain
-`r max(trial_edges$size)`. Many trials contain the same events: the
-`r format(n_trials, big.mark = ",")` trials hold `r n_sets` distinct sets.
-A hypergraph whose hyperedges repeat is plotted as its distinct sets.
+The most common hyperedge size is `r modal_size` distinct event types,
+and the largest is `r max(trial_edges$size)`. The
+`r format(n_trials, big.mark = ",")` trials contain `r n_sets` distinct
+member sets. The argument `top` controls how many sets are displayed:
+a whole number, such as `top = 4`, selects that many most frequent sets;
+a fraction, such as `top = 0.95`, selects the most frequent sets whose
+cumulative counts cover at least 95% of trials. The set that crosses the
+threshold is included in full, so coverage can exceed the requested share.
+Use `top = Inf` to retain every set. The object `trial_hg` retains every
+trial for the subsequent analyses.
 
-```{r trials-plot, fig.width = 10, fig.height = 9}
-plot(trial_hg)
+```{r trials-plot, fig.width = 10, fig.height = 9, fig.alt = "The most frequent event sets covering at least 95 percent of trials, with shared events appearing in overlapping regions"}
+trial_preview <- hypergraph(tutoring_events, action = "event",
+                            session = "trial", top = 0.95)
+plot(trial_preview) +
+  ggplot2::guides(size = ggplot2::guide_legend(nrow = 2))
 ```
 
-Each set is plotted as a hull coloured by its number of trials, and each
-event as a circle whose area is the number of trials that contain it. Most
-of the sets are rare and overlap the frequent ones. The minimum support of
-frequent-set mining keeps the sets that occur in at least a given share of
-the trials. With `min_share = 0.01`, the sets of at least 1% of the trials
-are kept.
+The `r nrow(hg_get(trial_preview, what = "sets"))` retained sets account for
+`r round(100 * sum(hg_get(trial_preview, what = "sets")$share), 2)`% of trials.
+Each enclosed region contains the event types in one set, and overlapping
+regions indicate shared event types. Colour indicates set frequency, and
+node size summarises event participation.
+
+A minimum support threshold selects sets by their individual frequencies.
+Here, support is the proportion of trials with exactly the same event set.
+With `min_share = 0.01`, a set is retained when it accounts for at least
+1% of trials.
 
 ```{r common-trials}
 common_trials <- hypergraph(tutoring_events, action = "event",
@@ -102,11 +124,14 @@ common_cover <- round(100 * sum(hg_get(common_trials, what = "sets")$share))
 plot(common_trials)
 ```
 
-The `r nrow(hg_get(common_trials))` sets cover `r common_cover`% of the
-trials. The sets of a stopped step, with `Comfort`, `GiveUp` and `Stopped`,
-lie apart from the sets of the first trial and the reattempts.
+The `r nrow(hg_get(common_trials))` retained sets account for
+`r common_cover`% of trials. The set containing `Comfort`, `GiveUp`, and
+`Stopped` describes a recorded termination pattern. Its position in the
+figure summarises shared membership; distances between plotted regions are
+not estimates of differences in learning outcomes.
 
-The degree of an event is the number of hyperedges that contain it.
+Read the node table with `hg_get()`. In this trial-level representation,
+the degree of an event type is the number of trials containing it.
 
 ```{r trial-nodes}
 trial_nodes <- hg_get(trial_hg, what = "nodes", sort_by = "degree")
@@ -115,10 +140,10 @@ trial_nodes
 
 ## Frequent sets
 
-Most trials fall into a few of the `r n_sets` sets.
-Counting the sets and keeping the most frequent ones as hyperedges
-summarises the data by its common combinations. With `top = 8`, the eight
-most frequent sets are kept.
+An alternative summary retains a fixed number of frequent event sets.
+The following call selects the eight sets with the largest counts. This
+changes the unit represented by a hyperedge from an individual trial to a
+distinct event set, with its frequency stored as an attribute.
 
 ```{r sets}
 trial_sets <- hypergraph(tutoring_events, action = "event",
@@ -132,20 +157,21 @@ top_share <- round(100 * sum(trial_set_table$share))
 most_frequent_set <- hg_get(trial_sets, what = "sets", top = 1)$set
 ```
 
-The eight sets account for `r top_share`% of the trials. The most frequent
-set, `r most_frequent_set`, is a step completed on its first trial. The
-next are a first trial with an incorrect answer, a correct first trial that
-opens with `Begin`, incorrect and correct reattempts after guidance, an
-incorrect first trial that opens with `Begin`, and reattempts after a
-question.
+These eight sets account for `r top_share`% of trials. The most frequent
+set is `r most_frequent_set`, which contains the events associated with a
+correct initial response. Other retained sets include incorrect responses
+and reattempts following tutor feedback. These labels describe co-occurrence
+within trials; the event order must be examined in the original log.
 
 ```{r sets-plot, fig.width = 10, fig.height = 7}
 plot(trial_sets)
 ```
 
-With `group`, the sets are counted separately within each value of a
-comparison variable. The `outcome` column records whether a step is
-completed with a correct answer or stopped without one.
+To compare outcomes, count sets separately within each value of
+`outcome`. The argument `group = "outcome"` performs this comparison, and
+`top = 6` retains the six most frequent sets in each group. The outcome is
+defined for the complete problem step, so trials preceding its termination
+are grouped by that final outcome.
 
 ```{r sets-by}
 outcome_sets <- hypergraph(tutoring_events, action = "event",
@@ -162,21 +188,21 @@ plot(outcome_sets, group = "completed")
 plot(outcome_sets, group = "stopped")
 ```
 
-The frequent trials of completed steps are correct first trials, incorrect
-first trials and correct reattempts after guidance or a question. The
-frequent trials of stopped steps are incorrect first trials and incorrect
-reattempts after a question, guidance or an order. In the set
-`Comfort + GiveUp + Stopped` the tutor comforts the learner, the learner
-gives up and the step ends without a correct answer.
+Compare the two tables and plots to identify event combinations that
+are frequent within completed and stopped steps. The set
+`Comfort + GiveUp + Stopped`, for example, occurs in stopped steps and
+contains a tutor response, learner withdrawal, and termination. Differences
+between the groups are descriptive associations. They do not establish an
+effect of a particular tutor response on completion.
 
 ## Hypergraphs from sequences
 
-When only the order of events is recorded, hyperedges are formed from windows
-of consecutive events in the sequence of events of each step. Each window of
-`window` events is reduced to the set of its distinct events, and identical
-sets are merged into one hyperedge whose weight is the number of windows that
-produced it. The argument `action` names the column of the events, `actor`
-the column of the steps and `time` the column that orders the events.
+A window-based representation uses local sequence positions as its
+observational units. The following call forms overlapping windows of three
+events within each problem step. `action` identifies event types, `actor`
+identifies the independent sequences, and `time` specifies their ordering.
+Each window contributes its distinct event types. Windows with identical
+membership are combined, and their count is retained as a hyperedge weight.
 
 ```{r window}
 window_hg <- hypergraph(tutoring_events, action = "event", actor = "step",
@@ -194,12 +220,12 @@ plot(window_hg)
 n_windows <- sum(hg_get(window_hg)$weight)
 ```
 
-The `r format(n_windows, big.mark = ",")` windows give
-`r nrow(hg_get(window_hg))` distinct hyperedges. A window with a repeated
-event contains fewer distinct events than its length, so some hyperedges
-have two nodes or one. With `min_weight`, only hyperedges produced by at
-least that many windows are kept, and `hg_subset()` with `size = 3` keeps
-the windows of three distinct events and drops the events left in none.
+The `r format(n_windows, big.mark = ",")` windows produce
+`r nrow(hg_get(window_hg))` distinct member sets. A three-position window
+can contain fewer than three event types when an event repeats. The next
+example uses `min_weight = 2000` to retain recurrent sets and
+`hg_subset(size = 3)` to select sets with three distinct event types.
+Nodes without a retained membership are removed by the subset operation.
 
 ```{r window-frequent}
 frequent_windows <- hypergraph(tutoring_events, action = "event",
@@ -213,16 +239,19 @@ frequent_windows
 plot(frequent_windows)
 ```
 
-Each hull is a window of three events, coloured by the number of windows
-that contain exactly these events. Windows span the boundaries between
-trials, and the window length is set by the analyst. The remaining sections
-use the trials, which the data record.
+The regions now represent recurring sets of three distinct events.
+Window boundaries are determined by the chosen length and sequence unit.
+Because the sequence unit is a problem step, a window can cross a trial
+boundary within that step. The remaining sections use observed trials so
+that their measures refer to the same grouping throughout.
 
 ## Projection to a network
 
-The projection of a hypergraph is the network in which two nodes are joined
-when they belong to a common hyperedge, with a weight equal to the number of
-such hyperedges.
+The clique projection connects two event types when they occur in at
+least one common trial. For the binary incidence used here, the projected
+edge weight equals the number of shared trials. Weighted incidence has a
+different interpretation, so the weighting convention should always be
+specified when reporting a projection.
 
 ```{r project}
 trial_network <- pairwise_network(trial_hg)
@@ -238,18 +267,17 @@ plot(trial_network)
 n_pairs <- nrow(hg_get(trial_network))
 ```
 
-Each edge joins two events with a width that grows with the number of trials
-that contain both. The widest edges join `Task`, `Attempt`, `Correct` and
-`Completed`, which occur together in most first trials, and the edges of
-`Comfort`, `GiveUp` and `Stopped` are thin. The network records how often two
-events
-occur in the same trial and leaves out which other events occur with them.
+Edge width increases with the number of trials containing both events.
+The strong connections among `Task`, `Attempt`, `Correct`, and `Completed`
+reflect their frequent joint occurrence. The projection summarises pairwise
+counts, but it cannot identify which additional event types accompanied each
+pair in a particular trial.
 
-A hypergraph can also be inferred from a network by taking every clique, a
-set of nodes that are all joined to each other, as a hyperedge. With
-`include_pairwise = FALSE` the cliques of three or more nodes are kept, and
-`max_size` is the size of the largest clique kept, here the size of the
-largest trial.
+A network can also generate a hypergraph through its cliques. A clique
+is a set of nodes in which every pair is connected. The next call promotes
+cliques of three to six nodes to hyperedges. These are candidate groups
+defined by pairwise connectivity; they need not correspond to observed
+trials. `include_pairwise = FALSE` excludes size-two hyperedges.
 
 ```{r project-back}
 clique_hg <- hypergraph(trial_network, max_size = 6, include_pairwise = FALSE)
@@ -273,21 +301,27 @@ n_true <- sum(inferred_keys %in% observed_keys)
 n_found <- sum(observed_keys %in% inferred_keys)
 ```
 
-The network has `r n_pairs` pairs, and its cliques of 3 to
-`r max(hg_get(clique_hg)$size)` events give `r nrow(hg_get(clique_hg))`
-hyperedges. The trials contain `r length(observed_keys)` distinct sets of
-three or more events, and `r n_found` of them are among the cliques. The
-other `r nrow(hg_get(clique_hg)) - n_true` cliques are sets whose pairs each
-occur in some trial while the whole set occurs in none. Identifying the
-observed groups among the cliques requires the hypergraph. The cliques cover
-the events so densely that their hulls hide one another in the plot.
+The projected network has `r n_pairs` connected pairs and
+`r nrow(hg_get(clique_hg))` cliques of sizes three to
+`r max(hg_get(clique_hg)$size)`. The trial data contain
+`r length(observed_keys)` distinct sets of at least three event types, of
+which `r n_found` are recovered among these cliques. A further
+`r nrow(hg_get(clique_hg)) - n_true` cliques have no matching observed set.
+A clique without an exact observed match can be contained in a larger
+observed set or can combine pairwise connections from different trials.
+Pairwise connectivity therefore does not establish that a clique occurred
+as a complete trial event set. The dense overlap of regions also limits the value
+of this plot as a display of individual cliques.
 
 ## Node measures
 
-Node measures of a hypergraph are computed from its incidence matrix. The
-hyperdegree of a node is the number of hyperedges that contain it, its
-strength is the sum of the sizes of those hyperedges, and its number of
-neighbours is the number of other nodes that share a hyperedge with it.
+The incidence matrix has one row per event type and one column per
+trial. A cell is one when the event type occurs in the trial and zero
+otherwise. From this matrix, `hg_measures()` reports the hyperdegree
+(number of incident trials), strength (sum of the sizes of incident trials),
+and number of neighbours (distinct other event types sharing a trial).
+The strength definition is specific to this structural summary and should
+not be confused with event frequency.
 
 ```{r measures}
 node_measures <- hg_measures(trial_hg)
@@ -302,71 +336,75 @@ participation <- subset(trial_summary,
 attempt_row <- subset(node_measures, node == "Attempt")
 ```
 
-`Attempt` belongs to the first trial of every step, `Task` to that trial and
-to some reattempts, and `Correct` and `Completed` to the trial that ends
-every completed step, so these events have the highest hyperdegree.
-Hyperdegree and the number of neighbours describe different aspects of
-position. `Attempt` belongs to
-`r format(attempt_row$hyperdegree, big.mark = ",")` trials and shares them
-with `r attempt_row$n_neighbors` other events, and `Task` shares a trial with
-every other event. The pairwise participation is the share of pairs of nodes
-that belong to at least one common hyperedge. It is
-`r sprintf("%.2f", participation)`, so
-`r round(100 * (1 - participation))`% of the pairs of events never occur in
-the same trial.
+`Attempt` occurs in `r format(attempt_row$hyperdegree, big.mark = ",")`
+trials and shares those trials with `r attempt_row$n_neighbors` other event
+types. Hyperdegree measures participation across trials, whereas neighbour
+count measures the range of co-occurring events. Pairwise participation is
+the proportion of all event-type pairs observed together at least once.
+Its value is `r sprintf("%.2f", participation)`, meaning that
+`r round(100 * (1 - participation))`% of possible pairs never share a trial.
 
 ## Centrality
 
-An eigenvector centrality gives a node a score that depends on the scores of
-the nodes it shares hyperedges with. The clique centrality is the
-eigenvector centrality of the projection, in which two events are linked by
-the number of trials that contain both.
+Clique-motif eigenvector centrality assigns larger scores to event
+types connected to other high-scoring event types. It is computed from
+the binary-membership clique projection, whose weights count shared
+hyperedges (Benson 2019). Use `sort_by = "clique"` to inspect the ranking.
 
 ```{r centrality}
 event_centrality <- hg_centrality(trial_hg, sort_by = "clique")
 event_centrality
 ```
 
-The clique centrality is highest for the events of a correct first trial,
-`Task`, `Attempt`, `Correct` and `Completed`, which occur together in most
-steps.
+The high-ranking event types include `Task`, `Attempt`, `Correct`, and
+`Completed`. Their scores reflect both frequent participation and their
+connections to other high-scoring events. Centrality describes structural
+position in this representation; it is not a measure of instructional
+effectiveness.
 
-The Z and H centralities (Benson 2019) score a node through the product of
-the scores of the other members of each of its hyperedges. They are defined
-for hypergraphs whose hyperedges all have the same size. The trials here
-contain two to six events, so `hg_centrality()` refuses them with an error
-of class `hypergraphs_nonuniform_hypergraph`. The clique centrality and
-PageRank are defined for hyperedges of any size.
+Benson's (2019) Z and H centralities use products of the scores of
+other members of a hyperedge. Their definitions require a uniform
+hypergraph, with a common size for all non-singleton hyperedges. The trial
+hypergraph has mixed sizes, so these two methods cannot be applied to it
+directly. Clique centrality and PageRank accept mixed hyperedge sizes.
 
-PageRank on a hypergraph is the stationary distribution of a random walk that
-moves from a node to a hyperedge that contains it and from the hyperedge to
-one of its members, with a fixed probability of restarting at a random node.
+Hypergraph PageRank describes a random walk with two stages: choose
+an incident hyperedge, then choose a node within it. Edge and incidence
+weights determine these probabilities. With the default damping factor of
+0.85, the walker follows this transition with probability 0.85 and restarts
+uniformly with probability 0.15. The stationary probabilities form a ranking
+of the nodes (Chitra and Raphael 2019).
 
 ```{r pagerank}
 event_pagerank <- hg_pagerank(trial_hg, sort_by = "pagerank")
 event_pagerank
 ```
 
-`Comfort`, `GiveUp` and `Stopped` occur mostly together in the last trial of
-a stopped step, so a walk that reaches one of them moves among the three for
-several moves before it leaves. They rank seventh to ninth by PageRank and
-close to zero by the clique centrality.
+Compare the PageRank and clique rankings for `Comfort`, `GiveUp`, and
+`Stopped`. Their close co-occurrence creates a small region in which the
+random walk can remain for several transitions. PageRank and clique
+centrality weight this structure differently, so agreement between their
+rankings should be examined rather than assumed.
 
 ## Communities and clusters
 
-A community is a set of nodes that share more hyperedges with each other
-than with the rest of the hypergraph. The communities of the events are
-found with the map equation from 20 random starts, and the partition
-reported is the medoid, the partition that agrees most with the other 19.
+Community detection partitions nodes according to an optimisation
+criterion. The default `hg_communities()` applies Infomap to the association
+projection and minimises the description length of a random walk. The
+following call uses 20 seeds and reports the medoid partition: the run with
+the greatest total adjusted mutual information with the other runs.
+This selects a representative result from the ensemble.
 
 ```{r communities, eval = requireNamespace("igraph", quietly = TRUE)}
 event_communities <- hg_communities(trial_hg, n_runs = 20, seeds = 1:20)
 event_communities
 ```
 
-Spectral clustering divides the nodes into `k` clusters by the eigenvectors
-of the hypergraph Laplacian. Its final k-means step starts from random
-centres, which `seed` fixes.
+Spectral clustering instead embeds nodes in eigenvectors of the
+normalised hypergraph Laplacian and partitions the embedding by k-means.
+The analyst specifies `k`, here three clusters. The seed makes the random
+initialisation of k-means reproducible; it does not establish that three
+clusters are the appropriate resolution.
 
 ```{r cluster}
 event_clusters <- hg_cluster(trial_hg, k = 3, seed = 1)
@@ -380,11 +418,12 @@ members_of <- function(event) {
 }
 ```
 
-The clusters are the end of a stopped step (`r members_of("Stopped")`), the
-events of a correct first trial (`r members_of("Completed")`), and the
-incorrect answers, the reattempts and the moves of the tutor
-(`r members_of("Guidance")`). The adjusted Rand index measures the agreement
-between two partitions of the same nodes, corrected for chance.
+The three clusters group the events associated with termination
+(`r members_of("Stopped")`), completion (`r members_of("Completed")`), and
+tutor feedback or reattempts (`r members_of("Guidance")`). Compare these
+groups with the Infomap partition using the adjusted Rand index. This
+index equals one for identical partitions and has an expected value near
+zero under its chance model; it can also be negative.
 
 ```{r agreement, eval = requireNamespace("igraph", quietly = TRUE)}
 partition_agreement <- hg_agreement(event_communities, event_clusters)
@@ -396,21 +435,21 @@ partition_table
 
 ```{r agreement-text, echo = FALSE, results = "asis", eval = requireNamespace("igraph", quietly = TRUE)}
 cat(sprintf(paste(
-  "The map equation separates the end of a stopped step from the other",
-  "events. Spectral clustering divides the other events into those of a",
-  "correct first trial and those of the reattempts. The adjusted Rand index",
-  "between the two partitions is %.2f."),
+  "The adjusted Rand index between the two fitted partitions is %.2f.",
+  "Use the cross-tabulation to identify event groups that remain together",
+  "or are divided differently under the two objectives."),
   partition_agreement$ari))
 ```
 
 ## Null models
 
-A structural pattern is assessed against random hypergraphs that keep the
-size of every hyperedge and the degree of every node. Such hypergraphs are
-generated by repeated swaps of members between pairs of hyperedges, and the
-observed value of a statistic is compared with its distribution over the
-random hypergraphs. The comparison is made on the trials of the stopped
-steps.
+To assess a structural statistic, specify a reference distribution.
+The swap null model used here preserves each node's hyperdegree and each
+hyperedge's size while changing their memberships. It generates successive
+randomised incidence matrices through checkerboard swaps. The example
+uses trials from stopped steps and compares their pairwise participation,
+mean Jaccard overlap, and number of repeated event sets with this null
+distribution.
 
 ```{r null}
 stopped_events <- subset(tutoring_events, outcome == "stopped")
@@ -429,26 +468,47 @@ re <- null_row("repeated_edges")
 aj <- null_row("avg_jaccard")
 ```
 
-In the random hypergraphs `r sprintf("%.1f", 100 * pp$null_mean)`% of the
-pairs of events occur together in some trial, against
-`r round(100 * pp$observed)`% in the data. About
-`r format(round(re$null_mean), big.mark = ",")` trials repeat the set of an
-earlier trial, against `r format(re$observed, big.mark = ",")` in the data,
-and the mean Jaccard index between two trials is `r round(aj$null_mean, 2)`,
-against `r round(aj$observed, 2)`. The trials of stopped steps repeat a
-small number of sets, and each set keeps together events that the random
-hypergraphs spread over many trials. The p-value of `r pp$p_value` is the
-smallest attainable with 19 random hypergraphs; a test reported in an
-analysis uses at least 999. The observed pairwise
-participation lies `r round(abs(pp$z))` standard deviations below the mean of
-the random hypergraphs, and the number of repeated trials
-`r round(abs(re$z))` standard deviations above it.
+Observed pairwise participation is `r round(100 * pp$observed)`%,
+compared with a null mean of `r sprintf("%.1f", 100 * pp$null_mean)`%.
+There are `r format(re$observed, big.mark = ",")` repeated trial sets,
+compared with a null mean of
+`r format(round(re$null_mean), big.mark = ",")`. Mean Jaccard overlap is
+`r round(aj$observed, 2)` in the data and `r round(aj$null_mean, 2)` under
+the null. These comparisons quantify structure beyond the preserved
+degrees and hyperedge sizes. They remain conditional on this particular
+randomisation model.
+
+Only 19 draws are used to keep this example short. The smallest attainable
+Monte Carlo p-value is 1/20 = 0.05; the reported value for pairwise
+participation is `r pp$p_value`. A larger number of draws, such as 999 or
+more, is needed to estimate smaller tail probabilities. The standardised
+deviations are `r round(pp$z, 1)` for pairwise participation and
+`r round(re$z, 1)` for repeated sets. These z-scores summarise distance
+from the null mean and do not assume that the null distribution is normal.
 
 ## Other higher-order structures
 
-A corpus of documents forms a hypergraph in which each document is a
-hyperedge over its words, built with `text_hypergraph()`. Memory networks
-are estimated from paths with `hon()`, and simplicial complexes, in which
-every subset of a relation is also a relation, are built with
-`simplicial()`. The help page `?hypergraphs` lists the functions of each
-family.
+The package also supports related representations. `text_hypergraph()`
+constructs relations between documents and words. `hon()` estimates memory
+networks in which transition probabilities can depend on previous states.
+`simplicial()` constructs complexes that include every subset of each
+simplex. These representations encode different assumptions about the
+observations. See `?hypergraphs` for their definitions and entry points.
+
+## References
+
+Benson, A. R. (2019). Three hypergraph eigenvector centralities. *SIAM
+Journal on Mathematics of Data Science*, 1(2), 293–312.
+https://doi.org/10.1137/18M1203031
+
+Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
+edge-dependent vertex weights. *Proceedings of ICML*, PMLR 97, 1172–1181.
+https://proceedings.mlr.press/v97/chitra19a.html
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph random
+walks, Laplacians, and clustering. *Proceedings of CIKM*, 495–504.
+https://doi.org/10.1145/3340531.3412034
+
+Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+Clustering, classification, and embedding. *Advances in Neural Information
+Processing Systems*, 19, 1601–1608.

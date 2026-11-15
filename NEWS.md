@@ -1,3 +1,47 @@
+# hypergraphs 0.7.14
+
+## New features
+
+* For frequent-set construction, `top` accepts either a whole-number count
+  or a cumulative coverage fraction. `top = 0.95` retains the most frequent
+  sets covering at least 95% of eligible transactions, separately by group.
+  `top = 1` continues to mean one set, and `top = Inf` keeps all sets.
+
+## Bug fixes
+
+* Tensor centralities (`hg_centrality(type = "Z" | "H")`) use a log-space
+  fallback when leave-one-out products underflow. Large uniform hyperedges
+  no longer silently return a zero vector; 300-member sunflower hypergraphs
+  reproduce the analytic hub-to-petal ratios.
+* Hayashi default edge weights agree on dense and sparse incidence with
+  large, nearly equal weights. Centred, scaled population standard deviations
+  avoid cancellation, overflow and underflow.
+* `knn_hypergraph()` normalises finite nonzero embeddings before squaring,
+  preserving cosine similarities under very small or large positive row
+  scales. Matrices with no embedding dimensions raise a classed error.
+* Association projections, temporal distinct-edge counts and frequent-set
+  construction distinguish member sets even when node names contain control
+  characters. Frequent sets use deterministic radix ordering.
+* Assignment validation distinguishes missing labels from literal text that
+  matched its former missing-value sentinel.
+* `hg_wasserstein()` refuses negative, fractional and nonfinite homology
+  dimensions. Zero-length `(0, 0)` intervals in clique-mode persistence
+  objects are treated as diagonal points, in agreement with the diagram
+  reader of the current dependency.
+  Pairwise ground costs that overflow no longer make self-distance infinite,
+  and representable distances to the diagonal stay finite near the double limit.
+* Random SBM construction validates logical controls before using them and
+  validates the implicit node count. Private sequence and network helpers
+  now match the current dependency's classed input errors.
+
+## Documentation
+
+* Random-walk help distinguishes the necessity of edge-dependent vertex
+  weights from sufficiency for avoiding graph reduction. HYPA help no longer
+  promises false discovery rate control from applying BH to strict upper-tail
+  scores. Topic-model help states the word-mass adjustment used to obtain
+  document topic shares from unnormalised NMF factors.
+
 # hypergraphs 0.7.13
 
 ## Breaking changes

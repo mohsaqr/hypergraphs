@@ -274,9 +274,8 @@ plot.net_hg_pairwise <- function(x, ...) {
     b <- .thg_binary(incidence)
     b_projection <- b
     if (identical(duplicate_edges, "collapse") && ncol(b) > 1L) {
-      signatures <- vapply(seq_len(ncol(b)), function(j) {
-        paste(rownames(b)[which(b[, j] != 0)], collapse = "\r")
-      }, character(1L))
+      signatures <- vapply(.thg_edge_members(b), paste, character(1L),
+                            collapse = ",")
       b_projection <- b[, !duplicated(signatures), drop = FALSE]
     }
     cardinality <- Matrix::colSums(b_projection)

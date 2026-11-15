@@ -439,7 +439,12 @@ hg_laplacian <- function(hg,
 
 #' Population standard deviation (ddof = 0, numpy convention)
 #' @noRd
-.hl_pop_sd <- function(x) sqrt(mean((x - mean(x))^2))
+.hl_pop_sd <- function(x) {
+  centred <- x - mean(x)
+  scale <- max(abs(centred))
+  if (scale == 0) return(0)
+  scale * sqrt(mean((centred / scale)^2))
+}
 
 #' Build Laplacian + stationary distribution + edge weights for a type
 #'

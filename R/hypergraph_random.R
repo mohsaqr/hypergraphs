@@ -134,6 +134,13 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
 .hgr_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
                             variable_size = FALSE, absolute_purity = TRUE,
                             seed = NULL) {
+  if (!is.logical(variable_size) || length(variable_size) != 1L ||
+      is.na(variable_size) || !is.logical(absolute_purity) ||
+      length(absolute_purity) != 1L || is.na(absolute_purity)) {
+    .ho_input_error(
+      "`variable_size` and `absolute_purity` must be single logicals."
+    )
+  }
   # whole-number test by rounding, never by as.integer(): a size beyond the
   # integer range would coerce to NA and crash the condition
   if (!is.numeric(block_sizes) || !length(block_sizes) ||
@@ -144,7 +151,7 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
   }
   block_sizes <- as.integer(block_sizes)
   n_blocks <- length(block_sizes)
-  n <- if (is.null(n)) sum(block_sizes) else .hgr_count(n, "n", 2L)
+  n <- .hgr_count(n %||% sum(block_sizes), "n", 2L)
   if (n != sum(block_sizes)) {
     .ho_input_error("`n` must equal sum(`block_sizes`).")
   }
@@ -163,12 +170,6 @@ random_hypergraph <- function(type = c("uniform", "regular", "gnp", "sbm"),
     .ho_input_error("fixed `d` values must be integers >= 2.")
   }
   impurity <- .hgr_count(impurity, "impurity", 0L)
-  if (!is.logical(variable_size) || length(variable_size) != 1L ||
-      !is.logical(absolute_purity) || length(absolute_purity) != 1L) {
-    .ho_input_error(
-      "`variable_size` and `absolute_purity` must be single logicals."
-    )
-  }
   .hgr_seed(seed)
 
   blocks <- rep.int(seq_len(n_blocks), block_sizes)

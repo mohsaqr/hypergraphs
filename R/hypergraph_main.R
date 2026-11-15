@@ -24,6 +24,8 @@
 #' * With `group`, `top` or `min_share`, the sets of either format are
 #'   counted and the most frequent become hyperedges; `group` names the
 #'   comparison variable within whose values the sets are counted.
+#'   A whole-number `top` keeps that many sets; a fraction such as
+#'   `top = 0.95` keeps sets covering at least 95% of eligible transactions.
 #'
 #' A list of sequences is read as event data with `window`. A network, as a
 #' weight matrix, a sparse matrix, a `netobject`, a `cograph_network` or a

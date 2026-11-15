@@ -525,7 +525,11 @@ summary.net_hg <- function(object, ...) {
   share <- params$min_share
   support <- if (is.null(share)) NULL else
     sprintf("sets of at least %s%%", format(100 * share, trim = TRUE))
-  if (is.finite(top) && !is.null(support)) {
+  if (top < 1) {
+    coverage <- sprintf("cumulative %s%% coverage",
+                        format(100 * top, trim = TRUE))
+    if (is.null(support)) coverage else paste(coverage, support, sep = "; ")
+  } else if (is.finite(top) && !is.null(support)) {
     sprintf("top %d %s", as.integer(top), support)
   } else if (is.finite(top)) {
     sprintf("top %d", as.integer(top))

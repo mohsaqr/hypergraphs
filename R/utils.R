@@ -48,9 +48,9 @@
   }
   if (inherits(data, "tna")) {
     if (is.null(data$data)) { # nocov start
-      stop("tna object has no sequence data ($data). ",
-           "Build the tna from sequence data, not a raw matrix.",
-           call. = FALSE)
+      stop(errorCondition(paste0("tna object has no sequence data ($data). ",
+        "Build the tna from sequence data, not a raw matrix."),
+        class = "nestimate_bad_input", call = NULL))
     } # nocov end
     df <- as.data.frame(data$data, stringsAsFactors = FALSE) # nocov start
     lbl <- attr(data$data, "labels") %||% data$labels
@@ -73,9 +73,9 @@
   }
   if (inherits(data, "netobject")) {
     if (is.null(data$data)) { # nocov start
-      stop("netobject has no sequence data ($data). ",
-           "Build the network from sequence data.",
-           call. = FALSE) # nocov end
+      stop(errorCondition(paste0("netobject has no sequence data ($data). ",
+        "Build the network from sequence data."),
+        class = "nestimate_bad_input", call = NULL)) # nocov end
     }
     return(as.data.frame(data$data, stringsAsFactors = FALSE))
   }
@@ -114,12 +114,14 @@
 .as_netobject <- function(x) {
   if (inherits(x, "netobject")) return(x)
   if (!inherits(x, "cograph_network")) {
-    stop("Expected a netobject or cograph_network.", call. = FALSE)
+    stop(errorCondition("Expected a netobject or cograph_network.",
+                        class = "nestimate_bad_input", call = NULL))
   }
 
   mat <- x$weights
   if (is.null(mat)) {
-    stop("cograph_network has no $weights matrix.", call. = FALSE)
+    stop(errorCondition("cograph_network has no $weights matrix.",
+                        class = "nestimate_bad_input", call = NULL))
   }
   if (!is.matrix(mat)) mat <- as.matrix(mat)
   if (!is.numeric(mat)) storage.mode(mat) <- "double"
@@ -219,29 +221,35 @@
 
 .validate_mcml_matrix <- function(mat) {
   if (any(is.na(mat) | !is.finite(mat))) {
-    stop("x matrix must contain finite non-missing weights.", call. = FALSE)
+    stop(errorCondition("x matrix must contain finite non-missing weights.",
+      class = "nestimate_bad_input", call = NULL))
   }
   row_names <- rownames(mat)
   col_names <- colnames(mat)
   has_row_names <- !is.null(row_names)
   has_col_names <- !is.null(col_names)
   if (has_row_names && (any(is.na(row_names)) || any(!nzchar(row_names)))) {
-    stop("x matrix row names must not contain missing or empty values.",
-         call. = FALSE)
+    stop(errorCondition(
+      "x matrix row names must not contain missing or empty values.",
+      class = "nestimate_bad_input", call = NULL))
   }
   if (has_col_names && (any(is.na(col_names)) || any(!nzchar(col_names)))) {
-    stop("x matrix column names must not contain missing or empty values.",
-         call. = FALSE)
+    stop(errorCondition(
+      "x matrix column names must not contain missing or empty values.",
+      class = "nestimate_bad_input", call = NULL))
   }
   if (has_row_names && anyDuplicated(row_names)) {
-    stop("x matrix row names must be unique.", call. = FALSE)
+    stop(errorCondition("x matrix row names must be unique.",
+      class = "nestimate_bad_input", call = NULL))
   }
   if (has_col_names && anyDuplicated(col_names)) {
-    stop("x matrix column names must be unique.", call. = FALSE)
+    stop(errorCondition("x matrix column names must be unique.",
+      class = "nestimate_bad_input", call = NULL))
   }
   if (has_row_names && has_col_names && !identical(row_names, col_names)) {
-    stop("x matrix row and column names must be identical and in the same order.",
-         call. = FALSE)
+    stop(errorCondition(
+      "x matrix row and column names must be identical and in the same order.",
+      class = "nestimate_bad_input", call = NULL))
   }
   invisible(TRUE)
 }
@@ -253,19 +261,26 @@
 .wrap_netobject <- function(mat, data = NULL, method = "relative",
                             directed = TRUE, inits = NULL) {
   if (!is.matrix(mat) || !is.numeric(mat)) {
-    stop("'mat' must be a numeric matrix.", call. = FALSE)
+    stop(errorCondition(
+      "'mat' must be a numeric matrix.",
+      class = "nestimate_bad_input", call = NULL))
   }
   if (nrow(mat) != ncol(mat)) {
-    stop("'mat' must be a square matrix.", call. = FALSE)
+    stop(errorCondition(
+      "'mat' must be a square matrix.",
+      class = "nestimate_bad_input", call = NULL))
   }
   .validate_mcml_matrix(mat)
   if (!is.character(method) || length(method) != 1L || is.na(method) ||
       !nzchar(method)) {
-    stop("'method' must be a single non-missing character value.",
-         call. = FALSE)
+    stop(errorCondition(
+      "'method' must be a single non-missing character value.",
+      class = "nestimate_bad_input", call = NULL))
   }
   if (!is.logical(directed) || length(directed) != 1L || is.na(directed)) {
-    stop("'directed' must be TRUE or FALSE.", call. = FALSE)
+    stop(errorCondition(
+      "'directed' must be TRUE or FALSE.",
+      class = "nestimate_bad_input", call = NULL))
   }
   states <- rownames(mat)
   if (is.null(states)) {
@@ -280,14 +295,17 @@
   if (!is.null(inits)) {
     if (!is.numeric(inits) || length(inits) != length(states) ||
         any(is.na(inits) | !is.finite(inits))) {
-      stop("'inits' must be a finite numeric vector with one value per state.",
-           call. = FALSE)
+      stop(errorCondition(
+        "'inits' must be a finite numeric vector with one value per state.",
+        class = "nestimate_bad_input", call = NULL))
     }
     if (!is.null(names(inits))) {
       missing_inits <- setdiff(states, names(inits))
       extra_inits <- setdiff(names(inits), states)
       if (length(missing_inits) > 0L || length(extra_inits) > 0L) {
-        stop("'inits' names must match matrix state names.", call. = FALSE)
+        stop(errorCondition(
+          "'inits' names must match matrix state names.",
+          class = "nestimate_bad_input", call = NULL))
       }
       inits <- inits[states]
     } else {

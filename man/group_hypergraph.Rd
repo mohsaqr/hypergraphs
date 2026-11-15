@@ -60,8 +60,14 @@ with no member contributes no hyperedge.}
 \item{from, to}{Column names of a pairwise edge list, as an alternative to
 \code{node} and \code{hyperedge}.}
 
-\item{top}{The number of most frequent sets kept as hyperedges, in each
-value of \code{group} or over all hyperedges; \code{Inf} keeps every set. For a
+\item{top}{A positive whole number keeps that many most frequent sets.
+A fraction in (0, 1), such as \code{0.95}, keeps the smallest ranked prefix
+whose combined counts cover at least that fraction of eligible
+transactions. Selection is within each value of \code{group}, or over all
+hyperedges without \code{group}; \code{Inf} keeps every eligible set. \code{top = 1}
+keeps one set. Eligibility is determined by \code{states}, \code{min_size} and
+\code{min_share} before selection; returned shares still use all transactions
+as their denominator. Ties are resolved by set name. For a
 data frame, giving \code{top}, \code{group} or \code{min_share} counts sets (see
 "Frequent sets within groups"), and with none of them every value of
 \code{hyperedge} becomes one hyperedge. Clustered sequences and topic models

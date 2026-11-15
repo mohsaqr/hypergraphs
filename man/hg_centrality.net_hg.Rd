@@ -90,7 +90,8 @@ the result is one row per node.
 clique-expanded pairwise graph \eqn{W} where
 \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 eigenvector of \eqn{W}. With \code{normalize = FALSE} it equals
-\code{igraph::eigen_centrality()} on \code{\link[=pairwise_network]{pairwise_network()}} output.
+\code{igraph::eigen_centrality()} on \code{pairwise_network(hg, weighted = FALSE)}
+output. Incidence magnitudes are ignored by CEC.
 
 \strong{Z-eigenvector centrality (ZEC)}: solves the linear
 eigen-equation on the hyperedge tensor,
@@ -120,7 +121,8 @@ uniformly. Their collapse theorem: with edge-\emph{independent} vertex
 weights (a binary incidence) the walk is equivalent to PageRank on the
 weighted clique expansion with edge weights
 \eqn{\sum_{e \ni u,v} w(e)/\delta(e)} -- the hypergraph adds
-information exactly when \eqn{\gamma} is edge-dependent. Nodes left in
+information beyond this reduction only if \eqn{\gamma} is edge-dependent;
+edge dependence alone is not sufficient. Nodes left in
 no hyperedge (possible after \code{min_weight}/\code{min_size} filtering)
 teleport from every step and receive only teleportation mass. The
 undamped stationary distribution of the same walk is the \code{pi} column

@@ -19,8 +19,8 @@
                            arg))
   }
   if (anyDuplicated(ids) > 0L) {
-    value <- ifelse(is.na(assignment), "\r<NA>", as.character(assignment))
-    distinct <- !duplicated(paste(ids, value, sep = "\r"))
+    distinct <- !duplicated(data.frame(id = ids,
+                                       value = as.character(assignment)))
     conflict <- unique(ids[distinct][duplicated(ids[distinct])])
     if (length(conflict) > 0L) {
       .thg_bad_input(sprintf(

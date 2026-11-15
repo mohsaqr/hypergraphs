@@ -71,7 +71,9 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
   mem <- x$memberships
   edge_index <- match(mem$edge, ed$edge)
   # Signature of each hyperedge's member set, for the distinct-edge count.
-  members_by_edge <- split(mem$node, factor(edge_index, levels = seq_len(nrow(ed))))
+  # Encode node indices rather than names: a name can contain any separator.
+  member_id <- match(mem$node, x$nodes)
+  members_by_edge <- split(member_id, factor(edge_index, levels = seq_len(nrow(ed))))
   signature <- vapply(members_by_edge, function(v) paste(.ho_sort(unique(v)), collapse = "\r"),
                       character(1L))
   size <- lengths(members_by_edge)
@@ -95,7 +97,7 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
                n_memberships = sum(size[keep])))
     }
     present <- .thg_memberships_in_window(x, t, grid$window, mode_here, grid$closed)
-    present_signature <- tapply(mem$node[present], edge_index[present], function(v) {
+    present_signature <- tapply(member_id[present], edge_index[present], function(v) {
       paste(.ho_sort(unique(v)), collapse = "\r")
     })
     c(n_nodes = length(unique(mem$node[present])),

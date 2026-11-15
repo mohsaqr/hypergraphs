@@ -20,25 +20,24 @@ ordinal <- function(k) {
 }
 ```
 
-A text hypergraph relates the words and the documents of a corpus. Its
-construction decides what a hyperedge is. A hyperedge can be a document,
-which binds the words it contains, or a word, which binds the documents that
-contain it. It can be a sentence, which binds the words used together in one
-statement, or a short window of consecutive words, which binds words that
-stand next to each other. It can also be a neighbourhood in a space of
-sentence embeddings, which binds documents of similar meaning whatever their
-words. Each construction relates different units, so the central words and
-the groups of documents found in a corpus depend on it. `text_hypergraph()`
-builds all of them with `construction = "bag"`, `"window"`, `"sentence"` or
-`"knn"`. Each construction is shown first on three short documents, where
-every hyperedge can be seen, and then on a corpus of
-`r nrow(covid_abstracts)` abstracts, where the constructions give different
-results.
+A text hypergraph is defined by both its node types and the relation
+represented by a hyperedge. A document can link its words, a word can link
+the documents containing it, and a sentence or token window can link words
+within a smaller textual unit. An alternative uses document embeddings
+to define groups of nearby documents. These constructions encode different
+relations and can therefore produce different measures and partitions.
+
+This tutorial compares the four constructions available through
+`text_hypergraph()`: `"bag"`, `"window"`, `"sentence"`, and `"knn"`.
+Three short documents first illustrate their memberships. A corpus of
+`r nrow(covid_abstracts)` abstracts then shows how the representation
+affects word centrality and document clustering.
 
 ## Three documents
 
-The three documents below share some of their words. Stop words such as
-"the" and "of" are removed with `stop_words_en()`.
+The three documents share several terms. Removing the common words
+listed by `stop_words_en()` makes their retained memberships easier to
+inspect. This preprocessing is applied before the hyperedges are formed.
 
 ```{r docs}
 docs <- c(
@@ -51,10 +50,11 @@ stops <- stop_words_en()
 
 ### Bag of words
 
-The bag construction relates each document to the words it contains, and it
-ignores their order. With `nodes = "word"`, the words are the nodes and each
-document is a hyperedge over its words. The orientation follows the setting
-of Ding et al. (2020), in which a hyperedge holds the words of a text.
+The bag-of-words construction discards word order and records word
+counts within documents. With `nodes = "word"`, words are nodes and each
+document is a hyperedge containing its retained words. This orientation
+is used for document-level word hypergraphs such as those considered by
+Ding et al. (2020).
 
 ```{r bag-word}
 bag_word <- text_hypergraph(docs, nodes = "word", stop_words = stops)
@@ -67,39 +67,40 @@ in_all <- subset(toy_vocab, doc_freq == length(docs))$word
 in_two <- subset(toy_vocab, doc_freq == 2)$word
 ```
 
-The figure plots each document as a region around its words.
+Each enclosed region represents the retained words of one document.
 
 ```{r bag-word-plot, fig.alt = "Three documents plotted as hyperedges over their words"}
 plot(bag_word)
 ```
 
-The three regions overlap where documents share words. `r join_and(in_all)`
-lies in all three documents, and `r join_and(in_two)` lie in two. The other
-words belong to one document each.
+The regions overlap at shared words. `r join_and(in_all)` occurs in
+all three documents, and `r join_and(in_two)` occurs in two. Each remaining
+word belongs to one document. The figure displays membership, while the
+incidence weights retain repeated word counts.
 
-With `nodes = "doc"`, the default, the orientation reverses. The documents
-are the nodes, and each word is a hyperedge over the documents that contain
-it. This orientation suits the clustering and classification of documents
-(Hayashi et al. 2020). Its incidence matrix is the transpose of the
-incidence matrix above, so the two hypergraphs are duals of each other
-(Berge 1989), and `dual_hypergraph()` turns one into the other.
+With `nodes = "doc"`, documents become nodes and each word becomes a
+hyperedge containing its documents. This orientation is used for document
+clustering and classification (Hayashi et al. 2020). Its weighted incidence
+matrix is the transpose of the word-oriented matrix. The two hypergraphs
+are therefore dual representations (Berge 1989), and `dual_hypergraph()`
+converts between them.
 
 ```{r bag-doc}
 bag_doc <- text_hypergraph(docs, stop_words = stops)
 dual_hypergraph(bag_doc)
 ```
 
-The dual of the document-oriented hypergraph has the `r nrow(toy_vocab)`
-words as nodes and the `r length(docs)` documents as hyperedges, the same
-hypergraph as `bag_word`.
+The dual has `r nrow(toy_vocab)` word nodes and
+`r length(docs)` document hyperedges. Its incidence matches `bag_word`,
+which was constructed directly in that orientation.
 
-The incidence weight of a word in a document is its count by default. With
-`weight = "tfidf"`, the count is multiplied by the inverse document
-frequency `log((1 + N) / (1 + df)) + 1`, where N is the number of documents
-and df the number that contain the word (Manning et al. 2008). A word in
-every document keeps its count, and a word in fewer documents gains weight.
-The vocabulary table holds the count, the document frequency and the
-inverse document frequency of each word.
+The default incidence weight is a within-document count. With
+`weight = "tfidf"`, that count is multiplied by the smoothed inverse
+document frequency `log((1 + N) / (1 + df)) + 1`, where `N` is the number
+of retained documents and `df` is the number containing the word. A word
+in every document has multiplier one; less widely distributed words have
+larger multipliers. This convention should be stated when comparing
+tf-idf representations across software.
 
 ```{r tfidf}
 bag_tfidf <- text_hypergraph(docs, nodes = "word", weight = "tfidf",
@@ -113,19 +114,21 @@ idf_all <- unique(round(subset(tfidf_vocab, doc_freq == 3)$idf, 2))
 idf_one <- unique(round(subset(tfidf_vocab, doc_freq == 1)$idf, 2))
 ```
 
-A word in all three documents has an inverse document frequency of
-`r idf_all`, and a word in one document has `r idf_one`.
+For this corpus, the inverse-document-frequency multiplier is
+`r idf_all` for a word in all three documents and `r idf_one` for a word
+in one document. The vocabulary table reports the counts, document
+frequencies, and multipliers used in the construction.
 
 ### Windows of words
 
-The window construction keeps the order of the words. It slides a window of
-`window` tokens over each document and makes a hyperedge of the distinct
-words in each window (Ding et al. 2020). A window never crosses from one
-document into the next, and windows with the same words form one hyperedge
-whose weight is the number of such windows. With `window_mode = "sliding"`,
-the default, the window moves one token at a time. With
-`window_mode = "tumbling"`, it moves a whole window at a time, so the windows
-do not overlap.
+The window construction forms a hyperedge from the distinct words in
+each run of consecutive retained tokens. Window positions remain within
+individual documents. Sliding windows advance by one token; tumbling
+windows advance by the window length and can include a shorter final
+segment. Identical member sets are combined. Their incidence weights
+summarise how often the retained set occurs across windows.
+This defines local co-occurrence after preprocessing, rather than
+preserving the complete sequence within a hyperedge.
 
 ```{r window}
 tumbling <- text_hypergraph(docs, construction = "window", window = 3,
@@ -140,26 +143,29 @@ n_sliding <- length(unique(hg_get(sliding)$edge))
 n_tumbling <- length(unique(hg_get(tumbling)$edge))
 ```
 
-The figure plots each window as a region with its words and its count.
+The plot displays each distinct window set as an enclosed region and
+shows its frequency.
 
 ```{r window-plot, fig.alt = "Tumbling windows of three words plotted as hyperedges"}
 plot(tumbling)
 ```
 
-Each document has seven tokens after the stop words are removed, so it
-gives two windows of three tokens and a last window of one. The last windows of the second and
-third documents hold only `feedback`, so they form one hyperedge with a
-count of 2. Words that stand far apart in a document share no window, so
-`lessons` is linked to no other word. The sliding windows of the same size
-give `r n_sliding` distinct hyperedges against `r n_tumbling` tumbling ones,
-because every run of three consecutive words becomes a window.
+After stop-word removal, each document contains seven tokens. With
+tumbling windows of length three, it contributes two full windows and one
+single-token segment. The last segments of the second and third documents
+both contain `feedback` and are combined with count two. The word `lessons`
+has no other word in its segment. Sliding windows produce
+`r n_sliding` distinct sets, compared with `r n_tumbling` for tumbling
+windows. The difference reflects the change in window positions.
 
 ### Sentences
 
-The sentence construction makes a hyperedge of each sentence, the
-construction of HyperGAT (Ding et al. 2020). A document is split at `.`,
-`!`, `?` and `;`, and the weight of a word in a sentence is its count there.
-Two words are related when they occur in the same sentence.
+The sentence construction creates one hyperedge per nonempty sentence
+segment. This implementation splits text at `.`, `!`, `?`, and `;`, then
+records within-segment word counts. It is a punctuation-based
+approximation to sentence boundaries, so abbreviations and other special
+cases may require preprocessing. Sentence hypergraphs are one of the
+constructions used by Ding et al. (2020).
 
 ```{r sentence}
 sentences <- text_hypergraph(docs, construction = "sentence",
@@ -167,42 +173,43 @@ sentences <- text_hypergraph(docs, construction = "sentence",
 hg_get(sentences, what = "sentences")
 ```
 
-The table has one row for each sentence, with its document, its position in
-the document and its number of tokens.
+The sentence table identifies each segment's document, position, and
+retained token count. Inspecting it helps verify that the segmentation
+matches the intended textual units.
 
 ```{r sentence-plot, fig.alt = "Six sentences plotted as hyperedges over their words"}
 plot(sentences)
 ```
 
-The six sentences split each document in two. `teachers` and `prepare`
-share a sentence, and `teachers` and `feedback` share a document without
-sharing a sentence. The bag construction relates the second pair and the
-sentence construction does not.
+The example produces six sentence segments. `teachers` and `prepare`
+share a segment, whereas `teachers` and `feedback` share a document but
+not a segment. The sentence construction therefore imposes a more local
+co-occurrence relation than the bag-of-words construction.
 
-### Neighbourhoods of meaning
+### Nearest neighbours in an embedding space
 
-The kNN construction uses no words. It places each document at a point in
-the space of a sentence embedding, where documents with similar meaning lie
-close together, and makes one hyperedge for each document from the document
-and its `k` nearest neighbours by cosine similarity. Hypergraph neural
-networks build hyperedges from feature space in this way (Feng et al. 2019).
-The construction needs embeddings, which the corpus below provides.
+The k-nearest-neighbour construction uses document embeddings as its
+input. It forms one hyperedge per document, containing that document and
+its `k` nearest neighbours by cosine similarity. The resulting relations
+depend on the encoder and neighbourhood size; cosine proximity is an
+operational measure of similarity, not a direct measurement of meaning.
+Feature-based hyperedge construction is also used in hypergraph neural
+networks (Feng et al. 2019). The corpus below provides precomputed embeddings.
 
 ## The corpus
 
-`covid_abstracts` holds `r nrow(covid_abstracts)` abstracts of research on
-education during COVID-19, and `covid_embeddings` their embeddings from the
-`all-MiniLM-L6-v2` model, `r ncol(covid_embeddings)` numbers for each
-abstract.
+`covid_abstracts` contains `r nrow(covid_abstracts)` research abstracts
+about COVID-19 and education. `covid_embeddings` contains their aligned
+`all-MiniLM-L6-v2` embeddings, with `r ncol(covid_embeddings)` coordinates
+per abstract. The document identifiers must align when embeddings are
+supplied to the constructor.
 
-The vocabulary of a corpus has a long tail of rare words. `stop_words`
-removes a list of words, `min_count` removes the words that occur fewer
-times in the corpus, and `min_chars` removes words shorter than a number of
-characters. `max_words` and `coverage` cap the vocabulary at a number of
-words or at the most frequent words that cover a share of the tokens. Here
-the stop words are those of `stop_words_en()` with words common to research
-abstracts, `min_count = 3` keeps words that occur at least three times, and
-`min_chars = 3` drops shorter fragments.
+Vocabulary filtering changes both membership and incidence weights.
+`stop_words` removes specified terms, `min_count` sets a corpus-frequency
+threshold, and `min_chars` sets a minimum token length. `max_words` caps
+vocabulary size; `coverage` selects frequent words until a specified share
+of tokens is represented. The following example uses a common stop list,
+`min_count = 3`, and `min_chars = 3` for the token-based constructions.
 
 ```{r corpus-vocabulary}
 stops <- c(stop_words_en(), "using", "used", "use", "based", "results",
@@ -224,12 +231,12 @@ n_unstopped <- nrow(hg_get(unstopped, what = "vocabulary"))
 n_kept <- nrow(hg_get(corpus_doc, what = "vocabulary"))
 ```
 
-The corpus has `r format(n_raw, big.mark = ",")` distinct words. Removing
-the stop words leaves `r format(n_unstopped, big.mark = ",")`, and
-`min_count` and `min_chars` reduce these to
-`r format(n_kept, big.mark = ",")`. The same filters apply to every
-token construction below, so the constructions differ only in what a
-hyperedge is.
+There are `r format(n_raw, big.mark = ",")` distinct tokens before these
+filters and `r format(n_unstopped, big.mark = ",")` after stop-word removal.
+The combined count and length thresholds retain
+`r format(n_kept, big.mark = ",")`. Keeping the vocabulary filters fixed
+helps isolate differences arising from the textual unit used for
+hyperedge construction.
 
 ```{r corpus-constructions}
 corpus_word <- text_hypergraph(covid_abstracts, column = "abstract",
@@ -262,33 +269,33 @@ s_knn <- shape(corpus_knn)
 fmt <- function(v) format(round(v), big.mark = ",")
 ```
 
-The constructions give hypergraphs of different shapes from the same text.
-The document-oriented bag has `r fmt(s_doc[["n_nodes"]])` documents as nodes
-and `r fmt(s_doc[["n_hyperedges"]])` words as hyperedges, each word in
-`r round(s_doc[["avg_edge_size"]], 1)` documents on average. The
-word-oriented bag is its dual, with `r fmt(s_word[["n_hyperedges"]])`
-hyperedges of `r round(s_word[["avg_edge_size"]], 1)` words. The window
-construction gives `r fmt(s_window[["n_hyperedges"]])` distinct windows of
-up to three words, and the sentence construction
-`r fmt(s_sentence[["n_hyperedges"]])` sentences of
-`r round(s_sentence[["avg_edge_size"]], 1)` words on average. The kNN
-construction has one hyperedge of `r round(s_knn[["avg_edge_size"]])`
-documents for each abstract. In the bag, two words share a hyperedge when
-they occur in the same abstract, which holds for
-`r round(100 * s_word[["pairwise_participation"]])`% of the pairs of words.
-In the sentence construction they must share a sentence, which holds for
-`r round(100 * s_sentence[["pairwise_participation"]])`%, and in the window
-construction they must stand within three words of each other, which holds
-for `r round(100 * s_window[["pairwise_participation"]], 1)`%.
+The summary table records the different dimensions of the five
+representations. The document-oriented bag has `r fmt(s_doc[["n_nodes"]])`
+nodes and `r fmt(s_doc[["n_hyperedges"]])` word hyperedges, with mean size
+`r round(s_doc[["avg_edge_size"]], 1)`. Its dual has
+`r fmt(s_word[["n_hyperedges"]])` document hyperedges, with mean size
+`r round(s_word[["avg_edge_size"]], 1)`. The window construction has
+`r fmt(s_window[["n_hyperedges"]])` distinct sets, and the sentence
+construction has `r fmt(s_sentence[["n_hyperedges"]])` segments, with mean
+size `r round(s_sentence[["avg_edge_size"]], 1)`. Each kNN hyperedge has
+`r round(s_knn[["avg_edge_size"]])` documents.
+
+Among word pairs, pairwise participation is
+`r round(100 * s_word[["pairwise_participation"]])`% for document
+co-occurrence, `r round(100 * s_sentence[["pairwise_participation"]])`%
+for sentence co-occurrence, and
+`r round(100 * s_window[["pairwise_participation"]], 1)`% for token-window
+co-occurrence. These proportions have different relational definitions
+despite sharing the same word nodes.
 
 ## Central words under three constructions
 
-The bag, window and sentence constructions have the words as nodes. The
-clique-motif eigenvector centrality of a word is its eigenvector centrality
-in the clique expansion of the hypergraph, in which two words are linked
-with a weight that grows with the hyperedges they share (Benson 2019). With
-`sort_by = "clique"` and `n = 10`, each table shows the ten most central
-words.
+For each word-oriented construction, compute clique-motif eigenvector
+centrality (Benson 2019). Its adjacency weight is the number of hyperedges
+shared by two words. It uses binary membership rather than the numerical
+incidence weights. The next tables rank the first ten words under this
+definition. In the window representation, identical sets have already
+been collapsed, which also affects the interpretation of shared-edge counts.
 
 ```{r centrality-bag}
 hg_centrality(corpus_word, type = "clique", sort_by = "clique", n = 10)
@@ -328,29 +335,27 @@ distance_next <- sub("distance[- ]+", "",
 n_phrase <- sum(distance_next %in% c("education", "learning"))
 ```
 
-The three constructions share `r length(shared_all)` of their ten words,
-`r join_and(shared_all)`. These words occur throughout the corpus, so every
-construction places them at the centre. The constructions differ at the end
-of the lists. Only the window construction ranks
-`r join_and(only_window)` among its ten, and only the bag ranks
-`r join_and(only_bag)`. `distance` is `r ordinal(distance_window)` in the
-window ranking, `r ordinal(distance_sentence)` in the sentence ranking and
-`r ordinal(distance_bag)` in the bag ranking. Of its
-`r length(distance_next)` occurrences, `r n_phrase` are followed by
-`education` or `learning`, and the window construction links `distance` to
-these words at every occurrence. The bag links `distance` to every word of
-the abstracts that contain it and treats the phrase like any other pair of
-words. The window construction thus raises the words of frequent phrases,
-and the sentence construction, whose hyperedges are wider than a window and
-narrower than an abstract, places `distance` between the two.
+The three top-ten lists share `r length(shared_all)` words:
+`r join_and(shared_all)`. Terms appearing only in the window list include
+`r join_and(only_window)`, while terms appearing only in the bag list
+include `r join_and(only_bag)`.
+
+The word `distance` ranks `r ordinal(distance_window)` under the window
+construction, `r ordinal(distance_sentence)` under the sentence
+construction, and `r ordinal(distance_bag)` under the bag construction.
+Of its `r length(distance_next)` occurrences,
+`r n_phrase` are followed by `education` or `learning` in the processed
+token sequences. This provides a concrete example of local co-occurrence
+that can affect a window-based ranking. It does not establish that window
+centrality is a general measure of phrase importance.
 
 ## Groups of documents under two constructions
 
-The bag and kNN constructions have the documents as nodes. `hg_cluster()`
-with `type = "random_walk"` partitions the documents by spectral clustering
-on the Laplacian of the random walk on the hypergraph (Hayashi et al. 2020),
-here into `k = 4` groups, and `seed = 1` fixes the random starts of its
-k-means step. `hg_topic_sizes()` counts the documents in each group.
+For document clustering, compare the document-oriented bag with the
+embedding kNN hypergraph. Both have documents as nodes. The example uses
+the random-walk Laplacian of Hayashi et al. (2020) and requests four
+clusters. `seed = 1` makes the k-means initialisation reproducible.
+`hg_topic_sizes()` then reports each cluster's document count.
 
 ```{r clusters}
 bag_groups <- hg_cluster(corpus_doc, k = 4, type = "random_walk", seed = 1)
@@ -364,17 +369,17 @@ bag_sizes <- hg_topic_sizes(corpus_doc, bag_groups)
 knn_sizes <- hg_topic_sizes(corpus_knn, knn_groups)
 ```
 
-The bag groups hold between `r min(bag_sizes$n)` and `r max(bag_sizes$n)`
-documents, and the kNN groups between `r min(knn_sizes$n)` and
-`r max(knn_sizes$n)`. A kNN hyperedge holds the same number of documents for
-every abstract, which spreads the documents evenly. A bag hyperedge holds
-every document that uses a word, so common words bind many documents
-together.
+Cluster sizes range from `r min(bag_sizes$n)` to `r max(bag_sizes$n)`
+for the bag representation and from `r min(knn_sizes$n)` to
+`r max(knn_sizes$n)` for kNN. Fixed kNN hyperedge size does not impose
+equal cluster sizes. The observed difference in balance is a property
+of these fitted partitions, not a general guarantee of either construction.
 
-The kNN hypergraph holds no words, so the words of its groups are read from
-the bag. `hg_keywords()` ranks the words of each group by their mass, the
-summed tf-idf weight that the documents of the group place on the word. The
-figure plots the eight words of largest mass in each group.
+The kNN object contains document similarities but no word counts.
+To describe its clusters, use the same partition with the bag-of-words
+hypergraph. Here, `hg_keywords()` ranks words by the sum of their tf-idf
+weights across a cluster's documents. The figure shows eight terms per
+cluster under this score.
 
 ```{r knn-keywords, fig.width = 10, fig.height = 9, fig.alt = "The eight words with the largest tf-idf mass in each kNN group"}
 knn_keywords <- hg_keywords(corpus_doc, knn_groups, n = 8)
@@ -386,23 +391,28 @@ lead_words <- vapply(split(knn_keywords$word, knn_keywords$cluster),
                      \(w) toString(head(w, 4)), character(1L))
 ```
 
-The groups lead with
+The leading term in each kNN cluster is
 `r paste(sprintf("%s (%s)", names(lead_words), lead_words), collapse = "; ")`.
-Each group is a theme of research on education in the pandemic, and the
-kNN construction finds the themes from the meaning of the abstracts alone.
+These terms suggest possible interpretations that should be checked against
+the abstracts. The clustering was computed from the supplied embeddings;
+its apparent thematic organisation depends on both those embeddings and
+the spectral partition.
 
-The words of the bag groups come from the same table.
+Apply the same keyword calculation to the bag-based partition so that
+the cluster descriptions use a common text representation and score.
 
 ```{r bag-keywords}
 hg_keywords(corpus_doc, bag_groups, n = 8)
 ```
 
-`hg_agreement()` with `what = "table"` cross-tabulates the two partitions,
-one row for each pair of a kNN group and a bag group with the number of
-documents they share. Without `what`, it gives the summary. `aligned`
-counts the documents that fall in the bag group holding most of their kNN
-group, `agreement` is their share, and `ari` is the adjusted Rand index,
-which is 1 for identical partitions and near 0 for unrelated ones.
+`hg_agreement(what = "table")` cross-tabulates the two partitions by
+document identifier. The summary also reports label agreement and the
+adjusted Rand index. Direct label agreement depends on the cluster labels,
+which are arbitrary. The adjusted Rand index compares pairwise grouping
+and is invariant to label permutations. It equals one for identical
+partitions and can be negative. The `aligned` column sums the largest
+overlap with a bag cluster for each kNN cluster. Several kNN clusters can
+match the same bag cluster under this descriptive matching.
 
 ```{r agreement}
 hg_agreement(knn_groups, bag_groups, what = "table")
@@ -436,38 +446,36 @@ clinical_bag <- subset(hg_topic_sizes(corpus_doc, bag_groups),
                        topic == clinical_own$label_y)
 ```
 
-The two partitions find the same themes and draw their boundaries
-differently. `r agree$aligned` of the `r agree$n` documents are aligned, and
-the adjusted Rand index is `r round(agree$ari, 2)`. The themes of school and
-of online learning agree. The kNN group on
-`r matched$knn_words[1]` has `r matched$n[1]` of its `r matched$size[1]`
-documents in the bag group on `r matched$bag_words[1]`, and the kNN group on
-`r matched$knn_words[2]` has `r matched$n[2]` of its `r matched$size[2]` in
-the bag group on `r matched$bag_words[2]`. The theme of clinical teaching
-differs. The kNN group on `r clinical_own$knn_words` keeps
-`r clinical_own$n` of its `r clinical_size` documents in the bag group on
-`r clinical_own$bag_words`, which holds only `r clinical_bag$n` documents,
-and places `r clinical_top$n` in the bag group on
-`r clinical_top$bag_words`. The bag forms a small group from the
-abstracts whose vocabulary is clinical and dental, and it places most of the
-other abstracts of the kNN group with the abstracts on online learning,
-whose words they share. The kNN construction keeps these abstracts in one group
-because their embeddings lie close together.
+Under that matching, `r agree$aligned` of the `r agree$n` documents
+are aligned, and the adjusted Rand index is `r round(agree$ari, 2)`.
+The first two displayed matches contain `r matched$n[1]` of
+`r matched$size[1]` documents and `r matched$n[2]` of
+`r matched$size[2]` documents, respectively. Their keyword summaries are
+`r matched$knn_words[1]` versus `r matched$bag_words[1]`, and
+`r matched$knn_words[2]` versus `r matched$bag_words[2]`.
+
+The kNN group described by `r clinical_own$knn_words` overlaps several bag
+clusters: `r clinical_own$n` of its `r clinical_size` documents occur in
+the group described by `r clinical_own$bag_words`, while
+`r clinical_top$n` occur in the group described by
+`r clinical_top$bag_words`. Inspect these documents before attributing the
+difference to a particular semantic distinction. The table establishes
+different assignments, but does not identify a uniquely correct partition.
 
 ## Choice of construction
 
-The construction follows from the relation that the analysis is about. The
-bag relates documents through shared words. Its document orientation suits
-the clustering and classification of documents, and its word orientation
-the centrality of words across documents. The window construction relates
-words that stand next to each other, which suits phrases and collocations.
-Its number of distinct windows grows with the size of the corpus, which
-`min_count` and the other filters keep in check. The sentence construction
-relates words used in one statement, a narrower relation than the document
-and a wider one than the window. The kNN construction relates documents by
-meaning and uses no words, so its results depend on the encoder that
-produced the embeddings, and a result that matters is repeated with a second
-encoder.
+Choose a construction by defining the relation the study intends to
+measure. The bag representation measures document-level word occurrence;
+token windows measure local co-occurrence after preprocessing; sentence
+segments define an intermediate textual unit. The document orientation
+supports document-level analysis, and the word orientation supports
+word-level measures. Embedding kNN hypergraphs instead measure proximity
+under a specified encoder and neighbourhood size.
+
+Report the construction, orientation, preprocessing, incidence weights,
+and any window or neighbourhood parameters. Where the conclusions depend
+on these choices, compare alternative specifications. An embedding-based
+analysis should also consider sensitivity to the encoder.
 
 ## References
 

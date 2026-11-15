@@ -89,6 +89,8 @@
 #' [stats::p.adjust()] through its `n` argument, which treats them as larger
 #' p-values. Adjusting within the scored pairs alone would under-correct,
 #' because a pair enters the scored set partly through its observed count.
+#' The strict upper-tail scores are not valid conservative p-values, so
+#' applying `"BH"` to them does not guarantee false discovery rate control.
 #'
 #' Time is handled by scoring a cumulative snapshot rather than by slicing
 #' into periods. Disjoint periods split a pair's evidence across cells while
@@ -105,8 +107,9 @@
 #'   number in `(0, 0.5)` (default `0.05`), applied to the adjusted
 #'   p-values.
 #' @param p_adjust Multiplicity correction, any [stats::p.adjust] method or
-#'   `"none"` (default `"none"`, as in LaRock et al. 2020). `"BH"` controls
-#'   the false discovery rate within each direction.
+#'   `"none"` (default `"none"`, as in LaRock et al. 2020). Corrections
+#'   are applied separately within each direction; see the limitation of
+#'   strict upper-tail scores in Details.
 #' @param top Optional number of rows to keep, the most significantly
 #'   over-represented first. `NULL` (default) keeps every scored pair.
 #' @return A base `data.frame`, one row per scored pair, most significantly

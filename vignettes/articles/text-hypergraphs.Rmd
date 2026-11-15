@@ -12,24 +12,27 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(hypergraphs)
 ```
 
-A corpus is a set of documents, each a set of words. The documents and the
-words form a bipartite structure, which is a hypergraph in either
-orientation. With documents as nodes, every word is a hyperedge over the
-documents that contain it. A word such as *telescope* joins a few documents,
-and a word such as *challenges* joins many. Weighting each word by its tf-idf
-in each document keeps the difference between the two in the hypergraph.
+A document collection can be represented by a hypergraph of word
+occurrences. In the document orientation, each document is a node and each
+word is a hyperedge containing the documents in which it occurs. Incidence
+weights record the frequency or term frequency–inverse document frequency
+(tf-idf) of each word within each document. This representation provides
+the input for structural summaries, document clustering, and label spreading.
 
-The corpus here is `covid_abstracts`, 165 abstracts of COVID-19 education
-research published between 2020 and 2024. The hypergraph is clustered with
-the Laplacian of the random walk with edge-dependent vertex weights (Hayashi
-et al. 2020), and a few labelled abstracts are spread to the others by the
-label spreading of Zhou et al. (2006).
+This tutorial uses `covid_abstracts`, a bundled collection of 165
+abstracts about COVID-19 and education published between 2020 and 2024.
+The analysis constructs a weighted hypergraph, examines central words,
+compares document partitions, and demonstrates classification from a small
+set of labels. The examples distinguish descriptive results from evidence
+about predictive performance.
 
 ## From corpus to hypergraph
 
-The abstracts are tokenized, function words and a few words common to all
-research abstracts are removed, and the words that occur fewer than three
-times in the corpus are dropped.
+First, tokenise the abstracts and define the vocabulary. The stop list
+removes common function words and selected terms that are frequent in
+research abstracts. `min_count = 3` retains a word only if its total count
+across the corpus is at least three. These preprocessing choices affect
+every subsequent measure and should be reported with the results.
 
 ```{r construct}
 stops <- c(
@@ -56,25 +59,30 @@ participation <- subset(corpus_summary,
                         measure == "pairwise_participation")$value
 ```
 
-The hypergraph has `r hg$n_nodes` documents and
-`r format(nrow(edge_sizes), big.mark = ",")` words. The median word occurs in
-`r median(edge_sizes$size)` abstracts, and the most common word occurs in
-`r max(edge_sizes$size)` of the `r hg$n_nodes`. Its tf-idf weight is small
-in every abstract.
+The constructed hypergraph contains `r hg$n_nodes` document nodes and
+`r format(nrow(edge_sizes), big.mark = ",")` word hyperedges. The median
+word occurs in `r median(edge_sizes$size)` documents, and the most widely
+distributed word occurs in `r max(edge_sizes$size)`. Tf-idf gives a smaller
+inverse-document-frequency multiplier to widely distributed words than to
+rare ones. Their final weights also depend on within-document counts.
 
 ```{r summary}
 hg_measures(hg, what = "summary")
 ```
 
-The pairwise participation is the share of pairs of abstracts that share at
-least one word. It is `r sprintf("%.3f", participation)`, so the hypergraph
-is connected and the spectral methods apply to the whole corpus.
+Pairwise participation is the proportion of document pairs sharing at
+least one retained word. Its value is `r sprintf("%.3f", participation)`.
+This summarises overlap but is not, by itself, a test of connectivity.
+The clustering function checks that the document hypergraph is connected
+before applying the spectral method.
 
 ## Central words
 
-With words as nodes, two words are close when they occur in the same
-abstracts. The clique centrality of a word is its eigenvector centrality in
-the projection of this hypergraph.
+To rank words, reverse the orientation so that words become nodes and
+abstracts become hyperedges. Clique-motif centrality then measures a word's
+position in the binary co-occurrence projection. The score depends on
+shared document memberships and the scores of neighbouring words; it does
+not use the magnitudes of the tf-idf incidence weights.
 
 ```{r words}
 word_hg <- text_hypergraph(
@@ -91,16 +99,19 @@ word_centrality <- hg_centrality(word_hg, type = "clique", sort_by = "clique",
 word_centrality
 ```
 
-The most central words are those of the shared subject of the corpus,
-education during the pandemic: `r paste(head(word_centrality$node, 7), collapse = ", ")`.
+The first seven words in the centrality ranking are
+`r paste(head(word_centrality$node, 7), collapse = ", ")`. Read these as
+structurally central terms in the chosen vocabulary. A central term need
+not be specific to a particular research theme.
 
 ## Clusters of abstracts
 
-`type = "random_walk"` clusters the abstracts by the Laplacian of Hayashi et
-al. (2020). The tf-idf weights become the edge-dependent vertex weights of a
-random walk, the eigenvectors of its normalized Laplacian place the
-abstracts, and k-means divides them. The number of clusters is set to four
-and compared with three below.
+Set `type = "random_walk"` to use the Laplacian of the walk with
+edge-dependent vertex weights (Hayashi et al. 2020). Here, the tf-idf
+incidence weights determine the probabilities of selecting documents within
+word hyperedges. The method embeds documents using Laplacian eigenvectors
+and partitions the embedding by k-means. The example compares four clusters
+with a coarser partition of three clusters.
 
 ```{r cluster}
 clusters <- hg_cluster(hg, k = 4, type = "random_walk", seed = 1)
@@ -113,12 +124,15 @@ cluster_years <- aggregate(year ~ cluster, data = merged, FUN = mean)
 cluster_years
 ```
 
-The mean publication year of the clusters lies between
-`r sprintf("%.1f", min(cluster_years$year))` and
-`r sprintf("%.1f", max(cluster_years$year))`, so the clusters divide the
-abstracts by subject and leave the years mixed.
+The mean publication year ranges from
+`r sprintf("%.1f", min(cluster_years$year))` to
+`r sprintf("%.1f", max(cluster_years$year))` across clusters. These means
+provide a descriptive check of their temporal composition. Similar means
+do not establish either thematic validity or the absence of temporal
+differences within the clusters.
 
-The clusters for four and for three clusters are compared below.
+Cross-tabulate the four-cluster and three-cluster solutions to inspect
+which document groups remain together when the requested resolution changes.
 
 ```{r sensitivity}
 clusters_3 <- hg_cluster(hg, k = 3, type = "random_walk", seed = 1)
@@ -131,17 +145,22 @@ kept <- function(label) max(subset(cross, label_x == label)$n)
 size_of <- function(label) sum(subset(cross, label_x == label)$n)
 ```
 
-Two small clusters keep their members: `r kept("Cluster 1")` of the
-`r size_of("Cluster 1")` abstracts of the first and `r kept("Cluster 3")` of
-the `r size_of("Cluster 3")` of the third stay together. The largest cluster,
-of `r size_of("Cluster 4")` abstracts, is divided among the three clusters,
-so its boundary depends on the number of clusters.
+The largest overlap with a single cluster in the three-cluster solution
+contains `r kept("Cluster 1")` of the `r size_of("Cluster 1")` documents
+in Cluster 1, and `r kept("Cluster 3")` of the `r size_of("Cluster 3")`
+documents in Cluster 3. Cluster 4 contains `r size_of("Cluster 4")`
+documents. The complete cross-tabulation shows how it is redistributed.
+Cluster numbers are arbitrary labels and do not identify the same group
+across separate fits.
 
 ## Classification from six labels
 
-Label spreading (Zhou et al. 2006) gives labels to a few nodes and spreads
-them over the hyperedges to the others. The three alphabetically first
-abstracts of 2020 are labelled `"early"` and those of 2024 `"late"`.
+Label spreading propagates information from labelled documents through
+the hypergraph (Zhou et al. 2006). For an illustrative task, label the first
+three document identifiers from 2020 as `"early"` and the first three from
+2024 as `"late"`. This deliberately small training set demonstrates the
+interface; it is not a representative evaluation design for predicting
+publication year.
 
 ```{r classify}
 labels <- c(
@@ -169,34 +188,38 @@ unlabelled_early <- nrow(subset(unlabelled, predicted == "early"))
 unlabelled_2020 <- nrow(subset(unlabelled, year == 2020))
 ```
 
-Of the `r nrow(unlabelled)` unlabelled abstracts, `r unlabelled_early` are
-classified `"early"`, although `r unlabelled_2020` of them are from 2020.
-The vocabulary of the corpus changes little between 2020 and 2024, so six
-labels do not date the abstracts.
+Of the `r nrow(unlabelled)` unlabelled abstracts,
+`r unlabelled_early` receive the label `"early"`; only
+`r unlabelled_2020` were published in 2020. The predictions therefore do
+not reproduce the year labels under this seed selection. Assessing year
+prediction would require a defined target for intermediate years,
+representative training labels, and evaluation on held-out documents.
 
 ## PageRank, the dual hypergraph and a null model
 
-The PageRank of the random walk with edge-dependent vertex weights (Chitra
-and Raphael 2019) uses the tf-idf weights of the hypergraph. The abstracts
-with the highest PageRank share words with many others.
+PageRank provides a document ranking from the damped walk with
+edge-dependent vertex weights (Chitra and Raphael 2019). The ranking uses
+both hyperedge selection and tf-idf incidence weights, so it cannot be
+interpreted simply as the number of words or neighbours of a document.
 
 ```{r pagerank}
 hg_pagerank(hg, sort_by = "pagerank", n = 3)
 ```
 
-A `personalized` vector restarts the walk at chosen documents, which ranks
-the abstracts by their closeness to those documents. The dual hypergraph
-exchanges the roles of nodes and hyperedges, which gives the word
-orientation without tokenizing the corpus again.
+The `personalized` argument specifies the documents at which the walk
+restarts. This produces a ranking relative to those restart preferences.
+The dual hypergraph exchanges nodes and hyperedges by transposing the
+incidence matrix, giving the word orientation without repeating tokenisation.
 
 ```{r dual}
 dual_hypergraph(hg)
 ```
 
-A null model shows whether a statistic exceeds what the degrees of the
-nodes and the sizes of the hyperedges imply. The swap null rewires the
-binary memberships by checkerboard swaps that keep both (Gotelli 2000). The
-test below uses the abstracts of 2020.
+A null model assesses a statistic relative to a specified randomisation.
+The swap model changes binary memberships while preserving each document's
+hyperdegree and each word hyperedge's size (Gotelli 2000). The example uses
+the abstracts published in 2020. It tests the structure of word occurrence,
+rather than the numerical tf-idf weights.
 
 ```{r null-test}
 abstracts_2020 <- text_hypergraph(
@@ -221,19 +244,21 @@ pp <- subset(null_2020, statistic == "pairwise_participation")
 aj <- subset(null_2020, statistic == "avg_jaccard")
 ```
 
-The pairwise participation is `r sprintf("%.3f", pp$observed)`, and the
-null reproduces it (p = `r pp$p_value`): abstracts with many words share
-words with almost every other abstract under any rewiring that keeps the
-degrees. The mean Jaccard index between words is above the null
-(z = `r sprintf("%.2f", aj$z)`, p = `r aj$p_value`). Words occur in the same
-abstracts more often than their frequencies imply, which is the
-co-occurrence the clustering divides.
+Observed pairwise participation is `r sprintf("%.3f", pp$observed)`,
+with a Monte Carlo p-value of `r pp$p_value` under the swap model.
+Mean Jaccard overlap between word hyperedges has a standardised deviation
+of `r sprintf("%.2f", aj$z)` and a p-value of `r aj$p_value`.
+Interpret each statistic against its own null distribution. A result close
+to the null does not prove random organisation, and an overlap departure
+does not establish the substantive validity of the document clusters.
 
 ## Input from quanteda or tidytext
 
-A data frame in long format with one row per document and word is the
-incidence structure of the hypergraph, so the output of other text
-pipelines can be passed to `group_hypergraph()`.
+A long-format document–term table can be passed directly to
+`group_hypergraph()`. Specify the document identifier, term identifier, and
+count column explicitly. This permits the use of preprocessing pipelines
+from quanteda or tidytext while retaining a clear definition of incidence
+weights. The following code illustrates the required column structure.
 
 ```{r bridge, eval = FALSE}
 # quanteda: tidytext::tidy() turns a dfm into a long table with columns
@@ -252,15 +277,18 @@ group_hypergraph(
 
 ## Choice of method
 
-- `hg_cluster()` finds groups without labels. With tf-idf weights,
-  `type = "random_walk"` uses them as the edge-dependent vertex weights of
-  the walk.
-- `hg_classify()` spreads a few labels to the other documents. The `margin`
-  column measures the confidence of each prediction.
-- `hg_centrality()` ranks the words of a corpus (words as nodes) or its
-  documents (documents as nodes).
-- `hg_measures()` reports the sizes, overlaps and connectivity that decide
-  whether spectral methods apply.
+Choose the method according to the quantity of interest:
+
+- `hg_cluster()` estimates a document partition. With
+  `type = "random_walk"`, it uses the weighted incidence in the walk.
+- `hg_classify()` propagates supplied labels. Its `margin` is the difference
+  between the two largest class scores, not a calibrated probability of
+  correctness.
+- `hg_centrality()` describes structural position. Its interpretation
+  depends on whether nodes represent words or documents and on the selected
+  centrality definition.
+- `hg_measures()` describes membership counts, sizes, and overlaps. Check
+  connectivity separately when preparing a spectral analysis.
 
 ## References
 

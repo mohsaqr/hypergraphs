@@ -45,13 +45,17 @@
 # dense .hl_default_edge_weights() (0/0 would otherwise be NaN).
 .thg_sparse_edge_weights <- function(incidence) {
   csp <- methods::as(methods::as(incidence, "CsparseMatrix"), "generalMatrix")
-  nnz <- Matrix::colSums(csp != 0)
-  s1 <- Matrix::colSums(csp)
-  s2 <- Matrix::colSums(csp^2)
-  mu <- s1 / nnz
-  w <- unname(sqrt(pmax(s2 / nnz - mu^2, 0)) + 1)
-  w[nnz == 0] <- 1
-  w
+  # Centred deviations avoid cancellation in E[X^2] - E[X]^2 when
+  # the weights have a large common offset. Read only stored entries;
+  # explicit zeros are not members, just as on the dense path.
+  vapply(seq_len(ncol(csp)), function(j) {
+    first <- csp@p[j] + 1L
+    last <- csp@p[j + 1L]
+    if (first > last) return(1)
+    x <- csp@x[seq.int(first, last)]
+    x <- x[x > 0]
+    if (length(x)) .hl_pop_sd(x) + 1 else 1
+  }, numeric(1L))
 }
 
 # Per-hyperedge scale w(e) / delta(e) of the EDVW walk. An empty hyperedge

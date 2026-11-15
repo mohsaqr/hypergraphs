@@ -72,8 +72,14 @@
 #'   large, sparse event data such as the full GFCC citation-block corpus.
 #' @param from,to Column names of a pairwise edge list, as an alternative to
 #'   `node` and `hyperedge`.
-#' @param top The number of most frequent sets kept as hyperedges, in each
-#'   value of `group` or over all hyperedges; `Inf` keeps every set. For a
+#' @param top A positive whole number keeps that many most frequent sets.
+#'   A fraction in (0, 1), such as `0.95`, keeps the smallest ranked prefix
+#'   whose combined counts cover at least that fraction of eligible
+#'   transactions. Selection is within each value of `group`, or over all
+#'   hyperedges without `group`; `Inf` keeps every eligible set. `top = 1`
+#'   keeps one set. Eligibility is determined by `states`, `min_size` and
+#'   `min_share` before selection; returned shares still use all transactions
+#'   as their denominator. Ties are resolved by set name. For a
 #'   data frame, giving `top`, `group` or `min_share` counts sets (see
 #'   "Frequent sets within groups"), and with none of them every value of
 #'   `hyperedge` becomes one hyperedge. Clustered sequences and topic models
@@ -263,6 +269,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
                              from = NULL, to = NULL,
                              top = NULL, states = NULL, threshold = NULL,
                              min_size = 1L, group = NULL, min_share = NULL) {
+  if (!is.null(top)) .thg_check_set_top(top)
   if (!is.null(min_share) &&
       (!is.numeric(min_share) || length(min_share) != 1L ||
        !is.finite(min_share) || min_share <= 0 || min_share > 1)) {
@@ -576,23 +583,33 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
 # the number of sequences with exactly that set. This is support counting of
 # itemsets (Agrawal & Srikant 1994) with each sequence as one transaction,
 # restricted to the observed transactions themselves.
+.thg_check_set_top <- function(top) {
+  invalid <- "`top` must be a positive whole number, a fraction in (0, 1), or Inf"
+  if (is.complex(top)) .thg_bad_input(invalid)
+  fraction <- is.numeric(top) && length(top) == 1L && is.finite(top) &&
+    top > 0 && top < 1
+  if (!fraction) {
+    .ho_check_count(top, "top", allow_inf = TRUE)
+    # Counts retain their exact whole-number contract rather than being
+    # truncated by head() after a nearly integral value passes validation.
+    if (is.finite(top) && top != round(top)) .thg_bad_input(invalid)
+  }
+  invisible(top)
+}
+
 .thg_sequence_set_hypergraph <- function(x, top = 8L, states = NULL,
                                          min_share = NULL) {
-  if (!is.numeric(top) || length(top) != 1L || is.na(top) || top < 1 ||
-      (is.finite(top) && top != round(top))) {
-    .thg_bad_input("`top` must be one whole number of at least 1, or Inf")
-  }
   if (!is.null(states) && (!is.character(states) || !length(states) ||
                            anyNA(states))) {
     .thg_bad_input("`states` must be a character vector of state names to keep")
   }
   out <- .thg_set_hypergraph(.coerce_grouped_sequences(x), top, states,
-                             item_order = sort, min_share = min_share)
+                             item_order = .ho_sort, min_share = min_share)
   out$params <- c(out$params, list(
     min_share = min_share,
     source = "clustered_sequences",
     input = class(x)[1L],
-    top = as.integer(top),
+    top = if (is.finite(top) && top >= 1) as.integer(top) else top,
     states = states,
     unit = "sequences"
   ))
@@ -608,6 +625,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
                                 min_size = 1L, prefix = TRUE,
                                 min_share = NULL) {
   labels <- names(grouped)
+  vocabulary <- .ho_sort(unique(unlist(grouped, use.names = FALSE)))
   per_group <- lapply(labels, \(g) {
     sets <- lapply(grouped[[g]], \(v) {
       v <- unique(v)
@@ -615,10 +633,10 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
       item_order(v)
     })
     sets <- sets[lengths(sets) >= min_size]
-    # a set is identified by its members, joined by a control character no
-    # state label is expected to hold; the " + " label is for display only,
-    # so the singleton state "a + b" and the pair {a, b} stay two sets
-    keys <- vapply(sets, paste, character(1L), collapse = "\x01")
+    # Integer member codes have an unambiguous separator even when names
+    # themselves contain control characters or the display separator.
+    keys <- vapply(sets, \(v) paste(match(v, vocabulary), collapse = ","),
+                    character(1L))
     unique_keys <- unique(keys)
     count_of <- tabulate(match(keys, unique_keys), length(unique_keys))
     display <- vapply(sets[match(unique_keys, keys)], paste, character(1L),
@@ -627,11 +645,20 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     # order, as before; two sets that share a label fall back on their key
     ranked <- .ho_order(-count_of, match(display, .ho_sort(unique(display))),
                     unique_keys)
-    kept <- utils::head(ranked, min(top, length(ranked)))
     # minimum support: the share of the group's transactions holding the set
     if (!is.null(min_share)) {
-      kept <- kept[count_of[kept] / length(grouped[[g]]) >= min_share]
+      ranked <- ranked[count_of[ranked] / length(grouped[[g]]) >= min_share]
     }
+    n_keep <- if (top < 1 && length(ranked)) {
+      cumulative <- cumsum(as.double(count_of[ranked]))
+      target <- top * utils::tail(cumulative, 1L)
+      # Allow the rounding error in multiplying the requested fraction by
+      # the total count, so an exact decimal boundary keeps no extra set.
+      which(cumulative >= target - .Machine$double.eps * max(1, target))[1L]
+    } else {
+      min(top, length(ranked))
+    }
+    kept <- utils::head(ranked, n_keep)
     counts <- count_of[kept]
     members <- sets[match(unique_keys[kept], keys)]
     in_state <- table(unlist(sets, use.names = FALSE))
@@ -685,10 +712,6 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
       (!is.character(group) || length(group) != 1L || !group %in% names(data))) {
     .thg_bad_input("`group` must name one column of `data`")
   }
-  if (!is.numeric(top) || length(top) != 1L || is.na(top) || top < 1 ||
-      (is.finite(top) && top != round(top))) {
-    .thg_bad_input("`top` must be one whole number of at least 1, or Inf")
-  }
   if (!is.numeric(min_size) || length(min_size) != 1L ||
       !is.finite(min_size) || min_size < 1 || min_size != round(min_size)) {
     .thg_bad_input("`min_size` must be one whole number of at least 1")
@@ -729,7 +752,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   levels <- .thg_kw_natural(unique(of_transaction))
   grouped <- lapply(stats::setNames(levels, levels),
                     \(g) unname(transactions[of_transaction == g]))
-  out <- .thg_set_hypergraph(grouped, top, states, item_order = sort,
+  out <- .thg_set_hypergraph(grouped, top, states, item_order = .ho_sort,
                              min_size = as.integer(min_size),
                              prefix = !is.null(group), min_share = min_share)
   out$params <- c(out$params, list(
@@ -759,10 +782,6 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     .thg_bad_input(paste0("a topic model needs `threshold`, the share at ",
                           "which a topic counts as present in a document, ",
                           "one number in (0, 1]"))
-  }
-  if (!is.numeric(top) || length(top) != 1L || is.na(top) || top < 1 ||
-      (is.finite(top) && top != round(top))) {
-    .thg_bad_input("`top` must be one whole number of at least 1, or Inf")
   }
   if (!is.numeric(min_size) || length(min_size) != 1L ||
       !is.finite(min_size) || min_size < 1 || min_size != round(min_size)) {

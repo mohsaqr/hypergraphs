@@ -19,8 +19,9 @@ number in \verb{(0, 0.5)} (default \code{0.05}), applied to the adjusted
 p-values.}
 
 \item{p_adjust}{Multiplicity correction, any \link[stats:p.adjust]{stats::p.adjust} method or
-\code{"none"} (default \code{"none"}, as in LaRock et al. 2020). \code{"BH"} controls
-the false discovery rate within each direction.}
+\code{"none"} (default \code{"none"}, as in LaRock et al. 2020). Corrections
+are applied separately within each direction; see the limitation of
+strict upper-tail scores in Details.}
 
 \item{top}{Optional number of rows to keep, the most significantly
 over-represented first. \code{NULL} (default) keeps every scored pair.}
@@ -117,6 +118,8 @@ possible path. Only the scored pairs are computed; the others enter
 \code{\link[stats:p.adjust]{stats::p.adjust()}} through its \code{n} argument, which treats them as larger
 p-values. Adjusting within the scored pairs alone would under-correct,
 because a pair enters the scored set partly through its observed count.
+The strict upper-tail scores are not valid conservative p-values, so
+applying \code{"BH"} to them does not guarantee false discovery rate control.
 
 Time is handled by scoring a cumulative snapshot rather than by slicing
 into periods. Disjoint periods split a pair's evidence across cells while

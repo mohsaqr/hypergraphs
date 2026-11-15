@@ -247,9 +247,10 @@
 #' Kullback-Leibler divergence (Lee & Seung 1999, 2001). With this
 #' divergence the fit is the maximum-likelihood solution of probabilistic
 #' latent semantic analysis (Hofmann 1999; Gaussier & Goutte 2005): the
-#' normalised rows of \eqn{W} are the documents' topic shares
-#' \eqn{P(z \mid d)} and the normalised rows of \eqn{H} the topics' word
-#' probabilities \eqn{P(w \mid z)}. LDA is the same model with Dirichlet
+#' rows of \eqn{W}, multiplied by each topic's total word mass
+#' \eqn{\sum_w H_{zw}} and then normalised, are the documents' topic shares
+#' \eqn{P(z \mid d)}. The normalised rows of \eqn{H} are the topics' word
+#' probabilities \eqn{P(w \mid z)}. LDA adds Dirichlet
 #' priors on these distributions.
 #'
 #' The fit depends on its random start, so it is run from `nstart` starts

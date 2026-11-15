@@ -39,6 +39,8 @@ hyperedge (\code{\link[=window_hypergraph]{window_hypergraph()}}), ordered by \c
 \item With \code{group}, \code{top} or \code{min_share}, the sets of either format are
 counted and the most frequent become hyperedges; \code{group} names the
 comparison variable within whose values the sets are counted.
+A whole-number \code{top} keeps that many sets; a fraction such as
+\code{top = 0.95} keeps sets covering at least 95\% of eligible transactions.
 }
 
 A list of sequences is read as event data with \code{window}. A network, as a

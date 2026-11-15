@@ -17,24 +17,27 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
 library(hypergraphs)
 ```
 
-A corpus can be represented as a hypergraph with documents as nodes and
-words as hyperedges, and a spectral partition of that hypergraph divides the
-documents into topics. The corpus here is the `covid` data of the sbert
-package, a Scopus export of `r format(nrow(sbert::covid), big.mark = ",")`
-records on COVID-19 and education published between 2020 and 2024. Each
-record has an abstract and a publication year.
+This tutorial analyses the document structure of a bibliographic corpus
+using a word-based hypergraph. Documents are nodes, and words are hyperedges
+linking the documents in which they occur. Spectral clustering partitions
+the documents according to this structure. Keywords, coherence measures,
+and representative abstracts are then used to interpret the clusters;
+the algorithm does not assign substantive topic meanings on its own.
+
+The example uses the `covid` dataset distributed with sbert, containing
+`r format(nrow(sbert::covid), big.mark = ",")` Scopus records on COVID-19
+and education published between 2020 and 2024. The analysis retains the
+abstract text and publication year for preprocessing and interpretation.
 
 ## Text cleaning
 
-A bibliographic export carries text in its abstracts that is not part of
-the abstract. `clean_text()` decodes HTML entities, strips tags, normalizes
-typographic characters, and removes bracketed citation numbers, list
-markers, URLs, DOIs, trailing copyright notices and bare numbers. It takes
-a character vector or a data frame with a text column and returns an
-object of the same length or the same rows. A text whose share of
-alphabetic characters falls below `min_content` is replaced by the empty
-string. The `remove` argument takes additional patterns; here it names the
-placeholder that Scopus inserts for a missing abstract.
+Bibliographic abstracts can contain HTML, citation markers, identifiers,
+and publisher notices. `clean_text()` applies a defined set of text
+transformations: it decodes HTML entities, removes tags and selected
+non-content strings, and standardises typographic characters. It preserves
+the input row alignment. Text with an alphabetic-character share below
+`min_content` becomes an empty string. The additional `remove` pattern
+below removes Scopus's missing-abstract placeholder.
 
 ```{r clean}
 abstracts <- clean_text(sbert::covid, column = "Abstract",
@@ -49,22 +52,21 @@ n_unique <- nrow(abstracts)
 n_empty <- sum(!nzchar(abstracts$Abstract))
 ```
 
-The result is a data frame with the same columns as the input. The
-`r n_placeholder` placeholder abstracts are now empty, and `unique()` has
-collapsed the records that appear more than once, which leaves
-`r format(n_unique, big.mark = ",")` records, `r n_empty` of them with an
-empty abstract. Empty abstracts are retained at this stage so that the year
-column stays aligned with the text.
+Cleaning identifies `r n_placeholder` missing-abstract placeholders.
+After removal of duplicate records, there are
+`r format(n_unique, big.mark = ",")` records, including `r n_empty` empty
+abstracts. Keeping these rows during cleaning preserves the alignment
+between text and publication year. The hypergraph constructor subsequently
+excludes documents without retained tokens.
 
 ## Hypergraph construction
 
-`text_hypergraph()` builds a weighted hypergraph from a corpus. With the
-default `construction = "bag"` and `nodes = "doc"`, each document is a
-node and each word is a hyperedge that contains every document using the
-word. With the default `weight = "n"`, the incidence cell of a document and
-a word is the count of the word in the document. Tokens are lower-cased
-alphabetic strings, so numbers do not enter the vocabulary. Documents
-without any remaining token are dropped with a warning.
+With `construction = "bag"` and `nodes = "doc"`, each abstract is a
+node and each retained word is a hyperedge. The default `weight = "n"`
+stores the word count in each document–word incidence cell. Tokenisation
+uses lower-case alphabetic strings. Repeated words contribute to the cell
+count, while word order is discarded. Documents without any retained token
+are excluded with a warning.
 
 ```{r build}
 stops <- c(stop_words_en(), "covid", "pandemic")
@@ -73,21 +75,22 @@ hg <- text_hypergraph(abstracts, column = "Abstract", stop_words = stops,
 hg
 ```
 
-The stop list contains the English function words of `stop_words_en()`
-and the two words that name the subject of every abstract; a word present
-in every document does not separate any two documents. Words that occur
-fewer than five times in the corpus are excluded by `min_count`. The incidence
-matrix has more than a million cells, so the default `sparse = NULL`
-stores it as a sparse matrix.
+The stop list combines common English words with `covid` and
+`pandemic`, which define the corpus subject and are removed by an explicit
+analytical choice. `min_count = 5` retains words with at least five
+occurrences across the corpus. The default storage rule uses a sparse
+incidence matrix when the number of document–word cells reaches one
+million; unobserved memberships are then not stored explicitly.
 
 ## Number of topics
 
-`hg_cluster()` with `what = "eigenvalues"` returns the leading eigenvalues
-of the normalized hypergraph Laplacian (Zhou, Huang and Schölkopf 2006)
-and the gap after each. A large gap after the k-th eigenvalue indicates a
-partition into k clusters that the structure supports. The first gap
-separates the zero eigenvalue of a connected hypergraph from the rest and
-says nothing about a partition.
+The spectrum of the normalised hypergraph Laplacian provides a
+diagnostic for choosing a clustering resolution (Zhou et al. 2006).
+`what = "eigenvalues"` returns the smallest eigenvalues and the gap after
+each. A relatively large gap after the kth eigenvalue is a heuristic for
+considering k clusters. It is not a statistical test or a unique estimate
+of the number of topics. The first gap concerns separation from the
+zero eigenvalue and is excluded from the comparison below.
 
 ```{r count}
 spectrum <- hg_cluster(hg, k = 18, seed = 1, what = "eigenvalues")
@@ -100,24 +103,23 @@ ranked_gaps <- informative[order(-informative$gap), ]
 best_k <- ranked_gaps$index[1:2]
 ```
 
-The largest gap after the first is the gap after eigenvalue
-`r best_k[1]`, `r sprintf("%.4f", ranked_gaps$gap[1])`, followed by the gap
-after eigenvalue `r best_k[2]`, `r sprintf("%.4f", ranked_gaps$gap[2])`.
-The spectrum therefore supports `r best_k[1]` or `r best_k[2]` clusters.
-The partition below uses sixteen clusters, the number of
-topics in the structural topic model of this literature reported by Saqr
-et al. (2023), so that the two sets of topics can be compared. Sixteen is
-a finer partition than the spectrum supports on its own; its justification
-is the vocabulary each cluster owns, reported in the last section.
+Among the inspected nontrivial gaps, the largest occur after indices
+`r best_k[1]` and `r best_k[2]`, with values
+`r sprintf("%.4f", ranked_gaps$gap[1])` and
+`r sprintf("%.4f", ranked_gaps$gap[2])`. These resolutions are candidates
+for further inspection. The example instead uses 16 clusters to match
+the number of topics in the published analysis of Saqr et al. (2023).
+Using the same number permits a descriptive comparison; it does not
+reproduce that topic model or validate the 16-cluster solution.
 
 ## Partition
 
-`hg_cluster()` embeds the documents in the leading eigenvectors of the
-Laplacian and partitions the embedding with k-means. With the default
-`type = "zhou"` the Laplacian is built from hyperedge membership alone:
-each hyperedge has unit weight and the incidence cells are not read. The
-function takes the hypergraph, the number of clusters and a seed, and
-returns a data frame with one row per document and its cluster label.
+`hg_cluster()` embeds the documents in eigenvectors associated with
+the smallest Laplacian eigenvalues and applies k-means to that embedding.
+The default `type = "zhou"` uses binary hyperedge membership and unit
+hyperedge weights for this object. The stored term counts therefore do
+not determine this particular clustering. The returned table contains
+one cluster label per document. Set `seed` to reproduce the k-means fit.
 
 ```{r cut}
 topics <- hg_cluster(hg, k = 16, seed = 1)
@@ -126,28 +128,24 @@ head(topics)
 
 ## Topic description
 
-`hg_keywords()` ranks the words of each cluster. It takes the hypergraph
-and the partition and returns a data frame with one row per cluster and
-word, containing the score, the word's share and the number of cluster
-documents that contain the word. The print method shows one row per
-cluster with its words joined; the returned table itself is the long form.
-The default score, `type = "mass"`, is the summed incidence weight that a
-cluster's documents place on the word, which under `weight = "n"` is the
-word's count within the cluster.
+Use `hg_keywords()` to describe each cluster's vocabulary. The returned
+table contains one row per cluster and word, with the selected score,
+the proportion of the word's corpus count assigned to the cluster, and
+the number of cluster documents containing it. The default mass score
+sums incidence weights within a cluster. With count-weighted incidence,
+this is the word's total count in the cluster.
 
 ```{r name-default}
 hg_keywords(hg, topics)
 ```
 
-Under the default ranking every cluster lists the same words: learning,
-students, education, online and teaching. These are the most frequent
-words of the corpus, and they are the most frequent words of every cluster
-as well. The `share` column, the fraction of a word's corpus count that
-falls in the cluster, separates the clusters. `sort_by = "share"` ranks by
-that column, and `min_docs` sets a support floor so that a word owned by a
-cluster only because it occurs in a few of its abstracts does not reach
-the top. The `type` argument accepts several scores at once and returns
-one block of rows per score.
+The default ranking emphasises common terms such as learning,
+students, education, online, and teaching. To inspect more concentrated
+vocabulary, rank by `share`, the fraction of each word's corpus count
+occurring in the cluster. This is a word-level concentration measure,
+not the proportion of cluster documents containing the word. The
+`min_docs` threshold excludes words with insufficient document support.
+Several scoring methods can be requested together for comparison.
 
 ```{r name-owned}
 words <- hg_keywords(hg, topics, type = c("frequency", "ctfidf", "centrality"),
@@ -155,23 +153,17 @@ words <- hg_keywords(hg, topics, type = c("frequency", "ctfidf", "centrality"),
 words
 ```
 
-The three scores are the raw count of the word in the cluster
-(`frequency`), the class-based tf-idf of Grootendorst (2022) (`ctfidf`),
-and the PageRank of the word in the cluster's own word hypergraph, in
-which the cluster's abstracts are the hyperedges (`centrality`; the
-default measure). Ten words per cluster are returned by default. Ranked by
-share, the three scores return the same owned vocabulary for each cluster
-and differ in the order of the words. The sixteen clusters correspond to
-distinct literatures: parents and childhood, infection prevention,
-systematic reviews, lockdown policy, narrative essays, messaging tools in
-Indonesian higher education, industry and recovery, laboratory teaching,
-teacher agency, questionnaire validation, Spanish methodological studies,
-technology acceptance models, dental and surgical assessment,
-disadvantaged households, the spring campus transition, and residency
-training.
+The three requested scores are within-cluster frequency,
+class-based tf-idf (`ctfidf`; Grootendorst 2022), and centrality in the
+cluster's word hypergraph. PageRank is the default centrality for this
+keyword calculation. Because the table is sorted by `share`, that column
+governs the primary ranking even when several scores are requested.
+Inspect the keywords alongside sample abstracts before assigning topic
+names. A keyword list alone does not establish that a cluster represents
+a single, coherent literature.
 
-The keyword table plots as one panel per cluster and score, with one bar
-per word.
+The keyword plot displays one panel per cluster and scoring method.
+Compare both the ranking and the underlying document support.
 
 ```{r name-plot, fig.width = 7, fig.height = 40}
 plot(words, value = "share")
@@ -179,10 +171,11 @@ plot(words, value = "share")
 
 ## Topic sizes
 
-`hg_topic_sizes()` counts the documents of each topic and their share of
-the clustered documents. With `weights`, a numeric vector named by
-document, it also reports the weighted size and share; a citation count
-or a repeat count are typical weights. One row per topic.
+`hg_topic_sizes()` returns the number and proportion of documents
+assigned to each cluster. Its optional `weights` argument takes a numeric
+vector named by document identifier, permitting summaries weighted by
+quantities such as citation count. Weighted shares describe that chosen
+quantity and have a different denominator from document shares.
 
 ```{r sizes, fig.width = 7, fig.height = 5}
 sizes <- hg_topic_sizes(hg, topics)
@@ -192,20 +185,22 @@ plot(sizes)
 
 ## Topic coherence and exclusivity
 
-`hg_topic_quality()` scores each topic's top words on two axes, with the
-definitions the structural topic model uses (Roberts, Stewart & Tingley
-2019), so a hypergraph clustering and a probabilistic topic model can be
-compared on the same numbers. The top words are the most probable words of
-the topic's documents.
+`hg_topic_quality()` evaluates the most probable words of each cluster
+using coherence and exclusivity measures also used in topic-model analysis
+(Roberts et al. 2019). These measures support a comparison when the corpus,
+vocabulary, number of top words, and scoring conventions are held fixed.
 
-* Coherence is UMass (Mimno et al. 2011): for every pair of top words,
-  the log of how often the rarer word's documents also contain the other,
-  counted over the whole corpus and summed. It is never positive; closer to
-  zero means the words turn up in the same documents.
-* Exclusivity is FREX (Bischof & Airoldi 2012): a weighted harmonic
-  mean of how frequent each top word is in the topic and how exclusive it is
-  to the topic, summed over the top words. Higher means the topic owns its
-  words rather than sharing them with the rest of the corpus.
+UMass coherence evaluates document co-occurrence for pairs of top-ranked
+words (Mimno et al. 2011). The implementation follows the smoothing
+convention used by `stm`: it adds 0.01 to both the joint document count
+and the document count of the earlier-ranked word, then sums the logarithms
+of their ratios. The score is nonpositive. Values nearer zero indicate
+stronger co-occurrence among the selected words.
+
+FREX combines frequency and exclusivity ranks through a weighted harmonic
+mean (Bischof and Airoldi 2012). The topic summary sums these values over
+the selected top words. A larger value favours words that are both
+relatively frequent within the topic and concentrated in that topic.
 
 ```{r quality, fig.width = 7, fig.height = 5}
 quality <- hg_topic_quality(hg, topics, min_docs = 15)
@@ -213,22 +208,22 @@ quality
 plot(quality)
 ```
 
-A topic high on both axes has a vocabulary that co-occurs and that no
-other topic uses; a topic low on coherence gathers abstracts that share
-words but not a subject. `coherence = "npmi"` gives normalized PMI instead
-(Bouma 2009; Lau, Newman & Baldwin 2014), and `words =` scores the top
-words of a topic model fitted elsewhere with the same measures.
+Read the two measures together and inspect individual documents.
+High coherence and exclusivity indicate a concentrated, co-occurring
+vocabulary under these definitions, but do not establish thematic validity.
+Low coherence can indicate heterogeneous content, sparse occurrence, or
+preprocessing effects. `coherence = "npmi"` selects normalised pointwise
+mutual information; `words =` supplies word lists from another model.
 
 ## Soft membership
 
-`hg_membership()` turns the hard partition into a membership of every
-document in every topic. Documents are placed in the spectral embedding
-that `hg_cluster()` cut, each topic's centre is the mean position of its
-documents, and a document's membership in a topic is the fuzzy c-means
-weight with fuzziness 2 (Bezdek 1981), the inverse squared distance to
-the centre normalized over topics. A document at a centre has membership 1 there;
-one halfway between two centres has 0.5 in each. One row per document and
-topic.
+`hg_membership()` provides a graded description of the hard partition
+in the spectral embedding. It computes each cluster centre as the mean
+of its document positions, then assigns weights proportional to inverse
+squared distance and normalises them over clusters. This uses the fuzzy
+c-means weighting formula with fuzziness two (Bezdek 1981), with the
+partition centres held fixed. Coincident centres share the weight equally.
+These are geometric membership weights, not estimated topic probabilities.
 
 ```{r membership, fig.width = 7, fig.height = 5}
 membership <- hg_membership(hg, topics)
@@ -247,35 +242,31 @@ ranked_m <- tapply(membership$membership, membership$node,
 closeness <- vapply(ranked_m, \(m) 1 - sqrt(m[2] / m[1]), numeric(1))
 ```
 
-The memberships of a document sum to one over the sixteen topics, so the
-uniform value is `r uniform`. The median membership of a document in its
-own topic is `r sprintf("%.2f", median(own))`,
-`r sprintf("%.1f", median(own) / uniform)` times the uniform value. With
-fuzziness 2 a membership is proportional to the inverse squared distance,
-so the square root of the ratio of two memberships is the ratio of the
-distances. The first document above is
-`r sprintf("%.1f", distance_ratio("Cluster 1", "Cluster 2"))` times closer
-to topic 1 than to topic 2 and
-`r sprintf("%.1f", distance_ratio("Cluster 1", "Cluster 3"))` times closer
-than to topic 3. For the median document the nearest centre is
-`r round(100 * median(closeness))`% closer than the second nearest, so most
-abstracts lie near a boundary between topics, and the hard label records
-the side they fell on. The plot shows, per topic,
-the distribution of its own documents' membership in it. A compact topic
-has its documents well above the uniform value; a diffuse topic sits
-close to it.
+Membership weights sum to one for each document. With 16 clusters,
+the equal-weight reference is `r uniform`. The median weight assigned to a
+document's hard cluster is `r sprintf("%.2f", median(own))`, or
+`r sprintf("%.1f", median(own) / uniform)` times that reference.
+For inverse-squared-distance weights, the square root of a membership
+ratio equals the inverse ratio of the corresponding distances. For the
+first document, the distance to Cluster 2 relative to Cluster 1 is
+`r sprintf("%.1f", distance_ratio("Cluster 1", "Cluster 2"))`, and the
+ratio for Cluster 3 is
+`r sprintf("%.1f", distance_ratio("Cluster 1", "Cluster 3"))`.
+The median relative separation between the nearest and second-nearest
+centres is `r round(100 * median(closeness))`%. These results describe
+separation in the chosen embedding, not certainty about substantive
+topic membership. The boxplots show the distribution of weights assigned
+to each cluster by its own documents.
 
 ## Relations between topics
 
-`topic_network()` builds the topic-by-topic co-occurrence network through
-shared vocabulary. For each pair of topics it sums, over all words, the
-product of the number of documents in each topic that contain the word,
-the full-counting aggregation of bibliometric keyword networks. The
-`similarity` argument normalizes that sum by the measures of van Eck and
-Waltman (2009); `"cosine"` divides it by the geometric mean of the two
-topics' totals and lies in [0, 1]. The function returns an edge list with
-`source`, `target` and `weight`, the columns Gephi reads, and with
-`what = "network"` a `cograph_network`.
+`topic_network()` compares clusters through their retained vocabulary.
+For each cluster, form a vector giving the number of documents containing
+each word. The unnormalised relation between two clusters is the dot
+product of these vectors. With `similarity = "cosine"`, the relation is
+divided by the product of their vector norms. The result describes
+vocabulary similarity and ranges from zero to one for these nonnegative
+vectors. `what = "network"` returns an object for network plotting.
 
 ```{r relations}
 relations <- topic_network(hg, clusters = topics, similarity = "cosine")
@@ -287,13 +278,13 @@ all_relations <- topic_network(hg, clusters = topics, similarity = "cosine")
 upper_quartile <- unname(quantile(all_relations$weight, 0.75))
 ```
 
-Every pair of topics shares the corpus vocabulary, so all
-`r nrow(all_relations)` cosine weights lie between
-`r sprintf("%.2f", min(all_relations$weight))` and
-`r sprintf("%.2f", max(all_relations$weight))`. The plot keeps the upper
-quartile of the edges, those of weight
-`r sprintf("%.2f", upper_quartile)` or more, places the topics with a spring
-layout and scales line width by weight.
+The `r nrow(all_relations)` reported similarities range from
+`r sprintf("%.2f", min(all_relations$weight))` to
+`r sprintf("%.2f", max(all_relations$weight))`. The figure retains edges
+at or above the upper quartile, `r sprintf("%.2f", upper_quartile)`.
+Line width represents similarity. The spring layout provides a visual
+arrangement of these relations; plotted distances are not the cosine
+similarities themselves.
 
 ```{r relations-plot, fig.width = 7, fig.height = 7}
 network <- topic_network(hg, clusters = topics, similarity = "cosine",
@@ -304,14 +295,17 @@ cograph::splot(network, layout = "spring", minimum = upper_quartile,
 
 ## Summary
 
-The analysis divided `r format(hg$n_nodes, big.mark = ",")` abstracts into
-sixteen clusters without embeddings or truncation. The spectrum of the
-hypergraph Laplacian supports `r best_k[1]` or `r best_k[2]` clusters; the
-finer partition was chosen to match a
-published topic model. Ranking words by the share of their corpus count
-that falls in a cluster, with a support floor, yields a distinct
-vocabulary for each cluster, whereas ranking by frequency yields the corpus
-vocabulary for all of them.
+The analysis partitions `r format(hg$n_nodes, big.mark = ",")` abstracts
+into 16 clusters and describes them using vocabulary, sizes, and graded
+memberships. The eigenvalue diagnostic identifies other candidate
+resolutions, while 16 was chosen for comparison with a published topic
+analysis. These are distinct reasons for choosing a cluster count.
+
+Before using a partition substantively, inspect representative abstracts,
+compare alternative resolutions and preprocessing choices, and assess
+stability across fits. Keyword concentration, coherence, and geometric
+membership are complementary diagnostics; none alone establishes that
+the clusters are the research field's underlying topics.
 
 ## References
 

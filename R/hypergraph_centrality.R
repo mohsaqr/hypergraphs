@@ -61,7 +61,8 @@
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 #' eigenvector of \eqn{W}. With `normalize = FALSE` it equals
-#' `igraph::eigen_centrality()` on [pairwise_network()] output. The vector
+#' `igraph::eigen_centrality()` on `pairwise_network(hg, weighted = FALSE)`
+#' output. Incidence magnitudes are ignored by CEC. The vector
 #' is solved directly from a symmetric eigendecomposition of each connected
 #' component (Perron-Frobenius makes the leading eigenvalue of a connected
 #' component simple), not by power iteration, which oscillates on bipartite
@@ -111,7 +112,8 @@
 #' weights (a binary incidence) the walk is equivalent to PageRank on the
 #' weighted clique expansion with edge weights
 #' \eqn{\sum_{e \ni u,v} w(e)/\delta(e)} -- the hypergraph adds
-#' information exactly when \eqn{\gamma} is edge-dependent. Nodes left in
+#' information beyond this reduction only if \eqn{\gamma} is edge-dependent;
+#' edge dependence alone is not sufficient. Nodes left in
 #' no hyperedge (possible after `min_weight`/`min_size` filtering)
 #' teleport from every step and receive only teleportation mass. The
 #' undamped stationary distribution of the same walk is the `pi` column
@@ -447,6 +449,44 @@
   y
 }
 
+# Unit direction of the tensor map. Ordinary-sized maps keep the direct
+# computation. When products (or their squared norm) underflow, sum the
+# leave-one-out products in log space before normalizing. The same positive
+# scale cancels from the iteration and from its relative residual.
+.hg_tensor_direction <- function(hyperedges, edge_sizes, x, n, exponent) {
+  if (!any(x > 0)) return(numeric(n))
+  safe_products <- max(edge_sizes) * log(min(x[x > 0])) >=
+    log(.Machine$double.xmin)
+  if (safe_products) {
+    fx <- .hg_tensor_apply(hyperedges, edge_sizes, x, n, exponent)
+    nf <- sqrt(sum(fx^2))
+    if (is.finite(nf) && nf > 0 &&
+        max(abs(fx)) >= sqrt(.Machine$double.xmin)) {
+      return(fx / nf)
+    }
+  }
+  log_y <- rep(-Inf, n)
+  for (e in hyperedges[edge_sizes >= 2L]) {
+    xe <- x[e]
+    zeros <- which(xe == 0)
+    if (length(zeros) > 1L) next
+    if (length(zeros) == 1L) {
+      target <- e[zeros]
+      value <- sum(log(xe[-zeros]))
+    } else {
+      target <- e
+      logs <- log(xe)
+      value <- sum(logs) - logs
+    }
+    old <- log_y[target]
+    log_y[target] <- pmax(old, value) + log1p(exp(-abs(old - value)))
+  }
+  if (all(log_y == -Inf)) return(numeric(n))
+  log_y <- log_y / exponent
+  scaled <- exp(log_y - max(log_y))
+  scaled / sqrt(sum(scaled^2))
+}
+
 # Shared tensor-power-iteration kernel (Kolda & Mayo 2011 SS-HOPM shift):
 # x_{t+1} ~ f(x_t) / ||f(x_t)|| + shift * x_t, whose fixed points are exactly
 # the eigenvectors f(x) = c x. The update is normalised before the shift is
@@ -468,14 +508,13 @@
   step_converged <- FALSE
   # power iteration: an inherently sequential fixed-point loop
   for (iter in seq_len(max_iter)) {
-    fx <- .hg_tensor_apply(hyperedges, edge_sizes, x, n, exponent)
-    nf <- sqrt(sum(fx^2))
-    if (!(nf > 0)) {
+    fx <- .hg_tensor_direction(hyperedges, edge_sizes, x, n, exponent)
+    if (!any(fx != 0)) {
       x <- fx
       step_converged <- TRUE
       break
     }
-    y <- fx / nf + shift * x
+    y <- fx + shift * x
     y <- y / sqrt(sum(y^2))
     if (sum(abs(y - x)) < tol) {
       x <- y
@@ -488,10 +527,9 @@
   # Eigen-equation residual ||f(x) - (x'f(x)) x|| / ||f(x)|| at the result
   residual_ok <- TRUE
   if (any(x != 0)) {
-    fx <- .hg_tensor_apply(hyperedges, edge_sizes, x, n, exponent)
-    nf <- sqrt(sum(fx^2))
-    if (nf > 0) {
-      residual <- sqrt(sum((fx - sum(x * fx) * x)^2)) / nf
+    fx <- .hg_tensor_direction(hyperedges, edge_sizes, x, n, exponent)
+    if (any(fx != 0)) {
+      residual <- sqrt(sum((fx - sum(x * fx) * x)^2))
       residual_ok <- residual <= max(sqrt(tol), 1e-6)
     }
   }

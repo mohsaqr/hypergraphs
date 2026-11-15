@@ -70,9 +70,9 @@ hypergraph walk, otherwise it teleports.
 \details{
 Chitra & Raphael prove that with edge-\emph{independent} vertex weights the
 walk collapses to a random walk on a weighted clique-expansion graph —
-so the hypergraph brings genuinely new information exactly when the
-incidence weights differ across the hyperedges a vertex belongs to
-(tested against the closed-form graph stationary distribution). With
+so edge-dependent weights are necessary for this walk to carry information
+beyond that graph reduction; they are not sufficient on their own
+(the edge-independent case is tested against the graph stationary distribution). With
 \code{damping = 1} and default \code{edge_weights}, the result equals the
 stationary distribution of the Hayashi et al. (2020) EDVW walk used by
 \code{\link[=hg_cluster]{hg_cluster()}} (tested at \code{1e-12} against \code{\link[=hg_laplacian]{hg_laplacian()}}), and

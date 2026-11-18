@@ -1,0 +1,25 @@
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> incidence <- unclass(table(memberships$node, memberships$edge))
+
+> together <- tcrossprod(incidence) > 0
+
+> diag(together) <- FALSE
+
+> result <- data.frame(
++   edge = colnames(incidence),
++   size = colSums(incidence),
++   weight = colSums(incidence),
++   n_incident_edges = rowSums(crossprod(incidence) > 0) - 1,
++   n_neighbors = colSums(together %*% incidence > 0 & incidence == 0))
+
+> result
+   edge size weight n_incident_edges n_neighbors
+e1   e1    3      3                5           4
+e2   e2    3      3                5           4
+e3   e3    3      3                6           4
+e4   e4    3      3                5           4
+e5   e5    2      2                3           5
+e6   e6    4      4                6           3
+e7   e7    2      2                4           5

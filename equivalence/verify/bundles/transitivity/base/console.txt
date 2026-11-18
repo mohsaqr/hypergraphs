@@ -1,0 +1,23 @@
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> incidence <- unclass(table(memberships$node, memberships$edge))
+
+> adjacency <- (tcrossprod(incidence) > 0) * 1
+
+> diag(adjacency) <- 0
+
+> neighbours <- rowSums(adjacency)
+
+> result <- data.frame(node = rownames(adjacency),
++                      projection = diag(adjacency %*% adjacency %*% adjacency) / (neighbours * (neighbours - 1)))
+
+> result
+  node projection
+a    a  0.8000000
+b    b  1.0000000
+c    c  0.7333333
+d    d  0.7333333
+e    e  0.8000000
+f    f  0.8333333
+g    g  0.8333333

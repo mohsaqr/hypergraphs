@@ -1,0 +1,34 @@
+
+> library(igraph)
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> bipartite <- graph_from_data_frame(memberships, directed = FALSE)
+
+> V(bipartite)$type <- V(bipartite)$name %in% memberships$edge
+
+> expansion <- bipartite_projection(bipartite, multiplicity = FALSE, which = "false")
+
+> result <- data.frame(node = V(expansion)$name,
++                      projection = transitivity(expansion, type = "local"))
+
+> result
+  node projection
+a    a  0.8000000
+b    b  1.0000000
+c    c  0.7333333
+d    d  0.7333333
+e    e  0.8000000
+f    f  0.8333333
+g    g  0.8333333

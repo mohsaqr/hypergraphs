@@ -1,0 +1,52 @@
+Registered S3 methods overwritten by 'Nestimate':
+  method            from       
+  plot.net_mlvar    idiographic
+  print.net_mlvar   idiographic
+  summary.net_mlvar idiographic
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> hg <- group_hypergraph(memberships, node = "node", hyperedge = "edge")
+
+> hg_line_graph(hg, s = 1, what = "edges")
+   from to weight
+1    e1 e2      2
+2    e1 e3      2
+3    e1 e4      1
+4    e1 e6      1
+5    e1 e7      1
+6    e2 e3      1
+7    e2 e4      2
+8    e2 e6      1
+9    e2 e7      1
+10   e3 e4      1
+11   e3 e5      1
+12   e3 e6      1
+13   e3 e7      1
+14   e4 e5      1
+15   e4 e6      1
+16   e5 e6      1
+17   e6 e7      1
+
+> result <- transform(hg_line_graph(hg, s = 1, what = "edges"), pair = paste(from, to, sep = " -- ")) |>
++   subset(select = c(pair, weight))
+
+> result
+       pair weight
+1  e1 -- e2      2
+2  e1 -- e3      2
+3  e1 -- e4      1
+4  e1 -- e6      1
+5  e1 -- e7      1
+6  e2 -- e3      1
+7  e2 -- e4      2
+8  e2 -- e6      1
+9  e2 -- e7      1
+10 e3 -- e4      1
+11 e3 -- e5      1
+12 e3 -- e6      1
+13 e3 -- e7      1
+14 e4 -- e5      1
+15 e4 -- e6      1
+16 e5 -- e6      1
+17 e6 -- e7      1

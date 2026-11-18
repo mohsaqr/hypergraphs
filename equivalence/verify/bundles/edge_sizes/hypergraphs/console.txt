@@ -1,0 +1,33 @@
+Registered S3 methods overwritten by 'Nestimate':
+  method            from       
+  plot.net_mlvar    idiographic
+  print.net_mlvar   idiographic
+  summary.net_mlvar idiographic
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> hg <- group_hypergraph(memberships, node = "node", hyperedge = "edge")
+
+> hg
+Hypergraph: 7 nodes, 7 hyperedges (sizes 2: 2, 3: 4, 4: 1)
+Source: group membership (node = node, hyperedge = edge)
+ hyperedge size    members
+        e1    3    a, b, c
+        e2    3    a, b, d
+        e3    3    a, c, e
+        e4    3    b, d, e
+        e5    2       e, f
+        e6    4 c, d, f, g
+        e7    2       a, g
+
+> result <- hg_edges(hg, what = "edges")
+
+> result
+  edge size weight n_incident_edges n_neighbors
+1   e1    3      3                5           4
+2   e2    3      3                5           4
+3   e3    3      3                6           4
+4   e4    3      3                5           4
+5   e5    2      2                3           5
+6   e6    4      4                6           3
+7   e7    2      2                4           5

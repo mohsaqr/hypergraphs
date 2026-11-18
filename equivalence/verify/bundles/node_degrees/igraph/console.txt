@@ -1,0 +1,41 @@
+
+> library(igraph)
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+
+> tribunals <- read.csv("../data/icsid_tribunals.csv", encoding = "UTF-8")
+
+> bipartite <- graph_from_data_frame(tribunals, directed = FALSE)
+
+> arbitrators <- unique(tribunals$arbitrator)
+
+> cases <- neighborhood(bipartite, order = 1, nodes = arbitrators, mindist = 1)
+
+> result <- data.frame(
++   node = arbitrators,
++   hyperdegree = unname(degree(bipartite, arbitrators)),
++   strength = vapply(cases, function(own) sum(degree(bipartite, own)), numeric(1)),
++   max_edge_size = vapply(cases, function(own) max(degree(bipartite, own)), numeric(1)),
++   n_neighbors = ego_size(bipartite, order = 2, nodes = arbitrators, mindist = 2))
+
+> head(result, 10)
+                     node hyperdegree strength max_edge_size n_neighbors
+1  Jacques Michel GROSSEN           1        3             3           2
+2        Dominique PONCET           1        3             3           2
+3            Pierre CAVIN           1        3             3           2
+4            Michael KERR           3        9             3           2
+5            Fuad ROUHANI           3        9             3           2
+6           Jørgen TROLLE           3        9             3           2
+7        Berthold GOLDMAN           1        3             3           2
+8      Samuel K.B. ASANTE           1        3             3           2
+9  Ahmed Sadek EL-KOSHERI           8       24             3          14
+10      Peter D. TROOBOFF           1        3             3           2

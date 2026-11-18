@@ -1,0 +1,743 @@
+{
+  "schema": "prova.verification-case/1",
+  "title": "Normalised hypergraph Laplacian (Zhou, Huang and Scholkopf 2007)",
+  "description": "Every entry of I - Dv^-1/2 H W De^-1 H' Dv^-1/2 with unit hyperedge weights, where Dv holds the node degrees and De the hyperedge sizes. No package on this machine computes it, so the reference is base R written from the formula of the paper.",
+  "covers": [
+    "hg_laplacian()"
+  ],
+  "generator": "hypergraphs equivalence/verify/export-bundles.R",
+  "created_at": "2026-11-18",
+  "sides": [
+    {
+      "id": "hypergraphs",
+      "name": "hypergraphs",
+      "version": "0.7.14",
+      "primary": true,
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "base",
+      "name": "Base R, from the definition",
+      "version": "4.6.2",
+      "authority": "independent",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    }
+  ],
+  "sections": [
+    {
+      "id": "code",
+      "title": "Code",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/script.R",
+          "bytes": 363,
+          "sha256": "842938000473234a0e469ff6b49a9abe8cf0b0babf67eee104d04a9f6f09b650",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "base",
+          "path": "base/script.R",
+          "bytes": 568,
+          "sha256": "5e70e5823cb7cccfaec6e369033b9adc553e583f4761db021d04f85ec03b7689",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "title": "Raw output",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/console.txt",
+          "bytes": 1754,
+          "sha256": "3f133b56272ae57cc9fc77e5b1dfe17eedff8b89afb7e9f8610eefe874469318",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "base",
+          "path": "base/console.txt",
+          "bytes": 1662,
+          "sha256": "e2ed6ed4a14976a4176a826d0f33d044b410c72a08b7c1a8e35e49ad66c96c13",
+          "label": "R console",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Data",
+      "items": [
+        {
+          "path": "data/memberships.csv",
+          "bytes": 194,
+          "sha256": "f06890618fe583a94a7b2c47b3baa2f83669536931a43f1ad73a47f5265e4cd8",
+          "label": "Memberships"
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "quantity": "a, a",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0.625,
+        "base": 0.625
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "b, a",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.192450089729875,
+        "base": -0.192450089729875
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "c, a",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.192450089729875,
+        "base": -0.192450089729875
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "d, a",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.0962250448649376,
+        "base": -0.0962250448649376
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "e, a",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.0962250448649376,
+        "base": -0.0962250448649376
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "f, a",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "g, a",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.176776695296637,
+        "base": -0.176776695296637
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "a, b",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.192450089729875,
+        "base": -0.192450089729875
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "b, b",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0.666666666666667,
+        "base": 0.666666666666667
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "c, b",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "d, b",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.222222222222222,
+        "base": -0.222222222222222
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "e, b",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "f, b",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "g, b",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "a, c",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.192450089729875,
+        "base": -0.192450089729875
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "b, c",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "c, c",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0.694444444444444,
+        "base": 0.694444444444444
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "d, c",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.0833333333333334,
+        "base": -0.0833333333333334
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "e, c",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "f, c",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "g, c",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "a, d",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.0962250448649376,
+        "base": -0.0962250448649376
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "b, d",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.222222222222222,
+        "base": -0.222222222222222
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "c, d",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.0833333333333334,
+        "base": -0.0833333333333334
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "d, d",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0.694444444444444,
+        "base": 0.694444444444444
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "e, d",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "f, d",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "g, d",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "a, e",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.0962250448649376,
+        "base": -0.0962250448649376
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "b, e",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "c, e",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "d, e",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.111111111111111,
+        "base": -0.111111111111111
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "e, e",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0.611111111111111,
+        "base": 0.611111111111111
+      },
+      "difference": 1.11022302462516e-16,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "f, e",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.204124145231932,
+        "base": -0.204124145231932
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "g, e",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "a, f",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "b, f",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "c, f",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "d, f",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "e, f",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.204124145231932,
+        "base": -0.204124145231932
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "f, f",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0.625,
+        "base": 0.625
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "g, f",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.125,
+        "base": -0.125
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "a, g",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.176776695296637,
+        "base": -0.176776695296637
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "b, g",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "c, g",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "d, g",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.102062072615966,
+        "base": -0.102062072615966
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "e, g",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0,
+        "base": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "f, g",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": -0.125,
+        "base": -0.125
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "g, g",
+      "kind": "laplacian",
+      "values": {
+        "hypergraphs": 0.625,
+        "base": 0.625
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    }
+  ]
+}

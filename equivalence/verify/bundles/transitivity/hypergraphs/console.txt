@@ -1,0 +1,25 @@
+Registered S3 methods overwritten by 'Nestimate':
+  method            from       
+  plot.net_mlvar    idiographic
+  print.net_mlvar   idiographic
+  summary.net_mlvar idiographic
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> hg <- group_hypergraph(memberships, node = "node", hyperedge = "edge")
+
+> result <- hg_transitivity(hg, type = "projection", what = "nodes")
+
+> result
+  node projection
+1    a  0.8000000
+2    b  1.0000000
+3    c  0.7333333
+4    d  0.7333333
+5    e  0.8000000
+6    f  0.8333333
+7    g  0.8333333
+
+> hg_transitivity(hg, type = "projection", what = "summary")
+        type mean_local n_undefined
+1 projection  0.8190476           0

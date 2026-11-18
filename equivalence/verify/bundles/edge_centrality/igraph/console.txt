@@ -1,0 +1,38 @@
+
+> library(igraph)
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> bipartite <- graph_from_data_frame(memberships, directed = FALSE)
+
+> V(bipartite)$type <- V(bipartite)$name %in% memberships$edge
+
+> line <- bipartite_projection(bipartite, multiplicity = FALSE, which = "true")
+
+> is_connected(line)
+[1] TRUE
+
+> result <- data.frame(edge = V(line)$name,
++                      betweenness = betweenness(line, normalized = TRUE),
++                      closeness = closeness(line, normalized = TRUE))
+
+> result
+   edge betweenness closeness
+e1   e1  0.01666667 0.8571429
+e2   e2  0.01666667 0.8571429
+e3   e3  0.09444444 1.0000000
+e4   e4  0.04444444 0.8571429
+e5   e5  0.00000000 0.6666667
+e6   e6  0.09444444 1.0000000
+e7   e7  0.00000000 0.7500000

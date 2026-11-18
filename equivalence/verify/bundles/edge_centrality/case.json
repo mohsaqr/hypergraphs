@@ -1,0 +1,290 @@
+{
+  "schema": "prova.verification-case/1",
+  "title": "s-betweenness and s-closeness of hyperedges (s = 1)",
+  "description": "Shortest-path centralities of the hyperedges on the unweighted 1-line graph, with the normalisation of NetworkX: betweenness scaled by 2 / ((n - 1)(n - 2)) and closeness (n - 1) / sum of distances. igraph computes both on the line graph it builds itself as a bipartite projection. The line graph of this hypergraph is connected, so no correction for components enters.",
+  "covers": [
+    "hg_edge_centrality()",
+    "hg_line_graph()"
+  ],
+  "generator": "hypergraphs equivalence/verify/export-bundles.R",
+  "created_at": "2026-11-18",
+  "sides": [
+    {
+      "id": "hypergraphs",
+      "name": "hypergraphs",
+      "version": "0.7.14",
+      "primary": true,
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "igraph",
+      "name": "igraph",
+      "version": "2.3.4",
+      "authority": "open-source",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    }
+  ],
+  "sections": [
+    {
+      "id": "code",
+      "title": "Code",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/script.R",
+          "bytes": 432,
+          "sha256": "2e9db86923b97262a75a59baf88609c34bd1b61ef1b430ca6dcea3e1a098c3c8",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/script.R",
+          "bytes": 482,
+          "sha256": "526eead4f12d4502ad5aa76fe9f3a11005dc36bbfa0229198cabac3557053f9f",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "edge",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "title": "Raw output",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/console.txt",
+          "bytes": 2016,
+          "sha256": "d2f5ad5fdef7104ca502d51793189ab2ce52116c186b64c75bfb6a33da626337",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/console.txt",
+          "bytes": 946,
+          "sha256": "a9d13ca7ac8ceeff687ba1c039fe7b92bd5146f138dfbd9c365b7c9a2bdf6234",
+          "label": "R console",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Data",
+      "items": [
+        {
+          "path": "data/memberships.csv",
+          "bytes": 194,
+          "sha256": "f06890618fe583a94a7b2c47b3baa2f83669536931a43f1ad73a47f5265e4cd8",
+          "label": "Memberships"
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "quantity": "betweenness: e3",
+      "kind": "betweenness",
+      "values": {
+        "hypergraphs": 0.0944444444444444,
+        "igraph": 0.0944444444444444
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "betweenness: e6",
+      "kind": "betweenness",
+      "values": {
+        "hypergraphs": 0.0944444444444444,
+        "igraph": 0.0944444444444444
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "betweenness: e4",
+      "kind": "betweenness",
+      "values": {
+        "hypergraphs": 0.0444444444444444,
+        "igraph": 0.0444444444444444
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "betweenness: e1",
+      "kind": "betweenness",
+      "values": {
+        "hypergraphs": 0.0166666666666667,
+        "igraph": 0.0166666666666667
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "betweenness: e2",
+      "kind": "betweenness",
+      "values": {
+        "hypergraphs": 0.0166666666666667,
+        "igraph": 0.0166666666666667
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "betweenness: e5",
+      "kind": "betweenness",
+      "values": {
+        "hypergraphs": 0,
+        "igraph": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "betweenness: e7",
+      "kind": "betweenness",
+      "values": {
+        "hypergraphs": 0,
+        "igraph": 0
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "closeness: e3",
+      "kind": "closeness",
+      "values": {
+        "hypergraphs": 1,
+        "igraph": 1
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "closeness: e6",
+      "kind": "closeness",
+      "values": {
+        "hypergraphs": 1,
+        "igraph": 1
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "closeness: e1",
+      "kind": "closeness",
+      "values": {
+        "hypergraphs": 0.857142857142857,
+        "igraph": 0.857142857142857
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "closeness: e2",
+      "kind": "closeness",
+      "values": {
+        "hypergraphs": 0.857142857142857,
+        "igraph": 0.857142857142857
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "closeness: e4",
+      "kind": "closeness",
+      "values": {
+        "hypergraphs": 0.857142857142857,
+        "igraph": 0.857142857142857
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "closeness: e7",
+      "kind": "closeness",
+      "values": {
+        "hypergraphs": 0.75,
+        "igraph": 0.75
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "closeness: e5",
+      "kind": "closeness",
+      "values": {
+        "hypergraphs": 0.666666666666667,
+        "igraph": 0.666666666666667
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    }
+  ]
+}

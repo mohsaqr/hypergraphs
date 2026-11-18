@@ -1,0 +1,189 @@
+{
+  "schema": "prova.verification-case/1",
+  "title": "s-line graph, s = 2",
+  "description": "The same hypergraph with hyperedges joined only when they share at least two nodes. igraph and base R keep the pairs of the s = 1 line graph whose weight is at least 2.",
+  "covers": [
+    "hg_line_graph()"
+  ],
+  "variant": {
+    "of": "line_graph",
+    "option": "s",
+    "value": "2"
+  },
+  "generator": "hypergraphs equivalence/verify/export-bundles.R",
+  "created_at": "2026-11-18",
+  "sides": [
+    {
+      "id": "hypergraphs",
+      "name": "hypergraphs",
+      "version": "0.7.14",
+      "primary": true,
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "igraph",
+      "name": "igraph",
+      "version": "2.3.4",
+      "authority": "open-source",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "base",
+      "name": "Base R, from the definition",
+      "version": "4.6.2",
+      "authority": "independent",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    }
+  ],
+  "sections": [
+    {
+      "id": "code",
+      "title": "Code",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/script.R",
+          "bytes": 329,
+          "sha256": "049ae87e6819dac12f101564103dd998bc47ea74a7b21aecff984bdeb92612c4",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "pair",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/script.R",
+          "bytes": 550,
+          "sha256": "376ebe66bc4fb4038f07dacf2602fd4f4e687b700352c45e9a60eb6fe8da38bf",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "pair",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "base",
+          "path": "base/script.R",
+          "bytes": 379,
+          "sha256": "bc7bd51c464e857578f554523debcd672a6bfbb2e127247d133491c94c5a617c",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "pair",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "title": "Raw output",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/console.txt",
+          "bytes": 643,
+          "sha256": "b7b526a46696fd8ce4cc77bbfedc62f80c1ee7c8b7b474db09b5f1a233a8bcd0",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/console.txt",
+          "bytes": 838,
+          "sha256": "558ee67b940c9da853843c00d4fca124a018370d54e818f22689cfb317de8b83",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "base",
+          "path": "base/console.txt",
+          "bytes": 471,
+          "sha256": "d1c473f56835d3f22931aab2a74524fcde9e04994ba90f51e9839622a01c19f2",
+          "label": "R console",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Data",
+      "items": [
+        {
+          "path": "data/memberships.csv",
+          "bytes": 194,
+          "sha256": "f06890618fe583a94a7b2c47b3baa2f83669536931a43f1ad73a47f5265e4cd8",
+          "label": "Memberships"
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "quantity": "weight: e1 -- e2",
+      "kind": "weight",
+      "values": {
+        "hypergraphs": 2,
+        "igraph": 2,
+        "base": 2
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 0,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "weight: e1 -- e3",
+      "kind": "weight",
+      "values": {
+        "hypergraphs": 2,
+        "igraph": 2,
+        "base": 2
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 0,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "weight: e2 -- e4",
+      "kind": "weight",
+      "values": {
+        "hypergraphs": 2,
+        "igraph": 2,
+        "base": 2
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 0,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    }
+  ]
+}

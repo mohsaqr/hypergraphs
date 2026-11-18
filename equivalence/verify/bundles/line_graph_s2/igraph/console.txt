@@ -1,0 +1,34 @@
+
+> library(igraph)
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> bipartite <- graph_from_data_frame(memberships, directed = FALSE)
+
+> V(bipartite)$type <- V(bipartite)$name %in% memberships$edge
+
+> projection <- bipartite_projection(bipartite, multiplicity = TRUE, which = "true")
+
+> projection <- delete_edges(projection, E(projection)[weight < 2])
+
+> pairs <- as_data_frame(projection, what = "edges")
+
+> result <- data.frame(pair = paste(pmin(pairs$from, pairs$to), pmax(pairs$from, pairs$to), sep = " -- "),
++                      weight = pairs$weight)
+
+> result
+      pair weight
+1 e1 -- e2      2
+2 e1 -- e3      2
+3 e2 -- e4      2

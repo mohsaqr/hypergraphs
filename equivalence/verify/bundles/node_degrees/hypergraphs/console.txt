@@ -1,0 +1,51 @@
+Registered S3 methods overwritten by 'Nestimate':
+  method            from       
+  plot.net_mlvar    idiographic
+  print.net_mlvar   idiographic
+  summary.net_mlvar idiographic
+
+> tribunals <- read.csv("../data/icsid_tribunals.csv", encoding = "UTF-8")
+
+> hg <- group_hypergraph(tribunals, node = "arbitrator", hyperedge = "case")
+
+> hg
+Hypergraph: 441 nodes, 742 hyperedges (sizes 3: 742)
+Source: group membership (node = arbitrator, hyperedge = case)
+    hyperedge size
+   ADHOC/17/1    3
+     ADM/23/1    3
+ ARB(AF)/04/1    3
+ ARB(AF)/04/3    3
+ ARB(AF)/04/4    3
+ ARB(AF)/04/5    3
+ ARB(AF)/04/6    3
+ ARB(AF)/05/2    3
+ ARB(AF)/06/1    3
+ ARB(AF)/06/2    3
+                                                                 members
+ Jean Engelmayer KALICKI, Klaus REICHERT, Laurence BOISSON DE CHAZOURNES
+                     Jean Engelmayer KALICKI, John BEECHEY, Rolf KNIEPER
+   Andreas F. LOWENFELD, Christopher GREENWOOD, Jesus SERRANO DE LA VEGA
+                    Eduardo MAGALLÓN GÓMEZ, L. Yves FORTIER, V.V. VEEDER
+                    Eduardo MAGALLÓN GÓMEZ, L. Yves FORTIER, V.V. VEEDER
+             Arthur W. ROVINE, Bernardo M. CREMADES, Eduardo SIQUEIROS T
+                         Brigitte STERN, Charles N. BROWER, Vaughan LOWE
+                      David D. CARON, Donald M. MCRAE, Michael C. PRYLES
+                     Nabil ELARABY, Paolo Michele PATOCCHI, Vaughan LOWE
+                     J. Christopher THOMAS, Marc LALONDE, Pierre TERCIER
+... 732 more rows
+
+> result <- hg_measures(hg, what = "nodes")
+
+> head(result, 10)
+                      node hyperdegree strength max_edge_size n_neighbors
+1    Abdulqawi Ahmed YUSUF           1        3             3           2
+2          Achille NGWANZA           1        3             3           2
+3           Adolfo JIMÉNEZ           1        3             3           2
+4   Ahmed Sadek EL-KOSHERI           8       24             3          14
+5    Aimery DE SCHOUTHEETE           1        3             3           2
+6          Aktham EL KHOLY           1        3             3           2
+7             Alain PELLET           7       21             3          13
+8           Alain VIANDIER           1        3             3           2
+9  Albert Jan VAN DEN BERG          34      102             3          50
+10       Alejandro ESCOBAR           2        6             3           4

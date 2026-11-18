@@ -1,0 +1,46 @@
+Registered S3 methods overwritten by 'Nestimate':
+  method            from       
+  plot.net_mlvar    idiographic
+  print.net_mlvar   idiographic
+  summary.net_mlvar idiographic
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> hg <- group_hypergraph(memberships, node = "node", hyperedge = "edge")
+
+> hg_edge_centrality(hg, s = 1, measure = c("betweenness", "closeness"), normalized = TRUE)
+   edge s     measure      value
+1    e3 1 betweenness 0.09444444
+2    e6 1 betweenness 0.09444444
+3    e4 1 betweenness 0.04444444
+4    e1 1 betweenness 0.01666667
+5    e2 1 betweenness 0.01666667
+6    e5 1 betweenness 0.00000000
+7    e7 1 betweenness 0.00000000
+8    e3 1   closeness 1.00000000
+9    e6 1   closeness 1.00000000
+10   e1 1   closeness 0.85714286
+11   e2 1   closeness 0.85714286
+12   e4 1   closeness 0.85714286
+13   e7 1   closeness 0.75000000
+14   e5 1   closeness 0.66666667
+
+> result <- transform(hg_edge_centrality(hg, s = 1, measure = c("betweenness", "closeness"), normalized = TRUE),
++                     quantity = paste(measure, edge, sep = ": "), kind = measure)
+
+> result
+   edge s     measure      value        quantity        kind
+1    e3 1 betweenness 0.09444444 betweenness: e3 betweenness
+2    e6 1 betweenness 0.09444444 betweenness: e6 betweenness
+3    e4 1 betweenness 0.04444444 betweenness: e4 betweenness
+4    e1 1 betweenness 0.01666667 betweenness: e1 betweenness
+5    e2 1 betweenness 0.01666667 betweenness: e2 betweenness
+6    e5 1 betweenness 0.00000000 betweenness: e5 betweenness
+7    e7 1 betweenness 0.00000000 betweenness: e7 betweenness
+8    e3 1   closeness 1.00000000   closeness: e3   closeness
+9    e6 1   closeness 1.00000000   closeness: e6   closeness
+10   e1 1   closeness 0.85714286   closeness: e1   closeness
+11   e2 1   closeness 0.85714286   closeness: e2   closeness
+12   e4 1   closeness 0.85714286   closeness: e4   closeness
+13   e7 1   closeness 0.75000000   closeness: e7   closeness
+14   e5 1   closeness 0.66666667   closeness: e5   closeness

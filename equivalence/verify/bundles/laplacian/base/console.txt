@@ -1,0 +1,42 @@
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> incidence <- unclass(table(memberships$node, memberships$edge))
+
+> degree_root <- diag(1 / sqrt(rowSums(incidence)))
+
+> size_inverse <- diag(1 / colSums(incidence))
+
+> laplacian <- diag(nrow(incidence)) - degree_root %*% incidence %*% size_inverse %*% t(incidence) %*% degree_root
+
+> dimnames(laplacian) <- list(rownames(incidence), rownames(incidence))
+
+> laplacian
+            a          b           c           d           e          f
+a  0.62500000 -0.1924501 -0.19245009 -0.09622504 -0.09622504  0.0000000
+b -0.19245009  0.6666667 -0.11111111 -0.22222222 -0.11111111  0.0000000
+c -0.19245009 -0.1111111  0.69444444 -0.08333333 -0.11111111 -0.1020621
+d -0.09622504 -0.2222222 -0.08333333  0.69444444 -0.11111111 -0.1020621
+e -0.09622504 -0.1111111 -0.11111111 -0.11111111  0.61111111 -0.2041241
+f  0.00000000  0.0000000 -0.10206207 -0.10206207 -0.20412415  0.6250000
+g -0.17677670  0.0000000 -0.10206207 -0.10206207  0.00000000 -0.1250000
+           g
+a -0.1767767
+b  0.0000000
+c -0.1020621
+d -0.1020621
+e  0.0000000
+f -0.1250000
+g  0.6250000
+
+> result <- transform(as.data.frame(as.table(laplacian)), quantity = paste(Var1, Var2, sep = ", "),
++                     value = Freq, kind = "laplacian")
+
+> head(result)
+  Var1 Var2        Freq quantity       value      kind
+1    a    a  0.62500000     a, a  0.62500000 laplacian
+2    b    a -0.19245009     b, a -0.19245009 laplacian
+3    c    a -0.19245009     c, a -0.19245009 laplacian
+4    d    a -0.09622504     d, a -0.09622504 laplacian
+5    e    a -0.09622504     e, a -0.09622504 laplacian
+6    f    a  0.00000000     f, a  0.00000000 laplacian

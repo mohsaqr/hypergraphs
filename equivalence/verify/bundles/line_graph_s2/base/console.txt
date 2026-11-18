@@ -1,0 +1,17 @@
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> incidence <- unclass(table(memberships$node, memberships$edge))
+
+> shared <- crossprod(incidence)
+
+> pairs <- which(upper.tri(shared) & shared >= 2, arr.ind = TRUE)
+
+> result <- data.frame(pair = paste(rownames(shared)[pairs[, "row"]], colnames(shared)[pairs[, "col"]], sep = " -- "),
++                      weight = shared[pairs])
+
+> result
+      pair weight
+1 e1 -- e2      2
+2 e1 -- e3      2
+3 e2 -- e4      2

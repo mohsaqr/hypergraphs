@@ -1,0 +1,40 @@
+
+> library(igraph)
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> bipartite <- graph_from_data_frame(memberships, directed = FALSE)
+
+> V(bipartite)$type <- V(bipartite)$name %in% memberships$edge
+
+> E(bipartite)$weight <- 1
+
+> edges <- unique(memberships$edge)
+
+> result <- data.frame(
++   edge = edges,
++   size = unname(degree(bipartite, edges)),
++   weight = unname(strength(bipartite, edges)),
++   n_incident_edges = ego_size(bipartite, order = 2, nodes = edges, mindist = 2),
++   n_neighbors = ego_size(bipartite, order = 3, nodes = edges, mindist = 3))
+
+> result
+  edge size weight n_incident_edges n_neighbors
+1   e1    3      3                5           4
+2   e2    3      3                5           4
+3   e3    3      3                6           4
+4   e4    3      3                5           4
+5   e5    2      2                3           5
+6   e6    4      4                6           3
+7   e7    2      2                4           5

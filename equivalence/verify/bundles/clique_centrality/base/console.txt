@@ -1,0 +1,32 @@
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> incidence <- unclass(table(memberships$node, memberships$edge))
+
+> nodes <- nrow(incidence)
+
+> adjacency <- tcrossprod(incidence)
+
+> diag(adjacency) <- 0
+
+> leading <- abs(eigen(adjacency, symmetric = TRUE)$vectors[, 1])
+
+> walk <- incidence %*% (t(incidence) / colSums(incidence))
+
+> transition <- walk / rowSums(walk)
+
+> result <- data.frame(
++   node = rownames(incidence),
++   clique = leading / sqrt(sum(leading^2)),
++   pagerank = solve(diag(nodes) - 0.85 * t(transition), rep((1 - 0.85) / nodes, nodes)),
++   katz = solve(diag(nodes) - 0.05 * adjacency, rep(1, nodes)) - 1)
+
+> result
+  node    clique  pagerank      katz
+a    a 0.4572381 0.1883081 0.5004429
+b    b 0.4239702 0.1456096 0.4417577
+c    c 0.4346232 0.1483611 0.4931634
+d    d 0.4298657 0.1488709 0.4903688
+e    e 0.3318902 0.1494644 0.3603671
+f    f 0.2432166 0.1104335 0.2816089
+g    g 0.2611422 0.1089524 0.2882792

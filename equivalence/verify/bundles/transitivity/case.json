@@ -1,0 +1,240 @@
+{
+  "schema": "prova.verification-case/1",
+  "title": "Local transitivity on the projection",
+  "description": "The local clustering coefficient of each node in the simple (unweighted) clique expansion: the share of pairs of a node's neighbours that are themselves neighbours. igraph computes it on the projection it builds itself; base R from the adjacency matrix as diag(A^3) / (k (k - 1)).",
+  "covers": [
+    "hg_transitivity()"
+  ],
+  "generator": "hypergraphs equivalence/verify/export-bundles.R",
+  "created_at": "2026-11-18",
+  "sides": [
+    {
+      "id": "hypergraphs",
+      "name": "hypergraphs",
+      "version": "0.7.14",
+      "primary": true,
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "igraph",
+      "name": "igraph",
+      "version": "2.3.4",
+      "authority": "open-source",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "base",
+      "name": "Base R, from the definition",
+      "version": "4.6.2",
+      "authority": "independent",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    }
+  ],
+  "sections": [
+    {
+      "id": "code",
+      "title": "Code",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/script.R",
+          "bytes": 276,
+          "sha256": "0c885f56c96b6ffb109fda68444c93efe9292707bf8fb4ea9dc1ac182c557034",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "node",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/script.R",
+          "bytes": 407,
+          "sha256": "b86b27ef504fd38a1e8fdc7e346b5b744983919582fb676774eac2a39c4b6572",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "node",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "base",
+          "path": "base/script.R",
+          "bytes": 383,
+          "sha256": "03cf16fda785949e9537f8ea5e1f2ee8d6a6fbe3337d0e0d2cd2f9335258cb91",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "node",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "title": "Raw output",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/console.txt",
+          "bytes": 664,
+          "sha256": "043d1f74c2e1fdb9bbf1c89a12cfcb1496b0c60e1c8e8f4595b3787b745204f7",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/console.txt",
+          "bytes": 761,
+          "sha256": "f790c2eed013e9ae533c367f9f3aa92522bf0a968376ca479567f7b2864888ce",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "base",
+          "path": "base/console.txt",
+          "bytes": 550,
+          "sha256": "7971f6fce2d34ebb0f6a2b3a77d4faae2beb4e52ce7c9027bf1eff210db6ab9e",
+          "label": "R console",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Data",
+      "items": [
+        {
+          "path": "data/memberships.csv",
+          "bytes": 194,
+          "sha256": "f06890618fe583a94a7b2c47b3baa2f83669536931a43f1ad73a47f5265e4cd8",
+          "label": "Memberships"
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "quantity": "projection: a",
+      "kind": "projection",
+      "values": {
+        "hypergraphs": 0.8,
+        "igraph": 0.8,
+        "base": 0.8
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "projection: b",
+      "kind": "projection",
+      "values": {
+        "hypergraphs": 1,
+        "igraph": 1,
+        "base": 1
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "projection: c",
+      "kind": "projection",
+      "values": {
+        "hypergraphs": 0.733333333333333,
+        "igraph": 0.733333333333333,
+        "base": 0.733333333333333
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "projection: d",
+      "kind": "projection",
+      "values": {
+        "hypergraphs": 0.733333333333333,
+        "igraph": 0.733333333333333,
+        "base": 0.733333333333333
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "projection: e",
+      "kind": "projection",
+      "values": {
+        "hypergraphs": 0.8,
+        "igraph": 0.8,
+        "base": 0.8
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "projection: f",
+      "kind": "projection",
+      "values": {
+        "hypergraphs": 0.833333333333333,
+        "igraph": 0.833333333333333,
+        "base": 0.833333333333333
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "projection: g",
+      "kind": "projection",
+      "values": {
+        "hypergraphs": 0.833333333333333,
+        "igraph": 0.833333333333333,
+        "base": 0.833333333333333
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-12,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    }
+  ]
+}

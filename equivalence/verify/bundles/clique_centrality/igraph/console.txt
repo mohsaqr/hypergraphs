@@ -1,0 +1,45 @@
+
+> library(igraph)
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+
+> memberships <- read.csv("../data/memberships.csv")
+
+> bipartite <- graph_from_data_frame(memberships, directed = FALSE)
+
+> V(bipartite)$type <- V(bipartite)$name %in% memberships$edge
+
+> expansion <- bipartite_projection(bipartite, multiplicity = TRUE, which = "false")
+
+> eigenvector <- eigen_centrality(expansion, weights = E(expansion)$weight)$vector
+
+> incidence <- as_biadjacency_matrix(bipartite)
+
+> walk <- incidence %*% (t(incidence) / colSums(incidence))
+
+> walk_graph <- graph_from_adjacency_matrix(walk, mode = "directed", weighted = TRUE, diag = TRUE)
+
+> result <- data.frame(
++   node = V(expansion)$name,
++   clique = eigenvector / sqrt(sum(eigenvector^2)),
++   pagerank = page_rank(walk_graph, damping = 0.85)$vector[V(expansion)$name],
++   katz = alpha_centrality(expansion, alpha = 0.05, exo = 1, weights = E(expansion)$weight) - 1)
+
+> result
+  node    clique  pagerank      katz
+a    a 0.4572381 0.1883081 0.5004429
+b    b 0.4239702 0.1456096 0.4417577
+c    c 0.4346232 0.1483611 0.4931634
+d    d 0.4298657 0.1488709 0.4903688
+e    e 0.3318902 0.1494644 0.3603671
+f    f 0.2432166 0.1104335 0.2816089
+g    g 0.2611422 0.1089524 0.2882792

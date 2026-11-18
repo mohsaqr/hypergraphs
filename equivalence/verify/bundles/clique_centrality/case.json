@@ -1,0 +1,437 @@
+{
+  "schema": "prova.verification-case/1",
+  "title": "Clique eigenvector, PageRank and Katz centrality",
+  "description": "Three node centralities of a hypergraph. Clique eigenvector centrality is the leading eigenvector of the weighted clique expansion, at unit Euclidean length. PageRank (damping 0.85) is the hypergraph random walk, which for a binary incidence is the walk on W[u, v] = sum over shared hyperedges of 1 / size, self-loops included (Chitra and Raphael 2019). Katz is (I - alpha A)^-1 1 - 1 on the weighted clique expansion, alpha = 0.05.",
+  "covers": [
+    "hg_centrality()",
+    "hg_pagerank()"
+  ],
+  "generator": "hypergraphs equivalence/verify/export-bundles.R",
+  "created_at": "2026-11-18",
+  "sides": [
+    {
+      "id": "hypergraphs",
+      "name": "hypergraphs",
+      "version": "0.7.14",
+      "primary": true,
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "igraph",
+      "name": "igraph",
+      "version": "2.3.4",
+      "authority": "open-source",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    },
+    {
+      "id": "base",
+      "name": "Base R, from the definition",
+      "version": "4.6.2",
+      "authority": "independent",
+      "source": "live",
+      "run_at": "2026-11-18",
+      "platform": "R version 4.6.2 (2026-10-29), aarch64-apple-darwin23"
+    }
+  ],
+  "sections": [
+    {
+      "id": "code",
+      "title": "Code",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/script.R",
+          "bytes": 336,
+          "sha256": "45ed092c64bb1342d2b63ce2b70a8dae0eb477b21b0cc2d294b049dbdd95db10",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "node",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/script.R",
+          "bytes": 841,
+          "sha256": "ea5c42e0376cc92a42f0fcb3a47fe8d986b849851e2c1c98c076b9c703228033",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "node",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        },
+        {
+          "side": "base",
+          "path": "base/script.R",
+          "bytes": 610,
+          "sha256": "8e385c645ab9d5bf35ae47db77502ec6789d54774c8f8f693ff1ae8ae249c56e",
+          "label": "Script",
+          "type": "code",
+          "language": "r",
+          "run": {
+            "engine": "r",
+            "result": "result",
+            "key": "node",
+            "reads": [
+              "data/memberships.csv"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "title": "Raw output",
+      "items": [
+        {
+          "side": "hypergraphs",
+          "path": "hypergraphs/console.txt",
+          "bytes": 942,
+          "sha256": "01811417919b3f3aeac3db6285d49c5e9468bd39b9931405058d0dad7f1e5395",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "igraph",
+          "path": "igraph/console.txt",
+          "bytes": 1365,
+          "sha256": "b3f6d96234c7d8e308e69dfc2917e86b589f7adef0f37c6111d4ecb94623c5d5",
+          "label": "R console",
+          "type": "text"
+        },
+        {
+          "side": "base",
+          "path": "base/console.txt",
+          "bytes": 944,
+          "sha256": "8068ce9408c3e958c1a67d157d0771b7ac7bffd500cc5586034125120da46a77",
+          "label": "R console",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Data",
+      "items": [
+        {
+          "path": "data/memberships.csv",
+          "bytes": 194,
+          "sha256": "f06890618fe583a94a7b2c47b3baa2f83669536931a43f1ad73a47f5265e4cd8",
+          "label": "Memberships"
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "quantity": "clique: a",
+      "kind": "clique",
+      "values": {
+        "hypergraphs": 0.457238105794659,
+        "igraph": 0.457238105794659,
+        "base": 0.457238105794659
+      },
+      "difference": 4.9960036108132e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "clique: b",
+      "kind": "clique",
+      "values": {
+        "hypergraphs": 0.423970227883362,
+        "igraph": 0.423970227883362,
+        "base": 0.423970227883362
+      },
+      "difference": 1.66533453693773e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "clique: c",
+      "kind": "clique",
+      "values": {
+        "hypergraphs": 0.434623236370599,
+        "igraph": 0.434623236370599,
+        "base": 0.434623236370599
+      },
+      "difference": 2.77555756156289e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "clique: d",
+      "kind": "clique",
+      "values": {
+        "hypergraphs": 0.429865712375805,
+        "igraph": 0.429865712375806,
+        "base": 0.429865712375805
+      },
+      "difference": 2.77555756156289e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "clique: e",
+      "kind": "clique",
+      "values": {
+        "hypergraphs": 0.331890153655089,
+        "igraph": 0.33189015365509,
+        "base": 0.331890153655089
+      },
+      "difference": 1.11022302462516e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "clique: f",
+      "kind": "clique",
+      "values": {
+        "hypergraphs": 0.243216646851561,
+        "igraph": 0.243216646851561,
+        "base": 0.243216646851561
+      },
+      "difference": 2.22044604925031e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "clique: g",
+      "kind": "clique",
+      "values": {
+        "hypergraphs": 0.261142223336851,
+        "igraph": 0.261142223336851,
+        "base": 0.261142223336851
+      },
+      "difference": 5.55111512312578e-17,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "pagerank: a",
+      "kind": "pagerank",
+      "values": {
+        "hypergraphs": 0.188308066059745,
+        "igraph": 0.188308066059898,
+        "base": 0.188308066059898
+      },
+      "difference": 1.53099755095809e-13,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "pagerank: b",
+      "kind": "pagerank",
+      "values": {
+        "hypergraphs": 0.145609641578878,
+        "igraph": 0.145609641578986,
+        "base": 0.145609641578986
+      },
+      "difference": 1.08246744900953e-13,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "pagerank: c",
+      "kind": "pagerank",
+      "values": {
+        "hypergraphs": 0.148361097526098,
+        "igraph": 0.148361097526117,
+        "base": 0.148361097526117
+      },
+      "difference": 1.96509475358653e-14,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "pagerank: d",
+      "kind": "pagerank",
+      "values": {
+        "hypergraphs": 0.148870933584861,
+        "igraph": 0.148870933584878,
+        "base": 0.148870933584878
+      },
+      "difference": 1.73749903353837e-14,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "pagerank: e",
+      "kind": "pagerank",
+      "values": {
+        "hypergraphs": 0.149464401305376,
+        "igraph": 0.149464401305239,
+        "base": 0.149464401305239
+      },
+      "difference": 1.36696209906972e-13,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "pagerank: f",
+      "kind": "pagerank",
+      "values": {
+        "hypergraphs": 0.110433496003961,
+        "igraph": 0.110433496003792,
+        "base": 0.110433496003792
+      },
+      "difference": 1.69239622316297e-13,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "pagerank: g",
+      "kind": "pagerank",
+      "values": {
+        "hypergraphs": 0.108952363941082,
+        "igraph": 0.10895236394109,
+        "base": 0.10895236394109
+      },
+      "difference": 7.63278329429795e-15,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "katz: a",
+      "kind": "katz",
+      "values": {
+        "hypergraphs": 0.500442863027712,
+        "igraph": 0.500442863027712,
+        "base": 0.500442863027712
+      },
+      "difference": 2.22044604925031e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "katz: b",
+      "kind": "katz",
+      "values": {
+        "hypergraphs": 0.441757693389044,
+        "igraph": 0.441757693389044,
+        "base": 0.441757693389044
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "katz: c",
+      "kind": "katz",
+      "values": {
+        "hypergraphs": 0.493163373555984,
+        "igraph": 0.493163373555983,
+        "base": 0.493163373555983
+      },
+      "difference": 1.11022302462516e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "katz: d",
+      "kind": "katz",
+      "values": {
+        "hypergraphs": 0.490368841668428,
+        "igraph": 0.490368841668428,
+        "base": 0.490368841668428
+      },
+      "difference": 2.22044604925031e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "katz: e",
+      "kind": "katz",
+      "values": {
+        "hypergraphs": 0.360367084832609,
+        "igraph": 0.360367084832609,
+        "base": 0.360367084832609
+      },
+      "difference": 2.22044604925031e-16,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "katz: f",
+      "kind": "katz",
+      "values": {
+        "hypergraphs": 0.281608925011009,
+        "igraph": 0.281608925011009,
+        "base": 0.281608925011009
+      },
+      "difference": 5.55111512312578e-17,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    },
+    {
+      "quantity": "katz: g",
+      "kind": "katz",
+      "values": {
+        "hypergraphs": 0.288279200163157,
+        "igraph": 0.288279200163157,
+        "base": 0.288279200163157
+      },
+      "difference": 0,
+      "measure": "absolute",
+      "tolerance": 1e-08,
+      "rule": "largest difference between any two sides",
+      "status": "agree"
+    }
+  ]
+}

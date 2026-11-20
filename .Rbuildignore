@@ -29,3 +29,5 @@ Rplots\.pdf$
 ^workinprogress$
 ^ROADMAP\.md$
 ^codexfixes$
+^tests/equivalence$
+^\.ci$

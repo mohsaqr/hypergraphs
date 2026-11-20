@@ -1,0 +1,252 @@
+{
+  "product": "r-hypernets",
+  "collection": "equivalence",
+  "title": "Equivalence tests",
+  "references": {
+    "igraph": {
+      "authority": "open-source"
+    },
+    "stats": {
+      "authority": "open-source"
+    },
+    "HyperG": {
+      "authority": "open-source"
+    },
+    "rhype": {
+      "authority": "open-source"
+    },
+    "TDA": {
+      "authority": "open-source"
+    },
+    "TDAstats": {
+      "authority": "open-source"
+    },
+    "stm": {
+      "authority": "open-source"
+    },
+    "slam": {
+      "authority": "open-source"
+    },
+    "topicmodels": {
+      "authority": "open-source"
+    },
+    "text2vec": {
+      "authority": "open-source"
+    },
+    "fpc": {
+      "authority": "open-source"
+    },
+    "markovchain": {
+      "authority": "open-source"
+    },
+    "BiasedUrn": {
+      "authority": "open-source"
+    },
+    "vegan": {
+      "authority": "open-source"
+    },
+    "RSpectra": {
+      "authority": "open-source"
+    },
+    "Nestimate": {
+      "authority": "internal"
+    },
+    "cograph": {
+      "authority": "internal"
+    },
+    "hypernetx": {
+      "authority": "open-source",
+      "citation": "Python package HyperNetX (PNNL)",
+      "url": "https://pypi.org/project/hypernetx/"
+    },
+    "xgi": {
+      "authority": "open-source",
+      "citation": "Python package XGI, CompleX Group Interactions",
+      "url": "https://pypi.org/project/xgi/"
+    },
+    "hypergraphx": {
+      "authority": "open-source",
+      "citation": "Python package Hypergraphx",
+      "url": "https://pypi.org/project/hypergraphx/"
+    },
+    "networkx": {
+      "authority": "open-source",
+      "url": "https://pypi.org/project/networkx/"
+    },
+    "scikit-learn": {
+      "authority": "open-source",
+      "url": "https://pypi.org/project/scikit-learn/"
+    },
+    "scipy": {
+      "authority": "open-source",
+      "url": "https://pypi.org/project/scipy/"
+    },
+    "pathpy": {
+      "authority": "open-source",
+      "citation": "Python package pathpy 2 (Scholtes)",
+      "url": "https://pypi.org/project/pathpy/"
+    },
+    "infomap": {
+      "authority": "open-source",
+      "url": "https://pypi.org/project/infomap/"
+    },
+    "scikit-fuzzy": {
+      "authority": "open-source",
+      "url": "https://pypi.org/project/scikit-fuzzy/"
+    },
+    "tm": {
+      "authority": "open-source"
+    },
+    "stopwords": {
+      "authority": "open-source"
+    }
+  },
+  "exports": {
+    "covered": [
+      "dual_hypergraph()",
+      "group_hypergraph()",
+      "hg_agreement()",
+      "hg_assortativity()",
+      "hg_betti()",
+      "hg_bootstrap()",
+      "hg_bottleneck()",
+      "hg_centrality()",
+      "hg_centrality.net_hg()",
+      "hg_centrality.net_hon()",
+      "hg_classify()",
+      "hg_cluster()",
+      "hg_communities()",
+      "hg_communities.net_hg()",
+      "hg_communities.net_hon()",
+      "hg_community_quality()",
+      "hg_compare_communities()",
+      "hg_degree()",
+      "hg_degree_correlation()",
+      "hg_edge_centrality()",
+      "hg_edges()",
+      "hg_euler()",
+      "hg_get()",
+      "hg_get.hg_classification()",
+      "hg_get.hg_communities()",
+      "hg_get.hypergraphs_bootstrap()",
+      "hg_get.hypergraphs_community_comparison()",
+      "hg_get.hypergraphs_hypa()",
+      "hg_get.hypergraphs_memory_communities()",
+      "hg_get.hypergraphs_motifs()",
+      "hg_get.hypergraphs_result()",
+      "hg_get.hypergraphs_simplicial()",
+      "hg_get.hypergraphs_summary()",
+      "hg_get.net_hg()",
+      "hg_get.net_hg_pairwise()",
+      "hg_get.net_hon()",
+      "hg_get.net_honem()",
+      "hg_get.net_hypa()",
+      "hg_get.net_markov_order()",
+      "hg_get.net_markov_stability()",
+      "hg_get.net_mogen()",
+      "hg_get.net_path_dependence()",
+      "hg_get.net_temporal_hypergraph()",
+      "hg_get.persistence_landscape()",
+      "hg_get.persistent_homology()",
+      "hg_get.q_analysis()",
+      "hg_get.simplicial_complex()",
+      "hg_get.text_hypergraph()",
+      "hg_growth()",
+      "hg_homology()",
+      "hg_keywords()",
+      "hg_landscape()",
+      "hg_laplacian()",
+      "hg_line_graph()",
+      "hg_markov_stability()",
+      "hg_measures()",
+      "hg_membership()",
+      "hg_modularity()",
+      "hg_motifs()",
+      "hg_null_test()",
+      "hg_pagerank()",
+      "hg_qanalysis()",
+      "hg_representations()",
+      "hg_seeds()",
+      "hg_sequences()",
+      "hg_snapshot()",
+      "hg_snapshots()",
+      "hg_subset()",
+      "hg_topic_quality()",
+      "hg_topic_sizes()",
+      "hg_transitivity()",
+      "hg_wasserstein()",
+      "hon()",
+      "honem()",
+      "hypa()",
+      "hypa.default()",
+      "hypergraph()",
+      "hypergraph.Matrix()",
+      "hypergraph.cograph_network()",
+      "hypergraph.data.frame()",
+      "hypergraph.list()",
+      "hypergraph.matrix()",
+      "hypergraph.net_clustering()",
+      "hypergraph.net_mmm()",
+      "hypergraph.netobject()",
+      "hypergraph.netobject_group()",
+      "hypergraph.tna()",
+      "knn_hypergraph()",
+      "markov_order()",
+      "memory()",
+      "mogen()",
+      "network_hypergraph()",
+      "pairwise_network()",
+      "simplicial()",
+      "stop_words_en()",
+      "summary.hg_classification()",
+      "summary.hg_communities()",
+      "summary.hypergraphs_bootstrap()",
+      "summary.hypergraphs_community_comparison()",
+      "summary.hypergraphs_hypa()",
+      "summary.hypergraphs_memory_communities()",
+      "summary.hypergraphs_motifs()",
+      "summary.hypergraphs_result()",
+      "summary.hypergraphs_simplicial()",
+      "summary.net_hg()",
+      "summary.net_temporal_hypergraph()",
+      "temporal_hypergraph()",
+      "text_hypergraph()",
+      "topic_network()",
+      "window_hypergraph()",
+      "hg_cocluster()",
+      "hg_compare()",
+      "hg_get.hypergraphs_comparison()",
+      "summary.hypergraphs_comparison()",
+      "hg_get.hypergraphs_bootstrap_group()",
+      "summary.hypergraphs_bootstrap_group()",
+      "hg_get.hypergraphs_memory_group()",
+      "summary.hypergraphs_memory_group()",
+      "hg_get.net_markov_order_group()",
+      "hg_get.net_markov_stability_group()",
+      "hypa.net_hg()",
+      "random_hypergraph()",
+      "hg_topics()",
+      "hg_topic_search()",
+      "hg_get.net_hg_topics()",
+      "summary.net_hg_topics()",
+      "hypergraph.net_hg_topics()",
+      "hg_stability()",
+      "hg_mmsbm()",
+      "hg_get.net_hg_mmsbm()",
+      "summary.net_hg_mmsbm()",
+      "hg_get.net_hg_cluster()"
+    ],
+    "not_numeric": {
+      "clean_text()": "returns the cleaned text of the documents (strings); no number to compare",
+      "hg_centrality.default()": "raises hypergraphs_bad_input for an input that is neither a hypergraph nor a higher-order network; returns nothing",
+      "hg_communities.default()": "raises hypergraphs_bad_input for an input that is neither a hypergraph nor a higher-order network; returns nothing",
+      "hg_get.default()": "raises hypergraphs_bad_input for an object that is not a hypergraphs result; returns nothing",
+      "hypergraph.default()": "raises hypergraphs_bad_input for an input class no constructor reads; returns nothing",
+      "summary.net_hg_cluster()": "not returned by any exported function: no exported function returns a net_hg_cluster object (hg_cluster() returns the fit's tables as data frames) or calls summary() on one, so the method cannot be reached from the exported API",
+      "hg_get.net_hg_transduction()": "not returned by any exported function: no exported function returns a net_hg_transduction object (hg_classify() returns the fit's predictions table, or an hg_classification), and none calls hg_get() on one, so the method cannot be reached from the exported API",
+      "summary.net_hg_transduction()": "not returned by any exported function: no exported function returns a net_hg_transduction object (hg_classify() returns the fit's predictions table, or an hg_classification) or calls summary() on one, so the method cannot be reached from the exported API",
+      "hg_get.net_hg_measures()": "not returned by any exported function: no exported function returns a net_hg_measures object (hg_measures() builds its data frames from the internal fit directly) or calls hg_get() on one, so the method cannot be reached from the exported API"
+    },
+    "not_yet": {}
+  }
+}

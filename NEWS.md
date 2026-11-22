@@ -1,3 +1,29 @@
+# hypergraphs 0.7.16
+
+## New features
+
+* `hg_compare()` is now a generic. On a hypergraph it compares the node
+  centralities (degree share, clique and PageRank) of two groups of
+  hyperedges named by a hyperedge attribute:
+  `hg_compare(messages, group = "performance", cluster = "student", unit =
+  "prompt")`. Differences carry permutation p-values (restricted to clusters
+  when the group varies within them, over clusters when it does not),
+  Benjamini-Hochberg adjusted, and cluster-bootstrap percentile intervals.
+  The result has `hg_get()`, `print`, `summary` and `plot` methods. On a
+  group model of memory networks `hg_compare()` is unchanged.
+
+## Bug fixes
+
+* `plot(x, group =)` on frequent sets says how many transactions the drawn
+  sets cover when the kept sets leave some out ("LA23 (140 of 522
+  sessions)"); the title used to give the group total alone.
+* Set figures of a membership table name their unit from the hyperedge
+  column without its identifier suffix: `hyperedge = "session_id"` reads
+  "sessions", not "session_ids".
+* The node-size legend of hull plots keeps narrow keys, so each number sits
+  beside its own circle; the one-group heading leaves room for the labels of
+  the top nodes.
+
 # hypergraphs 0.7.14
 
 ## New features

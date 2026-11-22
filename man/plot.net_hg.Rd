@@ -146,7 +146,7 @@ node names and the one numeric column the values, so a table such as
 hypergraph needs a non-negative value; names that are not nodes are
 skipped, so one table serves every \code{\link[=hg_subset]{hg_subset()}}. Without \code{direction}
 the nodes are points whose area follows the value
-(\code{\link[ggplot2:scale_size]{ggplot2::scale_size_area()}}, largest 10 mm), with a size legend, and
+(\code{\link[ggplot2:scale_size_area]{ggplot2::scale_size_area()}}, largest 10 mm), with a size legend, and
 each label sits just above its dot. With \code{direction} they are circles in
 data units (the figure has a fixed 1:1 aspect): the largest has a radius
 of 4\% of the layout extent and none is smaller than 30\% of that radius,

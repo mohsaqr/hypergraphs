@@ -30,6 +30,7 @@ reference:
   - hg_communities.net_hon
   - hg_bootstrap
   - hg_compare
+  - hg_compare.hypergraphs_memory_group
   - markov_order
   - hg_markov_stability
   - memory
@@ -66,6 +67,7 @@ reference:
   contents:
   - hg_measures
   - hg_centrality.net_hg
+  - hg_compare.net_hg
   - hg_pagerank
   - hg_transitivity
   - hg_assortativity

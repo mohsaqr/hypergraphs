@@ -105,7 +105,7 @@ hg_get.hypergraphs_memory_group <- function(x, ...) {
   out
 }
 
-#' Permutation comparison of the rules of two groups
+#' Compare the rules of two groups of a memory network
 #'
 #' Tests whether two groups of sequences differ in their higher-order rule
 #' probabilities. The rule set is extracted from the pooled data of the two
@@ -139,6 +139,8 @@ hg_get.hypergraphs_memory_group <- function(x, ...) {
 #' @param alpha Significance level for the `significant` flag on the
 #'   adjusted p-values. Default `0.05`.
 #' @param parallel,n_cores,seed As in [hg_bootstrap()].
+#' @param ... Must be empty: an argument that only the hypergraph method
+#'   ([hg_compare.net_hg()]) takes raises `hypergraphs_bad_input`.
 #' @return An object of class `hypergraphs_comparison` with `print`,
 #'   `summary` and `plot` methods. [hg_get()] returns its rule table, one
 #'   row per pooled rule, with `from`, `to`, `order`, `count`, the two
@@ -171,10 +173,14 @@ hg_get.hypergraphs_memory_group <- function(x, ...) {
 #' comparison <- hg_compare(by_group, n_perm = 99, seed = 1)
 #' comparison
 #' hg_get(comparison, sort_by = "p_adj", top = 6)
-#' @seealso [hon()], [hg_bootstrap()], [markov_order()]
+#' @seealso [hon()], [hg_bootstrap()], [markov_order()], [hg_compare()]
 #' @export
-hg_compare <- function(x, groups = NULL, n_perm = 1000L, alpha = 0.05,
-                       parallel = FALSE, n_cores = 2L, seed = NULL) {
+hg_compare.hypergraphs_memory_group <- function(x, groups = NULL,
+                                                n_perm = 1000L, alpha = 0.05,
+                                                parallel = FALSE,
+                                                n_cores = 2L, seed = NULL,
+                                                ...) {
+  .ho_no_dots(..., .for = "a group model of memory networks")
   if (!inherits(x, "hypergraphs_memory_group")) {
     .thg_bad_input(paste0("`x` must be a group model: ",
                           "hon(data, ..., group = <column or labels>)"))

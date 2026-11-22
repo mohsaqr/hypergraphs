@@ -1227,9 +1227,17 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
   if (!is.null(transitions)) p <- p + ggplot2::theme(legend.box = "vertical")
   if (!is.null(group_title)) {
     # two legends side by side overrun a one-group figure; stack them
+    # the labels of the top nodes sit above the panel (clip = "off"); a gap
+    # under the last heading line keeps them clear of it
+    clear <- ggplot2::margin(b = 22)
     p <- p + ggplot2::labs(title = group_title$title,
                            subtitle = group_title$subtitle) +
-      ggplot2::theme(legend.box = "vertical")
+      ggplot2::theme(legend.box = "vertical") +
+      if (is.null(group_title$subtitle)) {
+        ggplot2::theme(plot.title = ggplot2::element_text(margin = clear))
+      } else {
+        ggplot2::theme(plot.subtitle = ggplot2::element_text(margin = clear))
+      }
   }
   p
 }
@@ -1279,9 +1287,18 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
     in_group <- counts$group == group
     node_sizes <- stats::setNames(counts$count[in_group], counts$node[in_group])
     n <- x$group_sizes$sequences[match(group, x$group_sizes$group)]
-    title <- sprintf("%s (%s %s)", group,
-                     formatC(n, big.mark = ",", format = "d"),
-                     x$params$unit %||% "sequences")
+    # each transaction is counted under its one exact set, so the counts of
+    # the drawn sets add up to the transactions the figure covers; when the
+    # kept sets leave some out, the title says how many it shows
+    shown <- sum(hypergraph$edge_data$count)
+    total <- formatC(n, big.mark = ",", format = "d")
+    title <- if (shown < n) {
+      sprintf("%s (%s of %s %s)", group,
+              formatC(shown, big.mark = ",", format = "d"), total,
+              x$params$unit %||% "sequences")
+    } else {
+      sprintf("%s (%s %s)", group, total, x$params$unit %||% "sequences")
+    }
   }
   list(hypergraph = hypergraph, node_sizes = node_sizes, title = title,
        subtitle = subtitle)
@@ -1671,7 +1688,12 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
           "Event value"
         } else {
           paste0(toupper(substr(area_what, 1L, 1L)), substring(area_what, 2L))
-        }
+        },
+        # the wide keys of the theme are for the colour bar; a circle key
+        # that wide leaves its number nearer the next circle than its own
+        guide = ggplot2::guide_legend(
+          theme = ggplot2::theme(legend.key.width = grid::unit(1.2, "lines"))
+        )
       )
     )
   } else if (!is.null(groups)) {
@@ -1833,13 +1855,13 @@ plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
 # set hypergraph of one group named after the hyperedges ("All trials"), each
 # set carrying its number of copies: what plot() draws for such a hypergraph.
 .thg_distinct_sets <- function(x) {
-  unit <- x$params$hyperedge %||% "hyperedge"
+  unit <- .thg_unit_name(x$params$hyperedge %||% "hyperedge")
   members <- lapply(x$hyperedges, \(idx) x$nodes[idx])
-  grouped <- stats::setNames(list(members), sprintf("All %ss", unit))
+  grouped <- stats::setNames(list(members), sprintf("All %s", unit))
   out <- .thg_set_hypergraph(grouped, top = Inf, states = NULL,
                              item_order = .ho_sort, prefix = FALSE)
   out$params <- c(out$params, list(source = "frame_sets",
-                                   unit = paste0(unit, "s"),
+                                   unit = unit,
                                    item = x$params$node %||% "node"))
   out$params <- out$params[!duplicated(names(out$params), fromLast = TRUE)]
   out

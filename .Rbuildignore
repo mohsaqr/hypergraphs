@@ -31,3 +31,4 @@ Rplots\.pdf$
 ^codexfixes$
 ^tests/equivalence$
 ^\.ci$
+^laktna$

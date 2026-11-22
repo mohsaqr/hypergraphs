@@ -110,6 +110,48 @@ hg_communities.default <- function(x, ...) {
                 "a hypergraph (net_hg) or a memory network (net_hon)")
 }
 
+#' Permutation comparison of two groups
+#'
+#' One verb, two comparisons, chosen by the class of `x`:
+#' \describe{
+#'   \item{a group model of memory networks (from [hon()] with
+#'     `group`)}{the higher-order rule probabilities of two groups of
+#'     sequences; see [hg_compare.hypergraphs_memory_group()].}
+#'   \item{a hypergraph (`net_hg`)}{the node centralities of two groups of
+#'     its hyperedges, named by a hyperedge attribute, with permutation
+#'     p-values and cluster-bootstrap intervals; see [hg_compare.net_hg()].}
+#' }
+#' Each method keeps its own arguments; passing an argument that only the
+#' other method takes raises `hypergraphs_bad_input`.
+#'
+#' @param x A group model from [hon()] with `group`, or a `net_hg`.
+#' @param ... Arguments of the method for `class(x)`.
+#' @return A result object read with [hg_get()]: a `hypergraphs_comparison`
+#'   for a group model, a `hypergraphs_hg_comparison` for a hypergraph. Any
+#'   other input raises `hypergraphs_bad_input`.
+#' @examples
+#' moves <- data.frame(
+#'   message = rep(paste0("m", 1:16), each = 2),
+#'   code = rep(c("plan", "ask", "plan", "check", "ask", "check",
+#'                "plan", "ask"), 4),
+#'   level = rep(c("high", "high", "low", "low"), 8)
+#' )
+#' messages <- hypergraph(moves, node = "code", hyperedge = "message")
+#' hg_get(hg_compare(messages, group = "level", n_perm = 99, n_boot = 99,
+#'                   seed = 1))
+#' @export
+hg_compare <- function(x, ...) {
+  UseMethod("hg_compare")
+}
+
+#' @rdname hg_compare
+#' @export
+hg_compare.default <- function(x, ...) {
+  .ho_no_method(x, "hg_compare", paste0(
+    "a group model (hon(data, ..., group = <column or labels>)) ",
+    "or a hypergraph (net_hg)"))
+}
+
 #' Hypergeometric anomalies of paths or of co-occurring node pairs
 #'
 #' One verb, two estimators, chosen by the class of `x`:

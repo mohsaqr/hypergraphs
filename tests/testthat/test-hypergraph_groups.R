@@ -520,3 +520,55 @@ test_that("contract violations of group_hypergraph() are classed", {
   expect_error(group_hypergraph(data.frame(from = "a", to = "b"), from = "from",
                                 to = "zz"), class = "hypergraphs_bad_input")
 })
+
+test_that("a set figure names its unit from the hyperedge column", {
+  expect_identical(
+    vapply(c("session_id", "sessionId", "UserID", "Group.ID", "trial",
+             "basket", "id", "paid"), .thg_unit_name, character(1L),
+           USE.NAMES = FALSE),
+    c("sessions", "sessions", "users", "groups", "trials", "baskets", "ids",
+      "paids"))
+})
+
+# Five sessions in one course; each is counted under its one exact set:
+# {a, b} twice, {a, b, c}, {a} and {a, c} once each
+.bg_sessions <- function() {
+  data.frame(session_id = c("s1", "s1", "s2", "s2", "s3", "s3", "s3", "s4",
+                            "s5", "s5"),
+             code = c("a", "b", "a", "b", "a", "b", "c", "a", "a", "c"),
+             course = "A", stringsAsFactors = FALSE)
+}
+
+test_that("one group's figure says how many transactions its sets cover", {
+  sets <- function(top) {
+    group_hypergraph(.bg_sessions(), node = "code", hyperedge = "session_id",
+                     group = "course", min_size = 2, top = top)
+  }
+  # the three sets of two or more codes cover 4 of the 5 sessions
+  p <- plot(sets(Inf), group = "A")
+  expect_identical(p$labels$title, "A (4 of 5 sessions)")
+  expect_identical(p$scales$get_scales("fill")$name, "Sessions")
+  expect_identical(p$scales$get_scales("size")$name, "Sessions with the code")
+  # {a, b} alone covers 2; the counts drawn add up to the sessions covered
+  one <- plot(sets(1), group = "A")
+  expect_identical(one$labels$title, "A (2 of 5 sessions)")
+  # every session in a kept set: the plain total
+  all <- group_hypergraph(.bg_sessions(), node = "code",
+                          hyperedge = "session_id", group = "course")
+  expect_identical(plot(all, group = "A")$labels$title, "A (5 sessions)")
+})
+
+test_that("one group's heading clears the labels and its size legend is narrow", {
+  sets <- group_hypergraph(.bg_sessions(), node = "code",
+                           hyperedge = "session_id", group = "course",
+                           min_size = 2)
+  p <- plot(sets, group = "A")
+  # every kept set holds `a`, so the heading has a subtitle: the gap goes
+  # under it, and the title keeps the theme's own margin
+  expect_identical(p$labels$subtitle, "Shared by every set: a")
+  expect_equal(as.numeric(p$theme$plot.subtitle@margin), c(0, 0, 22, 0))
+  expect_equal(as.numeric(p$theme$plot.title@margin), c(6, 0, 0, 0))
+  # the circle keys keep the narrow width, not the colour bar's 2.5 cm
+  width <- p$scales$get_scales("size")$guide$params$theme$legend.key.width
+  expect_identical(as.character(width), "1.2lines")
+})

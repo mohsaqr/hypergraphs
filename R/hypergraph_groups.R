@@ -702,6 +702,18 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
   out
 }
 
+# The plural noun a figure uses for the hyperedges of a membership table,
+# from the name of its hyperedge column: an identifier suffix is dropped
+# ("session_id", "sessionId", "UserID"), separators become spaces and the
+# noun is pluralised, so "session_id" reads "sessions" and "trial" "trials".
+# A column that is only an identifier ("id") keeps its name.
+.thg_unit_name <- function(column) {
+  base <- sub("(?:[_. ]+[Ii][Dd]|(?<=[a-z])I[Dd])$", "", column, perl = TRUE)
+  if (!nzchar(base)) base <- column
+  base <- tolower(gsub("[_.]+", " ", base))
+  if (endsWith(base, "s")) base else paste0(base, "s")
+}
+
 # ---- Frequent sets of a data frame, counted within groups -----------------
 # Each value of `hyperedge` (a trial, a session, a basket) is one transaction,
 # the set of `node` values it holds; the transactions are counted within the
@@ -764,7 +776,7 @@ group_hypergraph <- function(data, node = NULL, hyperedge = NULL,
     top = top,
     min_size = as.integer(min_size),
     states = states,
-    unit = paste0(hyperedge, "s"),
+    unit = .thg_unit_name(hyperedge),
     item = node
   ))
   out$params <- out$params[!duplicated(names(out$params), fromLast = TRUE)]

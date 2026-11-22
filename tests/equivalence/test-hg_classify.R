@@ -60,3 +60,55 @@ test_that("held-out predictions and accuracy equal the closed form from the trai
   expect_reference(summary(found), by_class, reference = "independent: closed form of Zhou et al. (2007), base R",
                    covers = "summary.hg_classification()", quantity = "held-out half, per class", tolerance = 1e-12, key = "class")
 })
+
+# The same label spreading on XGI's normalised hypergraph Laplacian (Zhou et al. 2007, as XGI implements it):
+# S = I - L, the scores solved by numpy. Nothing of the hypergraph's operator is written in the test.
+by_xgi <- function(labels, xi) {
+  script <- c(
+    "import sys, json, numpy as np, xgi",
+    "spec = json.load(open(sys.argv[1]))",
+    "groups = {}",
+    "for n, e in zip(spec['member'], spec['edge']): groups.setdefault(e, []).append(n)",
+    "H = xgi.Hypergraph([groups[e] for e in sorted(groups)])",
+    "L, idx = xgi.normalized_hypergraph_laplacian(H, weighted=False, sparse=False, index=True)",
+    "nodes = [idx[i] for i in range(len(idx))]",
+    "label = dict(zip(spec['labelled'], spec['label']))",
+    "classes = sorted(set(spec['label']))",
+    "Y = np.array([[1.0 if label.get(n) == c else 0.0 for c in classes] for n in nodes])",
+    "xi = spec['xi']",
+    "F = (1 - xi) * np.linalg.solve(np.eye(len(nodes)) - xi * (np.eye(len(nodes)) - L), Y)",
+    "order = np.sort(F, axis=1)[:, ::-1]",
+    "json.dump({'node': nodes, 'predicted': [classes[i] for i in np.argmax(F, axis=1)],",
+    "           'score': order[:, 0].tolist(), 'margin': (order[:, 0] - order[:, 1]).tolist()}, open(sys.argv[2], 'w'))")
+  given <- stats::na.omit(labels)
+  as.data.frame(ref_python_run(script, list(member = memberships$member, edge = memberships$edge, labelled = names(given),
+                                            label = unname(given), xi = xi)))
+}
+
+test_that("predictions, scores and margins equal label spreading on XGI's Laplacian", {
+  skip_without_python(c("xgi", "numpy"))
+  labels <- stats::setNames(rep(NA_character_, 18L), nodes)
+  labels[c("n01", "n02", "n07", "n08", "n13", "n14")] <- c("x", "x", "y", "y", "z", "z")
+  # A linear solve of order 18 with xi = 0.99 (condition number near 100): 1e-10 on scores of order 0.01 to 1.
+  expect_reference(hg_classify(hg, labels = stats::na.omit(labels), xi = 0.99), by_xgi(labels, 0.99), reference = "xgi",
+                   covers = "hg_classify()", quantity = "six seed labels, XGI Laplacian", tolerance = 1e-10, key = "node",
+                   note = paste(ref_python_version("xgi"), "normalized_hypergraph_laplacian; S = I - L; numpy.linalg.solve"))
+  truth <- stats::setNames(c("x", "y", "z")[blocks], nodes)
+  found <- hg_classify(hg, labels = truth, xi = 0.9, holdout = 0.5, seed = 1L)
+  table <- hg_get(found)
+  training <- stats::setNames(ifelse(table$split == "train", table$label, NA_character_), table$node)
+  expected <- by_xgi(training, 0.9)
+  tested <- subset(merge(table, expected, by = "node", suffixes = c("", "_reference")), split == "test")
+  expect_reference(subset(table, split == "test", select = c(node, predicted, score, margin)),
+                   subset(expected, node %in% tested$node), reference = "xgi",
+                   covers = c("hg_classify()", "hg_get.hg_classification()"), quantity = "held-out half, XGI Laplacian",
+                   tolerance = 1e-10, key = "node")
+  classes <- sort(unique(tested$label))
+  by_class <- data.frame(class = classes,
+                         n_test = vapply(classes, \(class) sum(tested$label == class), numeric(1)),
+                         correct = vapply(classes, \(class) sum(tested$label == class & tested$predicted_reference == class), numeric(1)),
+                         recall = vapply(classes, \(class) mean(tested$predicted_reference[tested$label == class] == class), numeric(1)),
+                         precision = vapply(classes, \(class) mean(tested$label[tested$predicted_reference == class] == class), numeric(1)))
+  expect_reference(summary(found), by_class, reference = "xgi", covers = "summary.hg_classification()",
+                   quantity = "held-out half, per class, XGI predictions", tolerance = 1e-12, key = "class")
+})

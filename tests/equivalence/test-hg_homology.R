@@ -57,18 +57,23 @@ test_that("persistence landscapes equal their definition and TDA's landscape()",
   values <- hg_get(landscape)
   pairs <- subset(hg_get(homology, what = "persistence"), dimension == 1L & is.finite(death))
   grid <- sort(unique(values$t))
+  # Rows are keyed by their place on the grid, not by t: t is a computed double, and a key label printed from it
+  # changes with its last bits on another machine (a re-run then cannot match the row). t is compared as a value.
+  values$point <- match(values$t, grid)
   tents <- vapply(grid, \(t) sort(pmax(0, pmin(t - pairs$birth, pairs$death - t)), decreasing = TRUE)[1:3], numeric(3))
-  expected <- data.frame(k = rep(1:3, times = length(grid)), t = rep(grid, each = 3L), value = as.vector(tents))
+  expected <- data.frame(k = rep(1:3, times = length(grid)), t = rep(grid, each = 3L), value = as.vector(tents),
+                         point = rep(seq_along(grid), each = 3L))
   expected$value[is.na(expected$value)] <- 0
   expect_reference(values, expected, reference = "independent: lambda_k(t) of Bubenik (2015), base R",
                    covers = c("hg_landscape()", "hg_get.persistence_landscape()"), quantity = "dimension 1, k = 1 to 3",
-                   tolerance = 1e-12, key = c("k", "t"))
+                   tolerance = 1e-12, key = c("k", "point"))
   skip_without_reference("TDA")
   diagram <- cbind(dimension = pairs$dimension, Birth = pairs$birth, Death = pairs$death)
   theirs <- TDA::landscape(diagram, dimension = 1L, KK = 1:3, tseq = grid)
-  expect_reference(values, data.frame(k = rep(1:3, each = length(grid)), t = rep(grid, times = 3L), value = as.vector(theirs)),
+  expect_reference(values, data.frame(k = rep(1:3, each = length(grid)), t = rep(grid, times = 3L), value = as.vector(theirs),
+                                      point = rep(seq_along(grid), times = 3L)),
                    reference = "TDA", covers = c("hg_landscape()", "hg_get.persistence_landscape()"),
-                   quantity = "dimension 1, k = 1 to 3", tolerance = 1e-12, key = c("k", "t"))
+                   quantity = "dimension 1, k = 1 to 3", tolerance = 1e-12, key = c("k", "point"))
 })
 
 #' Two random diagrams of one dimension, all pairs finite

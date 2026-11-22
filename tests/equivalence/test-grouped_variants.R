@@ -101,3 +101,49 @@ test_that("the stability of a grouped network gives markovchain's stationary dis
                    quantity = "stationary distribution and return time by group", tolerance = 1e-10, key = c("group", "state"),
                    note = "markovchainFit(method = 'mle') on each group's sequences, steadyStates(), meanRecurrenceTime().")
 })
+
+# The same rules from pathpy's higher-order networks of each group: the count of the context followed by the next
+# state, and its share of the transitions out of the context.
+gv_pathpy_rules <- function(found) {
+  path <- paste(found$from, found$to, sep = " -> ")
+  do.call(rbind, lapply(names(by_group), \(g) {
+    grams <- ref_pathpy_kgrams(by_group[[g]], c(1L, 2L))
+    grams$path <- paste(grams$context, grams$following, sep = " -> ")
+    grams$out <- stats::ave(grams$count, grams$k, grams$context, FUN = sum)
+    rows <- grams[match(path[found$group == g], grams$path), ]
+    data.frame(group = g, path = rows$path, count = rows$count, probability = rows$count / rows$out)
+  }))
+}
+
+test_that("a group model's rules equal pathpy's higher-order networks of each group", {
+  skip_without_python("pathpy")
+  model <- hon(sequences, group = labels, max_order = 2L)
+  found <- hg_get(model)
+  expect_reference(data.frame(group = found$group, path = paste(found$from, found$to, sep = " -> "), count = found$count,
+                              probability = found$probability),
+                   gv_pathpy_rules(found), reference = "pathpy", covers = c("hon()", "hg_get.hypergraphs_memory_group()"),
+                   quantity = "rules of a group model, pathpy counts", tolerance = 1e-12, key = c("group", "path"),
+                   note = ref_python_version("pathpy"))
+  found <- hg_get(summary(model))
+  expect_reference(data.frame(group = found$group, path = paste(found$from, found$to, sep = " -> "), count = found$count,
+                              probability = found$probability),
+                   gv_pathpy_rules(found), reference = "pathpy",
+                   covers = c("summary.hypergraphs_memory_group()", "hg_get.hypergraphs_summary()"),
+                   quantity = "rules of a group model through summary(), pathpy counts", tolerance = 1e-12,
+                   key = c("group", "path"))
+})
+
+test_that("the Markov order test of a grouped network gives tna::markov_order() of each group", {
+  skip_without_reference("tna")
+  fit <- markov_order(grouped_network(), max_order = 2L, n_perm = 19L, seed = 1L)
+  expected <- do.call(rbind, lapply(names(by_group), \(g) {
+    wide <- as.data.frame(do.call(rbind, by_group[[g]]))
+    stats_table <- as.data.frame(tna::markov_order(tna::tna(wide), max_order = 2L, iter = 20L)$stats)
+    data.frame(group = g, order = stats_table$order, g2 = stats_table$g2, df = stats_table$df,
+               p_asymptotic = stats_table$p_asymptotic)
+  }))
+  expect_reference(subset(hg_get(fit, what = "orders"), order >= 1, select = c(group, order, g2, df, p_asymptotic)),
+                   subset(expected, order >= 1), reference = "tna",
+                   covers = c("markov_order()", "hg_get.net_markov_order_group()"), quantity = "G2, df and asymptotic p by group",
+                   tolerance = 1e-9, measure = "relative", key = c("group", "order"))
+})

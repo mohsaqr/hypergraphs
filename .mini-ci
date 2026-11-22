@@ -19,4 +19,6 @@ fetch .ci/verify-capture
 # comparison with a reference, recorded in .ci/verify-capture/capture.json. The Python references run in the
 # virtualenv ~/equiv-py, named to the tests by HYPERGRAPHS_REFERENCE_PYTHON. Then, on the Mac:
 #   sh ../equivalence/push.sh hypergraphs
-job verify HYPERGRAPHS_REFERENCE_PYTHON="$HOME/equiv-py/bin/python" OMP_THREAD_LIMIT=2 Rscript -e 'source("tests/equivalence/helper-verify.R"); verify_tests(lib = "~/equiv-lib")'
+# tna (a reference) is taken from ~/equiv-lib (1.5.7, which has markov_order()), not the older tna the package's own
+# library resolves as a dependency: a library holding only that tna is put first.
+job verify HYPERGRAPHS_REFERENCE_PYTHON="$HOME/equiv-py/bin/python" OMP_THREAD_LIMIT=2 Rscript -e 'tna_lib <- file.path(tempdir(), "tna-reference"); dir.create(tna_lib); stopifnot(file.symlink(path.expand("~/equiv-lib/tna"), file.path(tna_lib, "tna"))); .libPaths(c(tna_lib, .libPaths())); stopifnot(packageVersion("tna") >= "1.5.7"); source("tests/equivalence/helper-verify.R"); verify_tests(lib = "~/equiv-lib")'

@@ -104,3 +104,23 @@ test_that("a clustering of sequences gives the exact sets of distinct states cou
                    covers = c("hypergraph()", "hypergraph.netobject_group()"), quantity = "netobject_group, set counts",
                    tolerance = 1e-12, key = c("group", "set"))
 })
+
+test_that("a membership table gives xgi's node degrees", {
+  skip_without_python("xgi")
+  memberships <- ref_memberships()
+  script <- c(
+    "import sys, json, xgi",
+    "data = json.load(open(sys.argv[1]))",
+    "edges = {}",
+    "for n, e in zip(data['node'], data['edge']): edges.setdefault(e, []).append(n)",
+    "H = xgi.Hypergraph([edges[e] for e in sorted(edges)])",
+    "d = H.nodes.degree.asdict()",
+    "json.dump({'node': sorted(d), 'degree': [d[n] for n in sorted(d)]}, open(sys.argv[2], 'w'))")
+  theirs <- as.data.frame(ref_python_run(script, as.list(memberships)))
+  expect_reference(hg_get(hypergraph(memberships, node = "node", hyperedge = "edge"), what = "nodes"), theirs,
+                   reference = "xgi", covers = c("hypergraph()", "hypergraph.data.frame()", "hg_get.net_hg()"),
+                   quantity = "membership table, node degree, xgi", tolerance = 0, key = "node", note = ref_python_version("xgi"))
+  expect_reference(summary(group_hypergraph(memberships, node = "node", hyperedge = "edge")), theirs,
+                   reference = "xgi", covers = "summary.net_hg()", quantity = "summary, node degree, xgi", tolerance = 0,
+                   key = "node")
+})

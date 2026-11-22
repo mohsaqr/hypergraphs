@@ -48,3 +48,53 @@ test_that("entropies, divergence and flips of every context equal their definiti
                    covers = c("summary.hypergraphs_result()", "hg_get.hypergraphs_summary()"),
                    quantity = "order 2 contexts through summary()", tolerance = 1e-12, key = "context")
 })
+
+# The same contexts from pathpy's higher-order networks (the k-gram counts of order 1 and of `order`) and the
+# entropy package (entropy.plugin() and KL.plugin() in bits): no definition of the test's own beyond reading
+# the distributions out of pathpy's edge weights.
+from_pathpy <- function(sequences, order) {
+  grams <- ref_pathpy_kgrams(sequences, unique(c(1L, order)))
+  states <- sort(unique(unlist(sequences)))
+  distribution <- \(k, context) {
+    rows <- grams[grams$k == k & grams$context == context, ]
+    counts <- stats::setNames(numeric(length(states)), states)
+    counts[rows$following] <- rows$count
+    counts
+  }
+  contexts <- unique(grams$context[grams$k == order])
+  do.call(rbind, lapply(contexts, \(context) {
+    n_k <- distribution(order, context)
+    n_1 <- distribution(1L, utils::tail(strsplit(context, " -> ", fixed = TRUE)[[1L]], 1L))
+    support <- n_1 > 0
+    data.frame(context = context, count = sum(n_k),
+               entropy_first_order = entropy::entropy.plugin(n_1, unit = "log2"),
+               entropy_order_k = entropy::entropy.plugin(n_k, unit = "log2"),
+               entropy_drop = entropy::entropy.plugin(n_1, unit = "log2") - entropy::entropy.plugin(n_k, unit = "log2"),
+               kl = entropy::KL.plugin(n_k[support], n_1[support], unit = "log2"),
+               top_first_order = names(which.max(n_1)), top_order_k = names(which.max(n_k)))
+  }))
+}
+
+test_that("contexts, counts, entropies and divergences equal pathpy's k-gram counts and the entropy package", {
+  skip_without_python("pathpy")
+  skip_without_reference("entropy")
+  version <- ref_python_version("pathpy")
+  inputs <- list(second_order = sequences,
+                 random = ref_random_sequences(30L, 20L, c("a", "b", "c", "d"), seed = 4L))
+  invisible(Map(\(input, name) {
+    theirs <- from_pathpy(input, 2L)
+    ours <- hg_get(memory(input, order = 2L, min_count = 1L, base = 2), what = "contexts")
+    expect_reference(ours, subset(theirs, select = c(context, count, top_first_order, top_order_k)), reference = "pathpy",
+                     covers = c("memory()", "hg_get.net_path_dependence()"), quantity = paste(name, "contexts and counts"),
+                     tolerance = 0, key = "context", note = paste(version, "HigherOrderNetwork(k) edge weights"))
+    expect_reference(ours, subset(theirs, select = -c(count, top_first_order, top_order_k)), reference = "entropy",
+                     covers = c("memory()", "hg_get.net_path_dependence()"),
+                     quantity = paste(name, "entropies and divergence (bits)"), tolerance = 1e-12, key = "context",
+                     note = "entropy::entropy.plugin() and KL.plugin() of pathpy's k-gram counts")
+    expect_reference(hg_get(summary(memory(input, order = 2L, min_count = 1L, base = 2)), what = "contexts"),
+                     subset(theirs, select = -c(top_first_order, top_order_k)), reference = "entropy",
+                     covers = c("summary.hypergraphs_result()", "hg_get.hypergraphs_summary()"),
+                     quantity = paste(name, "counts, entropies and divergence through summary()"), tolerance = 1e-12,
+                     key = "context", note = "pathpy's k-gram counts, entropy::entropy.plugin() and KL.plugin()")
+  }, inputs, names(inputs)))
+})

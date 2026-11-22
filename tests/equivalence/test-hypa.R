@@ -39,7 +39,7 @@ test_that("p-values equal the Wallenius distribution at odds 1 (BiasedUrn) and t
                           reason = "At odds 1 the Wallenius distribution is the hypergeometric; BiasedUrn's pWNCHypergeo() (precision = 1e-12 requested) differs from the exact stats::phyper() by up to 1.6e-9 on these inputs, and hypergraphs equals stats::phyper() (compared below).")
   expect_reference(subset(scores, select = c(path, p_under)),
                    data.frame(path = scores$path, p_under = stats::phyper(scores$count, m1, m2, pmin(m, m1 + m2))),
-                   reference = "stats", covers = c("hypa()", "hypa.default()", "hg_get.net_hypa()"),
+                   reference = "stats", covers = c("hypa()", "hypa.default()", "hg_get.net_hypa()", "hg_get.hypergraphs_hypa()"),
                    quantity = "lower-tail p-values", tolerance = 1e-9, key = "path")
   expect_reference(subset(scores, select = c(path, p_over)),
                    data.frame(path = scores$path, p_over = stats::phyper(scores$count, m1, m2, pmin(m, m1 + m2), lower.tail = FALSE)),

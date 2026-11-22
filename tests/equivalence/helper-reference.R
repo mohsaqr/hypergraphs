@@ -39,10 +39,15 @@ ref_pairs_upper <- function(shared, keep = \(m) m > 0, name = "weight") {
 
 #' Write unordered pairs with the smaller name first
 #'
+#' Names are compared by their bytes (radix order), not by the locale's collation, so a pair of accented or
+#' mixed-case names is written the same way on every machine (`pmin()` on strings follows the locale).
+#'
 #' @param from,to Character vectors.
-#' @return A data frame `from`, `to` with `from <= to`.
+#' @return A data frame `from`, `to` with `from` before `to` in radix (C-locale) order.
 ref_ordered_pairs <- function(from, to) {
-  data.frame(from = pmin(from, to), to = pmax(from, to), stringsAsFactors = FALSE)
+  levels <- sort(unique(c(from, to)), method = "radix")
+  first <- match(from, levels) <= match(to, levels)
+  data.frame(from = ifelse(first, from, to), to = ifelse(first, to, from), stringsAsFactors = FALSE)
 }
 
 #' A square matrix as one row per cell

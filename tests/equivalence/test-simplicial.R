@@ -95,3 +95,78 @@ test_that("q-connectivity components and the largest q of each node equal Atkin'
                    reference = "igraph", covers = c("summary.hypergraphs_simplicial()", "hg_get.hypergraphs_summary()"),
                    quantity = "f-vector through summary()", tolerance = 0, key = "dimension")
 })
+
+# The clique complex of a network is its Vietoris-Rips complex at any scale between 1 and 2 when an edge is at
+# distance 1 and a non-edge at distance 2: the Betti numbers are the features born at 0 or 1 still alive at 1.5.
+rips_distance <- function(adjacency) {
+  distance <- 2 - adjacency
+  diag(distance) <- 0
+  distance
+}
+
+betti_at_one <- function(diagram, dims) {
+  stats::setNames(vapply(dims, \(k) sum(diagram[, 1L] == k & diagram[, 2L] <= 1 & diagram[, 3L] > 1), numeric(1)),
+                  paste0("b", dims))
+}
+
+test_that("Betti numbers equal TDA::ripsDiag() of the flag complex", {
+  skip_without_reference("TDA")
+  adjacency <- network()
+  complex <- simplicial(adjacency)
+  dims <- hg_get(complex, what = "f_vector")$dimension
+  rips <- TDA::ripsDiag(rips_distance(adjacency), maxdimension = max(dims), maxscale = 1.5, dist = "arbitrary",
+                         library = "Dionysus")$diagram
+  expect_reference(hg_betti(complex), betti_at_one(unclass(rips), dims), reference = "TDA", covers = "hg_betti()",
+                   quantity = "Betti numbers, Rips complex at scale 1.5", tolerance = 0)
+  # GUDHI's arbitrary-distance Rips is refused by TDA above dimension 1; Dionysus computes it.
+  # Euler-Poincare: the Euler characteristic is the alternating sum of the Betti numbers TDA computes.
+  expect_reference(hg_euler(complex), sum((-1)^dims * betti_at_one(unclass(rips), dims)),
+                   reference = "independent: Euler-Poincare sum of TDA::ripsDiag()'s Betti numbers", covers = "hg_euler()",
+                   quantity = "Euler characteristic from the Betti numbers", tolerance = 0)
+})
+
+test_that("Betti numbers of simulab random networks equal TDA::ripsDiag() of their flag complexes", {
+  skip_without_reference("TDA")
+  invisible(lapply(c(21L, 22L, 23L), \(seed) {
+    adjacency <- simulab::simulate_network_matrix(nodes = sprintf("n%02d", seq_len(14L)), type = "adjacency",
+                                                  probability = 0.35, directed = FALSE, weighted = FALSE, seed = seed)
+    adjacency <- unclass(stats::xtabs(value ~ from + to, data = as.data.frame(adjacency)))
+    adjacency <- 1 * (adjacency != 0)
+    attr(adjacency, "call") <- NULL
+    names(dimnames(adjacency)) <- NULL
+    complex <- simplicial(adjacency)
+    dims <- hg_get(complex, what = "f_vector")$dimension
+    rips <- TDA::ripsDiag(rips_distance(adjacency), maxdimension = max(dims), maxscale = 1.5, dist = "arbitrary",
+                         library = "Dionysus")$diagram
+    expect_reference(hg_betti(complex), betti_at_one(unclass(rips), dims), reference = "TDA", covers = "hg_betti()",
+                     quantity = sprintf("Betti numbers, simulab network seed %d", seed), tolerance = 0)
+    expect_reference(hg_euler(complex), sum((-1)^dims * hg_get(complex, what = "f_vector")$count),
+                     reference = "independent: alternating sum of the f-vector", covers = "hg_euler()",
+                     quantity = sprintf("Euler characteristic, simulab network seed %d", seed), tolerance = 0)
+  }))
+})
+
+test_that("simplicial degrees of dimension one and above equal xgi's flag complex", {
+  skip_without_python(c("xgi", "networkx"))
+  adjacency <- network()
+  complex <- simplicial(adjacency)
+  dims <- hg_get(complex, what = "f_vector")$dimension
+  links <- which(upper.tri(adjacency) & adjacency > 0, arr.ind = TRUE)
+  script <- c(
+    "import sys, json, xgi, networkx as nx",
+    "data = json.load(open(sys.argv[1]))",
+    "G = nx.Graph(); G.add_nodes_from(data['nodes']); G.add_edges_from(zip(data['from'], data['to']))",
+    "S = xgi.flag_complex(G, max_order=max(data['dims']))",
+    "out = {'node': data['nodes']}",
+    "for k in data['dims']:",
+    "    d = S.nodes.degree(order=k).asdict()",
+    "    out['d%d' % k] = [d.get(n, 0) for n in data['nodes']]",
+    "json.dump(out, open(sys.argv[2], 'w'))")
+  nodes <- rownames(adjacency)
+  theirs <- as.data.frame(ref_python_run(script, list(nodes = nodes, from = nodes[links[, 1L]], to = nodes[links[, 2L]],
+                                                     dims = as.list(setdiff(dims, 0L)))))
+  theirs$total <- rowSums(theirs[paste0("d", setdiff(dims, 0L))])
+  expect_reference(hg_degree(complex), theirs, reference = "xgi", covers = "hg_degree()",
+                   quantity = "simplicial degree of dimension 1 and above, xgi flag complex", tolerance = 0, key = "node",
+                   note = ref_python_version("xgi"))
+})

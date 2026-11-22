@@ -1,8 +1,10 @@
 # Python references, run in a separate process. Nothing here calls hypergraphs.
 #
 # The interpreter is taken from the environment: HYPERGRAPHS_REFERENCE_PYTHON (the verify job sets it to the
-# virtualenv that holds the reference modules on the ci machine), else `python3` on the PATH. A module that
-# the interpreter cannot import is a recorded skip, named `python:<module>`.
+# virtualenv that holds the reference modules on the ci machine), else the helper's verify_python()
+# (VERIFY_PYTHON, RETICULATE_PYTHON, ~/equiv-py, then `python3` on the PATH), so a re-run in Prova finds the
+# same virtualenv on a machine set up like ci. A module that the interpreter cannot import is a recorded skip,
+# named `python:<module>`.
 
 #' The Python interpreter of the references
 #'
@@ -10,7 +12,7 @@
 ref_python <- function() {
   given <- Sys.getenv("HYPERGRAPHS_REFERENCE_PYTHON", unset = "")
   if (nzchar(given)) return(path.expand(given))
-  unname(Sys.which("python3"))
+  verify_python()
 }
 
 #' Whether the interpreter imports a module

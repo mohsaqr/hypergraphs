@@ -212,3 +212,34 @@ test_that("the size plot marks fits whose communities all share one size", {
   expect_identical(nrow(points),
                    nrow(unique(hg_get(comparison, what = "sizes")[c("model", "n_nodes")])))
 })
+
+# ---- Literature fix (2026-11-22): the map equation's codelength -------------
+
+test_that("Infomap codelength is the two-level map equation of the partition, not igraph's", {
+  skip_if_not_installed("igraph")
+  # Two triangles, each hyperedge twice, joined by the pair {c, d}. Association
+  # weights: 1 inside a triangle, 1 on the bridge; total strength 14.
+  h <- .cm_hg(c(rep(c("a", "b", "c"), 2), rep(c("d", "e", "f"), 2), "c", "d"),
+              c(rep(c("T1", "T2"), each = 3), rep(c("T3", "T4"), each = 3),
+                "B", "B"))
+  fit <- hg_communities(h, n_runs = 2, trials = 5, seeds = 1:2)
+  medoid <- hg_get(fit)
+  expect_identical(length(unique(medoid$community)), 2L)
+  expect_identical(length(unique(subset(medoid, node %in% c("a", "b", "c"))$community)), 1L)
+  # Rosvall & Bergstrom (2008), by hand: p = (2, 2, 3, 3, 2, 2) / 14, exit
+  # flow 1/14 per module, module flow 1/2:
+  # L = plogp(2/14) - 2 * 2 plogp(1/14) - sum plogp(p) + 2 plogp(1/14 + 1/2)
+  expect_equal(hg_get(fit, what = "runs")$codelength,
+               rep(2.3207303568337903, 2), tolerance = 1e-12)
+  # igraph's own codelength (recorded teleportation 0.15) is a different number
+  graph <- igraph::graph_from_adjacency_matrix(fit$projection, mode = "undirected",
+                                               weighted = TRUE)
+  expect_gt(abs(igraph::cluster_infomap(graph)$codelength - 2.3207303568337903), 1e-3)
+  # INVARIANT: relabelling the nodes leaves the codelength unchanged
+  relabelled <- .cm_hg(c(rep(c("z", "y", "x"), 2), rep(c("w", "v", "u"), 2), "x", "w"),
+                       c(rep(c("T1", "T2"), each = 3), rep(c("T3", "T4"), each = 3),
+                         "B", "B"))
+  expect_equal(hg_get(hg_communities(relabelled, n_runs = 1, trials = 5),
+                      what = "runs")$codelength,
+               2.3207303568337903, tolerance = 1e-12)
+})

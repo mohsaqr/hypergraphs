@@ -117,22 +117,16 @@ test_that("Infomap's partition and codelength on a planted hypergraph equal Pyth
                    covers = c("summary.hg_communities()", "hg_get.hypergraphs_summary()"),
                    quantity = "planted hypergraph, community of each node through summary()", tolerance = 0, key = "node",
                    note = version)
-  # The codelength is igraph's: hypergraphs hands the association graph to cograph::community_infomap(), which
-  # calls igraph::cluster_infomap(). Infomap and the two-level map equation written out below give another value.
-  reason <- paste("The codelength reported is igraph::cluster_infomap()'s (hypergraphs calls it through cograph):",
-                  "igraph's Infomap (the original 2008 code, src/vendor/cigraph/src/community/infomap/) computes",
-                  "node flow as PageRank with teleportation 0.15 to every node and counts the teleportation steps that",
-                  "leave a module in its exit flow (recorded teleportation), also on an undirected graph; Python Infomap",
-                  "and the two-level map equation of Rosvall and Bergstrom (2008) use the undirected flow without",
-                  "teleportation, which gives a smaller value. Both are in bits; the partitions agree.")
-  expect_known_difference(hg_get(found, what = "runs"), data.frame(run = 1:3, codelength = theirs$codelength),
-                          reference = "infomap", covers = c("hg_communities()", "hg_communities.net_hg()", "hg_get.hg_communities()"),
-                          quantity = "planted hypergraph, codelength", tolerance = 1e-10, key = "run", note = version,
-                          reason = reason)
-  expect_known_difference(hg_get(summary(found), what = "runs"), data.frame(run = 1:3, codelength = theirs$codelength),
-                          reference = "infomap", covers = c("summary.hg_communities()", "hg_get.hypergraphs_summary()"),
-                          quantity = "planted hypergraph, codelength through summary()", tolerance = 1e-10, key = "run",
-                          note = version, reason = reason)
+  # The codelength is the two-level map equation (Rosvall and Bergstrom 2008) of each run's partition, with current
+  # Infomap's flow model: on this undirected graph, no teleportation. Python Infomap found the same partition, so its
+  # own optimum is the same quantity.
+  expect_reference(hg_get(found, what = "runs"), data.frame(run = 1:3, codelength = theirs$codelength),
+                   reference = "infomap", covers = c("hg_communities()", "hg_communities.net_hg()", "hg_get.hg_communities()"),
+                   quantity = "planted hypergraph, codelength", tolerance = 1e-10, key = "run", note = version)
+  expect_reference(hg_get(summary(found), what = "runs"), data.frame(run = 1:3, codelength = theirs$codelength),
+                   reference = "infomap", covers = c("summary.hg_communities()", "hg_get.hypergraphs_summary()"),
+                   quantity = "planted hypergraph, codelength through summary()", tolerance = 1e-10, key = "run",
+                   note = version)
   # the two-level map equation (Rosvall and Bergstrom 2008) of Infomap's partition, in bits: node flow p = strength /
   # total strength, module exit flow q_i, L = q log q - 2 sum q_i log q_i - sum p log p + sum (q_i + p_i) log (q_i + p_i)
   incidence <- ref_incidence(memberships, node = "member", edge = "edge")
@@ -145,37 +139,54 @@ test_that("Infomap's partition and codelength on a planted hypergraph equal Pyth
   inside <- vapply(sort(unique(module)), \(m) sum(flow[module == m]), numeric(1))
   plogp <- \(x) ifelse(x > 0, x * log2(x), 0)
   map_equation <- plogp(sum(exits)) - 2 * sum(plogp(exits)) - sum(plogp(flow)) + sum(plogp(exits + inside))
-  expect_known_difference(hg_get(found, what = "runs"), data.frame(run = 1:3, codelength = map_equation),
-                          reference = "independent: two-level map equation, base R",
-                          covers = c("hg_communities()", "hg_communities.net_hg()", "hg_get.hg_communities()"),
-                          quantity = "planted hypergraph, codelength", tolerance = 1e-10, key = "run", reason = reason)
-  # The same map equation with igraph's recorded teleportation (tau = 0.15, uniform teleportation): node flow p the
-  # PageRank of the association graph's random walk, module exit flow q_m = tau p_m (1 - n_m / n) + (1 - tau)
-  # sum_{i in m, j not in m} p_i P_ij (igraph infomap_FlowGraph.cc, FlowGraph::initiate() and calibrate()).
-  teleportation <- 0.15
-  walk <- association / rowSums(association)
-  pagerank <- Reduce(\(p, i) teleportation / length(p) + (1 - teleportation) * as.vector(p %*% walk), seq_len(500L),
-                     rep(1 / nrow(walk), nrow(walk)))
-  recorded_exits <- vapply(sort(unique(module)), \(m) {
-    inside_m <- module == m
-    teleportation * sum(pagerank[inside_m]) * (1 - mean(inside_m)) +
-      (1 - teleportation) * sum((pagerank * walk)[inside_m, !inside_m])
-  }, numeric(1))
-  recorded_inside <- vapply(sort(unique(module)), \(m) sum(pagerank[module == m]), numeric(1))
-  recorded <- plogp(sum(recorded_exits)) - 2 * sum(plogp(recorded_exits)) - sum(plogp(pagerank)) +
-    sum(plogp(recorded_exits + recorded_inside))
-  expect_reference(hg_get(found, what = "runs"), data.frame(run = 1:3, codelength = recorded),
-                   reference = "independent: two-level map equation with recorded teleportation 0.15, base R",
+  expect_reference(hg_get(found, what = "runs"), data.frame(run = 1:3, codelength = map_equation),
+                   reference = "independent: two-level map equation, base R",
                    covers = c("hg_communities()", "hg_communities.net_hg()", "hg_get.hg_communities()"),
-                   quantity = "planted hypergraph, codelength with recorded teleportation", tolerance = 1e-8, key = "run",
-                   note = "igraph's power iteration stops at a summed change of 1e-15 or 200 steps; 500 steps here")
-  skip_without_reference("igraph")
-  graph <- igraph::graph_from_adjacency_matrix(association, mode = "undirected", weighted = TRUE)
-  expect_reference(hg_get(found, what = "runs"), data.frame(run = 1:3, codelength = igraph::cluster_infomap(graph)$codelength),
-                   reference = "igraph", authority = "internal",
-                   covers = c("hg_communities()", "hg_communities.net_hg()", "hg_get.hg_communities()"),
-                   quantity = "planted hypergraph, codelength", tolerance = 1e-10, key = "run",
-                   note = "igraph is what hypergraphs calls (through cograph::community_infomap()): internal, no independent evidence.")
+                   quantity = "planted hypergraph, codelength", tolerance = 1e-10, key = "run")
+})
+
+test_that("the codelength of every run's partition equals Python infomap's on the same partition, directed and undirected", {
+  skip_without_python("infomap")
+  # Infomap with --no-infomap scores a given partition without optimising: the codelength of exactly our partition.
+  script <- c(
+    "import sys, json, infomap",
+    "s = json.load(open(sys.argv[1]))",
+    "out = []",
+    "for m in s['modules']:",
+    "    im = infomap.Infomap('--two-level --silent --no-infomap' + (' --directed' if s['directed'] else ''))",
+    "    for k in range(s['n']): im.add_node(k)",
+    "    for a, b, w in zip(s['from'], s['to'], s['weight']): im.add_link(a, b, w)",
+    "    im.run(initial_partition={k: c for k, c in enumerate(m)})",
+    "    out.append(im.codelength)",
+    "json.dump({'codelength': out}, open(sys.argv[2], 'w'))")
+  memberships <- planted()
+  hg <- group_hypergraph(memberships, node = "member", hyperedge = "edge")
+  # each hyperedge cites from its first member (a column constant within a hyperedge is a hyperedge attribute)
+  first_member <- memberships$member[!duplicated(memberships$edge)]
+  cited <- group_hypergraph(within(memberships, source <- first_member[match(edge, unique(edge))]),
+                            node = "member", hyperedge = "edge")
+  version <- ref_python_version("infomap")
+  settings <- list(
+    list(hg = hg, args = list(), label = "association graph"),
+    list(hg = hg, args = list(duplicate_edges = "collapse"), label = "association graph, duplicates collapsed"),
+    list(hg = cited, args = list(method = "citation"), label = "undirected citation graph"),
+    list(hg = cited, args = list(method = "citation", directed = TRUE), label = "directed citation graph"))
+  invisible(lapply(settings, \(setting) {
+    found <- do.call(hg_communities, c(list(setting$hg, n_runs = 3, trials = 3, seeds = 1:3), setting$args))
+    graph <- found$projection
+    directed <- isTRUE(setting$args$directed)
+    links <- which(graph != 0 & (directed | upper.tri(graph, diag = TRUE)), arr.ind = TRUE)
+    partitions <- hg_get(found, what = "partitions")
+    modules <- lapply(split(partitions, partitions$run), \(p) {
+      as.integer(factor(p$community[match(rownames(graph), p$node)])) - 1L
+    })
+    theirs <- ref_python_run(script, list(n = nrow(graph), from = unname(links[, 1L]) - 1L, to = unname(links[, 2L]) - 1L,
+                                          weight = graph[links], modules = unname(modules), directed = directed))
+    expect_reference(hg_get(found, what = "runs"), data.frame(run = 1:3, codelength = unlist(theirs$codelength)),
+                     reference = "infomap", covers = c("hg_communities()", "hg_communities.net_hg()", "hg_get.hg_communities()"),
+                     quantity = sprintf("planted hypergraph, %s, codelength of each run's partition", setting$label),
+                     tolerance = 1e-10, key = "run", note = version)
+  }))
 })
 
 test_that("the agreement of two partitions equals scikit-learn's AMI, ARI and NMI", {

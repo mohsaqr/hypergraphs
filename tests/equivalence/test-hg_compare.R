@@ -36,7 +36,7 @@ test_that("each group's rule counts, probabilities and their difference equal th
                          diff = probability(one) - probability(two))
   expect_reference(cbind(path = path, subset(rules, select = c(count_g1, count_g2, probability_g1, probability_g2, diff))),
                    expected, reference = "independent: k-gram counts of each group's sequences, base R",
-                   covers = c("hg_compare()", "hg_get.hypergraphs_comparison()"), quantity = "rule estimates by group",
+                   covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()", "hg_get.hypergraphs_comparison()"), quantity = "rule estimates by group",
                    tolerance = 1e-12, key = "path")
   summarised <- hg_get(summary(comparison))
   expect_reference(data.frame(path = paste(summarised$from, summarised$to, sep = " -> "), diff = summarised$diff),
@@ -50,7 +50,7 @@ test_that("each group's rule counts, probabilities and their difference equal th
   expect_reference(cbind(test = "global", subset(hg_get(comparison, what = "global"), select = c(statistic, n_comparable, n_rules))),
                    data.frame(test = "global", statistic = sum(pooled[comparable] * abs(expected$diff[comparable])) / sum(pooled[comparable]),
                               n_comparable = sum(comparable), n_rules = length(path)),
-                   reference = "independent: k-gram counts of each group's sequences, base R", covers = "hg_compare()",
+                   reference = "independent: k-gram counts of each group's sequences, base R", covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()"),
                    quantity = "global statistic", tolerance = 1e-12, key = "test")
 })
 
@@ -59,15 +59,15 @@ test_that("adjusted p-values equal stats::p.adjust(BH); p-values lie where any p
   path <- paste(rules$from, rules$to, sep = " -> ")
   expect_reference(data.frame(path = path, p_adj = rules$p_adj),
                    data.frame(path = path, p_adj = stats::p.adjust(rules$p_value, method = "BH")), reference = "stats",
-                   covers = c("hg_compare()", "hg_get.hypergraphs_comparison()"), quantity = "Benjamini-Hochberg adjustment",
+                   covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()", "hg_get.hypergraphs_comparison()"), quantity = "Benjamini-Hochberg adjustment",
                    tolerance = 1e-12, key = "path")
   p_values <- data.frame(path = path, p_value = rules$p_value)
   expect_reference(p_values, within(p_values, p_value <- pmin(pmax(p_value, 1 / (rules$n_perm_used + 1)), 1)),
                    reference = "published: Phipson & Smyth (2010), a permutation p-value lies in [1/(B+1), 1]",
-                   covers = c("hg_compare()", "hg_get.hypergraphs_comparison()"),
+                   covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()", "hg_get.hypergraphs_comparison()"),
                    quantity = "Monte Carlo summary: rule p-values within their bounds", tolerance = 0, key = "path")
   global <- subset(hg_get(comparison, what = "global"), select = c(p_value, n_perm_used))
   expect_reference(global$p_value, min(max(global$p_value, 1 / (global$n_perm_used + 1)), 1),
                    reference = "published: Phipson & Smyth (2010), a permutation p-value lies in [1/(B+1), 1]",
-                   covers = "hg_compare()", quantity = "Monte Carlo summary: global p-value within its bounds", tolerance = 0)
+                   covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()"), quantity = "Monte Carlo summary: global p-value within its bounds", tolerance = 0)
 })

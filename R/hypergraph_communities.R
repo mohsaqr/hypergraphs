@@ -102,13 +102,30 @@
 #'   `community`, and through `what` every run's partition, the runs, the
 #'   community sizes and the AMI, ARI and NMI between runs (see
 #'   [hg_get.hg_communities()]). For Infomap the `"runs"` table has `run`,
-#'   `seed`, `n_communities` and `codelength`; for `type = "irmm"` it has `run`, `seed`, `n_communities`,
+#'   `seed`, `n_communities` and `codelength`: the two-level map equation
+#'   (Rosvall & Bergstrom 2008), in bits, of that run's partition, with the
+#'   flow model of current Infomap (the authors' code, `infomap` 2.x).
+#'   Undirected graphs need no teleportation: node flow is strength over total
+#'   strength. With `directed = TRUE` the flow is PageRank with teleportation
+#'   0.15 to nodes in proportion to their out-weight, unrecorded (Lambiotte &
+#'   Rosvall 2012): only link steps are encoded. The partition comes from
+#'   igraph's Infomap; igraph's own codelength (which records teleportation
+#'   also on undirected graphs) is not reported. For `type = "irmm"` it has `run`, `seed`, `n_communities`,
 #'   `iterations`, `converged`, `max_weight_change` and `modularity` (the
 #'   linear hypergraph modularity of [hg_modularity()]), `projection` is the
 #'   reweighted clique reduction of the medoid run, and
 #'   `hg_get(fit, what = "weights")` gives one row per hyperedge with
 #'   `edge`, `size`, `initial_weight` and the medoid run's final `weight`.
-#' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
+#' @references Rosvall, M., & Bergstrom, C. T. (2008). Maps of random walks
+#' on complex networks reveal community structure. *Proceedings of the
+#' National Academy of Sciences*, 105(4), 1118-1123.
+#' \doi{10.1073/pnas.0706851105}
+#'
+#' Lambiotte, R., & Rosvall, M. (2012). Ranking and clustering of nodes in
+#' networks with smart teleportation. *Physical Review E*, 85(5), 056107.
+#' \doi{10.1103/PhysRevE.85.056107}
+#'
+#' Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #' hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #' 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
 #'
@@ -230,7 +247,8 @@ hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
                         community = as.character(fit$community),
                         stringsAsFactors = FALSE)
       tab <- tab[match(nodes, tab$node), , drop = FALSE]
-      codelength <- attr(fit, "igraph_result")$codelength %||% NA_real_
+      codelength <- .hg_map_codelength(projection, tab$community,
+                                       directed = directed)
     }
     tab$run <- i
     tab$seed <- seeds[i]
@@ -738,4 +756,43 @@ hg_community_quality <- function(hg, partition,
     conductance = conductance,
     n_communities = length(unique(labels)), row.names = NULL
   )
+}
+
+#' Two-level map-equation codelength of a partition of a projection
+#'
+#' The codelength of Rosvall & Bergstrom (2008), in bits, of the partition
+#' `community` of the weighted graph `projection`, with the flow model of
+#' current Infomap (Infomap 2.x, the authors' code). Undirected: node flow is
+#' strength over total strength and link flow is weight over total strength,
+#' with no teleportation. Directed: PageRank with teleportation probability
+#' 0.15 to nodes in proportion to their out-weight, UNRECORDED (Lambiotte &
+#' Rosvall 2012), so only link steps are encoded (`.hcm_flow()`).
+#'
+#' @param projection Square non-negative weight matrix (rows = from).
+#' @param community Community of each row of `projection`.
+#' @param directed Logical scalar.
+#' @return A length-one numeric codelength in bits.
+#' @noRd
+.hg_map_codelength <- function(projection, community, directed) {
+  stopifnot(
+    "`projection` must be a square numeric matrix" =
+      is.matrix(projection) && is.numeric(projection) &&
+      nrow(projection) == ncol(projection),
+    "`community` needs one entry per node" =
+      length(community) == nrow(projection) && !anyNA(community),
+    "`directed` must be TRUE or FALSE" = isTRUE(directed) || isFALSE(directed)
+  )
+  weights <- unname(projection)
+  flow <- if (directed) {
+    .hcm_flow(weights, tau = 0.15)
+  } else {
+    links <- which(weights > 0, arr.ind = TRUE)
+    total <- sum(weights[links])
+    list(node_flow = rowSums(weights) / total,
+         from = unname(links[, 1L]), to = unname(links[, 2L]),
+         flow = weights[links] / total)
+  }
+  module <- match(as.character(community), unique(as.character(community)))
+  .hcm_codelength(flow, phys = seq_len(nrow(weights)),
+                  module = module)$codelength
 }

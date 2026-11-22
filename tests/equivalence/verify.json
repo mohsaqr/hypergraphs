@@ -240,7 +240,8 @@
       "hg_mmsbm()",
       "hg_get.net_hg_mmsbm()",
       "summary.net_hg_mmsbm()",
-      "hg_get.net_hg_cluster()"
+      "hg_get.net_hg_cluster()",
+      "hg_compare.hypergraphs_memory_group()"
     ],
     "not_numeric": {
       "clean_text()": "returns the cleaned text of the documents (strings); no number to compare",
@@ -251,8 +252,13 @@
       "summary.net_hg_cluster()": "not returned by any exported function: no exported function returns a net_hg_cluster object (hg_cluster() returns the fit's tables as data frames) or calls summary() on one, so the method cannot be reached from the exported API",
       "hg_get.net_hg_transduction()": "not returned by any exported function: no exported function returns a net_hg_transduction object (hg_classify() returns the fit's predictions table, or an hg_classification), and none calls hg_get() on one, so the method cannot be reached from the exported API",
       "summary.net_hg_transduction()": "not returned by any exported function: no exported function returns a net_hg_transduction object (hg_classify() returns the fit's predictions table, or an hg_classification) or calls summary() on one, so the method cannot be reached from the exported API",
-      "hg_get.net_hg_measures()": "not returned by any exported function: no exported function returns a net_hg_measures object (hg_measures() builds its data frames from the internal fit directly) or calls hg_get() on one, so the method cannot be reached from the exported API"
+      "hg_get.net_hg_measures()": "not returned by any exported function: no exported function returns a net_hg_measures object (hg_measures() builds its data frames from the internal fit directly) or calls hg_get() on one, so the method cannot be reached from the exported API",
+      "hg_compare.default()": "raises hypergraphs_bad_input for an input that is neither a hypergraph nor a group model of memory networks; returns nothing"
     },
-    "not_yet": {}
+    "not_yet": {
+      "hg_compare.net_hg()": "new in 0.7.16 (hg_compare() on a hypergraph: degree share, clique and PageRank by group of hyperedges, permutation p-values, cluster bootstrap); no declared comparison with a reference yet",
+      "hg_get.hypergraphs_hg_comparison()": "new in 0.7.16 (hg_compare() on a hypergraph: degree share, clique and PageRank by group of hyperedges, permutation p-values, cluster bootstrap); no declared comparison with a reference yet",
+      "summary.hypergraphs_hg_comparison()": "new in 0.7.16 (hg_compare() on a hypergraph: degree share, clique and PageRank by group of hyperedges, permutation p-values, cluster bootstrap); no declared comparison with a reference yet"
+    }
   }
 }

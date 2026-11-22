@@ -1,3 +1,16 @@
+# hypergraphs 0.7.17
+
+## Bug fixes
+
+* `hg_communities()` (Infomap) reports the codelength of the two-level map
+  equation (Rosvall & Bergstrom 2008) of each run's partition, with the flow
+  model of current Infomap: no teleportation on undirected graphs, unrecorded
+  teleportation 0.15 on directed citation graphs (Lambiotte & Rosvall 2012).
+  It used to report igraph's codelength, which records teleportation also on
+  undirected graphs: on a planted three-block hypergraph 3.329498 instead of
+  the map equation's 2.812139. Partitions are unchanged. The values equal
+  Python `infomap` 2.16.0 scoring the same partition.
+
 # hypergraphs 0.7.16
 
 ## New features

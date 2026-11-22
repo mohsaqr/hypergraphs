@@ -86,7 +86,15 @@ An \code{hg_communities} object with \code{print} and \code{plot} methods.
 \code{community}, and through \code{what} every run's partition, the runs, the
 community sizes and the AMI, ARI and NMI between runs (see
 \code{\link[=hg_get.hg_communities]{hg_get.hg_communities()}}). For Infomap the \code{"runs"} table has \code{run},
-\code{seed}, \code{n_communities} and \code{codelength}; for \code{type = "irmm"} it has \code{run}, \code{seed}, \code{n_communities},
+\code{seed}, \code{n_communities} and \code{codelength}: the two-level map equation
+(Rosvall & Bergstrom 2008), in bits, of that run's partition, with the
+flow model of current Infomap (the authors' code, \code{infomap} 2.x).
+Undirected graphs need no teleportation: node flow is strength over total
+strength. With \code{directed = TRUE} the flow is PageRank with teleportation
+0.15 to nodes in proportion to their out-weight, unrecorded (Lambiotte &
+Rosvall 2012): only link steps are encoded. The partition comes from
+igraph's Infomap; igraph's own codelength (which records teleportation
+also on undirected graphs) is not reported. For \code{type = "irmm"} it has \code{run}, \code{seed}, \code{n_communities},
 \code{iterations}, \code{converged}, \code{max_weight_change} and \code{modularity} (the
 linear hypergraph modularity of \code{\link[=hg_modularity]{hg_modularity()}}), \code{projection} is the
 reweighted clique reduction of the medoid run, and
@@ -114,6 +122,15 @@ if (requireNamespace("igraph", quietly = TRUE)) {
 }
 }
 \references{
+Rosvall, M., & Bergstrom, C. T. (2008). Maps of random walks
+on complex networks reveal community structure. \emph{Proceedings of the
+National Academy of Sciences}, 105(4), 1118-1123.
+\doi{10.1073/pnas.0706851105}
+
+Lambiotte, R., & Rosvall, M. (2012). Ranking and clustering of nodes in
+networks with smart teleportation. \emph{Physical Review E}, 85(5), 056107.
+\doi{10.1103/PhysRevE.85.056107}
+
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 hypergraphs. \emph{Philosophical Transactions of the Royal Society A},
 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}

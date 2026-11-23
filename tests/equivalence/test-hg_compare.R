@@ -54,20 +54,23 @@ test_that("each group's rule counts, probabilities and their difference equal th
                    quantity = "global statistic", tolerance = 1e-12, key = "test")
 })
 
+# Both checks below take the package's own p-values as input: they are range and adjustment checks, declared as
+# independent computations, not outside numbers (the permutation p-values themselves have no outside reference).
 test_that("adjusted p-values equal stats::p.adjust(BH); p-values lie where any permutation p-value lies", {
   rules <- hg_get(comparison)
   path <- paste(rules$from, rules$to, sep = " -> ")
   expect_reference(data.frame(path = path, p_adj = rules$p_adj),
-                   data.frame(path = path, p_adj = stats::p.adjust(rules$p_value, method = "BH")), reference = "stats",
+                   data.frame(path = path, p_adj = stats::p.adjust(rules$p_value, method = "BH")),
+                   reference = "independent: stats::p.adjust() of the package's own p-values",
                    covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()", "hg_get.hypergraphs_comparison()"), quantity = "Benjamini-Hochberg adjustment",
                    tolerance = 1e-12, key = "path")
   p_values <- data.frame(path = path, p_value = rules$p_value)
   expect_reference(p_values, within(p_values, p_value <- pmin(pmax(p_value, 1 / (rules$n_perm_used + 1)), 1)),
-                   reference = "published: Phipson & Smyth (2010), a permutation p-value lies in [1/(B+1), 1]",
+                   reference = "independent: range of a permutation p-value, [1/(B+1), 1] (Phipson & Smyth 2010)",
                    covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()", "hg_get.hypergraphs_comparison()"),
                    quantity = "Monte Carlo summary: rule p-values within their bounds", tolerance = 0, key = "path")
   global <- subset(hg_get(comparison, what = "global"), select = c(p_value, n_perm_used))
   expect_reference(global$p_value, min(max(global$p_value, 1 / (global$n_perm_used + 1)), 1),
-                   reference = "published: Phipson & Smyth (2010), a permutation p-value lies in [1/(B+1), 1]",
+                   reference = "independent: range of a permutation p-value, [1/(B+1), 1] (Phipson & Smyth 2010)",
                    covers = c("hg_compare()", "hg_compare.hypergraphs_memory_group()"), quantity = "Monte Carlo summary: global p-value within its bounds", tolerance = 0)
 })

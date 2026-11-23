@@ -36,7 +36,8 @@ test_that("G2, df and asymptotic p-values of each order equal the conditional in
                      covers = c("markov_order()", "hg_get.net_markov_order()", "hg_get.hypergraphs_result()"),
                      quantity = paste(name, "G2 and df"), tolerance = 1e-9, key = "order")
     expect_reference(subset(hg_get(fit, what = "orders"), order >= 1, select = c(order, p_asymptotic)),
-                     subset(expected, select = c(order, p_asymptotic)), reference = "stats",
+                     subset(expected, select = c(order, p_asymptotic)),
+                     reference = "independent: chi-squared tail, stats::pchisq() of the G2 written out above",
                      covers = c("markov_order()", "hg_get.net_markov_order()"), quantity = paste(name, "asymptotic p-value"),
                      tolerance = 1e-8, measure = "relative", key = "order",
                      note = "stats::pchisq(G2, df, lower.tail = FALSE) of the G2 written out above.")

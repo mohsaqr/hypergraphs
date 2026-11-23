@@ -4,6 +4,51 @@
 # fitted so that Xi / m reproduces the observed strengths (expected count = Xi / m). The p-value of a path is
 # P(X <= count) with X ~ Wallenius(m1 = Xi, m2 = sum(Xi) - Xi, n = m, odds 1), the upper p-value P(X > count). References: BiasedUrn's
 # pWNCHypergeo() and stats::phyper() (the two coincide at odds 1), the counts by k-gram in base R.
+#
+# No outside software computes HYPA here: pathpy 2.2.0 (in ~/equiv-py) has no HYPA module, and the authors' code
+# (tlarock/hypa) is not installed. So Xi is fitted again in this file from the definition, on the de Bruijn support
+# built from the sequences (Sinkhorn & Knopp scaling of s_out(v) s_in(w)), and the hypergeometric tails are taken
+# of that Xi. Every row is an independent computation (Indirect in Prova), none is an outside number. Tails taken of
+# the package's own Xi are labelled as such.
+
+# The HYPA null of order 2 from the definition (LaRock et al. 2020): the contexts v = (a, b) with an outgoing path
+# and the targets w = (b, c) with an incoming one, joined on b, are the possible paths a -> b -> c; Xi[v, w] =
+# x_v y_w on them, scaled (Sinkhorn & Knopp 1967) until the expected counts m Xi / sum(Xi) reproduce the observed
+# out- and in-strengths, then Xi is put on sum(Xi) = m^2. With `round_sweeps = TRUE` Xi is kept on that scale and
+# rounded to integers after every row and every column step: the rounding that Nestimate's documentation
+# (R/hypa.R, .hypa_fit_xi) says the original Python fitXi()/xifix_row() does. That variant is written from that
+# description, not from the authors' code.
+hypa_reference <- function(sequences, round_sweeps = FALSE, sweeps = 5000L) {
+  grams <- ref_kgrams(sequences, 3L)
+  parts <- strsplit(names(grams), " -> ", fixed = TRUE)
+  observed <- data.frame(v = vapply(parts, \(p) paste(p[1:2], collapse = " -> "), character(1)),
+                         w = vapply(parts, \(p) paste(p[2:3], collapse = " -> "), character(1)), count = unname(grams))
+  s_out <- tapply(observed$count, observed$v, sum)
+  s_in <- tapply(observed$count, observed$w, sum)
+  possible <- merge(data.frame(v = names(s_out), b = sub("^.* -> ", "", names(s_out))),
+                    data.frame(w = names(s_in), b = sub(" -> .*$", "", names(s_in))), by = "b")
+  possible <- merge(possible, observed, by = c("v", "w"), all.x = TRUE)
+  possible$count[is.na(possible$count)] <- 0
+  m <- sum(observed$count)
+  rows <- match(possible$v, names(s_out))
+  cols <- match(possible$w, names(s_in))
+  target_out <- as.numeric(s_out)[rows]
+  target_in <- as.numeric(s_in)[cols]
+  scale_to <- \(xi, group, target, total) {
+    current <- stats::ave(xi, group, FUN = sum)
+    fitted <- xi * target * total / current
+    if (round_sweeps) round(fitted) else fitted
+  }
+  start <- target_out * target_in * if (round_sweeps) 1 else 1 / m^2
+  total <- if (round_sweeps) m else 1 / m
+  xi <- Reduce(\(xi, i) scale_to(scale_to(xi, rows, target_out, total), cols, target_in, total), seq_len(sweeps), start)
+  xi <- xi * m^2 / sum(xi)
+  big_k <- round(xi)
+  data.frame(path = paste(possible$v, sub("^.* -> ", "", possible$w), sep = " -> "), count = possible$count,
+             expected = m * xi / sum(xi),
+             p_under = stats::phyper(possible$count, big_k, round(m^2) - big_k, m),
+             p_over = stats::phyper(possible$count, big_k, round(m^2) - big_k, m, lower.tail = FALSE))
+}
 
 sequences <- ref_second_order(n_sequences = 40L, length = 20L, seed = 9L)
 
@@ -39,11 +84,13 @@ test_that("p-values equal the Wallenius distribution at odds 1 (BiasedUrn) and t
                           reason = "At odds 1 the Wallenius distribution is the hypergeometric; BiasedUrn's pWNCHypergeo() (precision = 1e-12 requested) differs from the exact stats::phyper() by up to 1.6e-9 on these inputs, and hypergraphs equals stats::phyper() (compared below).")
   expect_reference(subset(scores, select = c(path, p_under)),
                    data.frame(path = scores$path, p_under = stats::phyper(scores$count, m1, m2, pmin(m, m1 + m2))),
-                   reference = "stats", covers = c("hypa()", "hypa.default()", "hg_get.net_hypa()", "hg_get.hypergraphs_hypa()"),
-                   quantity = "lower-tail p-values", tolerance = 1e-9, key = "path")
+                   reference = "independent: stats::phyper() of the package's own fitted Xi",
+                   covers = c("hypa()", "hypa.default()", "hg_get.net_hypa()", "hg_get.hypergraphs_hypa()"),
+                   quantity = "lower-tail p-values", tolerance = 1e-9, key = "path",
+                   note = "The urn is the package's fitted Xi: this checks the tail, not the null. The null is checked against an independent fit below.")
   expect_reference(subset(scores, select = c(path, p_over)),
                    data.frame(path = scores$path, p_over = stats::phyper(scores$count, m1, m2, pmin(m, m1 + m2), lower.tail = FALSE)),
-                   reference = "stats", covers = c("hypa()", "hypa.default()", "hg_get.net_hypa()"),
+                   reference = "independent: stats::phyper() of the package's own fitted Xi", covers = c("hypa()", "hypa.default()", "hg_get.net_hypa()"),
                    quantity = "upper-tail p-values", tolerance = 1e-9, key = "path",
                    note = "The strict upper tail P(X > count), as hypergraphs documents it (a path is over-represented when P(X > f) <= alpha).")
 })
@@ -53,12 +100,38 @@ test_that("adjusted p-values equal stats::p.adjust()", {
   expect_reference(subset(scores, select = c(path, p_adj_under, p_adj_over)),
                    data.frame(path = scores$path, p_adj_under = stats::p.adjust(scores$p_under, method = "BH"),
                               p_adj_over = stats::p.adjust(scores$p_over, method = "BH")),
-                   reference = "stats", covers = c("hypa()", "hg_get.net_hypa()"), quantity = "Benjamini-Hochberg adjustment",
-                   tolerance = 1e-12, key = "path")
+                   reference = "independent: stats::p.adjust() of the package's own p-values", covers = c("hypa()", "hg_get.net_hypa()"),
+                   quantity = "Benjamini-Hochberg adjustment", tolerance = 1e-12, key = "path")
   expect_reference(subset(hg_get(summary(hypa(sequences, order = 2L, p_adjust = "BH")), what = "scores"), select = c(path, p_adj_under)),
                    data.frame(path = scores$path, p_adj_under = stats::p.adjust(scores$p_under, method = "BH")),
-                   reference = "stats", covers = c("summary.hypergraphs_hypa()", "hg_get.hypergraphs_summary()"),
+                   reference = "independent: stats::p.adjust() of the package's own p-values",
+                   covers = c("summary.hypergraphs_hypa()", "hg_get.hypergraphs_summary()"),
                    quantity = "Benjamini-Hochberg adjustment through summary()", tolerance = 1e-12, key = "path")
+})
+
+test_that("expected counts and tails equal an independent fit of the HYPA null on the de Bruijn support", {
+  scores <- hg_get(hypa(sequences, order = 2L, p_adjust = "none"), what = "scores")
+  continuous <- hypa_reference(sequences)
+  covers <- c("hypa()", "hypa.default()", "hg_get.net_hypa()", "hg_get.hypergraphs_hypa()")
+  # Possible paths and their counts: a key in one table and not the other fails.
+  expect_reference(subset(scores, select = c(path, count)), subset(continuous, select = c(path, count)),
+                   reference = "independent: possible paths of the de Bruijn graph and their counts, base R", covers = covers,
+                   quantity = "possible paths and counts", tolerance = 0, key = "path")
+  # The package stops its scaling when the largest strength error is below 1e-10 m (m = 720 paths here, so
+  # 7.2e-8 on a strength); the reference scales 5000 times. A cell may carry the strength error: 1e-6.
+  expect_reference(subset(scores, select = c(path, expected)), subset(continuous, select = c(path, expected)),
+                   reference = "independent: Sinkhorn-Knopp fit of Xi on the de Bruijn support, base R", covers = covers,
+                   quantity = "expected counts", tolerance = 1e-6, key = "path")
+  expect_reference(subset(scores, select = c(path, p_under, p_over)), subset(continuous, select = c(path, p_under, p_over)),
+                   reference = "independent: Sinkhorn-Knopp fit of Xi on the de Bruijn support, base R", covers = covers,
+                   quantity = "hypergeometric tails of the independent Xi", tolerance = 1e-9, key = "path",
+                   note = "stats::phyper(count, round(Xi), m^2 - round(Xi), m) of the Xi fitted in this file.")
+  rounded <- hypa_reference(sequences, round_sweeps = TRUE, sweeps = 200L)
+  expect_known_difference(subset(scores, select = c(path, expected)), subset(rounded, select = c(path, expected)),
+                          reference = "independent: Xi rounded to integers in every sweep, as described for tlarock/hypa", covers = covers,
+                          quantity = "expected counts with Xi rounded in every sweep", tolerance = 1e-6, key = "path",
+                          agrees_with = "the continuous Sinkhorn-Knopp fit (compared above)",
+                          reason = "Nestimate (which hypa() calls) fits Xi without rounding inside the loop and documents this as a departure from the original Python fitXi()/xifix_row() of LaRock et al., which round Xi to integers in every sweep. The rounded variant here is written from that description, not from the authors' code, which is not installed.")
 })
 
 # hypa.net_hg(): the hypergraph method. Written from its documented definition (?hypa.net_hg): c_ij the hyperedges

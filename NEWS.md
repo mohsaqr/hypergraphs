@@ -1,3 +1,23 @@
+# hypergraphs 0.7.18
+
+## Equivalence evidence (tests/equivalence, not in the built package)
+
+* `hypa()`: the expected counts and hypergeometric tails are now compared
+  with an independent fit of the HYPA null written in the test (the de Bruijn
+  support built from the sequences, Sinkhorn-Knopp scaling of
+  s_out(v) s_in(w)); they agree to 1.4e-14 and 0. The rounding of Xi in every
+  sweep that Nestimate documents for the authors' Python code is declared as a
+  known difference (expected counts shift by up to 7.4e-4 on the test data).
+  No outside program computes HYPA here (pathpy 2.2.0 has no HYPA module), so
+  the checks of `hypa()`, `summary()` of its result, `hg_compare()` and
+  `hg_get()` of a `markov_order()` fit that took the package's own p-values or
+  Xi as input are labelled independent computations, not `stats` or a
+  publication.
+* `hg_representations()` on the GFCC data: the multigraph edge count (77,279
+  against the paper's 77,284; five citations cite the same decision twice in
+  one block) is declared a defect pending the owner's decision; the binary
+  hypergraph count (13,539 against 13,541) stays a known difference.
+
 # hypergraphs 0.7.17
 
 ## Bug fixes

@@ -28,9 +28,14 @@ test_that("the GFCC citation blocks reproduce Table 2a, the multigraph and binar
   covers <- c("hg_representations()", "temporal_hypergraph()", "hg_snapshot()")
   expect_reference(subset(ours, representation %in% c("bg", "mh")), data.frame(representation = c("bg", "mh"), n_edges = c(39428, 46257)),
                    reference = table_2, covers = covers, quantity = "GFCC, edges", tolerance = 0, key = "representation")
-  expect_known_difference(subset(ours, representation %in% c("mg", "bh")), data.frame(representation = c("mg", "bh"), n_edges = c(77284, 13541)),
-                          reference = table_2, covers = covers, quantity = "GFCC, edges", tolerance = 0, key = "representation",
-                          reason = "Five citations cite the same decision twice inside one block. The paper's multigraph keeps each repeat as an edge, and its hypergraph keeps a block that differs from another only by such a repeat as a distinct member multiset; an incidence matrix holds a membership once, so hypergraphs reports 5 fewer multigraph edges and 2 fewer binary hyperedges (counted from the raw rows in the standing battery).")
+  # The multigraph keeps parallel edges by definition: the paper's 77,284 counts the five citations that cite the
+  # same decision twice inside one block (gfcc_citations has 77,284 rows). hypergraphs counts 77,279.
+  expect_reference(subset(ours, representation == "mg"), data.frame(representation = "mg", n_edges = 77284),
+                   reference = table_2, covers = covers, quantity = "GFCC, multigraph edges", tolerance = 0, key = "representation",
+                   defect = "multigraph drops 5 repeated (block, cited) citation pairs; paper counts 77,284; owner decision pending; FINDINGS.md")
+  expect_known_difference(subset(ours, representation == "bh"), data.frame(representation = "bh", n_edges = 13541),
+                          reference = table_2, covers = covers, quantity = "GFCC, binary hyperedges", tolerance = 0, key = "representation",
+                          reason = "A binary hypergraph is a set of node sets: a block that differs from another only by citing one decision twice is the same set. The paper keeps the 2 such blocks as distinct member multisets; hypergraphs, whose incidence holds a membership once, reports 13,539 against 13,541.")
   expect_reference(ours, data.frame(representation = c("bg", "mg", "bh", "mh"), mean_degree = c(10.9, 21.4, 10.2, 21.4)),
                    reference = table_2, covers = covers, quantity = "GFCC, mean degree (one decimal)", tolerance = 0.05,
                    key = "representation")

@@ -517,8 +517,12 @@ test_that("teleportation = 0 on a reducible walk is hypergraphs_not_ergodic", {
 # ---- State labels holding the arrow (M07) ----------------------------------
 
 test_that("hg_communities() refuses a network whose states hold the arrow", {
-  net <- Nestimate::build_hon(rep(list(c("a -> b", "c", "a -> b", "c")), 2L),
+  # build_hon() (Nestimate >= 1.0.20) and hon() refuse such labels, so the
+  # label is given after the build, as in a net_hon made by other code
+  net <- Nestimate::build_hon(rep(list(c("x", "c", "x", "c")), 2L),
                               max_order = 1L)
+  net$first_order_states <- sub("x", "a -> b", net$first_order_states,
+                                fixed = TRUE)
   expect_error(hg_communities(net, trials = 1L),
                class = "hypergraphs_bad_input")
 })

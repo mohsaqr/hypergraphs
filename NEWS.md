@@ -1,3 +1,12 @@
+# hypergraphs 0.7.19
+
+## Equivalence evidence (tests/equivalence, not in the built package)
+
+* The BiasedUrn comparison of `hypa()` tails (taken of the package's own Xi)
+  and the `stats::phyper()` tails of the Chung-Lu null of `hypa.net_hg()`
+  (written in the test) are declared independent computations: neither is
+  an outside number for the HYPA null.
+
 # hypergraphs 0.7.18
 
 ## Equivalence evidence (tests/equivalence, not in the built package)

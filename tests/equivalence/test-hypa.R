@@ -80,6 +80,9 @@ test_that("p-values equal the Wallenius distribution at odds 1 (BiasedUrn) and t
   expect_known_difference(subset(scores, select = c(path, p_under)), data.frame(path = scores$path, p_under = wallenius),
                           reference = "BiasedUrn", covers = c("hypa()", "hypa.default()", "hg_get.net_hypa()"),
                           quantity = "lower-tail p-values", tolerance = 1e-9, key = "path",
+                          # BiasedUrn computes the tails of the package's own fitted Xi: a check of the tail, not of the
+                          # null, so its agreeing rows are no outside evidence for hypa().
+                          authority = "independent",
                           note = "BiasedUrn::pWNCHypergeo(count, round(Xi), round(sum Xi) - round(Xi), min(m, sum Xi), odds = 1, precision = 1e-12).",
                           reason = "At odds 1 the Wallenius distribution is the hypergeometric; BiasedUrn's pWNCHypergeo() (precision = 1e-12 requested) differs from the exact stats::phyper() by up to 1.6e-9 on these inputs, and hypergraphs equals stats::phyper() (compared below).")
   expect_reference(subset(scores, select = c(path, p_under)),
@@ -185,6 +188,7 @@ test_that("hypa() of a hypergraph equals the documented hypergeometric null of i
                    reference = "independent: Chung-Lu fitness solved by Newton's method, base R", covers = "hypa.net_hg()",
                    quantity = "expected co-occurrences", tolerance = 1e-8, key = "pair")
   expect_reference(subset(found, select = c(pair, p_under, p_over)), subset(expected, select = c(pair, p_under, p_over)),
-                   reference = "stats", covers = "hypa.net_hg()", quantity = "hypergeometric tails", tolerance = 1e-9,
+                   reference = "independent: stats::phyper() of the Chung-Lu null solved above", covers = "hypa.net_hg()",
+                   quantity = "hypergeometric tails", tolerance = 1e-9,
                    key = "pair", note = "stats::phyper() with K = round(m E_ij), N = m^2, n = m")
 })

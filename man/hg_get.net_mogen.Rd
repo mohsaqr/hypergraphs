@@ -45,8 +45,20 @@ applied after any filter. Default \code{NULL} returns every row.}
 }
 \value{
 A data.frame. For \code{what = "orders"}, one row per candidate order:
-\code{order}, \code{log_likelihood}, \code{aic}, \code{bic}, \code{df}, \code{layer_df}, and
-\code{optimal} (logical, \code{TRUE} for the selected order). For
+\code{order}, \code{log_likelihood}, \code{aic}, \code{bic}, \code{df}, \code{layer_df}, \code{p_value}
+and \code{optimal} (logical, \code{TRUE} for the selected order). \code{layer_df} counts
+the parameters of the order's own layer: one per path of \code{order}
+transitions the observed first-order network allows, less one per row of
+the layer's transition matrix (Scholtes 2017, Eq. 7 and its footnote:
+on a complete network this is the Markov chain count
+\eqn{|V|^k (|V| - 1)}{|V|^k (|V| - 1)}). \code{df} sums \code{layer_df} over
+orders 0 to \code{order} (Eq. 8). \code{p_value} is the
+likelihood-ratio test of the model of highest order \code{order} against the
+one of highest order \code{order - 1}, on \code{layer_df} degrees of freedom
+(Scholtes 2017, Eq. 6); it is \code{NA} at orders 0 and 1, where the models
+are not nested, and where the statistic or \code{layer_df} is not positive.
+With \code{criterion = "lrt"} the selected order is the highest whose
+\code{p_value} is below \code{lrt_alpha}, and 1 if there is none. For
 \code{what = "transitions"}, one row per transition: \code{path}, \code{count},
 \code{probability}, \code{from}, \code{to}. For \code{what = "paths"}, one row per distinct
 path of each length in \code{k} (\code{top} applies within each length), grouped
@@ -65,4 +77,9 @@ mg <- mogen(seqs, max_order = 2)
 hg_get(mg)
 hg_get(mg, what = "transitions", top = 5)
 hg_get(mg, what = "paths", k = 3)
+}
+\references{
+Scholtes, I. (2017). When is a network a network? Multi-order graphical
+model selection in pathways and temporal networks. \emph{Proceedings of
+KDD 2017}, 1037--1046. \doi{10.1145/3097983.3098145}
 }

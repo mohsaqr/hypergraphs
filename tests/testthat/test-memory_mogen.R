@@ -411,3 +411,29 @@ test_that("mogen() refuses bad arguments with hypergraphs_bad_input", {
   expect_error(mogen(trajs, criterion = "xx"), class = "hypergraphs_bad_input")
   expect_error(mogen(trajs, lrt_alpha = 1), class = "hypergraphs_bad_input")
 })
+
+test_that("the orders table carries the likelihood-ratio p-value the LRT selection uses", {
+  set.seed(11)
+  trajs <- lapply(seq_len(80L), \(i) {
+    Reduce(\(so_far, t) {
+      last_two <- utils::tail(so_far, 2L)
+      following <- if (identical(last_two, c("A", "B"))) "C" else
+        sample(c("A", "B", "C"), 1L)
+      c(so_far, following)
+    }, seq_len(12L), sample(c("A", "B", "C"), 2L, replace = TRUE))
+  })
+  m <- mogen(trajs, max_order = 3L, criterion = "lrt", lrt_alpha = 0.01)
+  orders <- hg_get(m)
+  expect_type(orders$p_value, "double")
+  expect_true(all(is.na(subset(orders, order <= 1L)$p_value)))
+  tested <- subset(orders, order >= 2L)
+  expect_true(all(tested$p_value >= 0 & tested$p_value <= 1))
+  # the selected order is the highest whose test rejects at lrt_alpha
+  rejected <- subset(tested, p_value < 0.01)$order
+  expect_identical(subset(orders, optimal)$order,
+                   if (length(rejected)) max(rejected) else 1L)
+  expect_identical(subset(orders, optimal)$order, 2L)
+  # the p-value does not depend on the criterion
+  expect_identical(hg_get(mogen(trajs, max_order = 3L, criterion = "aic"))$p_value,
+                   orders$p_value)
+})

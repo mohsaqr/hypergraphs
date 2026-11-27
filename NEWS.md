@@ -1,3 +1,24 @@
+# hypergraphs 0.7.20
+
+* `hg_get()` on a `mogen()` model: the orders table gains `p_value`, the
+  likelihood-ratio test of each highest order against the one below on the
+  layer's degrees of freedom (Scholtes 2017, Eq. 6). It is the number
+  `criterion = "lrt"` selects by, and is `NA` at orders 0 and 1. The page
+  now says how `df` and `layer_df` are counted.
+
+## Equivalence evidence (tests/equivalence, not in the built package)
+
+* `mogen()` order selection: the order picked by the likelihood-ratio test
+  equals pathpy 2.2.0's `MultiOrderModel.estimate_order()` on four inputs,
+  one of them on a sparse first-order network. The layer degrees of
+  freedom equal an enumeration of the allowed paths in base R, and the
+  p-values equal the chi-square tail of the log-likelihood ratio. pathpy's
+  `'paths'` degrees of freedom differ from order 2 on and are recorded as a
+  known difference: pathpy codes Scholtes (2017) Eq. 7 as printed
+  (subtracting the non-zero rows of A^k, at most |V|), while the paper's
+  footnote 1 and the package count one per row of the order-k transition
+  matrix, which gives |V|^k (|V| - 1) on a complete network.
+
 # hypergraphs 0.7.19
 
 ## Equivalence evidence (tests/equivalence, not in the built package)

@@ -106,7 +106,7 @@ test_that("hg_get.net_mogen returns the order table and transitions", {
   ord <- hg_get(mo)
   expect_tidy(ord)
   expect_named(ord, c("order", "log_likelihood", "aic", "bic", "df",
-                      "layer_df", "optimal"))
+                      "layer_df", "p_value", "optimal"))
   expect_identical(sum(ord$optimal), 1L)
   expect_identical(ord$order[ord$optimal], mo$optimal_order)
 

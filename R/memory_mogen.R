@@ -29,8 +29,20 @@
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter. Default `NULL` returns every row.
 #' @return A data.frame. For `what = "orders"`, one row per candidate order:
-#'   `order`, `log_likelihood`, `aic`, `bic`, `df`, `layer_df`, and
-#'   `optimal` (logical, `TRUE` for the selected order). For
+#'   `order`, `log_likelihood`, `aic`, `bic`, `df`, `layer_df`, `p_value`
+#'   and `optimal` (logical, `TRUE` for the selected order). `layer_df` counts
+#'   the parameters of the order's own layer: one per path of `order`
+#'   transitions the observed first-order network allows, less one per row of
+#'   the layer's transition matrix (Scholtes 2017, Eq. 7 and its footnote:
+#'   on a complete network this is the Markov chain count
+#'   \eqn{|V|^k (|V| - 1)}{|V|^k (|V| - 1)}). `df` sums `layer_df` over
+#'   orders 0 to `order` (Eq. 8). `p_value` is the
+#'   likelihood-ratio test of the model of highest order `order` against the
+#'   one of highest order `order - 1`, on `layer_df` degrees of freedom
+#'   (Scholtes 2017, Eq. 6); it is `NA` at orders 0 and 1, where the models
+#'   are not nested, and where the statistic or `layer_df` is not positive.
+#'   With `criterion = "lrt"` the selected order is the highest whose
+#'   `p_value` is below `lrt_alpha`, and 1 if there is none. For
 #'   `what = "transitions"`, one row per transition: `path`, `count`,
 #'   `probability`, `from`, `to`. For `what = "paths"`, one row per distinct
 #'   path of each length in `k` (`top` applies within each length), grouped
@@ -38,6 +50,10 @@
 #'   `count`, `proportion` (share of all `k`-state paths, rounded to 4
 #'   decimals). For `what = "pathways"`, one row per transition with the
 #'   column `pathway`.
+#' @references
+#' Scholtes, I. (2017). When is a network a network? Multi-order graphical
+#' model selection in pathways and temporal networks. \emph{Proceedings of
+#' KDD 2017}, 1037--1046. \doi{10.1145/3097983.3098145}
 #' @examples
 #' seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"),
 #'              c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
@@ -101,6 +117,7 @@ hg_get.net_mogen <- function(x, what = c("orders", "transitions", "paths",
     bic            = as.numeric(x$bic),
     df             = as.integer(x$dof),
     layer_df       = as.integer(x$layer_dof),
+    p_value        = as.numeric(x$lrt_p),
     stringsAsFactors = FALSE
   )
   out$optimal <- out$order == x$optimal_order
